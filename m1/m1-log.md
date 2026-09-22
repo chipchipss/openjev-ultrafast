@@ -14,7 +14,7 @@
 | 2 | evaluator.py | ✅ |
 | 3 | step_budget.py | ✅ |
 | 4 | decision_validator.py | ✅ |
-| 5 | runtime_guard.py | ⬜ |
+| 5 | runtime_guard.py | ✅ |
 | 6 | choose_2b() | ⬜ |
 | 7 | pre_execute 接入 agent.py | ⬜ |
 | 8 | Logger 统一 | ⬜ |
@@ -48,3 +48,25 @@ decision_validator.py 不 import model.py（H2：Decision 层可完全替换）�
 - 职责边界（A10 / A6）：只查 operation / target / choice 映射链；
   类型合法性归 schema，freshness / occlusion / disabled 归 Runtime Guard，黑名单归 Policy。
 - 冒烟：`SMOKE OK: 35/35`。
+
+### 2026-09-22 · runtime_guard 同步点（A9 落地）
+
+runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两边独立定义，
+**任何 snapshot.js 改动导致这三个数组结构变化，本文件必须同步**：
+
+| runtime_guard 常量 | snapshot.js 来源 |
+|---|---|
+| `PAGE_KEY_LEN = 7` | `cache.pageKey()` 返回数组长度 |
+| `MARKER_LEN = 10` | `return {..., marker}` 处 marker 构造 |
+| `GUARD_LEN = 14` | `cache.guard=e=>{...}` 返回数组长度 |
+| `INPUT_STATE_LEN = 6` | `pageKey[6]` 内每个 input state |
+| `MARKER_FIELDS` | marker 各位置顺序 |
+| `GUARD_FIELDS` | guard 各位置顺序 |
+
+- 职责边界（A6 / A9）：只做结构校验（长度、类型、位置）；不做语义判断、
+  不实现 freshness 比对（browser.py 职责）、不做 I/O。
+- 失败路径（E5）：`RuntimeContractViolation` → `failure_class="system"` /
+  `failure_mode="observe_failed"`，不进训练集。
+- 陷阱：`bool ≠ int`——所有 `_is_int` 显式排除 bool，冒烟含专门用例
+  （`page_key[4] = True`）。
+- 冒烟：`SMOKE OK: 40/40`。
