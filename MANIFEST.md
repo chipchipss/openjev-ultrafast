@@ -2,8 +2,8 @@
 
 - 状态标记：✅ 已冻结 / 📝 草案 / ⬜ 待产出
 - 用途：丢失后按此清单重建。每个文件的关键内容已在对话中给出，可按摘要重建。
-- 本仓库当前状态：已落盘 5 件（docs/01、09、10 + evaluator.py + step_budget.py）+ 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
-- 统计：✅ 23 · 📝 0 · ⬜ 13，合计 36（原稿对话计为 26/13，按目录树核算为 21/15；落盘 5 件后转为 23/13）。
+- 本仓库当前状态：已落盘 6 件（docs/01、09、10 + evaluator / step_budget / decision_validator）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
+- 统计：✅ 24 · 📝 1 · ⬜ 12，合计 37（原稿对话计为 26/13、目录树核算 21/15；落盘 6 件并新增 m1-log 后为 24/1/12）。
 
 ---
 
@@ -240,10 +240,15 @@ specs/
 
 ```text
 m1/
+├── m1-log.md             📝 草案
 ├── recon-checklist.md    ✅
 ├── recon-log.md          ✅
 └── tasks.jsonl           ⬜ 待产出
 ```
+
+**m1-log.md 📝**
+
+- M1 实施日志：进度表 + 踩坑记录 + 跨文件同步点清单，持续追加
 
 **recon-checklist.md ✅**
 
@@ -271,13 +276,13 @@ m1/
 
 ## 五、M1 阶段待产出代码文件
 
-evaluator.py、step_budget.py 已落盘，其余尚未开始。列出便于规划目录。
+evaluator.py、step_budget.py、decision_validator.py 已落盘，其余尚未开始。列出便于规划目录。
 
 ```text
 openjev-ultrafast/
 ├── evaluator.py            ✅ TaskSuccessEvaluator（已落盘）
 ├── step_budget.py          ✅ StepBudget（已落盘）
-├── decision_validator.py   ⬜ DecisionValidator（D8 三级一致性）
+├── decision_validator.py   ✅ DecisionValidator（D8 三级一致性，已落盘）
 ├── runtime_guard.py        ⬜ Runtime 契约严格校验（A9）
 ├── logger.py               ⬜ 统一日志出口
 ├── policy.py               ⬜ Policy（先空实现 + 黑名单）
@@ -330,12 +335,13 @@ openjev-ultrafast/
 │   ├── decision.schema.json                 ✅
 │   └── task.schema.json                     ✅
 ├── m1/
+│   ├── m1-log.md                            📝
 │   ├── recon-checklist.md                   ✅
 │   ├── recon-log.md                         ✅
 │   └── tasks.jsonl                          ⬜
 ├── evaluator.py                             ✅
 ├── step_budget.py                           ✅
-├── decision_validator.py                    ⬜
+├── decision_validator.py                    ✅
 ├── runtime_guard.py                         ⬜
 ├── logger.py                                ⬜
 ├── policy.py                                ⬜
@@ -351,8 +357,9 @@ openjev-ultrafast/
     └── text_value.txt                       ⬜
 ```
 
-- ✅ 已冻结文件：23 个（README + CHANGELOG + LICENSE + 11 docs + 5 specs + 2 m1 + evaluator.py + step_budget.py；其中已落盘 5 件：01 / 09 / 10 / evaluator.py / step_budget.py）
-- ⬜ 待产出：13 个（tasks.jsonl + 6 顶层 py + decider 3 件 + prompts 3 件）
+- ✅ 已冻结文件：24 个（README + CHANGELOG + LICENSE + 11 docs + 5 specs + 2 m1 + evaluator.py + step_budget.py + decision_validator.py；其中已落盘 6 件：01 / 09 / 10 / evaluator.py / step_budget.py / decision_validator.py）
+- 📝 草案：1 个（m1/m1-log.md）
+- ⬜ 待产出：12 个（tasks.jsonl + 5 顶层 py + decider 3 件 + prompts 3 件）
 
 ---
 
