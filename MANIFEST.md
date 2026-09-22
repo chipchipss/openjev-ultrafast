@@ -2,8 +2,8 @@
 
 - 状态标记：✅ 已冻结 / 📝 草案 / ⬜ 待产出
 - 用途：丢失后按此清单重建。每个文件的关键内容已在对话中给出，可按摘要重建。
-- 本仓库当前状态：已落盘 4 件（docs/01、09、10 + evaluator.py）+ 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
-- 统计：✅ 22 · 📝 0 · ⬜ 14，合计 36（原稿对话计为 26/13，按目录树核算为 21/15；evaluator.py 落盘后转为 22/14）。
+- 本仓库当前状态：已落盘 5 件（docs/01、09、10 + evaluator.py + step_budget.py）+ 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
+- 统计：✅ 23 · 📝 0 · ⬜ 13，合计 36（原稿对话计为 26/13，按目录树核算为 21/15；落盘 5 件后转为 23/13）。
 
 ---
 
@@ -271,12 +271,12 @@ m1/
 
 ## 五、M1 阶段待产出代码文件
 
-evaluator.py 已落盘，其余尚未开始。列出便于规划目录。
+evaluator.py、step_budget.py 已落盘，其余尚未开始。列出便于规划目录。
 
 ```text
 openjev-ultrafast/
 ├── evaluator.py            ✅ TaskSuccessEvaluator（已落盘）
-├── step_budget.py          ⬜ StepBudget
+├── step_budget.py          ✅ StepBudget（已落盘）
 ├── decision_validator.py   ⬜ DecisionValidator（D8 三级一致性）
 ├── runtime_guard.py        ⬜ Runtime 契约严格校验（A9）
 ├── logger.py               ⬜ 统一日志出口
@@ -334,7 +334,7 @@ openjev-ultrafast/
 │   ├── recon-log.md                         ✅
 │   └── tasks.jsonl                          ⬜
 ├── evaluator.py                             ✅
-├── step_budget.py                           ⬜
+├── step_budget.py                           ✅
 ├── decision_validator.py                    ⬜
 ├── runtime_guard.py                         ⬜
 ├── logger.py                                ⬜
@@ -351,8 +351,8 @@ openjev-ultrafast/
     └── text_value.txt                       ⬜
 ```
 
-- ✅ 已冻结文件：22 个（README + CHANGELOG + LICENSE + 11 docs + 5 specs + 2 m1 + evaluator.py；其中已落盘 4 件：01 / 09 / 10 / evaluator.py）
-- ⬜ 待产出：14 个（tasks.jsonl + 7 顶层 py + decider 3 件 + prompts 3 件）
+- ✅ 已冻结文件：23 个（README + CHANGELOG + LICENSE + 11 docs + 5 specs + 2 m1 + evaluator.py + step_budget.py；其中已落盘 5 件：01 / 09 / 10 / evaluator.py / step_budget.py）
+- ⬜ 待产出：13 个（tasks.jsonl + 6 顶层 py + decider 3 件 + prompts 3 件）
 
 ---
 
