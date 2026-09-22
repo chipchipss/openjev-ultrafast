@@ -2,8 +2,8 @@
 
 - 状态标记：✅ 已冻结 / 📝 草案 / ⬜ 待产出
 - 用途：丢失后按此清单重建。每个文件的关键内容已在对话中给出，可按摘要重建。
-- 本仓库当前状态：仅含本清单与目录骨架；✅ 文件内容已冻结、待按摘要落盘；⬜ 文件待产出。
-- 统计：✅ 21 · 📝 0 · ⬜ 15，合计 36（原稿对话计为 26/13，按下方目录树核算修正为 21/15）。
+- 本仓库当前状态：已落盘 4 件（docs/01、09、10 + evaluator.py）+ 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
+- 统计：✅ 22 · 📝 0 · ⬜ 14，合计 36（原稿对话计为 26/13，按目录树核算为 21/15；evaluator.py 落盘后转为 22/14）。
 
 ---
 
@@ -271,11 +271,11 @@ m1/
 
 ## 五、M1 阶段待产出代码文件
 
-这些尚未开始。列出便于规划目录。
+evaluator.py 已落盘，其余尚未开始。列出便于规划目录。
 
 ```text
 openjev-ultrafast/
-├── evaluator.py            ⬜ TaskSuccessEvaluator
+├── evaluator.py            ✅ TaskSuccessEvaluator（已落盘）
 ├── step_budget.py          ⬜ StepBudget
 ├── decision_validator.py   ⬜ DecisionValidator（D8 三级一致性）
 ├── runtime_guard.py        ⬜ Runtime 契约严格校验（A9）
@@ -333,7 +333,7 @@ openjev-ultrafast/
 │   ├── recon-checklist.md                   ✅
 │   ├── recon-log.md                         ✅
 │   └── tasks.jsonl                          ⬜
-├── evaluator.py                             ⬜
+├── evaluator.py                             ✅
 ├── step_budget.py                           ⬜
 ├── decision_validator.py                    ⬜
 ├── runtime_guard.py                         ⬜
@@ -351,8 +351,8 @@ openjev-ultrafast/
     └── text_value.txt                       ⬜
 ```
 
-- ✅ 已冻结文件：21 个（README + CHANGELOG + LICENSE + 11 docs + 5 specs + 2 m1）
-- ⬜ 待产出：15 个（tasks.jsonl + 8 顶层 py + decider 3 件 + prompts 3 件）
+- ✅ 已冻结文件：22 个（README + CHANGELOG + LICENSE + 11 docs + 5 specs + 2 m1 + evaluator.py；其中已落盘 4 件：01 / 09 / 10 / evaluator.py）
+- ⬜ 待产出：14 个（tasks.jsonl + 7 顶层 py + decider 3 件 + prompts 3 件）
 
 ---
 
@@ -373,5 +373,5 @@ openjev-ultrafast/
 **稍后重建（依赖 clone）**
 
 10. m1/tasks.jsonl（补齐 20 个）
-11. evaluator.py（第一个可写代码）
+11. evaluator.py（第一个可写代码，已落盘）
 12. 其余代码
