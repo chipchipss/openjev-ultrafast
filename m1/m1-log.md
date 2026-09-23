@@ -18,7 +18,7 @@
 | 6 | policy.py | ✅ |
 | 7 | confidence_gate.py | ✅ |
 | 8 | decider/ + prompts/ | ✅ |
-| 9 | pre_execute 接入 agent.py | ⬜ |
+| 9 | agent.py 改造 | ✅ |
 | 10 | Logger 统一 | ⬜ |
 | 11 | 20 tasks | ⬜ |
 
@@ -156,3 +156,29 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
      一致），原断言 `"4:1"` 会抛 ValueError。已改断言，非 action_space 问题。
 - 冒烟：choose_2b `SMOKE OK: 19/19`（11 类路径）、
   field_text_2b `SMOKE OK: 8/8`（6 类路径）。
+
+### 2026-09-23 · Step 9 落盘：agent.py 改造（唯一改基座处）
+
+- **4 点改动**：① tick 内 predict 后插入 `_pre_execute()`（I1：tick = predict +
+  pre_execute + act，不暴露为命令）② 新增 `_pre_execute()`，链序 StepBudget →
+  DecisionValidator → Policy → ConfidenceGate → §5bis（M1 死代码保留）③
+  run() / predict 首检终止条件加 `budget_exceeded`（共 3 处同步）④
+  history.append 新增 `pre_execute` 字段（act 开头 `state.pop`，
+  tick 的 StalePage 分支清空防跨 tick 残留）。
+- **关键语义**：Validator 失败 → 抛 StalePage（重 observe → 重 predict，
+  持续非法由 StepBudget abort 兜底）；Policy 拒绝 → 直接 blocked（G2 安全优先）；
+  fixed_high 下 gate 恒不升级，§5bis 为 M5 挂钩（A5 / B4）。
+- **向后兼容**：`task_spec=None` → `StepBudget(MAX_STEPS, MAX_STEPS * 2)`，
+  与原硬上限行为等价；decider 契约核对一致——`choose(state, goal, history)`、
+  history 旧字段（probabilities[choice] / confidence / latency_ms / usage /
+  operation / target）全部命中 round-8 decider 输出。
+- **基线说明**：agent.py 全文在本对话中首次出现（此前仅 recon-log 摘要），
+  无本地版本可对比 drift；以本轮贴出版本为基准落盘。
+- **验证边界**：`python3 -m py_compile agent.py` 通过（PY_COMPILE_OK）；
+  e2e（浏览器 + mock decider）依赖基座包结构（`.browser / .model / .questions`
+  相对导入）与浏览器——**Step 1 fork 仍 ⬜，运行级验证推迟到 fork 后**。
+  **同步点**：fork 时须把根级模块（decision_validator / policy / step_budget /
+  confidence_gate）安放进 `.xxx` 相对导入可达的同一包目录。
+- **观察（供 Step 10 Logger）**：DONE / BLOCKED 终态 tick 的 act 走哨兵分支早返回，
+  该步 `pre_execute` 不进 history（与基座"终态步无 history 行"一致）——
+  Logger 若要终态预算快照需另取（`state["pre_execute"]` 在该分支 pop 后未写入任何地方）。

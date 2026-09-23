@@ -2,8 +2,8 @@
 
 - 状态标记：✅ 已冻结 / 📝 草案 / ⬜ 待产出
 - 用途：丢失后按此清单重建。每个文件的关键内容已在对话中给出，可按摘要重建。
-- 本仓库当前状态：已落盘 17 件（docs/01、09、10 + evaluator / step_budget / decision_validator / runtime_guard / policy / confidence_gate + prompts×3 + decider×5）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
-- 统计：✅ 35 · 📝 1 · ⬜ 3，合计 39（原稿 37 件 + 新增 decider/_http.py、decider/action_space.py；落盘 17 件）。
+- 本仓库当前状态：已落盘 18 件（docs/01、09、10 + agent.py + evaluator / step_budget / decision_validator / runtime_guard / policy / confidence_gate + prompts×3 + decider×5）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
+- 统计：✅ 36 · 📝 1 · ⬜ 3，合计 40（原稿 37 件 + 新增 _http.py、action_space.py、agent.py 改造稿；落盘 18 件）。
 
 ---
 
@@ -343,6 +343,7 @@ openjev-ultrafast/
 │   ├── recon-checklist.md                   ✅
 │   ├── recon-log.md                         ✅
 │   └── tasks.jsonl                          ⬜
+├── agent.py                                 ✅
 ├── evaluator.py                             ✅
 ├── step_budget.py                           ✅
 ├── decision_validator.py                    ✅
@@ -363,7 +364,7 @@ openjev-ultrafast/
     └── text_value.txt                       ✅
 ```
 
-- ✅ 已冻结文件：35 个（21 项基础文档 + 6 顶层 py + prompts 3 + decider 5；其中已落盘 17 件 = docs 3 + 顶层 py 6 + prompts 3 + decider 5）
+- ✅ 已冻结文件：36 个（21 项基础文档 + agent.py + 6 顶层 py + prompts 3 + decider 5；其中已落盘 18 件 = docs 3 + agent.py + 顶层 py 6 + prompts 3 + decider 5）
 - 📝 草案：1 个（m1/m1-log.md）
 - ⬜ 待产出：3 个（tasks.jsonl + logger.py + api_teacher.py）
 
