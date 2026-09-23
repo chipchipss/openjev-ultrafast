@@ -839,3 +839,40 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
      `_m2_acceptance(merged, manifest)` → 写 `reports/m2_final.json`
 - **现场归档不动**：`m2_r0prefit / m2_429abort / m2_53probe / m2_preflight`；
   `logs/m2_more` 为新 7 轮独占目录。
+
+#### 晨间 runbook 补充（用户校订）：合并前两道预检 + 三档决策树
+
+**预检（任何目录 <50 = 该轮中途 abort，先诊断，禁止直接合并）**：
+```bash
+# 1) 每轮目录应有 50 个 jsonl（50 任务 ×1 文件）
+for d in logs/m2/r0 logs/m2/r1 logs/m2/r2; do echo "$d: $(ls $d/*.jsonl 2>/dev/null | wc -l)"; done   # 预期每行 50
+for i in 0 1 2 3 4 5 6; do d=logs/m2_more/r$i; echo "$d: $(ls $d/*.jsonl 2>/dev/null | wc -l)"; done   # 预期每行 50
+# 2) 合并后总数核对
+ls logs/m2final/r*/ | grep -c jsonl   # 预期 500（10 轮 ×50）；不等 = 漏拷，先补齐再抽
+```
+
+**三档决策树（合并+重抽后按 c_pairs 总数走；三档都不下调门槛）**：
+- **≥200** → 五判据全绿正式收口；记档"强 decider baseline"；
+  白天可选跑弱 decider 作对照（**不必等对照结果才进 M3**）。
+- **150-200** → 接受"强 decider 天然稀缺"结论 + 记档发现，**不追加轮次**
+  （时间成本 > 边际收益）；弱 decider 实验提上日程（真正的 M2 补完）。
+- **<150** → "decider 太强"结论更硬；直接进弱 decider 实验，
+  补轮这条死路放下；**M2 收口口径改为"两个 decider 的对照实验"而非硬凑 200 pair**。
+
+#### M2 核心发现·正式提炼（本条比 c_pairs=200 重要）
+
+| 假设 | 现实 | 后果 |
+|---|---|---|
+| decider 弱 → 多分歧 → 多 c_pairs | decider 强 → **84% agree** | c_pairs 天然稀缺 |
+| teacher 越强越好 | teacher 太强也死：一致率↑ | **两个模型能力要匹配** |
+| M4 用 c_pairs 训 2B | 能力差不足 → 训练信号不足 | **M4 数据源要重新设计** |
+
+- **结论**：M2 的价值不在"够不够 200 pair"，在发现——
+  **两个模型的能力差才是数据飞轮的燃料**。
+- **对 M4 的直接影响，两条路**：
+  **A.** 用更弱的 decider 再跑一轮 M2（产 c_pairs）；
+  **B.** M4 改用 SFT（a_positive + 人工修正）替代 DPO。
+- **过夜补轮的真正定位**：不是凑数字，是**给弱 decider 实验准备 baseline**——
+  76（+过夜增量）个 c_pairs = 强 decider baseline，白天弱 decider 那轮 =
+  弱 decider baseline，两条曲线对比才是"decider 能力 vs 分歧率"的关系本身。
+  **对照实验 = M2 最有价值的产出**；验收不让路，让发现说话。
