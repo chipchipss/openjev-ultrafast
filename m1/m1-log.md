@@ -452,3 +452,36 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
   2. `m2/tasks_extra.jsonl`：30 模板（search8/form6/nav6/list4/toggle3/negative3），
      ID 续号 s006+/f005+/n005+/l004+/t003+/x003+，dry-run 校验。
   3. A0.3 记档（上）+ 清单注解纠正。
+
+### 2026-09-23 · C 落笔：A0.3 四步走完 + M2 #2/#C 交付
+
+- **A0.3 四步完成（docs/03 v1.2 冻结生效）**：
+  ① 不新增 hard-rules 编号（纯 03 内容修订）→ ② 理由：M2 四类数据含"API 修正"，
+  Teacher 必须 M2——原"M5 产出"错位 → ③ CHANGELOG `[M2-start]` 条目落笔 →
+  ④ 冲突检查对照 01 六条（F2/B1/B4/C2/E1/H2）**全 ✅，无冲突**。
+  docs/03-milestones.md（v1.2）与 CHANGELOG.md **首次落盘**（已落盘 24→26）。
+- **#2 `api_teacher.py` 落盘，冒烟 19/19 双布局**：
+  - `APITeacher(budget)` 强制持真实 `APIBudget`（B1：Teacher 池消费，耗尽在入口
+    即抛 `APIBudgetExhausted`）；
+  - `TEACHER_BASE_URL / TEACHER_MODEL / TEACHER_API_KEY` 全部 required 且与
+    decider 分开——**禁止静默同源**：同模型问不出分歧信号，C 类数据即废；
+  - HTTP 复用 `decider/_http.post_chat`（退避重试 / 关 Thinking / json_object 全继承）；
+  - 输出带 C4 三字段（source / api_model / api_confidence——C5 仅记录，M5 才校准）
+    + corrected / usage / latency_ms；HTTP 或响应损坏 → RuntimeError（E5 system 类），
+    **坏响应不消费预算**（先验后消耗）。
+  - 冒烟修了两轮**测试数据** bug（位置参数记录、"缺 operation"喂错 payload），
+    实现零改动。
+- **#C `m2/c1_check.py` 落盘并首跑 PASS（exit 0）**：
+  - 20/20 声明域可解析、0 违规、占位符泄漏检查就位（tasks_extra 填域后可直接复验）；
+  - **benchmark 域名足迹 11 hosts = M2 划训练域的排除清单**：
+    chromewebdata（x001 DNS 错误伪域，剔除）、developer.mozilla.org、docs.python.org、
+    en.wikipedia.org、google.com、httpbin.org、news.ycombinator.com、python.org、
+    rfc-editor.org、selenium.dev、w3.org；
+  - 5 个 0 动作任务（f001/f002/t001/x001/x002）info 注明。
+  - **语义修正记档**：原设想"首 step url = 起始页"不成立——agent 在 act 后把
+    `history[-1].url` 更新为**动作后**页面（n001 点击后 step1.url=docs.python.org
+    即例证）；起始页域校验需 logger 增加 initial_page 事件 → **挂 M2 #5 一并做**。
+- **M2 进度**：#1 api_budget ✅ / #2 api_teacher ✅（本轮）/ #3 MODE_SHADOW ⬜ /
+  #4 sample_extractor ⬜ / #5 m2/run_tasks ⬜ / C 文档 A0.3 ✅（本轮）。
+- 下一步：B（30 模板填域）等用户按 C1 拍板——足迹清单已备好作排除输入；
+  代码侧推进 #3 MODE_SHADOW。
