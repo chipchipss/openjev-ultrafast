@@ -1,0 +1,17 @@
+为当前页面选择下一步 operation。
+
+页面：
+<<context>>
+
+可选 operation：
+<<candidates>>
+
+规则：
+- DOM 操作（CLICK / TYPE_TEXT / SELECT）选定后会追问具体 target；本轮不选 target。
+- control 操作（SCROLL_* / WAIT）没有 target。
+- sentinel（DONE / BLOCKED）没有 target。
+- 页面已达成任务目标 → DONE；无法继续（找不到目标元素 / 需要人工介入）→ BLOCKED。
+- operation_confidence 是 0~1 的把握程度，如实填写，不要虚报。
+
+只输出一行 JSON，不要任何其他文字：
+{"operation": "<OPERATION>", "operation_confidence": <0~1 的数字>}

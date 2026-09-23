@@ -2,8 +2,8 @@
 
 - 状态标记：✅ 已冻结 / 📝 草案 / ⬜ 待产出
 - 用途：丢失后按此清单重建。每个文件的关键内容已在对话中给出，可按摘要重建。
-- 本仓库当前状态：已落盘 9 件（docs/01、09、10 + evaluator / step_budget / decision_validator / runtime_guard / policy / confidence_gate）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
-- 统计：✅ 27 · 📝 1 · ⬜ 9，合计 37（原稿对话计为 26/13、目录树核算 21/15；落盘 9 件并新增 m1-log 后为 27/1/9）。
+- 本仓库当前状态：已落盘 15 件（docs/01、09、10 + evaluator / step_budget / decision_validator / runtime_guard / policy / confidence_gate + prompts×3 + decider×3）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
+- 统计：✅ 33 · 📝 1 · ⬜ 3，合计 37（原稿对话计为 26/13、目录树核算 21/15；落盘 15 件并新增 m1-log 后为 33/1/3）。
 
 ---
 
@@ -276,7 +276,7 @@ m1/
 
 ## 五、M1 阶段待产出代码文件
 
-evaluator.py、step_budget.py、decision_validator.py、runtime_guard.py、policy.py、confidence_gate.py 已落盘，其余尚未开始。列出便于规划目录。
+顶层 6 个 py + prompts×3 + decider×3 已落盘，其余尚未开始（logger.py / api_teacher.py / tasks.jsonl）。列出便于规划目录。
 
 ```text
 openjev-ultrafast/
@@ -289,14 +289,16 @@ openjev-ultrafast/
 ├── confidence_gate.py      ✅ Confidence Gate（先固定 HIGH，已落盘）
 ├── api_teacher.py          ⬜ API Teacher（M1 后期）
 ├── decider/
-│   ├── __init__.py
-│   ├── choose_2b.py        ⬜ 替换 model.py:choose
-│   └── field_text_2b.py    ⬜ 替换 model.py:field_text
+│   ├── __init__.py                          ✅（已落盘）
+│   ├── choose_2b.py                         ✅ 替换 model.py:choose（已落盘）
+│   └── field_text_2b.py                     ✅ 替换 model.py:field_text（已落盘）
 └── prompts/
-    ├── next_action.txt     ⬜ 移植 questions.py:NEXT_ACTION
-    ├── target.txt          ⬜ 移植 questions.py:TARGET
-    └── text_value.txt      ⬜ 移植 questions.py:TEXT_VALUE
+    ├── next_action.txt                      ✅ 移植 questions.py:NEXT_ACTION（按契约新写）
+    ├── target.txt                           ✅ 移植 questions.py:TARGET（按契约新写）
+    └── text_value.txt                       ✅ 移植 questions.py:TEXT_VALUE（按契约新写）
 ```
+
+来源说明：questions.py / model.py 原文不在 LA、DE 任何机器（基座 Step 1 未 fork）。prompts 三件与 decider 三件按已冻结文档契约新写，非逐字移植；基座 fork 后 Step 7 对接适配，prompts 原文到位后对照合并（见 m1/m1-log.md 同步点）。
 
 替换点（唯一改 jev-ultrafast 的两处）：
 
@@ -348,18 +350,18 @@ openjev-ultrafast/
 ├── confidence_gate.py                       ✅
 ├── api_teacher.py                           ⬜
 ├── decider/
-│   ├── __init__.py                          ⬜
-│   ├── choose_2b.py                         ⬜
-│   └── field_text_2b.py                     ⬜
+│   ├── __init__.py                          ✅
+│   ├── choose_2b.py                         ✅
+│   └── field_text_2b.py                     ✅
 └── prompts/
-    ├── next_action.txt                      ⬜
-    ├── target.txt                           ⬜
-    └── text_value.txt                       ⬜
+    ├── next_action.txt                      ✅
+    ├── target.txt                           ✅
+    └── text_value.txt                       ✅
 ```
 
-- ✅ 已冻结文件：27 个（README + CHANGELOG + LICENSE + 11 docs + 5 specs + 2 m1 + evaluator.py + step_budget.py + decision_validator.py + runtime_guard.py + policy.py + confidence_gate.py；其中已落盘 9 件：01 / 09 / 10 / evaluator / step_budget / decision_validator / runtime_guard / policy / confidence_gate）
+- ✅ 已冻结文件：33 个（21 项基础文档 + 6 顶层 py + prompts 3 + decider 3；其中已落盘 15 件 = docs 3 + 顶层 py 6 + prompts 3 + decider 3）
 - 📝 草案：1 个（m1/m1-log.md）
-- ⬜ 待产出：9 个（tasks.jsonl + 2 顶层 py + decider 3 件 + prompts 3 件）
+- ⬜ 待产出：3 个（tasks.jsonl + logger.py + api_teacher.py）
 
 ---
 

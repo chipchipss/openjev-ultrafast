@@ -17,7 +17,7 @@
 | 5 | runtime_guard.py | ✅ |
 | 6 | policy.py | ✅ |
 | 6 | confidence_gate.py | ✅ |
-| 7 | choose_2b() | ⬜ |
+| 7 | choose_2b() | ✅ |
 | 8 | pre_execute 接入 agent.py | ⬜ |
 | 9 | Logger 统一 | ⬜ |
 | 10 | 20 tasks | ⬜ |
@@ -85,3 +85,37 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
 - confidence_gate：§5bis 状态机唯一实现处（B4）；M1 `mode=fixed_high` 永不升级，
   M5 切换只改 `__init__` 参数；阈值从 StepBudget 读（degrade → 0.75，D1）。
 - 冒烟：policy `SMOKE OK: 34/34`、confidence_gate `SMOKE OK: 40/40`。
+
+### 2026-09-23 · Step 6→7 前置落盘：prompts×3 + decider×3（接口 B 确认）
+
+- **接口边界（拍板 B）**：OpenAI-compatible HTTP 为唯一 Decider 边界——
+  `POST {base_url}/chat/completions`；base_url / model 经 `DECIDER_BASE_URL` /
+  `DECIDER_MODEL`（或构造参数）配置；**不绑定 llama-cpp-python**，后端
+  （llama.cpp server / Ollama / vLLM / 任意兼容 API）可换，代码不随然后端变。
+- **来源说明（重要）**：`questions.py` / `model.py` 原文不在两台机器——
+  DE `find`（/root /opt /home /srv，depth 5，questions.py / model.py / jev*）零命中；
+  LA 浅层 glob + grep `NEXT_ACTION`（排除会话日志）零命中；基座 Step 1（fork）仍 ⬜。
+  三件 prompts **按已冻结文档契约新写、非逐字移植**（D8 / D9 / D13 / A7 / A8 / D17
+  规则逐条落入）。questions.py 原文到位后必须对照合并。
+- **同步点新增**：
+
+  | prompts 文件 | 来源 |
+  |---|---|
+  | prompts/next_action.txt | questions.py:NEXT_ACTION（原文待对照） |
+  | prompts/target.txt | questions.py:TARGET（原文待对照） |
+  | prompts/text_value.txt | questions.py:TEXT_VALUE（原文待对照） |
+
+- **两阶段协议（A7 落地）**：stage1 `next_action.txt` 选 operation → DOM 类 stage2
+  `target.txt` 选 target + choice；control / sentinel 的 choice 由代码派生
+  （`controls[op]["id"]` / operation，与 decision_validator 同源）；
+  产出必经 `decision_validator.validate()`（D8）自检，不通过抛 `DecisionInvalid`。
+- **HTTP 出口**：`Decider2B.infer()` 是唯一网络边界（stdlib urllib，零第三方依赖）；
+  `field_text_2b` 复用同一通道，坏输出走 ValueError（D17 设计特性）。
+- **接口未知项**：`model.py:choose()` / `field_text()` 原签名待基座 fork 后在 Step 7
+  适配；现对外 `choose(page) -> decision dict`、`field_text(hint, page) -> str | None`。
+- 冒烟：choose_2b `SMOKE OK: 39/39`（含 D8 拒绝、unknown_operation、
+  HTTP connection-refused、模板缺失路径）、field_text_2b `SMOKE OK: 11/11`
+  （含 D17 null / ValueError 路径）。
+- 踩坑（测试侧）：D8 用例曾对同一 Fake 连调两次 `choose()` →
+  `IndexError: pop from empty list`，且断言 `attr/want` 误传造成假 FAIL——
+  每次调用前重建 Fake 后修复；非 choose_2b 逻辑问题。
