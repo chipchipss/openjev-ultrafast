@@ -48,7 +48,7 @@ def _done_guard(decision: dict, state: dict) -> str | None:
 
 class Agent:
     def __init__(self, url, goals, *, record_dir=None, screenshots=False,
-                 task_spec=None):
+                 task_spec=None, api_teacher=None, api_budget=None):
         task = goals.strip() if isinstance(goals, str) else "\n".join(goals).strip()
         if not task:
             raise ValueError("Supply a task")
@@ -58,14 +58,20 @@ class Agent:
         self.record_dir = Path(record_dir) if record_dir else None
         self.screenshots = screenshots or bool(record_dir)
 
-        # --- M1: pre_execute 组件 ---
+        # --- M1/M2: pre_execute 组件 ---
         if task_spec is not None:
             self.step_budget = StepBudget.from_task_spec(task_spec)
         else:
             # 向后兼容：没有 TaskSpec 时退化为 MAX_STEPS 硬上限
             self.step_budget = StepBudget(MAX_STEPS, MAX_STEPS * 2)
-        self.confidence_gate = ConfidenceGate(ConfidenceGate.MODE_FIXED_HIGH)
-        self.api_budget = None  # M5 接入
+
+        # --- M2: 默认 shadow（若提供 teacher） ---
+        gate_mode = (ConfidenceGate.MODE_SHADOW
+                     if api_teacher is not None
+                     else ConfidenceGate.MODE_FIXED_HIGH)
+        self.confidence_gate = ConfidenceGate(gate_mode)
+        self.api_teacher = api_teacher
+        self.api_budget = api_budget
 
         try:
             page = self.browser.observe(screenshot=self.screenshots)
@@ -83,6 +89,9 @@ class Agent:
             plan_index=0,
             decisions=[],
             text_calls=[],
+            # --- M2 ---
+            teacher_decisions=[],
+            # --- M1 ---
             elapsed_ms=0,
             started_at=None,
             record=bool(self.record_dir),
@@ -155,10 +164,13 @@ class Agent:
         # 4. ConfidenceGate (A5 / D9 / B4)
         gate = self.confidence_gate.decide(decision, step_budget=self.step_budget)
         pre["confidence_gate"] = gate.to_dict()
+        # 5. Shadow 采集（M2）
+        if gate.shadow_requested and self.api_teacher is not None:
+            self._run_shadow(decision, pre)
+
+        # 6. §5bis 状态机（仅 calibrated 下 go_teacher=True 时进入）
         if not gate.go_teacher:
             return True
-
-        # 5. §5bis 状态机（M1 fixed_high 不进入此分支）
         escalation = self.confidence_gate.resolve_escalation(
             gate,
             step_budget=self.step_budget,
@@ -177,6 +189,110 @@ class Agent:
             return False
         # ESCALATION_LOCAL
         return True
+
+    def _run_shadow(self, local_decision: dict, pre: dict) -> None:
+        """M2 影子采集。不改变执行路径，异常不向外抛（保 I1）。
+
+        契约（§四）：api_teacher.choose(state_page_dict, goal_str, history_list)
+        返回扁平 teacher decision（含 source / api_model / api_confidence，C4）。
+        budget 消耗在 Validator 通过后由本方法执行（先验后消耗）。
+        """
+        state = self.state
+
+        # 1. budget 检查
+        if self.api_budget is not None:
+            try:
+                available = self.api_budget.teacher_available()
+            except Exception:
+                available = False
+            if not available:
+                pre["shadow"] = {"status": "budget_exhausted"}
+                return
+
+        # 2. 调用（全部异常吞掉，绝不阻塞 act）
+        import time as _time
+        started = _time.perf_counter()
+        try:
+            teacher_decision = self.api_teacher.choose(
+                state["page"], state["goal"], state["history"]
+            )
+        except Exception as e:
+            pre["shadow"] = {
+                "status":  "failed",
+                "error":   f"{type(e).__name__}: {e}",
+                "latency_ms": round((_time.perf_counter() - started) * 1000),
+            }
+            return
+        latency_ms = round((_time.perf_counter() - started) * 1000)
+
+        # 3. 校验（C2：Teacher 输出必须经 Validator）
+        try:
+            val = decision_validator.validate(teacher_decision, state["page"])
+        except Exception as e:
+            pre["shadow"] = {
+                "status": "validate_error",
+                "error":  f"{type(e).__name__}: {e}",
+                "latency_ms": latency_ms,
+            }
+            return
+
+        if not val.valid:
+            pre["shadow"] = {
+                "status":  "invalid",
+                "code":    val.code,
+                "reason":  val.reason,
+                "latency_ms": latency_ms,
+            }
+            # 无效的 teacher 决策不消耗 budget（先验后消耗）
+            return
+
+        # 4. 消耗 budget（仅在成功时）
+        if self.api_budget is not None:
+            try:
+                self.api_budget.consume_teacher()
+            except Exception:
+                pass  # 消耗失败不影响采集（极端竞态）
+
+        # 5. 记录对比
+        local_choice    = local_decision.get("choice")
+        teacher_choice  = teacher_decision.get("choice")
+        local_op        = local_decision.get("operation")
+        teacher_op      = teacher_decision.get("operation")
+        local_target    = local_decision.get("target")
+        teacher_target  = teacher_decision.get("target")
+
+        entry = {
+            "step":           len(state["history"]),
+            "local": {
+                "choice":    local_choice,
+                "operation": local_op,
+                "target":    local_target,
+                "operation_confidence": local_decision.get("operation_confidence"),
+                "target_confidence":    local_decision.get("target_confidence"),
+            },
+            "teacher": {
+                "choice":    teacher_choice,
+                "operation": teacher_op,
+                "target":    teacher_target,
+                "operation_confidence": teacher_decision.get("operation_confidence"),
+                "target_confidence":    teacher_decision.get("target_confidence"),
+                # C4 三字段
+                "source":         teacher_decision.get("source", "api"),
+                "api_model":      teacher_decision.get("api_model") or teacher_decision.get("model"),
+                "api_confidence": teacher_decision.get("api_confidence") or teacher_decision.get("confidence"),
+            },
+            "agree":          local_choice == teacher_choice,
+            "operation_match": local_op == teacher_op,
+            "target_match":    local_target == teacher_target,
+            "latency_ms":     latency_ms,
+            "usage":          teacher_decision.get("usage", {}),
+        }
+        state["teacher_decisions"].append(entry)
+        pre["shadow"] = {
+            "status":  "recorded",
+            "agree":   entry["agree"],
+            "latency_ms": latency_ms,
+        }
 
     def command(self, name, body=None):
         body = body or {}

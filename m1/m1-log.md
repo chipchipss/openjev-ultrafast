@@ -485,3 +485,31 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
   #4 sample_extractor ⬜ / #5 m2/run_tasks ⬜ / C 文档 A0.3 ✅（本轮）。
 - 下一步：B（30 模板填域）等用户按 C1 拍板——足迹清单已备好作排除输入；
   代码侧推进 #3 MODE_SHADOW。
+
+### 2026-09-23 · M2 #3：MODE_SHADOW + agent 影子接入（契约核对与缝合）
+
+- **§四契约核对结论：签名不匹配，且存在规格漂移**——启动清单原话"输入 decision
+  场景，输出 corrected decision"（= 已落盘的 `correct()` **评审模式**，把本地答案
+  喂给 Teacher，有锚定效应）；§四却是 `choose(page, goal, history)` **独立作答**
+  （无锚定，C 类 preference pair 更干净）。处置：**补 §四 `choose()`**（独立模式、
+  扁平 decision 输出、**不自消耗**——消费权归 agent._run_shadow 在 Validator 通过后，
+  先验后消耗），`correct()` 保留作评审模式；**agent 侧你的代码一字未改**。
+- **confidence_gate v2 落盘**：`MODE_SHADOW` / `GateResult.shadow_requested` /
+  fixed_high 恒 False / shadow 恒 `go_teacher=False + shadow_requested=True`
+  （不切执行路径，sentinel 也采集——DONE 过早是 M1 关键失败模式）/
+  calibrated 下 sentinel 归 False、go_teacher=True 时 requested=True（校准数据持续采集）。
+  **旧冒烟 1 处断言按 v2 语义调整**：fixed_high 分支先于 sentinel 判断 →
+  g_high 下 DONE 的 reason 由 `sentinel_no_teacher` 改为 `mode_fixed_high`
+  （sentinel_no_teacher 现仅存在于 calibrated 分支）。旧 40 + 新 9 = **49/49 双布局**。
+- **agent 3 处增量落盘**：`__init__` 加 `api_teacher/api_budget`；gate_mode 自动
+  （有 teacher → shadow，无 → fixed_high，**M1 调用行为零变化**）；
+  `state.teacher_decisions=[]`；gate 后插 #5 shadow step；`_run_shadow()` 全异常
+  吞掉（I1），分5 步：budget 检查 → 调用 → C2 Validator 校验（invalid 不消耗）→
+  成功才 consume → 记录 local/teacher 对比（agree/operation_match/target_match + C4）。
+  `_run_shadow` 不碰 `state["decision"]`——只记录不切换。
+- **teacher choose() 冒烟 +11 → 30/30 双布局**：扁平字段、C4 三字段、
+  **不自消耗**、goal+history 渲染、**无 "Local model" 字样（无锚定实证）**、
+  耗尽抛 APIBudgetExhausted。
+- py_compile ×3 双布局 ✓、`m1.run_tasks --dry-run` ✓。
+- **选项C 启动**：M1 回归（20 任务无 teacher → 自动 fixed_high）验证 agent/gate
+  改动对 M1 零影响。

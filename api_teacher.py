@@ -58,6 +58,46 @@ SYSTEM_TEACHER = (
 )
 
 
+SYSTEM_TEACHER_CHOOSE = (
+    "You are an expert browser-automation decision maker. Given the user's goal, "
+    "the current page, and recent actions, output the decision YOU would take as "
+    "one JSON object with exactly these keys: "
+    '{"operation": string, "target": string|null, "choice": string, '
+    '"operation_confidence": number in [0,1], '
+    '"target_confidence": number in [0,1] or null}. '
+    "No explanations, no code, no markdown. Only the JSON object."
+)
+
+
+def _scenario_choose(state: dict, goal: str, history: list) -> str:
+    text = state.get("text") or ""
+    if not isinstance(text, str):
+        text = str(text)
+    if len(text) > 6000:
+        text = text[:6000] + "…（已截断）"
+    recent = []
+    for h in (history or [])[-10:]:
+        line = f"  {h.get('step', '?')}. {h.get('kind', '?')} {h.get('action', '?')}"
+        if h.get("text"):
+            line += f' text="{h["text"]}"'
+        if h.get("page_changed") is not None:
+            line += f" page_changed={h['page_changed']}"
+        recent.append(line)
+    return "\n".join([
+        f"Goal: {goal}",
+        "",
+        "Current page:",
+        f"- url: {state.get('url', '')}",
+        f"- title: {state.get('title', '')}",
+        f"- text: {text}",
+        "",
+        "Recent actions:",
+        "\n".join(recent) if recent else "  (none)",
+        "",
+        "Output the decision you would take as one JSON object.",
+    ])
+
+
 def _env(name: str) -> str:
     v = os.environ.get(name)
     if not v:
@@ -99,6 +139,72 @@ class APITeacher:
         if not isinstance(budget, APIBudget):
             raise ValueError("budget must be an APIBudget (B1: teacher pool lives here)")
         self.budget = budget
+
+    def choose(self, state: dict, goal: str, history: list) -> dict:
+        """§四契约：独立模式——不看本地 decision，Teacher 自己答同一题（无锚定）。
+
+        不消耗 budget：由 agent._run_shadow 在 Validator 通过后 consume（先验后消耗）。
+        返回扁平 decision dict + C4 字段（source / api_model / api_confidence / model）。
+        """
+        if not isinstance(state, dict):
+            raise TypeError("state must be a dict (agent.state['page'])")
+        if not isinstance(goal, str):
+            raise TypeError("goal must be a str")
+        if history is not None and not isinstance(history, list):
+            raise TypeError("history must be a list")
+        if not self.budget.teacher_available():
+            raise APIBudgetExhausted(
+                f"teacher pool exhausted ({self.budget.teacher_used}/{self.budget.teacher_limit})"
+            )
+
+        base = _env("TEACHER_BASE_URL").rstrip("/")
+        model = _env("TEACHER_MODEL")
+        key = os.environ.get("TEACHER_API_KEY", "")
+
+        messages = [
+            {"role": "system", "content": SYSTEM_TEACHER_CHOOSE},
+            {"role": "user", "content": _scenario_choose(state, goal, history or [])},
+        ]
+
+        started = time.perf_counter()
+        result, _ = post_chat(
+            base, model, key, messages,
+            max_tokens=512, temperature=0.0,
+            response_format={"type": "json_object"},
+        )
+        latency_ms = round((time.perf_counter() - started) * 1000)
+
+        try:
+            content = result["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError):
+            raise RuntimeError("Teacher returned unexpected response shape") from None
+        if not isinstance(content, str):
+            raise RuntimeError("Teacher content is not a string")
+        try:
+            parsed = json.loads(content)
+        except json.JSONDecodeError as e:
+            raise RuntimeError(f"Teacher returned non-JSON: {e}") from None
+        if not isinstance(parsed, dict):
+            raise RuntimeError("Teacher response is not a JSON object")
+        if "operation" not in parsed:
+            raise RuntimeError("Teacher response missing 'operation'")
+
+        api_confidence = parsed.get("operation_confidence")
+        try:
+            api_confidence = float(api_confidence) if api_confidence is not None else None
+        except (TypeError, ValueError):
+            api_confidence = None
+
+        out = dict(parsed)
+        out.update({
+            "source":         "api",          # C4
+            "api_model":      model,          # C4
+            "model":          model,          # §四 字段
+            "api_confidence": api_confidence,  # C4（C5 仅记录）
+            "usage":          result.get("usage", {}),
+            "latency_ms":     latency_ms,
+        })
+        return out
 
     def correct(self, state: dict, decision: dict) -> dict:
         """问 Teacher 一次，返回带 C4 来源标记的 corrected 记录。"""
@@ -261,6 +367,32 @@ def _smoke() -> None:
     mod.post_chat = Fake(shape_ok=False)
     check_raises("bad shape → RuntimeError",
                  lambda: t2.correct(state, local), RuntimeError)
+
+    # --- choose()（§四契约：独立模式、扁平输出、不自消耗） ---
+    b4 = APIBudget(3, 1)
+    t4 = APITeacher(b4)
+    mod.post_chat = Fake({"operation": "CLICK", "target": "1", "choice": "e1",
+                          "operation_confidence": 0.9, "target_confidence": 0.8})
+    hist = [{"step": 1, "kind": "click", "action": "Open", "page_changed": True}]
+    ch = t4.choose({"url": "https://example.com/", "title": "t", "text": "body"},
+                   "go to the standards page", hist)
+    check("choose flat choice", ch.get("choice") == "e1")
+    check("choose flat operation", ch.get("operation") == "CLICK")
+    check("choose source (C4)", ch.get("source") == "api")
+    check("choose api_model (C4)", ch.get("api_model") == "teacher-model-x")
+    check("choose model field (§四)", ch.get("model") == "teacher-model-x")
+    check("choose api_confidence (C4)", ch.get("api_confidence") == 0.9)
+    check("choose usage", ch.get("usage", {}).get("total_tokens") == 42)
+    check("choose NOT consumed（agent 消费，§四）", b4.teacher_used == 0)
+    umsg = mod.post_chat.calls[-1]["args"][3][1]["content"]
+    check("choose renders goal + history",
+          "go to the standards page" in umsg and "Open" in umsg)
+    check("choose independent（无本地 decision 锚定）", "Local model" not in umsg)
+    b4.consume_teacher()
+    b4.consume_teacher()
+    b4.consume_teacher()
+    check_raises("choose exhausted → APIBudgetExhausted",
+                 lambda: t4.choose({"url": "u"}, "g", []), APIBudgetExhausted)
 
     # --- 缺 env → RuntimeError ---
     os.environ.pop("TEACHER_MODEL", None)

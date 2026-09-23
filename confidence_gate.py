@@ -7,18 +7,8 @@
   B4  预算冲突优先级由 Confidence Gate 编排（§5bis）
   D9  Confidence 分层：operation_confidence + target_confidence
 
-职责边界：
-  - 只读 decision 的 confidence 字段。不做校准（那是 M5 的活）
-  - 编排 StepBudget / APIBudget 的优先级（§5bis）
-  - 不做 Policy 检查，不做 Validator 检查，不做 Runtime Guard
-
-M1 阶段：
-  mode = "fixed_high" —— 永远不升级到 Teacher
-  接口按 §5bis 完整设计，M5 只需替换 _score() / _threshold() 实现
-
-与 StepBudget 的关系（B4）：
-  StepBudget 不感知 ConfidenceGate，ConfidenceGate 读 StepBudget 状态
-  ConfidenceGate 不修改 StepBudget，只读 .degrade / .teacher_threshold()
+M2 新增：
+  MODE_SHADOW —— 采集 Teacher 对比数据，但不切换执行路径
 """
 from __future__ import annotations
 
@@ -28,7 +18,6 @@ from typing import Optional
 
 SENTINELS = frozenset({"DONE", "BLOCKED"})
 
-# §5bis 状态机的输出
 ESCALATION_LOCAL = "local"
 ESCALATION_TEACHER = "teacher"
 ESCALATION_RECOVERY = "recovery"
@@ -47,6 +36,7 @@ class GateResult:
     target_confidence: Optional[float] = None
     threshold: Optional[float] = None
     mode: str = "fixed_high"
+    shadow_requested: bool = False  # M2 新增
     detail: Optional[dict] = None
 
     def to_dict(self) -> dict:
@@ -61,20 +51,22 @@ class GateResult:
 # ---------------------------------------------------------------------------
 
 class ConfidenceGate:
-    """M1: fixed_high。M5: 接入校准后改 mode。"""
+    """M1: fixed_high。M2: shadow。M5: calibrated。"""
 
     MODE_FIXED_HIGH = "fixed_high"
+    MODE_SHADOW = "shadow"
     MODE_CALIBRATED = "calibrated"
 
+    _VALID_MODES = (MODE_FIXED_HIGH, MODE_SHADOW, MODE_CALIBRATED)
+
     def __init__(self, mode: str = MODE_FIXED_HIGH) -> None:
-        if mode not in (self.MODE_FIXED_HIGH, self.MODE_CALIBRATED):
+        if mode not in self._VALID_MODES:
             raise ValueError(f"unknown mode {mode!r}")
         self.mode = mode
 
-    # --- 分数与阈值（M5 替换这两处） ---
+    # --- 分数与阈值 ---
 
     def _score(self, decision: dict) -> tuple[float, Optional[float]]:
-        """返回 (operation_confidence, target_confidence)。"""
         oc = decision.get("operation_confidence")
         tc = decision.get("target_confidence")
         if not isinstance(oc, (int, float)):
@@ -84,7 +76,6 @@ class ConfidenceGate:
         return float(oc), (float(tc) if tc is not None else None)
 
     def _threshold(self, step_budget) -> float:
-        """从 StepBudget 读阈值。degrade 后放宽到 0.75，否则 0.60。"""
         if step_budget is None:
             return 0.60
         return step_budget.teacher_threshold()
@@ -92,22 +83,12 @@ class ConfidenceGate:
     # --- 主决策 ---
 
     def decide(self, decision: dict, step_budget=None) -> GateResult:
-        """判断是否升级到 Teacher。"""
         operation = decision.get("operation")
         oc, tc = self._score(decision)
 
-        # sentinel 不需要 Teacher
-        if operation in SENTINELS:
-            return GateResult(
-                go_teacher=False,
-                reason="sentinel_no_teacher",
-                operation_confidence=oc,
-                target_confidence=tc,
-                threshold=None,
-                mode=self.mode,
-            )
+        # sentinel 也采集 shadow（DONE 过早是 M1 关键失败模式）
+        is_sentinel = operation in SENTINELS
 
-        # M1: fixed_high —— 永远不走 Teacher
         if self.mode == self.MODE_FIXED_HIGH:
             return GateResult(
                 go_teacher=False,
@@ -116,9 +97,32 @@ class ConfidenceGate:
                 target_confidence=tc,
                 threshold=None,
                 mode=self.mode,
+                shadow_requested=False,
             )
 
-        # M5: calibrated
+        if self.mode == self.MODE_SHADOW:
+            return GateResult(
+                go_teacher=False,           # 不切换
+                reason="mode_shadow",
+                operation_confidence=oc,
+                target_confidence=tc,
+                threshold=None,
+                mode=self.mode,
+                shadow_requested=True,      # 采集
+            )
+
+        # MODE_CALIBRATED（M5）
+        if is_sentinel:
+            return GateResult(
+                go_teacher=False,
+                reason="sentinel_no_teacher",
+                operation_confidence=oc,
+                target_confidence=tc,
+                threshold=None,
+                mode=self.mode,
+                shadow_requested=False,
+            )
+
         threshold = self._threshold(step_budget)
         min_conf = oc
         min_name = "operation_confidence"
@@ -138,6 +142,7 @@ class ConfidenceGate:
             target_confidence=tc,
             threshold=threshold,
             mode=self.mode,
+            shadow_requested=go,  # M5 下切换时也采集
             detail={"min_field": min_name, "min_value": min_conf} if go else None,
         )
 
@@ -149,33 +154,22 @@ class ConfidenceGate:
         step_budget=None,
         api_budget=None,
     ) -> str:
-        """按 §5bis 状态机决定下一步。
-
-        返回：ESCALATION_LOCAL / ESCALATION_TEACHER /
-              ESCALATION_RECOVERY / ESCALATION_ABORT
-        """
-        # 不需要升级
         if not gate.go_teacher:
             return ESCALATION_LOCAL
 
-        # 1. Teacher 可用
         if api_budget is None or self._teacher_available(api_budget):
             return ESCALATION_TEACHER
 
-        # 2. Recovery 可用
         if api_budget is not None and self._recovery_available(api_budget):
             return ESCALATION_RECOVERY
 
-        # 3. 步数还没到上限 → 用 2B 硬着头皮上
         if step_budget is not None and step_budget.steps_ratio < 1.0:
             return ESCALATION_LOCAL
 
-        # 4. 都不可用 → abort
         return ESCALATION_ABORT
 
     @staticmethod
     def _teacher_available(api_budget) -> bool:
-        """M1 阶段：api_budget 接口未知，先用鸭子类型探测。"""
         fn = getattr(api_budget, "teacher_available", None)
         return bool(fn()) if callable(fn) else False
 
@@ -186,15 +180,15 @@ class ConfidenceGate:
 
 
 # ---------------------------------------------------------------------------
-# Smoke test
+# Smoke
 # ---------------------------------------------------------------------------
 
-if __name__ == "__main__":
+def _smoke() -> None:
     passed = 0
     total = 0
 
     def check_eq(name, got, want):
-        global passed, total
+        nonlocal passed, total
         total += 1
         if got == want:
             passed += 1
@@ -202,7 +196,7 @@ if __name__ == "__main__":
             print(f"FAIL: {name} (got {got!r}, want {want!r})")
 
     def check_true(name, cond):
-        global passed, total
+        nonlocal passed, total
         total += 1
         if cond:
             passed += 1
@@ -228,11 +222,11 @@ if __name__ == "__main__":
         check_eq("fixed_high reason", r.reason, "mode_fixed_high")
         check_eq("fixed_high mode", r.mode, "fixed_high")
 
-    # --- sentinel: 不走 Teacher ---
+    # --- sentinel（v2：fixed_high 分支先于 sentinel，reason 统一 mode_fixed_high） ---
     r = g_high.decide({"operation": "DONE", "choice": "DONE",
                        "operation_confidence": 0.5})
     check_true("DONE no teacher", not r.go_teacher)
-    check_eq("DONE reason", r.reason, "sentinel_no_teacher")
+    check_eq("DONE reason", r.reason, "mode_fixed_high")
 
     r = g_high.decide({"operation": "BLOCKED", "choice": "BLOCKED",
                        "operation_confidence": 0.5})
@@ -360,4 +354,33 @@ if __name__ == "__main__":
                       "operation_confidence": 0.3, "target_confidence": 0.3}).to_dict()
     check_true("to_dict keeps detail when go", "detail" in d)
 
+    # --- MODE_SHADOW（M2 追加） ---
+    g_shadow = ConfidenceGate(ConfidenceGate.MODE_SHADOW)
+
+    r = g_shadow.decide({"operation": "CLICK", "target": "1", "choice": "e1",
+                         "operation_confidence": 0.9, "target_confidence": 0.9})
+    check_true("shadow go_teacher False", not r.go_teacher)
+    check_true("shadow_requested True", r.shadow_requested)
+    check_eq("shadow reason", r.reason, "mode_shadow")
+    check_eq("shadow mode", r.mode, "shadow")
+
+    r = g_shadow.decide({"operation": "DONE", "choice": "DONE",
+                         "operation_confidence": 0.5})
+    check_true("shadow sentinel also shadowed", r.shadow_requested)
+    check_true("shadow sentinel no teacher", not r.go_teacher)
+
+    # --- calibrated 下 shadow 也采集 ---
+    r = g_cal.decide({"operation": "CLICK", "target": "1", "choice": "e1",
+                      "operation_confidence": 0.3, "target_confidence": 0.3})
+    check_true("cal go_teacher True", r.go_teacher)
+    check_true("cal shadow_requested True", r.shadow_requested)
+
+    r = g_cal.decide({"operation": "CLICK", "target": "1", "choice": "e1",
+                      "operation_confidence": 0.9, "target_confidence": 0.9})
+    check_true("cal high conf no shadow", not r.shadow_requested)
+
     print(f"SMOKE OK: {passed}/{total}")
+
+
+if __name__ == "__main__":
+    _smoke()
