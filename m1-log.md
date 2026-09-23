@@ -10,7 +10,7 @@
 
 | Step | 文件/事项 | 状态 |
 |---|---|---|
-| 1 | fork + demo.py 跑通 | ✅（集成 + §八 全绿 + R1-R5 五轮实跑） |
+| 1 | fork + demo.py 跑通 | ⬜（集成 + §八 已全绿，demo 等 2B 后端） |
 | 2 | evaluator.py | ✅ |
 | 3 | step_budget.py | ✅ |
 | 4 | decision_validator.py | ✅ |
@@ -22,7 +22,7 @@
 | 10 | logger.py | ✅ |
 | 11 | tasks.jsonl | ✅ |
 | 11 | run_tasks.py | ✅ |
-| 11 | e2e 20 任务 | ✅（R5 验收 PASS，零放宽） |
+| 11 | e2e 20 任务 | ⬜（等 2B 后端资产） |
 
 ---
 
@@ -377,33 +377,3 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
   但不再加 guard：记档 "3B 对 scroll-goal 的 DONE 判定不可靠"，该任务标
   known_limitation 不进 M2 训练集，**以 fp_excluding_known_limitation = 0
   判定 M1 通过**。fp 是"说谎样本"，放宽的唯一理由是隔离而非接受。
-
-### 2026-09-23 · R5：**M1 验收 PASS（零放宽）**
-
-- **五条件全绿**：`acceptance {passed: true, notes: []}`，error fields = 0——
-  20/20 全有 TaskResult、8 个 FAIL 全有唯一 failure_mode、**fp = 0**
-  （象限表无 false_positive 键，**未动用 known_limitation 放宽口径**）、
-  **crash = 0 / api_unavailable = 0**（`system_modes {}` 空）、
-  四象限 ca 8 + ts 11 + fn 1 = 20 全记录。pass 11→**12**、fail 9→8。
-- **案3 实证**：`[retry]` 日志 6× `HTTP 429` + 1× `transport error: read timed out`
-  全部被重试环吸收、零外泄 → s004 由 R4 的 read-timeout crash 转 **PASS**。
-- **案2 实证（l001 全量 8 事件，DoneGuard 指纹）**：模型连发 3 次 DONE
-  （conf 0.99 / 0.95 / 1.0）全被拒——**3 个 decision 无对应 step** 即拦截铁证——
-  第 4 次改选 SCROLL_DOWN → 真滚动 → `assertion "found in step 1"` →
-  **PASS true_success**。guard 逼出了真实行为（model_calls 6/30，预算健康）。
-- **案1 实证（n004 全量 30 事件）**：补句后模型不再在搜索页谎报 DONE——
-  老实填框（helper "RFC 9110"）→ 提交 → 结果页反复尝试 →
-  budget `normal→warn→degrade→abort` 三次 transition 全记录 →
-  **correct_abandon / agent / budget_exceeded**——诚实失败，零谎报。
-- **M1 失败模式清单 = M2 飞轮第一批原料（8 条）**：
-  - `decision` ×7：s001（google sorry 环境基线，连续多轮 ca 非 fp）、
-    s005、f001、f002、f004、t001、x001
-  - `budget_exceeded` ×1：n004（rfc-editor 搜索页 10 步耗尽）
-  - 附记档：x002 = false_negative（PASS + blocked 语义，agent 过保守）、
-    s001 环境类不进训练集。
-- **M1 进度表 11/11 全 ✅**——Step 1 fork 与 Step 11 e2e 同轮收口。
-- **基准存档**：`reports/m1-r5.json` + `logs/r5/`（R5 = M1 判定基准轮）；
-  主仓与 fork 已同步 R5 三案（prompt 补句 / DoneGuard / 传输重试）。
-- M2 起点建议：7 条 decision fail 做失败归因分桶（字段填错 / 导航不足 /
-  过早放弃）、budget_exceeded 1 条做预算调参观察；M6 扩任务前回看
-  DoneGuard 两个已知误伤窗口（§2.4 记档）。

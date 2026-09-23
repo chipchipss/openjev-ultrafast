@@ -20,6 +20,32 @@ from .confidence_gate import (
 from .step_budget import BudgetState, StepBudget
 
 
+def _done_guard(decision: dict, state: dict) -> str | None:
+    """R5 DoneGuard：rule-based DONE 拦截。返回拒绝原因，None=放行。
+
+    落点在 _pre_execute（StepBudget → Validator → DoneGuard → Policy → Gate）：
+    需要 goal / history / url 上下文，不进 decision_validator（保持其纯结构语义、
+    可在 decider 侧独立单测）。拒绝走 StalePage（与决策 2/3 同构），
+    持续拒绝由 StepBudget abort 兜底 → agent 类。
+
+    已知误伤窗口（记档不修）：① 初始 url 即目标页 ② goal 含 "open search page"
+    ——M1 的 20 任务均无此类；M6 扩任务时再细化规则。
+    """
+    if decision.get("operation") != "DONE":
+        return None
+    # 规则 1：0 步 DONE
+    if len(state["history"]) == 0:
+        return "DONE with no prior actions"
+    # 规则 2：nav-goal 停在搜索结果页（goal 先 lower；关键词带空格防误伤 opener/navigational）
+    goal = state["goal"].lower()
+    url = state["page"]["url"]
+    nav_goal = any(w in goal for w in ("open ", "navigate to ", "go to "))
+    search_url = "?q=" in url or "/search" in url
+    if nav_goal and search_url:
+        return "DONE on search results page with navigation goal"
+    return None
+
+
 class Agent:
     def __init__(self, url, goals, *, record_dir=None, screenshots=False,
                  task_spec=None):
@@ -114,6 +140,11 @@ class Agent:
             # 走 StalePage 路径：重新 observe → 重新 predict
             raise StalePage(f"Decision invalid: {val.code} — {val.reason}")
 
+        # 2.5 DoneGuard（R5：rule-based DONE 拦截，与决策 2/3 同构走 StalePage）
+        guard_reason = _done_guard(decision, state)
+        if guard_reason is not None:
+            raise StalePage(f"DONE guard rejected: {guard_reason}")
+
         # 3. Policy (A3)
         pol = policy.check(decision, page)
         pre["policy"] = pol.to_dict()
@@ -176,7 +207,13 @@ class Agent:
                 raise ValueError("This run has stopped. Start a fresh demo.")
             if len(state["decisions"]) >= MAX_STEPS * 2:
                 raise ValueError("Reached the demo's model-call budget")
-            state["decision"] = choose(state["page"], state["goal"], state["history"])
+            try:
+                state["decision"] = choose(state["page"], state["goal"], state["history"])
+            except ValueError as e:
+                # 2B 输出语义非法（unknown operation / target 越界）视同状态过期：
+                # 走 StalePage 路径重新 observe + 重新 predict，持续非法由 StepBudget abort 兜底。
+                # 只捕 ValueError；HTTP 层 RuntimeError 继续上抛（交给 _http 退避）。
+                raise StalePage(f"Decider returned invalid decision: {e}") from None
             state["decisions"].append(
                 {
                     **state["decision"],
@@ -216,7 +253,11 @@ class Agent:
                 if self.pending_text and self.pending_text[0] == context:
                     _, text, helper = self.pending_text
                 else:
-                    text, helper = field_text(context)
+                    try:
+                        text, helper = field_text(context)
+                    except ValueError as e:
+                        # D17: helper 拒绝编造值 → 该决策无效，与决策 2 同构
+                        raise StalePage(f"Text helper could not supply value: {e}") from None
                     self.pending_text = (context, text, helper)
                     state["text_calls"].append({**helper, "field": action["label"], "value": text})
             # Browser.act checks freshness immediately before input, including after text generation.

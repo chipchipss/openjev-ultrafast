@@ -15,7 +15,7 @@
 {"task_id":"n004","domain":"www.rfc-editor.org","category":"navigate","goal":"Open RFC 9110 from the RFC index.","budget":{"steps":10},"success_assertion":{"type":"all_of","clauses":[{"type":"url_matches","pattern":"rfc9110"}]}}
 
 {"task_id":"l001","domain":"news.ycombinator.com","category":"list","goal":"Scroll down the front page until you see at least 20 story links.","budget":{"steps":15},"success_assertion":{"type":"all_of","clauses":[{"type":"history_has_kind","kind":"scroll"}]}}
-{"task_id":"l002","domain":"en.wikipedia.org","category":"list","goal":"Open the Wikipedia 'List of countries by population' article and scroll to the table.","budget":{"steps":20},"success_assertion":{"type":"all_of","clauses":[{"type":"url_matches","pattern":"List_of_countries"}]}}
+{"task_id":"l002","domain":"en.wikipedia.org","category":"list","goal":"Open the Wikipedia 'List of countries by population' article and scroll to the table.","budget":{"steps":20},"success_assertion":{"type":"all_of","clauses":[{"type":"url_matches","pattern":"List_of_countries_by_population"}]}}
 {"task_id":"l003","domain":"www.python.org","category":"list","goal":"On the Python jobs board, scroll to find a job mentioning 'remote'.","budget":{"steps":20},"success_assertion":{"type":"any_of","clauses":[{"type":"text_contains","value":"remote","case_sensitive":false},{"type":"history_has_kind","kind":"scroll"}]}}
 
 {"task_id":"t001","domain":"httpbin.org","category":"toggle","goal":"On /forms/post, select a radio button option before submitting.","budget":{"steps":12},"success_assertion":{"type":"history_has_kind","kind":"click"}}
