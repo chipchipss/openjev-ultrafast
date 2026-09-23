@@ -326,13 +326,30 @@ class Agent:
             if state["status"] in {"done", "blocked", "budget_exceeded"}:
                 raise ValueError("This run has stopped. Start a fresh demo.")
             if len(state["decisions"]) >= MAX_STEPS * 2:
-                raise ValueError("Reached the demo's model-call budget")
+                # 缺陷#5：纯拒收循环到此必须干净终止——raise ValueError 会逃逸
+                # tick 变成 crash（违反 system 空判据）。置 budget_exceeded 后
+                # 由下方 _pre_execute 的 StepBudget ABORT（先于 decision 访问）
+                # 收口退出 run()。
+                state["status"] = "budget_exceeded"
+                return self.snapshot()
             try:
                 state["decision"] = choose(state["page"], state["goal"], state["history"])
             except ValueError as e:
                 # 2B 输出语义非法（unknown operation / target 越界）视同状态过期：
-                # 走 StalePage 路径重新 observe + 重新 predict，持续非法由 StepBudget abort 兜底。
+                # 走 StalePage 路径重新 observe + 重新 predict。
+                # 缺陷#5（docs/10 契约：model_calls = len(decisions) 含 StalePage
+                # 重试）：拒收也是一次真实模型调用，必须先入账再抛——否则
+                # StepBudget(40) 与 MAX_STEPS*2 两道兜底全数不到，temp=0 时同一
+                # 非法输出死循环（t004 实况：卡 70min+、3800+ 次空烧调用）。
                 # 只捕 ValueError；HTTP 层 RuntimeError 继续上抛（交给 _http 退避）。
+                state["decisions"].append({
+                    "choice": None, "operation": None, "target": None,
+                    "operation_confidence": None, "target_confidence": None,
+                    "confidence": None, "latency_ms": None, "usage": None,
+                    "fingerprint": state["page"]["fingerprint"],
+                    "elapsed_ms": round((time.perf_counter() - state["started_at"]) * 1000),
+                    "rejected": str(e),
+                })
                 raise StalePage(f"Decider returned invalid decision: {e}") from None
             state["decisions"].append(
                 {

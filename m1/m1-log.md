@@ -777,3 +777,35 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
 - **可比性记档**：M1 e2e/R5 基线打在 agnes-3.0-flash 上；本轮起 decider =
   deepseek-flash（换模型是 env 级行为，设计允许；后续 R5 复测以新栈为准）。
 - **下一步**：5.4 重启 `--rounds 3` → reports/m2.json 五判据。
+
+### 2026-09-23 · 缺陷#5：predict 拒收不入账 → t004 死循环（卡 70min+）；修复 + 5.4 重启
+
+- **实况**：r0 完成45任务后 t004（settings 页 plan SELECT）卡死。strace 教科书级
+  证据：~1.1s/圈 "CDP observe → 拼 prompt → deepseek 调用**成功**（0.3-0.9s）→
+  丢弃 → observe"，70min+ ≈3800 次空烧；零 step 日志、stderr 停 16:41、
+  429=0、双端探测 200——**非网络问题，是循环 bug**。
+- **根因**：`agent.py` predict 的 `except ValueError → raise StalePage` 发生在
+  `decisions.append` **之前** → 破坏 docs/10 契约
+  `model_calls = len(decisions)（含 StalePage 重试）` → StepBudget(40) 与
+  `MAX_STEPS*2` 两道兜底**全部数不到** → temp=0 确定性输出同一非法 target →
+  无限重试。R5 基线（agnes）少踩此路径；deepseek-flash 在 SELECT 任务上稳定
+  非法 → 引爆潜伏雷。
+- **修复（3处）**：
+  ① 拒收**先入账再抛**（记录带 `rejected` 理由、None 化语义字段，logger 白名单
+  `if k in d` 天然兼容）；
+  ② `MAX_STEPS*2` 上限从 `raise ValueError`（逃逸 tick = crash，违反 system 空
+  判据）改为 `status=budget_exceeded + return`——由 `_pre_execute` 的
+  StepBudget ABORT 收口（**ABORT 分支先于 decision 访问**，decision=None 安全，
+  已核代码序）；
+  ③ `_clean_decision` 白名单补 `rejected`。
+  extractor 不读 decision 事件（grep 零命中）——零迁移风险；拒收按契约计入
+  `decision_total` ✓。
+- **现场归档**：`logs/m2_r0prefit`（45任务）、`reports/m2_run_r0prefit.out`；
+  连同 `m2_429abort / m2_53probe / m2_preflight` 全套留证。
+- **密度实测→轮次判断**：r0 =254 decisions/45 任务 =**5.65/任务**；150 runs
+  下限≈848；拒收入账后 t004/t005/x003-005 每个将贡献 40-80（temp=0 确定性）→
+  **rounds3 预计 900-1440，有望自然过1000**；实测不足再补轮（届时单轮 ≈83min）。
+- **运维复盘**：`pkill -f` 又踩自身 ssh 命令行字面量（本 log 早已记档）——
+  改 `[t]` 括号防自匹配后一次成功。
+- **5.4 重启**：修复栈 + `--rounds 3` 全量（50×3），单轮实测 ≈83min，
+  ETA（19:00 起）≈ **21:45** 出 `reports/m2.json`。

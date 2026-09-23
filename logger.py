@@ -244,7 +244,7 @@ class Logger:
             "choice", "operation", "target",
             "operation_confidence", "target_confidence", "confidence",
             "model", "latency_ms", "usage",
-            "fingerprint", "elapsed_ms",
+            "fingerprint", "elapsed_ms", "rejected",
         )
         out = {k: d[k] for k in keys if k in d}
         if "probabilities" in d:
