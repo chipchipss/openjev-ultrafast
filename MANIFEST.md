@@ -2,8 +2,8 @@
 
 - 状态标记：✅ 已冻结 / 📝 草案 / ⬜ 待产出
 - 用途：丢失后按此清单重建。每个文件的关键内容已在对话中给出，可按摘要重建。
-- 本仓库当前状态：已落盘 28 件（docs 4 = 01/03/09/10 + CHANGELOG + agent.py + 顶层 9 py + prompts×3 + decider×5 + specs/task.schema + m1×2 + scripts×1 + m2×2）+ 草案 m1/m1-log.md、m2/tasks_extra.jsonl + 本清单 + 目录骨架；**⬜ 待产出清零**。集成后的运行树在 DE:/root/jev-ultrafast（fork，见 m1/m1-log.md）。
-- 统计：✅ 43 · 📝 2 · ⬜ 0，合计 45（原稿 37 + 新增 _http、action_space、run_tasks、integrate.sh、api_budget、tasks_extra、c1_check）。
+- 本仓库当前状态：已落盘 29 件（docs 4 + CHANGELOG + agent.py + 顶层 9 py + prompts×3 + decider×5 + specs/task.schema + m1×2 + scripts×1 + m2×3）+ 草案 m1/m1-log.md、m2/tasks_extra.jsonl + 本清单 + 目录骨架；**⬜ 待产出清零**。集成后的运行树在 DE:/root/jev-ultrafast（fork，见 m1/m1-log.md）。
+- 统计：✅ 44 · 📝 2 · ⬜ 0，合计 46（原稿 37 + 新增 9：_http、action_space、agent 改造稿、run_tasks、integrate.sh、api_budget、tasks_extra、c1_check、sample_extractor）。
 
 ---
 
@@ -348,6 +348,7 @@ openjev-ultrafast/
 │   └── tasks.jsonl                          ✅
 ├── m2/
 │   ├── c1_check.py                        ✅
+│   ├── sample_extractor.py                ✅
 │   └── tasks_extra.jsonl                   📝
 ├── agent.py                                 ✅
 ├── evaluator.py                             ✅
@@ -373,7 +374,7 @@ openjev-ultrafast/
     └── text_value.txt                       ✅
 ```
 
-- ✅ 已冻结文件：43 个（21 项基础文档 + agent.py + 9 顶层 py + prompts 3 + decider 5 + tasks.jsonl + run_tasks.py + integrate.sh + c1_check；其中已落盘 28 件 = docs 4 + CHANGELOG + agent.py + 顶层 py 9 + prompts 3 + decider 5 + specs 1 + m1 2 + scripts 1 + m2 2）
+- ✅ 已冻结文件：44 个（21 项基础文档 + agent.py + 9 顶层 py + prompts 3 + decider 5 + tasks.jsonl + run_tasks.py + integrate.sh + c1_check + sample_extractor；其中已落盘 29 件 = docs 4 + CHANGELOG + agent.py + 顶层 py 9 + prompts 3 + decider 5 + specs 1 + m1 2 + scripts 1 + m2 3）
 - 📝 草案：2 个（m1/m1-log.md、m2/tasks_extra.jsonl）
 - ⬜ 待产出：0——原稿 37 件与全部新增文件均已落盘或在案
 

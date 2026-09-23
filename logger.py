@@ -33,6 +33,7 @@ EVENT_DECISION          = "decision"
 EVENT_TEXT_CALL         = "text_call"
 EVENT_BUDGET_TRANSITION = "budget_transition"
 EVENT_TASK_RESULT       = "task_result"
+EVENT_TEACHER_SHADOW    = "teacher_shadow"
 
 
 # ---------------------------------------------------------------------------
@@ -78,6 +79,7 @@ class Logger:
         self._decisions_cursor = 0
         self._text_calls_cursor = 0
         self._transitions_cursor = 0
+        self._teacher_cursor = 0
         self._buffer: list[dict] = []
         self._file = None  # lazy open
 
@@ -129,6 +131,17 @@ class Logger:
                 **self._clean_text_call(t),
             })
         self._text_calls_cursor = len(text_calls)
+
+        # 4b. teacher_shadow（M2）
+        teacher_decisions = state.get("teacher_decisions") or []
+        for td in teacher_decisions[self._teacher_cursor:]:
+            new_events.append({
+                "event":     EVENT_TEACHER_SHADOW,
+                "task_id":   self.task_id,
+                "timestamp": now,
+                **self._clean_teacher_decision(td),
+            })
+        self._teacher_cursor = len(teacher_decisions)
 
         # 4. budget_transition
         if step_budget is not None:
@@ -242,6 +255,24 @@ class Logger:
     def _clean_text_call(t: dict) -> dict:
         keys = ("model", "field", "value", "latency_ms", "usage")
         return {k: t[k] for k in keys if k in t}
+
+    @staticmethod
+    def _clean_teacher_decision(td: dict) -> dict:
+        """白名单。保留 actions_snapshot（供 sample_extractor 重建 candidates）。
+
+        C3 落地：actions_snapshot 是 structured 源；
+        rendered 由 sample_extractor 从 actions_snapshot 重放 action_space 得到。
+        """
+        keys = (
+            "step",
+            "local", "teacher",
+            "agree", "operation_match", "target_match",
+            "latency_ms", "usage",
+        )
+        out = {k: td[k] for k in keys if k in td}
+        if "actions_snapshot" in td:
+            out["actions_snapshot"] = td["actions_snapshot"]
+        return out
 
     @staticmethod
     def _budget_snapshot(step_budget) -> dict:
@@ -474,6 +505,50 @@ def _smoke() -> None:
                 check("non-dict state rejected", False)
             except TypeError:
                 check("non-dict state rejected", True)
+
+        # --- 14. teacher_shadow 抽取 ---
+        def teacher_entry(n):
+            return {
+                "step": n,
+                "local":   {"choice": "e1", "operation": "CLICK", "target": "1",
+                            "operation_confidence": 0.9, "target_confidence": 0.9},
+                "teacher": {"choice": "e2", "operation": "CLICK", "target": "2",
+                            "operation_confidence": 0.95, "target_confidence": 0.95,
+                            "source": "api", "api_model": "mock", "api_confidence": 0.95},
+                "agree": False, "operation_match": True, "target_match": False,
+                "latency_ms": 500, "usage": {"total_tokens": 100},
+                "actions_snapshot": [
+                    {"id": "e1", "kind": "click", "node": 12, "role": "button", "label": "A"},
+                    {"id": "e2", "kind": "click", "node": 42, "role": "button", "label": "B"},
+                ],
+            }
+
+        with Logger("t012", log_dir) as lg:
+            state = {"history": [], "decisions": [], "text_calls": [],
+                     "teacher_decisions": [teacher_entry(0)]}
+            ev = lg.observe(state)
+            check("teacher_shadow event", ev[0]["event"] == "teacher_shadow")
+            check("teacher_shadow has actions_snapshot", "actions_snapshot" in ev[0])
+            check("teacher_shadow agree False", ev[0]["agree"] is False)
+            check("teacher_shadow teacher.api_model", ev[0]["teacher"]["api_model"] == "mock")
+
+            ev2 = lg.observe(state)
+            check("teacher_shadow cursor", ev2 == [])
+
+            state["teacher_decisions"].append(teacher_entry(1))
+            ev3 = lg.observe(state)
+            check("teacher_shadow incremental", len(ev3) == 1)
+            check("teacher_shadow step 1", ev3[0]["step"] == 1)
+
+        # --- 15. JSONL 落盘 ---
+        with Logger("t013", log_dir) as lg:
+            lg.observe({"history": [], "decisions": [], "text_calls": [],
+                        "teacher_decisions": [teacher_entry(0)]})
+        content = (log_dir / "t013.jsonl").read_text().strip().split("\n")
+        ev = json.loads(content[0])
+        check("jsonl teacher_shadow", ev["event"] == "teacher_shadow")
+        check("jsonl actions_snapshot persisted", "actions_snapshot" in ev)
+        check("jsonl actions_snapshot length 2", len(ev["actions_snapshot"]) == 2)
 
     print(f"SMOKE OK: {passed}/{total}")
 

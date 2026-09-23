@@ -286,6 +286,10 @@ class Agent:
             "target_match":    local_target == teacher_target,
             "latency_ms":     latency_ms,
             "usage":          teacher_decision.get("usage", {}),
+            # --- M2 #4a: 快照供 sample_extractor 使用（C3 structured 源）---
+            # 浅拷贝 list(...)：基座约定 page 对象不被就地修改（browser.observe
+            # 每次返回新对象）；若未来出现就地改 action dict 的路径需改 deepcopy。
+            "actions_snapshot": list(state["page"]["actions"]),
         }
         state["teacher_decisions"].append(entry)
         pre["shadow"] = {

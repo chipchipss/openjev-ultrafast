@@ -583,3 +583,54 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
   两缺口记为 M2 已知边界，不加规则（与 R4 时"guard 会掩盖信号"同一判断）。
 - **待裁决**：a) 接受机制诊断 → 开 #4a/#4b；b) 再跑一轮取方差分布（~8min）；
   c) 任务级确定性加固。倾向 a：三不变量 + 逐行对照的证据链完整。
+
+### 2026-09-23 · M2 #4a + #4b 一轮落盘：teacher_shadow 落链 + sample_extractor
+
+- **裁决**：a 批准（+ 监测约束）。
+- **架构洞察（记档）**：确定性 2B = 数据飞轮死锁——local 总对 → 无分歧无 pair；
+  local 总错 → 单调 pair。**方差 = 数据飞轮的生命线。**
+- **监测约束（记档，纯统计不碰执行路径）**：`fp_rate = fp 次数 / 任务轮次`
+  （Logger append 模式 → 同任务多轮追加在同一 jsonl）；**fp_rate > 0.30** →
+  pair 打 `high_variance: true`（仍进训练集）、manifest 标 `high_variance_task`，
+  M6 优先处理（域调整 or 语义验证）。
+- **M1 known_limitations 新增两条**：n003 型（导航到错误页后 DONE——DoneGuard
+  规则2 只拦 `?q=`/`/search`）、f004 型（页内探索后过早 DONE——end-state 规则
+  未奏效）；**归属 M5 语义验证**（URL 目标比对 = 断言进控制面 = A2 红线）。
+- **方差接受声明**：M1 R5 的 fp=0 是**该轮次的值，非机制保证**；M2 起以分布
+  （多轮统计）作为判定。
+- **#4a logger 落盘（冒烟 50/50 双布局）**：`EVENT_TEACHER_SHADOW` +
+  `_teacher_cursor` + observe 4b 抽取块 + `_clean_teacher_decision` 白名单
+  （保留 actions_snapshot）；agent entry 增
+  `actions_snapshot: list(state["page"]["actions"])`——**浅拷贝假设记档**：
+  基座约定 page 对象不被就地修改（browser.observe 每次返回新对象），
+  未来若出现就地改 action dict 的路径必须改 deepcopy；M1 已知路径均不违反。
+- **C3 数据流闭环（trade-off 记档）**：_run_shadow 快照原始数据（不加工）→
+  logger 白名单搬运 → sample_extractor 重放 action_space + **decider 的 prompt
+  渲染函数**（同源防漂移）重建 structured/rendered。
+  大小评估：action ≈200-500B × 20-50/步 × 5-10 步 ≈ 25-300KB/任务 →
+  100 任务 ≈ 2.5-30MB——可接受。
+- **#4b sample_extractor 落盘（冒烟 17/17 双布局 + 真实回归日志 EXTRACT_OK）**：
+  - **两遍扫描**：pass1 收 events / fp_stats / final_quadrant，pass2 处理
+    shadows——单遍会让 high_variance 恒 False（fp_stats 文件尾才写）、
+    a_positive 时机错（final_quadrant 未定）——自查修正。
+  - **A 类映射（设计决策）**：`agree ∧ task true_success`——唯一既满足 A 定义
+    又带 actions_snapshot 可重建 candidates 的来源。
+  - **B 类接线就位但预期 0（采集缺口记档）**：local validator 拒绝走 StalePage、
+    pre 被清、不落 step——真正产出 B 类需 decision 级采集扩展（#4a 同类）。
+  - **C 类**：chosen=teacher / rejected=local 方向严格 + C4 三字段 + domain +
+    high_variance 标记。
+  - **域门**：默认 benchmark = --tasks 域（M1 集即 benchmark）；
+    `--benchmark-domains` / `--training-domains` 显式清单；占位域 →
+    unverified + placeholder。**M2 混合任务集必须显式传 benchmark 清单**——
+    默认推导会把训练域也算成 benchmark（smoke 白名单用例已验证）。
+  - **真实回归日志实跑**：teacher_shadow=0（M1 轮无 teacher，符合预期）、
+    **fp_rate 机制当场工作：high_variance_tasks=['f004','n003']**。
+- **冒烟侧 4 个自查修正（全为测试/装配问题，实现逻辑零改）**：tempfile 作用域、
+  fixture e1/e2 kind 记反、domain_distribution 双行计数（c_pair+a_positive）、
+  pass1/pass2 时序。
+- **C1 域语义提醒（影响数据量规划）**：M1 20 域 = benchmark 不进训练集 →
+  **现有全部日志对 C 类产出 = 0 是 C1 设计使然**；pair 生产依赖训练域任务——
+  **B（30 模板填域）是 C 类产出的真前置**。1000-decision 目标里"M1 存量 ≈100"
+  按 C1 只能计入 decision 总量、不能计入 C 类 pair——域划分口径请在填域时一并明确。
+- **M2 进度**：#1✅ #2✅ #3✅ **#4a✅ #4b✅** #5（m2/run_tasks --mode shadow）⬜ +
+  文档 C✅；下一步 = #5 + B 填域。
