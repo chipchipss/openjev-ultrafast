@@ -698,3 +698,36 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
 - **下一步**：等 GLM 控制台三值 → 写 TEACHER_* → 5.3（s006 单任务探针：
   decider 200 / teacher 无 429·401 / teacher_shadow 事件出现）→ 5.4
   `--rounds 3` 全量 M2 首轮 → 按五条判据读 reports/m2.json。
+
+### 2026-09-23 · zhipu key 搜索收口 + choose() 三缺陷修复 + agnes-2.5-pro 教师验证通过
+
+- **zhipu provider 八路搜索结论（key 不在盘上，证据链完整）**：
+  omp config.yml（仅 modelRoles 引用）/ models.yml + bili-bak2（仅 agnesai）/
+  hermes custom_providers（nvidia+agnes，GLM_API_KEY 注释态）/ .env（无活跃 GLM 键）/
+  models.db（仅 model_cache）/ omp 进程（不在+环境无命中）/ billion-context.json
+  （`providers: {}` 空）/ opencode·zcode·codex 客户端（无配置文件）。
+  **`zhipu-coding-plan` 的运行时鉴权 = ZCode MITM 登录态**（billion-context README：
+  `mitm://open.bigmodel.cn`，登录态走 LA 本地代理）——**不是可移植 sk- key**，
+  无法写进 DE 的 TEACHER_*。bili-bak2 里那把 sk-vjep 是 agnes 的 key，非 zhipu。
+  → step4 的 GLM 路径唯一解 = 用户从 bigmodel 控制台拿独立 API key（选项 B 待选）。
+- **choose() 三个真缺陷修复（探针逼出来的，冒烟 30→36 双布局）**：
+  1. **候选可见性**：`_scenario_choose` 原本不渲染 elements/operations——教师盲答，
+     D8 会全拒、c_pairs 恒 0；
+  2. **字段语义**：教师把 target 答成标签（"Guide"）、choice 答成 index（"1"）——
+     根因①decider 的 `_render_elements` **不含 choice id**（decider 自己靠
+     _map_choice 推导、不需要），教师需要 → 新增 `_candidate_block()` 教师专用渲染
+     （`target="1" → choice="e1" label="..."` + controls + sentinels）+ SYSTEM 增
+     Field contract（target=index 原样、choice=id 原样、仅用候选内值）；
+  3. **解析脆性**：`_extract_json`（剥围栏 + 定位 braces），choose/correct 共用——
+     渠道偶发围栏/前缀不炸链（空 content 仍 RuntimeError，冒烟双测覆盖）。
+- **`TEACHER_PROBE2_2/2_OK`（agnes-2.5-pro 真实全链 ×2）**：
+  `target=1 choice=e1 D8=True/ok`，1702ms / 1288ms，conf 0.99，budget 消费口径正常
+  （choose 不自消耗 ✓）。key 有效（零 401/429）。
+- **thinking 不可关（记档）**：2.5-pro 对 `thinking:{disabled}` 与
+  `thinkingLevel:none` 都无视（reason_tok 仍 37-47）——接受开销：
+  每次约 +40~90 思考 token + 1~7s，M2 量级（≈1000 次 shadow）成本可忽略。
+  （`reasoning:{enabled:false}` 是 3.0-flash 的开关，2.5-pro 不认——两模型参数不通用。）
+- **教师选型两路（待拍板）**：
+  **A. agnes-2.5-pro（已全链验证、零等待）**——与 decider(3.0-flash) 不同模型，
+  分歧信号成立，盘上已有 key；
+  **B. GLM glm-5.3-flash（原计划）**——需控制台三值，多等一轮。

@@ -58,15 +58,62 @@ SYSTEM_TEACHER = (
 )
 
 
+try:  # 平铺（主仓）
+    from decider.action_space import action_space
+except ImportError:  # 包内（fork）
+    from .decider.action_space import action_space
+
+def _extract_json(content: str) -> dict:
+    """content → dict。剥围栏 + 定位 braces——渠道偶发 ``` 围栏/前缀不至炸链。"""
+    s = content.strip()
+    if s.startswith("```"):
+        nl = s.find("\n")
+        s = s[nl + 1:] if nl != -1 else s
+        if s.rstrip().endswith("```"):
+            s = s.rstrip()[:-3]
+        s = s.strip()
+    a, b = s.find("{"), s.rfind("}")
+    if a == -1 or b <= a:
+        raise RuntimeError(f"Teacher returned non-JSON: {content[:120]!r}")
+    try:
+        obj = json.loads(s[a:b + 1])
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"Teacher returned non-JSON: {e}") from None
+    if not isinstance(obj, dict):
+        raise RuntimeError("Teacher response is not a JSON object")
+    return obj
+
+
 SYSTEM_TEACHER_CHOOSE = (
     "You are an expert browser-automation decision maker. Given the user's goal, "
-    "the current page, and recent actions, output the decision YOU would take as "
-    "one JSON object with exactly these keys: "
+    "the current page, recent actions, and the CANDIDATE LIST, output the decision "
+    "YOU would take as one JSON object with exactly these keys: "
     '{"operation": string, "target": string|null, "choice": string, '
     '"operation_confidence": number in [0,1], '
     '"target_confidence": number in [0,1] or null}. '
+    "Field contract: "
+    'target = the target index EXACTLY as shown in the candidate list (e.g. "1" or "3:2"); '
+    'choice = the choice id EXACTLY as shown (e.g. "e1" — never the label, never the index); '
+    "for controls and sentinels use their listed choice id / the operation name. "
+    "Only use operation/target/choice values that appear in the candidate list. "
     "No explanations, no code, no markdown. Only the JSON object."
 )
+
+
+def _candidate_block(targets: dict, controls: dict) -> str:
+    """教师专用候选渲染：必须带 choice id（decider 的渲染不含 id，教师无法作答）。"""
+    lines = ["Candidates — target = target, choice = choice_id:"]
+    for op, cands in targets.items():
+        for tid, a in cands.items():
+            lines.append(f'  {op}: target="{tid}" → choice="{a.get("id")}" '
+                         f'label="{a.get("label", "")}"')
+    if controls:
+        lines.append("Controls (target must be null):")
+        for op, a in controls.items():
+            lines.append(f'  {op} → choice="{a.get("id")}"')
+    lines.append("Sentinels (target must be null, choice = operation): "
+                 'DONE → choice="DONE", BLOCKED → choice="BLOCKED"')
+    return "\n".join(lines)
 
 
 def _scenario_choose(state: dict, goal: str, history: list) -> str:
@@ -83,6 +130,7 @@ def _scenario_choose(state: dict, goal: str, history: list) -> str:
         if h.get("page_changed") is not None:
             line += f" page_changed={h['page_changed']}"
         recent.append(line)
+    _, targets, controls = action_space(state.get("actions") or [])
     return "\n".join([
         f"Goal: {goal}",
         "",
@@ -90,6 +138,8 @@ def _scenario_choose(state: dict, goal: str, history: list) -> str:
         f"- url: {state.get('url', '')}",
         f"- title: {state.get('title', '')}",
         f"- text: {text}",
+        "",
+        _candidate_block(targets, controls),
         "",
         "Recent actions:",
         "\n".join(recent) if recent else "  (none)",
@@ -180,12 +230,7 @@ class APITeacher:
             raise RuntimeError("Teacher returned unexpected response shape") from None
         if not isinstance(content, str):
             raise RuntimeError("Teacher content is not a string")
-        try:
-            parsed = json.loads(content)
-        except json.JSONDecodeError as e:
-            raise RuntimeError(f"Teacher returned non-JSON: {e}") from None
-        if not isinstance(parsed, dict):
-            raise RuntimeError("Teacher response is not a JSON object")
+        parsed = _extract_json(content)
         if "operation" not in parsed:
             raise RuntimeError("Teacher response missing 'operation'")
 
@@ -239,12 +284,7 @@ class APITeacher:
         if not isinstance(content, str):
             raise RuntimeError("Teacher content is not a string")
 
-        try:
-            corrected = json.loads(content)
-        except json.JSONDecodeError as e:
-            raise RuntimeError(f"Teacher returned non-JSON: {e}") from None
-        if not isinstance(corrected, dict):
-            raise RuntimeError("Teacher response is not a JSON object")
+        corrected = _extract_json(content)
         if "operation" not in corrected:
             raise RuntimeError("Teacher response missing 'operation'")
 
@@ -388,6 +428,35 @@ def _smoke() -> None:
     check("choose renders goal + history",
           "go to the standards page" in umsg and "Open" in umsg)
     check("choose independent（无本地 decision 锚定）", "Local model" not in umsg)
+    # 修正回归（候选可见性）：教师必须看到 elements/operations/sentinels，
+    # 否则盲答 target/choice 会被 D8 全拒 → c_pairs 恒 0
+    page_with_actions = {"url": "https://example.com/", "title": "t", "text": "body",
+                         "actions": [{"id": "e1", "kind": "click", "node": 1,
+                                      "role": "button", "label": "Go"}]}
+    r_act = t4.choose(page_with_actions, "open the guide page", [])
+    umsg2 = mod.post_chat.calls[-1]["args"][3][1]["content"]
+    check("choose renders target+choice mapping",
+          'target="1"' in umsg2 and 'choice="e1"' in umsg2)
+    check("choose prompt has field contract",
+          "choice id" in mod.post_chat.calls[-1]["args"][3][0]["content"])
+    check("choose renders sentinels", "BLOCKED" in umsg2 and "DONE" in umsg2)
+    check("choose still flat C4", r_act.get("source") == "api"
+          and r_act.get("operation") is not None
+          and r_act.get("api_model") is not None)
+    # --- _extract_json 加固：围栏与空 content ---
+    mod.post_chat = Fake('```json\n{"operation": "CLICK", "target": "1", '
+                         '"choice": "e1", "operation_confidence": 0.9, '
+                         '"target_confidence": 0.9}\n```')
+    t5 = APITeacher(APIBudget(3, 1))
+    r_fence = t5.choose({"url": "https://example.com/", "title": "t", "text": "b"},
+                        "g", [])
+    check("fenced content parses", r_fence.get("operation") == "CLICK")
+    mod.post_chat = Fake("")
+    check_raises("empty content → RuntimeError",
+                 lambda: t5.choose({"url": "https://e.com/", "title": "t",
+                                    "text": "b"}, "g", []),
+                 RuntimeError)
+
     b4.consume_teacher()
     b4.consume_teacher()
     b4.consume_teacher()
