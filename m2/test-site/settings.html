@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Settings — OpenJEV Test Site</title>
+  <style>body { font-family: sans-serif; margin: 2rem; } nav a { margin-right: 1rem; }</style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="search.html">Search</a>
+    <a href="form.html">Contact Form</a>
+    <a href="technology.html">Technology</a>
+    <a href="products.html">Products</a>
+    <a href="articles.html">Articles</a>
+  </nav>
+  <h1>Settings</h1>
+  <form id="settings-form">
+    <fieldset>
+      <legend>Preferences</legend>
+      <label><input type="checkbox" id="notifications" name="notifications"> Enable notifications</label><br>
+      <label><input type="checkbox" id="newsletter" name="newsletter"> Subscribe to newsletter</label><br>
+      <label><input type="radio" name="theme" value="Light" id="theme-light"> Light theme</label><br>
+      <label><input type="radio" name="theme" value="Dark" id="theme-dark"> Dark theme</label><br>
+      <label>Plan
+        <select id="plan" name="plan">
+          <option value="Basic">Basic</option>
+          <option value="Premium">Premium</option>
+          <option value="Enterprise">Enterprise</option>
+        </select>
+      </label><br>
+      <button type="button" id="save">Save</button>
+    </fieldset>
+  </form>
+  <div id="saved" style="display:none"><h2>Settings saved.</h2></div>
+  <p><a href="index.html">Back to home</a></p>
+  <script>
+    document.getElementById("save").addEventListener("click", function () {
+      document.getElementById("saved").style.display = "block";
+    });
+  </script>
+</body>
+</html>

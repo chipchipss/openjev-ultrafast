@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Search — OpenJEV Test Site</title>
+  <style>body { font-family: sans-serif; margin: 2rem; } nav a { margin-right: 1rem; }</style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="form.html">Contact Form</a>
+    <a href="technology.html">Technology</a>
+    <a href="products.html">Products</a>
+    <a href="articles.html">Articles</a>
+    <a href="settings.html">Settings</a>
+  </nav>
+  <h1>Site Search</h1>
+  <form action="search.html" method="get">
+    <input type="text" name="q" id="q" placeholder="Type a query" aria-label="Search query">
+    <button type="submit">Search</button>
+  </form>
+  <div id="results"></div>
+  <script>
+    const q = new URLSearchParams(location.search).get("q");
+    if (q) {
+      document.getElementById("results").innerHTML =
+        '<h2>Search results for: ' + q.replace(/[<>&]/g, "") + '</h2>' +
+        '<ul><li><a href="articles.html">Result about ' + q.replace(/[<>&]/g, "") + ' (article 1)</a></li>' +
+        '<li><a href="technology.html">Result about ' + q.replace(/[<>&]/g, "") + ' (article 2)</a></li></ul>';
+    }
+  </script>
+</body>
+</html>

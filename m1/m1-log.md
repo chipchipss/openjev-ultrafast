@@ -667,3 +667,34 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
   512k）——**等拍板后写入 fork/.env**。
 - **M2 进度**：#1✅ #2✅ #3✅ #4a✅ #4b✅ **#5✅** 文档 C✅；
   剩：B 填域（C1 三选项待拍板）+ TEACHER 模型拍板 + 首轮 `--rounds 3` e2e。
+
+### 2026-09-23 · 选项 3 落地：自建 test-site + 30 本地域任务（等 GLM key 解锁 5.3/5.4）
+
+- **GLM key 搜索收口（step4 阻塞，todo 已 block）**：.env 注释态（`# GLM_API_KEY=`）、
+  omp config.yml 无 provider 段、models.db 仅 model_cache 表、omp 进程不在且环境无
+  命中、hermes custom_providers 只有 nvidia+agnes——**key 不在盘上，需 GLM 控制台
+  三值**（base_url / model id / key）写入 fork/.env 的 `TEACHER_*`。
+  候选形态（以控制台为准）：`https://open.bigmodel.cn/api/paas/v4` + `glm-5.3-flash`。
+- **test-site 9 件落盘（双仓）**：index（6 导航 + broken link + 3000px spacer +
+  footer）、search（GET `?q=` 跳转 + JS 渲染 "Search results for: {q}"）、
+  form（3 字段 + preventDefault → "Thank you"）、technology（3 文章）、
+  products（48 li 带 padding 可滚）、articles（8 篇）、settings（2 checkbox +
+  2 radio + select + Save → "Settings saved."）、empty（Page Not Found）、
+  serve.py（stdlib ThreadingHTTPServer，`--port 8765`，安静日志）。
+  约束达成：纯 `<a href>` 导航 / form preventDefault / 零 CDN。
+- **30 任务落盘（替换占位版）**：配额配平 s006-013 / f005-010 / n005-010 /
+  l004-007 / t003-005 / x003-005；domain 带 path 定起始页
+  （`http://localhost:8765/search.html` 等，_resolve_start_url 对 http 前缀原样返回）；
+  negative×3 用 text_not_contains + notes（**正确行为是 BLOCKED**）。
+  `training_domains.txt` = localhost / 127.0.0.1。
+- **5.1 ✓**：index/form 200、HTML 正常服务。search 的结果文案是 **JS 渲染**，
+  curl 看不到属预期——浏览器 agent 运行时可见。
+- **5.2 ✓**：`Loaded 50 tasks, 1 rounds` + **`[T] localhost: 30 tasks`** +
+  B×11 + `DRY RUN OK`——与预期输出逐字一致，占位域已被真实本地域替换。
+- **运维教训记档（pkill 两次自杀）**：`pkill -f` 的模式会匹配**自己所在 ssh
+  命令行的字面量**（含 nohup 路径里的裸 `serve.py`）→ 杀掉自身 shell →
+  exit 255 且后续命令全没执行。修法：① 模式用括号 trick（`serve[.]py`）**且
+  同一命令行不得再出现裸 serve.py**；② 能确认进程不在就别 pkill。
+- **下一步**：等 GLM 控制台三值 → 写 TEACHER_* → 5.3（s006 单任务探针：
+  decider 200 / teacher 无 429·401 / teacher_shadow 事件出现）→ 5.4
+  `--rounds 3` 全量 M2 首轮 → 按五条判据读 reports/m2.json。

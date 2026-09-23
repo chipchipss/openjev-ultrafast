@@ -1,0 +1,5 @@
+# M2 训练域白名单（选项 3：自建本地 test-site）
+# C1：benchmark 域（m2/benchmark_domains.txt）永不在此列
+
+localhost
+127.0.0.1

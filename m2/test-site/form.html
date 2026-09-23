@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Contact Form — OpenJEV Test Site</title>
+  <style>body { font-family: sans-serif; margin: 2rem; } nav a { margin-right: 1rem; }</style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="search.html">Search</a>
+    <a href="technology.html">Technology</a>
+    <a href="products.html">Products</a>
+    <a href="articles.html">Articles</a>
+    <a href="settings.html">Settings</a>
+  </nav>
+  <h1>Contact Form</h1>
+  <form id="contact-form">
+    <p><label>Name <input type="text" name="name" id="name"></label></p>
+    <p><label>Email <input type="email" name="email" id="email"></label></p>
+    <p><label>Comments <textarea name="comments" id="comments"></textarea></label></p>
+    <button type="submit" id="submit">Submit</button>
+  </form>
+  <div id="confirm" style="display:none">
+    <h2>Thank you</h2>
+    <p>Your message has been received.</p>
+  </div>
+  <script>
+    document.getElementById("contact-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      this.style.display = "none";
+      document.getElementById("confirm").style.display = "block";
+    });
+  </script>
+</body>
+</html>
