@@ -294,3 +294,26 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
   是裸 `json.loads`、无围栏容忍——完全依赖 response_format 生效（已实测生效）。
 - **Chrome**：DE 装 `google-chrome-stable 154.0.8037.57`（browser_harness 为本地
   CDP 模式、不自带浏览器）——e2e 浏览器前提就位。
+
+### 2026-09-23 · e2e 首跑两层故障与修复
+
+- **表层：runner 自己崩了**。s001 的 `Agent(...)` 构造失败 → `_run_one` 返回
+  `{"result": "ERROR", ...}`（字符串）→ main 第 259 行对 str 调 `.get` →
+  AttributeError，**init 的 traceback 没来得及打印**。
+  修复：4 处同类地雷全加 isinstance 归一化（main 打印行、`_summarize`、
+  验收 #2/#5 循环）；验收 #1 由 `"result" not in r` 改为"非 dict 即缺 TaskResult"
+  （否则 "ERROR" 字符串会被误判为有结果、验收假绿）。两仓同步修，dry-run 复验 OK。
+- **真根因：harness daemon 起不来**（`chrome-not-running`），排查链条：
+  1. Chrome 装了但没跑 → 手起 headless：专用 profile `/root/.config/chrome-cdp`、
+     CDP 9222、`--no-sandbox`（root 必需）→ `/json/version` 探活 OK、
+     doctor `[ok] chrome running`；
+  2. daemon 仍拒 → 读源码：`supported_browser_running()` 只扫 harness 自己的
+     **PROFILES 目录的 SingletonLock**，不认自定义 profile → 检测永远 False；
+  3. 解法：`BU_CDP_URL=http://127.0.0.1:9222`（写入 fork/.env）走 `get_ws_url()`
+     第一优先级的外部托管直连（源码注释即"dedicated automation Chrome"场景）→
+     **`AGENT_INIT_OK https://example.com/`**。
+- **Chrome 常驻命令（重启机器后需重跑）**：
+  `setsid nohup google-chrome --headless=new --remote-debugging-port=9222
+  --user-data-dir=/root/.config/chrome-cdp --no-sandbox --disable-gpu
+  --disable-dev-shm-usage --remote-allow-origins=* about:blank
+  >/root/chrome-cdp.log 2>&1 &`

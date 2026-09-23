@@ -147,10 +147,12 @@ def _summarize(results: list[dict]) -> dict:
         "system_modes": {},
     }
     for r in results:
-        if r.get("error") and "result" not in r:
+        raw = r.get("result")
+        if not isinstance(raw, dict):
+            # init 失败（result="ERROR" 字符串）或 runner 异常（无 result）都计入 error
             summary["error"] += 1
             continue
-        tr = r.get("result") or {}
+        tr = raw
         res = tr.get("result")
         if res == "PASS":     summary["pass"] += 1
         elif res == "FAIL":   summary["fail"] += 1
@@ -173,14 +175,16 @@ def _check_m1_acceptance(summary: dict, results: list[dict]) -> tuple[bool, list
     ok = True
 
     # 1. 20 task 全有 TaskResult
-    missing = [r["task_id"] for r in results if "result" not in r]
+    missing = [r["task_id"] for r in results if not isinstance(r.get("result"), dict)]
     if missing:
         ok = False
         notes.append(f"FAIL: {len(missing)} tasks missing TaskResult: {missing}")
 
     # 2. 每个 FAIL 有唯一 failure_mode
     for r in results:
-        tr = r.get("result") or {}
+        tr = r.get("result")
+        if not isinstance(tr, dict):
+            continue
         if tr.get("result") == "FAIL" and not tr.get("failure_mode"):
             ok = False
             notes.append(f"FAIL: {r['task_id']} FAIL without failure_mode")
@@ -203,7 +207,9 @@ def _check_m1_acceptance(summary: dict, results: list[dict]) -> tuple[bool, list
     # 5. 四象限有记录（不要求非零，只要求字段存在）
     #     实际判定：所有非 UNKNOWN/ERROR 的结果必须有 quadrant
     for r in results:
-        tr = r.get("result") or {}
+        tr = r.get("result")
+        if not isinstance(tr, dict):
+            continue
         res = tr.get("result")
         if res in ("PASS", "FAIL") and not tr.get("quadrant"):
             ok = False
@@ -256,7 +262,8 @@ def main() -> int:
         except Exception as e:
             r = {"task_id": tid, "error": f"runner_exception: {e}",
                  "traceback": traceback.format_exc()}
-        res = (r.get("result") or {}).get("result")
+        raw = r.get("result")
+        res = raw.get("result") if isinstance(raw, dict) else raw
         print(f"    → {r.get('error') or res}")
         results.append(r)
 
