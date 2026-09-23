@@ -634,3 +634,36 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
   按 C1 只能计入 decision 总量、不能计入 C 类 pair——域划分口径请在填域时一并明确。
 - **M2 进度**：#1✅ #2✅ #3✅ **#4a✅ #4b✅** #5（m2/run_tasks --mode shadow）⬜ +
   文档 C✅；下一步 = #5 + B 填域。
+
+### 2026-09-23 · M2 #5 落盘 + A0.3 双口径 + benchmark 清单防漂移
+
+- **A0.3 双口径修订落笔（按 §一原文执行）**：docs/03 §5.6 拆
+  `decision_total ≥ 1000（M1 存量可计入）` / `c_pairs ≥ 200（仅非 benchmark 域，
+  M1 存量不计入）` + 口径表；CHANGELOG `[M2-start]` 增 "Changed (A0.3 · 口径修订)"。
+  Rationale：C1 = benchmark 输出不进训练集，M1 20 域即 benchmark。
+- **#5 `m2/run_tasks.py` 落盘——对原稿的四处缝合修正（核对 #4b 实际代码所得）**：
+  1. extractor 导入 = `m2.sample_extractor`（#4b 在 m2/，不在 jev_ultrafast 包内）；
+  2. `extract_all` 签名 = (log_dir, samples_dir, *, **tasks 必传**（pair 的
+     goal/domain/category 只在任务表，日志不携带）, benchmark_domains, training_domains)；
+  3. `_summarize` 的 result 归一化——init 失败 result 是 str，原
+     `tr = r.get(...) or {}` 会对 str 调 .get 崩（m1 runner 同款地雷同款修法）；
+  4. **域集合接缝**：#5 传原始行（带 www.），域门用归一 host 比较 →
+     extract_all 入口统一 `_host()` 归一，双向消除格式错位（smoke 用
+     `www.bench.example.com` 专测）。
+- **#4b 增库接口 `extract_all()` + `contamination_check`**：manifest 增
+  `contamination_check.violations`（输出行域 ∈ benchmark = 违规），#5 验收第3条
+  读它；文件名轮次后缀 `{tid}_r{N}` → 还原任务 id（smoke 专测）。
+- **`m2/benchmark_domains.txt` 实测生成**：从 m1/tasks.jsonl 提取 **11 域**，
+  与文件 **match: True（零差异）**——含 R5 域替换（s002 docs.python.org /
+  s003 www.w3.org / s005 developer.mozilla.org），剔除替换前旧域 duckduckgo/bing
+  （原稿清单12行为过时版）。防漂移方案记档：c1_check 默认推导即是动态基准，
+  此文件为 #5 required 参数的手工镜像——tasks 变更时重生成。
+- **dry-run 双侧通过（§六验证序列）**：`Loaded 50 tasks, 1 rounds` /
+  `Benchmark domains: 11` / 域分布 B×11 + **`[T] <REPLACE_DOMAIN_PER_C1>: 30`**
+  占位一眼可见 / `DRY RUN OK`；extractor smoke **20/20 双布局**。
+- **TEACHER_* env 未设 = e2e 前置**：#5 运行时需
+  `TEACHER_BASE_URL / TEACHER_MODEL / TEACHER_API_KEY`——Teacher 模型必须区别于
+  本地 decider（agnes-3.0-flash），候选：agnes-2.5-pro（models.yml 在册，上下文
+  512k）——**等拍板后写入 fork/.env**。
+- **M2 进度**：#1✅ #2✅ #3✅ #4a✅ #4b✅ **#5✅** 文档 C✅；
+  剩：B 填域（C1 三选项待拍板）+ TEACHER 模型拍板 + 首轮 `--rounds 3` e2e。

@@ -1,0 +1,16 @@
+# M1 的 20 个 benchmark 域（C1 排除清单）
+# 由 m1/tasks.jsonl 实测生成（R5 后域替换已含：s002 docs.python.org / s003 www.w3.org /
+# s005 developer.mozilla.org；duckduckgo/bing 为替换前旧域，已剔除）
+# 这些域的输出绝不进 c_pairs
+
+www.google.com
+docs.python.org
+www.w3.org
+en.wikipedia.org
+developer.mozilla.org
+httpbin.org
+www.selenium.dev
+www.python.org
+www.rfc-editor.org
+news.ycombinator.com
+example.invalid

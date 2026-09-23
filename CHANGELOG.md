@@ -24,6 +24,12 @@ M2 的 Teacher 是"数据采集器"（影子模式），M5 才是"决策替代�
 ### Conflict Check
 无冲突。详见 `docs/03-milestones.md` §A0.3 修订记录。
 
+### Changed (A0.3 · 口径修订)
+- **`docs/03-milestones.md` §5.6**：M2 验收拆双口径——`decision_total ≥ 1000`
+  （所有域，M1 存量可计入）/ `c_pairs ≥ 200`（仅非 benchmark 域，M1 存量不计入）
+- Rationale：C1 = benchmark 域输出不进训练集；M1 的 20 域即 benchmark，
+  其 ≈100 decisions 只计入总量、不计入 C 类 pair
+
 ---
 
 ## [M1-close] - 2026-09-23

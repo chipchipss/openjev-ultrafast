@@ -155,10 +155,17 @@ M5: 按需调用 Teacher（Confidence Gate 触发）
 
 ### 5.6 验收
 
-1. `logs/` 累计 ≥ 1000 decisions
-2. 抽出的 C 类样本 ≥ 200
-3. 污染控制检查通过（C1 脚本验证）
-4. `system / crash` 样本占比 = 0（同 M1）
+1. decision_total ≥ 1000（M1 存量可计入）
+2. c_pairs ≥ 200（仅非 benchmark 域；M1 存量不计入）
+3. 污染控制检查通过
+4. system / crash 占比 = 0
+
+口径拆分（A0.3，2026-09-23）：
+
+| 验收项 | 来源 | M1 存量 | M2 新增 | 目标 |
+|---|---|---|---|---|
+| decision_total | 所有域 | +100 | +900 | ≥ 1000 |
+| c_pairs | 仅非 benchmark 域 | 0 | +N | ≥ 200 |
 
 **通过后才进 M3。**
 

@@ -11,8 +11,20 @@
   C4  来源标记——C 类 pair 携带 source=teacher / api_model / api_confidence。
   E5  失败四维——manifest 汇总 failure_mode 分布与每任务 fp_rate。
 
-输入：logs/*.jsonl（须含 #4a 的 teacher_shadow 事件）+ 任务表。
-输出（--out 目录）：
+库接口（#5 调用契约）：
+  extract_all(log_dir, samples_dir, *, tasks, benchmark_domains,
+              training_domains=None) -> manifest dict
+    tasks             list[dict] 或已索引 dict——pair 的 goal/domain/category 只在
+                      任务表里（日志不携带），必传
+    benchmark_domains 任意形态集合（含 www. 前缀/裸域）——入口统一 _host 归一，
+                      防止调用方清单格式与域门比较口径错位
+    返回的 manifest 含 contamination_check.violations（输出行域 ∈ benchmark = 违规，
+    供 #5 验收第3条读取）
+
+CLI：python3 -m m2.sample_extractor --logs ... --tasks ... [--benchmark-domains ...]
+     [--training-domains ...] --out samples/
+
+输出：
   c_pairs.jsonl     分歧且 teacher 有效 → chosen=teacher, rejected=local（DPO pair）
   a_positive.jsonl  agree=true 且任务最终 true_success（teacher 背书的本地正确）
   b_reject.jsonl    step.pre_execute.validator.code != "ok"
@@ -31,6 +43,7 @@
     b_reject 行 candidates 缺失时带 candidates_missing: true。
   - teacher 无效（invalid/failed/budget_exhausted）不进任何数据集，仅计入 manifest
     的 shadow_status 分布（这些状态记录在 step.pre_execute.shadow 里）。
+  - 两遍扫描：pass1 收 events / fp_stats / final_quadrant，pass2 处理 shadows。
 
 架构洞察（记档）：确定性 2B = 数据飞轮死锁；方差 = 数据飞轮的生命线——
 分歧产生 C 类 pair，本脚本只做统计门与抽样，不做方差抑制。
@@ -86,21 +99,27 @@ def _load_lines(path: Path) -> set[str]:
     return out
 
 
-def _load_tasks(path: Path) -> dict:
-    tasks = {}
+def _index_specs(specs: list[dict]) -> dict:
+    idx = {}
+    for spec in specs:
+        idx[spec["task_id"]] = {
+            "domain":  spec.get("domain", ""),
+            "host":    _host(spec.get("domain", "")),
+            "goal":    spec.get("goal", ""),
+            "category": spec.get("category", ""),
+        }
+    return idx
+
+
+def _load_tasks(path: Path) -> list[dict]:
+    specs = []
     with path.open(encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
-            spec = json.loads(line)
-            tasks[spec["task_id"]] = {
-                "domain":  spec.get("domain", ""),
-                "host":    _host(spec.get("domain", "")),
-                "goal":    spec.get("goal", ""),
-                "category": spec.get("category", ""),
-            }
-    return tasks
+            specs.append(json.loads(line))
+    return specs
 
 
 def _rendered(elements: list, targets: dict, controls: dict) -> str:
@@ -112,33 +131,42 @@ def _domain_gate(host: str, raw_domain: str, bench: set, train: set | None) -> t
     """返回 (action, extra)：keep / skip_bench / skip_not_training。"""
     if "<" in raw_domain or ">" in raw_domain:
         return "keep", {"domain_unverified": True, "domain_placeholder": True}
-    if host in bench:
+    if host and host in bench:
         return "skip_bench", {}
     if train is not None and host not in train:
         return "skip_not_training", {}
-    if train is None and host:
-        # 缺省策略：允许所有非 benchmark；host 空视为未知
-        return "keep", ({} if host else {"domain_unverified": True})
     if not host:
         return "keep", {"domain_unverified": True}
     return "keep", {}
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--logs", type=Path, required=True)
-    ap.add_argument("--tasks", type=Path, required=True)
-    ap.add_argument("--out", type=Path, default=Path("samples"))
-    ap.add_argument("--benchmark-domains", type=Path, default=None,
-                    help="one per line; default = domains of --tasks")
-    ap.add_argument("--training-domains", type=Path, default=None,
-                    help="one per line; default = allow all non-benchmark hosts")
-    args = ap.parse_args()
+# ---------------------------------------------------------------------------
+# 库接口（#5 调用契约）
+# ---------------------------------------------------------------------------
 
-    tasks = _load_tasks(args.tasks)
-    bench = (_load_lines(args.benchmark_domains) if args.benchmark_domains
-             else {t["host"] for t in tasks.values() if t["host"]})
-    train = _load_lines(args.training_domains) if args.training_domains else None
+def extract_all(
+    log_dir: Path,
+    samples_dir: Path,
+    *,
+    tasks,
+    benchmark_domains,
+    training_domains=None,
+) -> dict:
+    """扫描 log_dir/*.jsonl → 写三份样本到 samples_dir → 返回 manifest dict。
+
+    tasks:            list[dict]（任务表行）或 _load_tasks 已索引的 dict。
+    benchmark_domains/training_domains: 任意形态（原始行或归一 host）——
+      此处统一 _host 归一，消除调用方格式与域门口径的错位。
+    """
+    log_dir = Path(log_dir)
+    samples_dir = Path(samples_dir)
+    if isinstance(tasks, dict):
+        task_idx = tasks
+    else:
+        task_idx = _index_specs(list(tasks))
+    bench = {_host(x) for x in (benchmark_domains or set()) if _host(x)}
+    train = ({_host(x) for x in training_domains if _host(x)}
+             if training_domains is not None else None)
 
     c_pairs: list[dict] = []
     a_positive: list[dict] = []
@@ -155,9 +183,10 @@ def main() -> int:
     final_quadrant: dict[str, str | None] = {}
     shadows: list = []  # pass2 处理（fp_stats / final_quadrant 就绪后）
 
-    log_files = sorted(args.logs.glob("*.jsonl"))
-    for p in log_files:
+    for p in sorted(log_dir.glob("*.jsonl")):
         tid = p.stem
+        # 文件名可能带 _r{N} 轮次后缀（#5 约定）→ 还原任务 id
+        base_tid = tid.rsplit("_r", 1)[0] if "_r" in tid and tid.rsplit("_r", 1)[1].isdigit() else tid
         rounds = 0
         fps = 0
         for ln in p.read_text(encoding="utf-8").splitlines():
@@ -169,34 +198,31 @@ def main() -> int:
             if et == "task_result":
                 rounds += 1
                 res = ev.get("result") or {}
-                final_quadrant[tid] = res.get("quadrant")
+                final_quadrant[base_tid] = res.get("quadrant")
                 if res.get("quadrant") == "false_positive":
                     fps += 1
 
             elif et == "step":
-                # shadow 状态分布（invalid/failed/budget 不进数据集，仅统计）
                 pre = ev.get("pre_execute") or {}
                 sh = pre.get("shadow")
                 if isinstance(sh, dict):
                     st = sh.get("status", "unknown")
                     shadow_status[st] = shadow_status.get(st, 0) + 1
-                # b_reject 接线（见模块 docstring：当前预期 0）
                 val = pre.get("validator") or {}
                 if val.get("code") not in (None, "ok"):
-                    info = tasks.get(tid, {})
-                    action, extra = _domain_gate(info.get("host", ""),
-                                                 info.get("domain", ""), bench, train)
+                    info = task_idx.get(base_tid, {})
+                    action, _extra = _domain_gate(info.get("host", ""),
+                                                  info.get("domain", ""), bench, train)
                     if action != "keep":
                         counts["skipped_benchmark" if action == "skip_bench"
                                else "skipped_not_training"] += 1
                         counts["b_reject_skipped"] += 1
                     else:
                         b_reject.append({
-                            "task_id": tid, "step": ev.get("step"),
+                            "task_id": base_tid, "step": ev.get("step"),
                             "goal": info.get("goal", ""),
                             "category": info.get("category", ""),
                             "domain": info.get("host", ""),
-                            **extra,
                             "choice": ev.get("choice"),
                             "operation": ev.get("operation"),
                             "target": ev.get("target"),
@@ -205,17 +231,19 @@ def main() -> int:
                         })
 
             elif et == "teacher_shadow":
-                shadows.append((tid, ev))
+                shadows.append((base_tid, ev))
 
         if rounds:
-            fp_stats[tid] = {"fp": fps, "rounds": rounds,
-                             "rate": round(fps / rounds, 4),
-                             "high_variance": (fps / rounds) > HIGH_VARIANCE_FP_RATE}
+            fp_stats[base_tid] = {
+                "fp": fps, "rounds": rounds,
+                "rate": round(fps / rounds, 4),
+                "high_variance": (fps / rounds) > HIGH_VARIANCE_FP_RATE,
+            }
 
     # --- pass 2：处理 teacher_shadow（此时 fp_stats / final_quadrant 已完整） ---
     for tid, ev in shadows:
         counts["teacher_shadow_events"] += 1
-        info = tasks.get(tid, {"domain": "", "host": "", "goal": "", "category": ""})
+        info = task_idx.get(tid, {"domain": "", "host": "", "goal": "", "category": ""})
         action, extra = _domain_gate(info["host"], info["domain"], bench, train)
         if action == "skip_bench":
             counts["skipped_benchmark"] += 1
@@ -244,7 +272,6 @@ def main() -> int:
 
         teacher = ev.get("teacher") or {}
         if ev.get("agree"):
-            # A 类：agree ∧ 任务最终 true_success
             if final_quadrant.get(tid) == "true_success":
                 a_positive.append(base)
             else:
@@ -263,16 +290,20 @@ def main() -> int:
             })
 
     # --- write ---
-    args.out.mkdir(parents=True, exist_ok=True)
+    samples_dir.mkdir(parents=True, exist_ok=True)
 
     def _dump(name: str, rows: list[dict]) -> None:
-        with (args.out / name).open("w", encoding="utf-8") as f:
+        with (samples_dir / name).open("w", encoding="utf-8") as f:
             for row in rows:
                 f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
     _dump("c_pairs.jsonl", c_pairs)
     _dump("a_positive.jsonl", a_positive)
     _dump("b_reject.jsonl", b_reject)
+
+    # --- 污染检查（#5 验收第3条读取）：任何输出行域 ∈ benchmark = 违规 ---
+    all_rows = c_pairs + a_positive + b_reject
+    violations = [r for r in all_rows if r.get("domain") and r["domain"] in bench]
 
     hv_tasks = sorted(t for t, s in fp_stats.items() if s["high_variance"])
     host_dist: dict[str, int] = {}
@@ -282,21 +313,24 @@ def main() -> int:
 
     manifest = {
         "generated_at": time.time(),
-        "logs":          str(args.logs),
-        "tasks":         str(args.tasks),
-        "counts":        {**counts, "c_pairs": len(c_pairs),
-                          "a_positive": len(a_positive),
-                          "b_reject": len(b_reject)},
+        "logs":         str(log_dir),
+        "counts":       {**counts, "c_pairs": len(c_pairs),
+                         "a_positive": len(a_positive),
+                         "b_reject": len(b_reject)},
         "shadow_status": shadow_status,
         "fp_rates":      fp_stats,
         "high_variance_tasks": hv_tasks,
         "domain_distribution": host_dist,
+        "contamination_check": {
+            "violations":   len(violations),
+            "checked_rows": len(all_rows),
+            "benchmark_hosts": sorted(bench),
+        },
         "pollution": {
             "benchmark_hosts": sorted(bench),
             "training_hosts":  sorted(train) if train is not None else "all-non-benchmark",
             "unverified_domains": sorted(
-                {r["task_id"] for r in c_pairs + a_positive + b_reject
-                 if r.get("domain_unverified")}
+                {r["task_id"] for r in all_rows if r.get("domain_unverified")}
             ),
         },
         "notes": [
@@ -305,16 +339,43 @@ def main() -> int:
             f"high_variance 标准: fp_rate > {HIGH_VARIANCE_FP_RATE}（仍进集，M6 优先处理）",
         ],
     }
-    (args.out / "manifest.json").write_text(
+    (samples_dir / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    return manifest
 
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--logs", type=Path, required=True)
+    ap.add_argument("--tasks", type=Path, required=True)
+    ap.add_argument("--out", type=Path, default=Path("samples"))
+    ap.add_argument("--benchmark-domains", type=Path, default=None,
+                    help="one per line; default = domains of --tasks")
+    ap.add_argument("--training-domains", type=Path, default=None,
+                    help="one per line; default = allow all non-benchmark hosts")
+    args = ap.parse_args()
+
+    specs = _load_tasks(args.tasks)
+    bench = (_load_lines(args.benchmark_domains) if args.benchmark_domains
+             else {_host(s.get("domain", "")) for s in specs if _host(s.get("domain", ""))})
+    train = _load_lines(args.training_domains) if args.training_domains else None
+
+    manifest = extract_all(args.logs, args.out, tasks=specs,
+                           benchmark_domains=bench, training_domains=train)
+
+    counts = manifest["counts"]
     print(f"teacher_shadow_events={counts['teacher_shadow_events']} "
-          f"c_pairs={len(c_pairs)} a_positive={len(a_positive)} "
-          f"b_reject={len(b_reject)}")
+          f"c_pairs={counts['c_pairs']} a_positive={counts['a_positive']} "
+          f"b_reject={counts['b_reject']}")
     print(f"skipped: benchmark={counts['skipped_benchmark']} "
           f"not_training={counts['skipped_not_training']}")
-    print(f"shadow_status={shadow_status}")
-    print(f"high_variance_tasks={hv_tasks}")
+    print(f"shadow_status={manifest['shadow_status']}")
+    print(f"high_variance_tasks={manifest['high_variance_tasks']}")
+    print(f"contamination violations={manifest['contamination_check']['violations']}")
     print(f"→ {args.out}/manifest.json")
     print("EXTRACT_OK")
     return 0
@@ -325,6 +386,8 @@ def main() -> int:
 # ---------------------------------------------------------------------------
 
 def _smoke() -> None:
+    import contextlib
+    import io
     import tempfile
 
     passed = 0
@@ -390,8 +453,7 @@ def _smoke() -> None:
             shadow("tB", 0, False), step_ev("tB", shadow_status="invalid"),
             step_ev("tB", code="choice_mismatch"), result("tB", "true_success"),
         ])
-        # tT：训练域 → 保留；2 轮 1 fp → fp_rate 0.5 → high_variance；
-        #     agree entry + 最终 true_success → a_positive
+        # tT：训练域 → 保留；2 轮 1 fp → fp_rate 0.5 → high_variance
         w(logs / "tT.jsonl", [
             shadow("tT", 0, False), result("tT", "false_positive"),
             shadow("tT", 0, True), result("tT", "true_success"),
@@ -400,11 +462,16 @@ def _smoke() -> None:
         w(logs / "tP.jsonl", [
             shadow("tP", 0, False), result("tP", "false_positive"),
         ])
+        # 轮次后缀文件名（#5 约定 tX_r0）→ tid 还原
+        w(logs / "tT_r0.jsonl", [
+            shadow("tT", 0, False), shadow("tT", 0, True),
+            result("tT", "true_success"),
+        ])
+        (logs / "tT.jsonl").unlink()  # 用轮次版文件名替代（#5 的实际落盘格式）
 
         out = root / "samples"
-        import contextlib, io
         bf0 = root / "bench0.txt"
-        bf0.write_text("bench.example.com\n", encoding="utf-8")
+        bf0.write_text("www.bench.example.com\n", encoding="utf-8")  # 带 www. 测归一
         old_argv = sys.argv
         sys.argv = ["sample_extractor", "--logs", str(logs), "--tasks", str(tasks),
                     "--out", str(out), "--benchmark-domains", str(bf0)]
@@ -423,19 +490,20 @@ def _smoke() -> None:
         b_rows = [json.loads(x) for x in
                   (out / "b_reject.jsonl").read_text(encoding="utf-8").splitlines() if x]
 
-        check("tB benchmark skipped", manifest["counts"]["skipped_benchmark"] == 2)
-        check("c_pairs from tT + tP", len(c_rows) == 2)
+        check("tB benchmark skipped (含 r 后缀 tid 还原)",
+              manifest["counts"]["skipped_benchmark"] == 2)
+        # tT 现在只剩 _r0 文件：1 disagree + 1 agree → c=1 / a=1；fp 文件被删 → rounds 仅 _r0
+        check("c_pairs = tT_r disagree + tP", len(c_rows) == 2)
         check("a_positive agree+success", len(a_rows) == 1)
         check("b_reject bench-skipped", len(b_rows) == 0
               and manifest["counts"]["b_reject_skipped"] == 1)
         check("shadow invalid counted", manifest["shadow_status"].get("invalid") == 1)
 
         tt = [r for r in c_rows if r["task_id"] == "tT"][0]
-        check("fp_rate 0.5 → high_variance pair",
-              tt["high_variance"] is True
-              and manifest["fp_rates"]["tT"]["rate"] == 0.5
-              and manifest["fp_rates"]["tT"]["high_variance"] is True)
-        check("high_variance_tasks list", manifest["high_variance_tasks"] == ["tP", "tT"])
+        check("tid suffix restored", tt["task_id"] == "tT")
+        check("c_pairs not high_variance（tT_r0 单轮全 PASS）",
+              tt["high_variance"] is False
+              and "tT" not in manifest["high_variance_tasks"])
         check("C3 structured rebuilt", "CLICK" in tt["candidates_structured"]["targets"])
         check("C3 rendered element line", "[1] A [CLICK]" in tt["candidates_rendered"]
               and "[2] B [TYPE_TEXT]" in tt["candidates_rendered"])
@@ -443,31 +511,28 @@ def _smoke() -> None:
         check("chosen=teacher rejected=local",
               tt["chosen"]["target"] == "2" and tt["rejected"]["target"] == "1")
         check("C4 fields", tt["source"] == "api" and tt["api_model"] == "mock-t")
+        check("contamination clean", manifest["contamination_check"]["violations"] == 0
+              and manifest["contamination_check"]["checked_rows"] == 3)
 
         tpp = [r for r in c_rows if r["task_id"] == "tP"][0]
         check("placeholder → unverified", tpp.get("domain_unverified") is True
               and tpp.get("domain_placeholder") is True)
         check("tP fp_rate 1.0 → high_variance", tpp["high_variance"] is True)
-        check("domain distribution counts both rows",
+        check("high_variance_tasks", manifest["high_variance_tasks"] == ["tP"])
+        check("domain distribution counts c+a rows",
               manifest["domain_distribution"].get("train.example.org") == 2)
 
-        # 训练域白名单模式（显式 benchmark 清单，否则默认推导会把所有任务域算成 benchmark）
-        tf = root / "train.txt"
-        tf.write_text("other.example.net\n", encoding="utf-8")
-        bf = root / "bench.txt"
-        bf.write_text("bench.example.com\n", encoding="utf-8")
+        # 库接口（#5 契约）：tasks=list + 原始形态域集合（带 www.）直接可用
+        specs = _load_tasks(tasks)
         out2 = root / "samples2"
-        sys.argv = ["sample_extractor", "--logs", str(logs), "--tasks", str(tasks),
-                    "--out", str(out2), "--benchmark-domains", str(bf),
-                    "--training-domains", str(tf)]
-        try:
-            with contextlib.redirect_stdout(io.StringIO()):
-                rc2 = main()
-        finally:
-            sys.argv = old_argv
-        m2 = json.loads((out2 / "manifest.json").read_text(encoding="utf-8"))
-        check("training whitelist: tT skipped", rc2 == 0
+        m2 = extract_all(logs, out2, tasks=specs,
+                         benchmark_domains={"www.bench.example.com"},
+                         training_domains={"other.example.net"})
+        check("extract_all contract: returns manifest counts",
+              m2["counts"]["c_pairs"] == 1  # 占位域按设计 keep（unverified 可见优于静默跳过）
               and m2["counts"]["skipped_not_training"] >= 2)
+        check("extract_all normalization: www benchmark caught",
+              m2["counts"]["skipped_benchmark"] >= 1)
 
     print(f"SMOKE OK: {passed}/{total}")
 
