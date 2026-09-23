@@ -219,7 +219,7 @@ class APITeacher:
         started = time.perf_counter()
         result, _ = post_chat(
             base, model, key, messages,
-            max_tokens=512, temperature=0.0,
+            max_tokens=4096, temperature=0.0,
             response_format={"type": "json_object"},
         )
         latency_ms = round((time.perf_counter() - started) * 1000)
@@ -273,7 +273,7 @@ class APITeacher:
         started = time.perf_counter()
         result, _ = post_chat(
             base, model, key, messages,
-            max_tokens=512, temperature=0.0,
+            max_tokens=4096, temperature=0.0,
             response_format={"type": "json_object"},
         )
 

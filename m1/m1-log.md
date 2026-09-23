@@ -731,3 +731,49 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
   **A. agnes-2.5-pro（已全链验证、零等待）**——与 decider(3.0-flash) 不同模型，
   分歧信号成立，盘上已有 key；
   **B. GLM glm-5.3-flash（原计划）**——需控制台三值，多等一轮。
+
+### 2026-09-23 · key 落点：omp auth_credentials + 5.3 s006 探针 PASS + 缺陷#4
+
+- **用户指路命中——zhipu key 就在 omp 配置里**：`/root/.omp/agent/agent.db`
+  （SQLite）→ `auth_credentials` 表 id=2：`provider=zhipu-coding-plan,
+  credential_type=api_key, data={"key":"e1dd655…d2FyvWI3rrWPt8Ls","source":"login"}`。
+  同表另有 deepseek / xiaomi 两把。baseUrl 取自 omp 二进制内置目录：
+  `https://open.bigmodel.cn/api/coding/paas/v4`（`zhipu-coding-plan` → bigmodel coding
+  端点，与 billion-context OpenCode 卡片一致）。config.yml 只有角色引用
+  （`smol: zhipu-coding-plan/glm-5.3`），models.yml 仅 agnesai——**凭据真身在
+  agent.db，此前八路漏搜了 SQLite 凭据表**。
+- **TEACHER_* 三值落 fork/.env（LA↔DE 同步）**；端点探针：coding / paas 两 URL 均
+  HTTP 200（key 有效），教师全链 `TEACHER_GLM_2/2_OK`：`target=1 choice=e1
+  D8=True/ok ×2`（3.6/3.4s，conf 1.0/0.98）。
+- **5.3 s006 单任务探针 PASS**：task PASS=true_success（final_url `?q=testing`
+  命中断言）；`teacher_shadow_total=2` 且两事件 `agree=true, operation_match=true,
+  target_match=true`（glm-5.3-flash，5666/4264ms，reasoning 123/90 tok）；
+  budget teacher 2/10000；decider 零错误；429/401 零；验收闸按预期报
+  `decision_total=3 < 1000`（单任务探针不构成全量判据）。
+- **缺陷#4（探针暴露、已修）**：line1 嵌套 `shadow.status=failed,
+  RuntimeError: Teacher returned non-JSON`——glm-5.3-flash 默认开思考，
+  `max_tokens=512` 被 reasoning 吃光 → `finish_reason=length` → content 空。
+  choose/correct 两处调用 `max_tokens 512→4096`，冒烟 36/36 双布局。
+- **下一步**：5.4 `--rounds 3`（m1 20 + m2 30 = 50 任务 ×3 轮）→
+  reports/m2.json 五判据 + 抽取 manifest（c_pairs / contamination）。
+
+### 2026-09-23 · agnes 全换 deepseek-flash + 预飞 3/3 全绿 + 5.4 重启
+
+- **触发**：5.4 首启跑到 r0 第46任务时 agnes-3.0-flash 渠道挂死
+  （对照判据复现：3.0 = `000/15s`、2.5 = `200/1.66s`、`/models` GET `200`——
+  活着列模型 = 渠道级挂；日志48×`HTTP 429` +19×read-timeout，任务卡重试环
+  15min+）。kill 止血，残局归档 `logs/m2_429abort/` + `reports/m2_run_429abort.out`。
+- **决策（用户拍板"干脆全换了"）**：agnes 套餐级限流，换模型治标 →
+  **DECIDER_2B_\* + TEXT_HELPER_\* 全切 deepseek-flash**
+  （`https://api.deepseek.com/v1`；key = omp `auth_credentials` id=1
+  `sk-506c…`；`/models` 实测200列 **DeepSeek-V4.1-Flash**，chat `200/0.98s`）。
+  .env 三块现状：decider/text helper = deepseek-flash，**teacher = glm-5.3-flash
+  不换**（与 decider 异模型是分歧信号前提，否则 c_pairs 恒 agree 作废；
+  GLM 同轮验证 `200/3.0s` 健康）。
+- **预飞 s006（新栈，换模型后单任务）**：**PASS**；decision_total=3 /
+  teacher_shadow_total=3（**每步都影子**，512→4096 修复生效）；
+  **`agree: true ×3、failed shadow =0**；budget teacher 3/10000；**26s**
+  （旧栈 92s，无重试内耗）。
+- **可比性记档**：M1 e2e/R5 基线打在 agnes-3.0-flash 上；本轮起 decider =
+  deepseek-flash（换模型是 env 级行为，设计允许；后续 R5 复测以新栈为准）。
+- **下一步**：5.4 重启 `--rounds 3` → reports/m2.json 五判据。
