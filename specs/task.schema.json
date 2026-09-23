@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openjev-ultrafast/specs/task.schema.json",
+  "title": "TaskSpec",
+  "type": "object",
+  "required": ["task_id", "domain", "category", "goal", "budget", "success_assertion"],
+  "additionalProperties": false,
+  "properties": {
+    "task_id":  { "type": "string", "pattern": "^[a-z]+[0-9]{3}$" },
+    "domain":   { "type": "string" },
+    "category": { "enum": ["search","form","navigate","list","toggle","negative"] },
+    "goal":     { "type": "string", "minLength": 1 },
+    "budget": {
+      "type": "object",
+      "required": ["steps"],
+      "additionalProperties": false,
+      "properties": {
+        "steps":       { "type": "integer", "minimum": 1 },
+        "model_calls": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "success_assertion": { "$ref": "#/$defs/assertion" },
+    "notes":      { "type": "string" },
+    "extensions": { "type": "object" }
+  },
+  "$defs": {
+    "assertion": {
+      "oneOf": [
+        { "type": "object", "required": ["type","clauses"], "additionalProperties": false,
+          "properties": { "type": { "const": "all_of" },
+                          "clauses": { "type": "array", "items": { "$ref": "#/$defs/assertion" }, "minItems": 1 } } },
+        { "type": "object", "required": ["type","clauses"], "additionalProperties": false,
+          "properties": { "type": { "const": "any_of" },
+                          "clauses": { "type": "array", "items": { "$ref": "#/$defs/assertion" }, "minItems": 1 } } },
+        { "type": "object", "required": ["type","pattern"], "additionalProperties": false,
+          "properties": { "type": { "const": "url_matches" }, "pattern": { "type": "string" } } },
+        { "type": "object", "required": ["type","pattern"], "additionalProperties": false,
+          "properties": { "type": { "const": "url_not_matches" }, "pattern": { "type": "string" } } },
+        { "type": "object", "required": ["type","value"], "additionalProperties": false,
+          "properties": { "type": { "const": "text_contains" }, "value": { "type": "string" },
+                          "case_sensitive": { "type": "boolean", "default": false } } },
+        { "type": "object", "required": ["type","value"], "additionalProperties": false,
+          "properties": { "type": { "const": "text_not_contains" }, "value": { "type": "string" },
+                          "case_sensitive": { "type": "boolean", "default": false } } },
+        { "type": "object", "required": ["type","role"], "additionalProperties": false,
+          "properties": { "type": { "const": "element_exists" }, "role": { "type": "string" },
+                          "label_contains": { "type": "string" } } },
+        { "type": "object", "required": ["type","role"], "additionalProperties": false,
+          "properties": { "type": { "const": "element_absent" }, "role": { "type": "string" },
+                          "label_contains": { "type": "string" } } },
+        { "type": "object", "required": ["type","kind"], "additionalProperties": false,
+          "properties": { "type": { "const": "history_has_kind" },
+                          "kind": { "enum": ["click","fill","select","scroll","wait"] },
+                          "text_contains": { "type": "string" } } }
+      ]
+    }
+  }
+}

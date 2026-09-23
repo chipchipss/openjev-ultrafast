@@ -10,7 +10,7 @@
 
 | Step | 文件/事项 | 状态 |
 |---|---|---|
-| 1 | fork + demo.py 跑通 | ⬜ |
+| 1 | fork + demo.py 跑通 | ⬜（全局卡点） |
 | 2 | evaluator.py | ✅ |
 | 3 | step_budget.py | ✅ |
 | 4 | decision_validator.py | ✅ |
@@ -20,7 +20,9 @@
 | 8 | decider/ + prompts/ | ✅ |
 | 9 | agent.py 改造 | ✅ |
 | 10 | logger.py | ✅ |
-| 11 | 20 tasks | ⬜ |
+| 11 | tasks.jsonl | ✅ |
+| 11 | run_tasks.py | ✅ |
+| 11 | e2e 20 任务 | ⬜（等 import 适配补丁） |
 
 ---
 
@@ -205,3 +207,31 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
   增量抽取 / decisions·text_calls / budget_transition 增量 / finalize 双输入 /
   JSONL 内容 / flush_every=1 / close 幂等 / 参数校验 / 白名单过滤 / 非 dict state）。
 - **Step 11 前置**：fork jev-ultrafast（全局卡点）+ m1/tasks.jsonl + m1/run_tasks.py。
+
+### 2026-09-23 · Step 11 前置落盘 + 上游 fork 实测
+
+- **落盘 3 件**：specs/task.schema.json v2（首个落盘的 spec）、m1/tasks.jsonl
+  （20 任务完整版）、m1/run_tasks.py（benchmark runner，原稿外新增文件）。
+- **api_teacher.py 更正**：移出 M1 → M5 产出（M1 Confidence Gate 恒 fixed_high
+  永不升级）；清单 ⬜ 仅剩它一件。
+- **5 代表 vs 完整版**：f001 / n001 / l001 / x001 四件在完整版中域/断言换成公开基准站
+  （example-* 占位 → 真实站），以完整版为准；s001 两版一致。
+- **dry-run（DE 实跑）**：`python3 -m m1.run_tasks --dry-run` → `Loaded 20 tasks`
+  + `DRY RUN OK`；配额 grep 实测 search5 / form4 / navigate4 / list3 / toggle2 /
+  negative2 = 20，与清单配额精确一致。
+- **上游 fork 实测**（clone `github.com/browser-use/jev-ultrafast` → DE:/root/jev-ultrafast）：
+  - **package 结构**：`jev_ultrafast/` 带 `__init__.py`；agent / browser / model /
+    questions / demo 全在包内，agent.py 相对导入与我们 M1 版同源 →
+    我们的根级模块须并入 `jev_ultrafast/` 包内（`from . import decision_validator` 即可直接工作）。
+  - 工程形态：pyproject（hatchling）+ uv.lock，entry `jev = jev_ultrafast.demo:main`；
+    **requires-python >= 3.12**（DE 系统 python3.10 —— e2e 需 uv 装 3.12）；
+    依赖 browser-harness==0.1.13 + httpx[http2]（与 decider/_http 的 httpx 一致）。
+  - env 差异：上游 .env.example 用 TYPESAFE_* / TEXT_MODEL_*（旧 model.py 契约）——
+    整合时换成 decider 的 DECIDER_2B_* / TEXT_HELPER_*。
+  - docs/ 与上游并存无文件名冲突（上游 = design.md / performance.md / 测量资产）。
+  - MAX_STEPS=60 在 questions.py:26，与我们引用一致。
+- **agent.py 漂移核验（关键）**：GitHub 上游基线 vs 落盘 M1 版——我们版从基线
+  **删除的行仅 3 处**，全部在 4 点改动内（__init__ 签名、predict 首检、run() while）；
+  其余全为 M1 标注新增（pre_execute 链）。**零意外漂移**，对话基线 == GitHub 上游。
+- **下一步（A 路径）**：用户按实测包结构出 agent.py import 适配补丁 → 合并入库 →
+  3.12 环境 + 真实 2B 后端 → e2e 20 任务。

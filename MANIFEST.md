@@ -2,8 +2,8 @@
 
 - 状态标记：✅ 已冻结 / 📝 草案 / ⬜ 待产出
 - 用途：丢失后按此清单重建。每个文件的关键内容已在对话中给出，可按摘要重建。
-- 本仓库当前状态：已落盘 19 件（docs/01、09、10 + agent.py + evaluator / step_budget / decision_validator / runtime_guard / policy / confidence_gate / logger + prompts×3 + decider×5）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
-- 统计：✅ 37 · 📝 1 · ⬜ 2，合计 40（原稿 37 件 + 新增 _http.py、action_space.py、agent.py 改造稿；落盘 19 件）。
+- 本仓库当前状态：已落盘 22 件（docs 3 + agent.py + 顶层 7 py + prompts×3 + decider×5 + specs/task.schema + m1/tasks.jsonl + m1/run_tasks.py）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；⬜ 仅剩 api_teacher.py（M5 产出，不在 M1）。
+- 统计：✅ 39 · 📝 1 · ⬜ 1，合计 41（原稿 37 + 新增 _http.py、action_space.py、run_tasks.py）。
 
 ---
 
@@ -243,7 +243,8 @@ m1/
 ├── m1-log.md             📝 草案
 ├── recon-checklist.md    ✅
 ├── recon-log.md          ✅
-└── tasks.jsonl           ⬜ 待产出
+├── run_tasks.py          ✅ 新增（原稿外）
+└── tasks.jsonl           ✅ 已落盘
 ```
 
 **m1-log.md 📝**
@@ -264,19 +265,19 @@ m1/
 - 已知失败模式（Windows 菜单 / shadow root / 双预算硬停）
 - 基座决策：Fork jev-ultrafast
 
-**tasks.jsonl ⬜**
+**tasks.jsonl ✅**
 
-20 个 M1 任务，配额：
+20 个 M1 任务完整版（已落盘），配额实测命中（search 5 / form 4 / navigate 4 / list 3 / toggle 2 / negative 2）：
 
-- search 5 / form 4 / navigate 4 / list 3 / toggle 2 / negative 2
-- 5 个代表已给出（s001 / f001 / n001 / l001 / x001）
-- 待补 15 个
+- 5 个代表（s001 / f001 / n001 / l001 / x001）+ 15 补全；4 个代表在完整版中域/断言更新为公开基准站，以完整版为准
+- 域清单（C1 排除训练流量）：google / duckduckgo / wikipedia / bing / python.org / MDN / w3.org / rfc-editor / httpbin / selenium.dev / news.ycombinator / example.invalid
+- 校验：`python3 -m m1.run_tasks --dry-run` → DRY RUN OK
 
 ---
 
 ## 五、M1 阶段待产出代码文件
 
-顶层 7 个 py + prompts×3 + decider×5 已落盘，其余尚未开始（api_teacher.py / tasks.jsonl）。列出便于规划目录。
+顶层 7 个 py + prompts×3 + decider×5 全部落盘。api_teacher.py 移出 M1（M5 产出）；tasks.jsonl / run_tasks.py 见第四节。列出便于规划目录。
 
 ```text
 openjev-ultrafast/
@@ -287,7 +288,7 @@ openjev-ultrafast/
 ├── logger.py               ✅ 统一日志出口（已落盘）
 ├── policy.py               ✅ Policy（先空实现 + 黑名单，已落盘）
 ├── confidence_gate.py      ✅ Confidence Gate（先固定 HIGH，已落盘）
-├── api_teacher.py          ⬜ API Teacher（M1 后期）
+├── api_teacher.py          ⬜ API Teacher（M5 产出，不在 M1）
 ├── decider/
 │   ├── __init__.py                          ✅（已落盘）
 │   ├── _http.py                             ✅ OpenAI 兼容 HTTP 客户端（新增，已落盘）
@@ -342,7 +343,8 @@ openjev-ultrafast/
 │   ├── m1-log.md                            📝
 │   ├── recon-checklist.md                   ✅
 │   ├── recon-log.md                         ✅
-│   └── tasks.jsonl                          ⬜
+│   ├── run_tasks.py                         ✅
+│   └── tasks.jsonl                          ✅
 ├── agent.py                                 ✅
 ├── evaluator.py                             ✅
 ├── step_budget.py                           ✅
@@ -364,9 +366,9 @@ openjev-ultrafast/
     └── text_value.txt                       ✅
 ```
 
-- ✅ 已冻结文件：37 个（21 项基础文档 + agent.py + 7 顶层 py + prompts 3 + decider 5；其中已落盘 19 件 = docs 3 + agent.py + 顶层 py 7 + prompts 3 + decider 5）
+- ✅ 已冻结文件：39 个（21 项基础文档 + agent.py + 7 顶层 py + prompts 3 + decider 5 + tasks.jsonl + run_tasks.py；其中已落盘 22 件 = docs 3 + agent.py + 顶层 py 7 + prompts 3 + decider 5 + specs 1 + m1 2）
 - 📝 草案：1 个（m1/m1-log.md）
-- ⬜ 待产出：2 个（tasks.jsonl + api_teacher.py）
+- ⬜ 待产出：1 个（api_teacher.py，M5 产出）
 
 ---
 
