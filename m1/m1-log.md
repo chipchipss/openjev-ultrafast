@@ -407,3 +407,48 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
 - M2 起点建议：7 条 decision fail 做失败归因分桶（字段填错 / 导航不足 /
   过早放弃）、budget_exceeded 1 条做预算调参观察；M6 扩任务前回看
   DoneGuard 两个已知误伤窗口（§2.4 记档）。
+
+### 2026-09-23 · M1 收口确认 + A0.3 记档（规划错位）+ M2 启动
+
+- **M1 收口确认（用户）**：R5 = 判定基准轮，归档为 M1 黄金证据。五条件全过、
+  crash 归零、fp 归零、known_limitation 口径未动用——干净收口、无遗留债务。
+  三铁证单独记档：
+  | 证据 | 意义 |
+  |---|---|
+  | l001：3 次 DONE 被拒 → 第 4 次改 SCROLL | DoneGuard 是引导，不是拦截 |
+  | n004：10 步尝试 → 老实失败 → budget abort | 诚实失败进 agent 类，不是 fp |
+  | `[retry]` 前缀区分 transport vs 429 | 诊断层已分级，R6 一眼定位 |
+  合并含义：**系统从"能跑"变成"可观测"。**
+- **A0.3 记档（下一轮随改动一起执行）**：此前"api_teacher 归 M5"是规划错位——
+  v3 规划 M2 数据飞轮 C 类（API 修正）就需要 Teacher。正确划分：
+  **M2 首次接入（无条件全量调用，产 preference pair / shadow 数据）；
+  M5 校准优化（按需调用，校准后 P(correct) 低才触发）**——Active Learning 两阶段。
+  **执行阻塞**：docs/03-milestones.md 与 CHANGELOG.md 均 ✅ 未落盘（已落 docs 仅
+  01/09/10），A0.3 的"更新 CHANGELOG + 修订 03"缺原文——两件贴入即执行。
+  清单侧 api_teacher 注解已同步纠正（M2 接入·无条件全量；M5 转按需）。
+- **M2 启动清单（依赖序，记档）**：
+
+  | # | 文件 | 作用 | 依赖 | 状态 |
+  |---|---|---|---|---|
+  | 1 | api_budget.py | B1/B4：Teacher/Recovery 分池限额 | 无 | ✅ 本轮 |
+  | 2 | api_teacher.py | 复用 decider/_http，decision 场景 → corrected decision | 1 | ⬜ |
+  | 3 | confidence_gate.py 修订 | MODE_SHADOW：本地+Teacher 并行只记录不切换 | 1,2 | ⬜ |
+  | 4 | sample_extractor.py | 抽 4 类训练样本，C1 污染控制 | 无 | ⬜ |
+  | 5 | m2/run_tasks.py | --mode shadow + 多轮 + 数据量统计 | 3,4 | ⬜ |
+  | C | docs/03 A0.3 修订 | api_teacher 归属 M5→M2 正式落笔 | 03+CHANGELOG 落盘 | ⬜ |
+
+  核心设计：M2 = MODE_SHADOW（不改执行路径，影子并行 Teacher）→ 不影响 M1 执行质量、
+  产 C 类 2B vs Teacher preference pair、为 M5 校准供 ground truth。
+- **数据量目标**：1000+ decisions / 200+ corrected。路径 A+B：50 任务 × 3 轮
+  ≈ 750 + M1 存量 100 ≈ 850~950，余量人工修正补。30 个新任务模板已产出
+  （`m2/tasks_extra.jsonl`，📝 草案：占位域 `<REPLACE_DOMAIN_PER_C1>` +
+  断言占位 slug，**域由用户按 C1 决定**——避开 M6 benchmark 域与训练域；
+  M1 基准 20 任务文件不动，独立文件）。
+- **本轮交付（A→B→C 推荐链）**：
+  1. `api_budget.py`：分池消费/限额/成本累计、`APIBudgetExhausted`、
+     `log_entry()` 与 step_budget 同风格；**smoke 内置 ConfidenceGate §5bis
+     四分支真实集成**（teacher→recovery→local→abort 用真实 APIBudget 走通，
+     鸭子契约 `teacher_available/recovery_available` 当场验证）。
+  2. `m2/tasks_extra.jsonl`：30 模板（search8/form6/nav6/list4/toggle3/negative3），
+     ID 续号 s006+/f005+/n005+/l004+/t003+/x003+，dry-run 校验。
+  3. A0.3 记档（上）+ 清单注解纠正。

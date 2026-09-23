@@ -2,8 +2,8 @@
 
 - 状态标记：✅ 已冻结 / 📝 草案 / ⬜ 待产出
 - 用途：丢失后按此清单重建。每个文件的关键内容已在对话中给出，可按摘要重建。
-- 本仓库当前状态：已落盘 23 件（docs 3 + agent.py + 顶层 7 py + prompts×3 + decider×5 + specs/task.schema + m1/tasks.jsonl + m1/run_tasks.py + scripts/integrate.sh）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；⬜ 仅剩 api_teacher.py（M5 产出，不在 M1）。集成后的运行树在 DE:/root/jev-ultrafast（fork，见 m1/m1-log.md）。
-- 统计：✅ 40 · 📝 1 · ⬜ 1，合计 42（原稿 37 + 新增 _http、action_space、run_tasks、integrate.sh）。
+- 本仓库当前状态：已落盘 24 件（docs 3 + agent.py + 顶层 8 py + prompts×3 + decider×5 + specs/task.schema + m1/tasks.jsonl + m1/run_tasks.py + scripts/integrate.sh）+ 草案 m1/m1-log.md、m2/tasks_extra.jsonl + 本清单 + 目录骨架；⬜ 仅剩 api_teacher.py（M2 接入）。集成后的运行树在 DE:/root/jev-ultrafast（fork，见 m1/m1-log.md）。
+- 统计：✅ 41 · 📝 2 · ⬜ 1，合计 44（原稿 37 + 新增 _http、action_space、run_tasks、integrate.sh、api_budget、tasks_extra）。
 
 ---
 
@@ -277,7 +277,7 @@ m1/
 
 ## 五、M1 阶段待产出代码文件
 
-顶层 7 个 py + prompts×3 + decider×5 全部落盘。api_teacher.py 移出 M1（M5 产出）；tasks.jsonl / run_tasks.py 见第四节。列出便于规划目录。
+顶层 8 个 py + prompts×3 + decider×5 全部落盘。api_teacher.py 归 **M2**（无条件全量产 C 类数据，M5 转按需——A0.3 正式修订待 docs/03-milestones + CHANGELOG 落盘）；tasks.jsonl / run_tasks.py 见第四节，api_budget.py / tasks_extra.jsonl 见第六节。列出便于规划目录。
 
 ```text
 openjev-ultrafast/
@@ -288,7 +288,8 @@ openjev-ultrafast/
 ├── logger.py               ✅ 统一日志出口（已落盘）
 ├── policy.py               ✅ Policy（先空实现 + 黑名单，已落盘）
 ├── confidence_gate.py      ✅ Confidence Gate（先固定 HIGH，已落盘）
-├── api_teacher.py          ⬜ API Teacher（M5 产出，不在 M1）
+├── api_budget.py           ✅ B1/B4 双预算（M2，已落盘）
+├── api_teacher.py          ⬜ API Teacher（M2 接入·无条件全量；M5 转按需）
 ├── decider/
 │   ├── __init__.py                          ✅（已落盘）
 │   ├── _http.py                             ✅ OpenAI 兼容 HTTP 客户端（新增，已落盘）
@@ -345,6 +346,8 @@ openjev-ultrafast/
 │   ├── recon-log.md                         ✅
 │   ├── run_tasks.py                         ✅
 │   └── tasks.jsonl                          ✅
+├── m2/
+│   └── tasks_extra.jsonl                   📝
 ├── agent.py                                 ✅
 ├── evaluator.py                             ✅
 ├── step_budget.py                           ✅
@@ -353,6 +356,7 @@ openjev-ultrafast/
 ├── logger.py                                ✅
 ├── policy.py                                ✅
 ├── confidence_gate.py                       ✅
+├── api_budget.py                            ✅
 ├── api_teacher.py                           ⬜
 ├── scripts/
 │   └── integrate.sh                         ✅ 新增（集成脚本）
@@ -368,9 +372,9 @@ openjev-ultrafast/
     └── text_value.txt                       ✅
 ```
 
-- ✅ 已冻结文件：40 个（21 项基础文档 + agent.py + 7 顶层 py + prompts 3 + decider 5 + tasks.jsonl + run_tasks.py + integrate.sh；其中已落盘 23 件 = docs 3 + agent.py + 顶层 py 7 + prompts 3 + decider 5 + specs 1 + m1 2 + scripts 1）
-- 📝 草案：1 个（m1/m1-log.md）
-- ⬜ 待产出：1 个（api_teacher.py，M5 产出）
+- ✅ 已冻结文件：41 个（21 项基础文档 + agent.py + 8 顶层 py + prompts 3 + decider 5 + tasks.jsonl + run_tasks.py + integrate.sh；其中已落盘 24 件 = docs 3 + agent.py + 顶层 py 8 + prompts 3 + decider 5 + specs 1 + m1 2 + scripts 1）
+- 📝 草案：2 个（m1/m1-log.md、m2/tasks_extra.jsonl）
+- ⬜ 待产出：1 个（api_teacher.py，M2 接入）
 
 ---
 
