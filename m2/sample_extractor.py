@@ -152,7 +152,7 @@ def extract_all(
     benchmark_domains,
     training_domains=None,
 ) -> dict:
-    """扫描 log_dir/*.jsonl → 写三份样本到 samples_dir → 返回 manifest dict。
+    """扫描 log_dir/**/*.jsonl（含轮次子目录 rN/）→ 写三份样本到 samples_dir → 返回 manifest dict。
 
     tasks:            list[dict]（任务表行）或 _load_tasks 已索引的 dict。
     benchmark_domains/training_domains: 任意形态（原始行或归一 host）——
@@ -183,7 +183,10 @@ def extract_all(
     final_quadrant: dict[str, str | None] = {}
     shadows: list = []  # pass2 处理（fp_stats / final_quadrant 就绪后）
 
-    for p in sorted(log_dir.glob("*.jsonl")):
+    # 缺陷#6：必须递归——m2 runner 落盘在轮次子目录 logs/m2/rN/（#5 约定），
+    # 平层 glob 会一个文件都读不到 → 全部计数归0（实况：725 条影子全没进数据集、
+    # c_pairs=0、manifest teacher_shadow_events=0）。
+    for p in sorted(log_dir.rglob("*.jsonl")):
         tid = p.stem
         # 文件名可能带 _r{N} 轮次后缀（#5 约定）→ 还原任务 id
         base_tid = tid.rsplit("_r", 1)[0] if "_r" in tid and tid.rsplit("_r", 1)[1].isdigit() else tid
@@ -533,6 +536,27 @@ def _smoke() -> None:
               and m2["counts"]["skipped_not_training"] >= 2)
         check("extract_all normalization: www benchmark caught",
               m2["counts"]["skipped_benchmark"] >= 1)
+
+        # 缺陷#6 回归（隔离块，不共享上面的期望值）：轮次子目录 logs/…/rN/ 必须
+        # 被扫到——平层 glob 曾漏读全部影子（实况 c_pairs=0 vs 日志 725 条影子）。
+        with tempfile.TemporaryDirectory() as tmp2:
+            r2 = Path(tmp2)
+            sub = r2 / "logs" / "r7"
+            sub.mkdir(parents=True)
+            rtasks = r2 / "tasks.jsonl"
+            rtasks.write_text(json.dumps(
+                {"task_id": "rT", "domain": "http://localhost/", "category": "list",
+                 "goal": "rg", "budget": {"steps": 5},
+                 "success_assertion": {"type": "url_matches", "pattern": "."}}) + "\n",
+                encoding="utf-8")
+            w(sub / "rT_r7.jsonl", [shadow("rT", 0, False)])
+            rm = extract_all(r2 / "logs", r2 / "samples",
+                             tasks=_load_tasks(rtasks),
+                             benchmark_domains={"bench.example.com"},
+                             training_domains={"localhost"})
+            check("缺陷#6: 轮次子目录被扫到且分歧对成对",
+                  rm["counts"]["teacher_shadow_events"] == 1
+                  and rm["counts"]["c_pairs"] == 1)
 
     print(f"SMOKE OK: {passed}/{total}")
 

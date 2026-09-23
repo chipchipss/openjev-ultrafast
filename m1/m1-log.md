@@ -809,3 +809,33 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
   改 `[t]` 括号防自匹配后一次成功。
 - **5.4 重启**：修复栈 + `--rounds 3` 全量（50×3），单轮实测 ≈83min，
   ETA（19:00 起）≈ **21:45** 出 `reports/m2.json`。
+
+### 2026-09-23 夜 · 缺陷#6（extractor 平层 glob）+ c_pairs 真实数学 + 过夜补 7 轮
+
+- **5.4 三轮收官**：PASS=122 / FAIL=28 / **ERROR=0**；四判据全绿
+  （decision_total **1813** ✓ 含 rejected 960；影子 **725** ✓（agree 567）；
+  system 空 ✓；contamination **0/271 实检** ✓）→ 唯 **c_pairs=0 → FAIL**。
+- **缺陷#6**：`sample_extractor` 用平层 `log_dir.glob("*.jsonl")`，而 m2 落盘在
+  **轮次子目录 `logs/m2/rN/`** → 一个文件没读到（manifest
+  `teacher_shadow_events=0` vs grep 实数 725）。修 `rglob` + **隔离式轮次子目录
+  回归块** → 冒烟 **21/21 双布局**。重抽 = 同一 `extract_all` + runner 自己的
+  `_m2_acceptance` 复算，仅覆写报告 manifest+acceptance（数据零改动）。
+- **重抽真实数学**：725 影子 = benchmark 剔 251（C1 ✓）+ 训练域
+  recorded 384 / invalid 12 / failed 1；**agree ≈84%**（a_positive 195 +
+  agree 未成功 203）→ **c_pairs = 76**。**数据真相非 bug**：deepseek-flash 占位
+  太强，与 GLM 分歧稀缺——设计中 decider=弱 2B 占位，弱才有错、教师才有得纠。
+  **M2 关键发现**（影响后续本地 2B 接入与飞轮数据预期），非代码缺陷。
+- **决策（用户征询）**：**过夜同栈补 7 轮**，不深夜换弱模型——temp=0 可复现 →
+  ~25 对/轮 → 76+175≈**251** 过线有余；换弱模型=第三栈新雷风险+分歧率不保证+
+  不省时；弱 decider 纯度实验留白天做第二数据集。
+- **执行**：`--rounds 7 --log-dir logs/m2_more --report reports/m2_more.json`
+  （≈83min/轮，ETA ≈08:30）+ DE 远端 marker watcher（`reports/overnight_done`）。
+  **其 runner 自带抽取的 acceptance 会 FAIL（175<200）——忽略，只取 summary 合并。**
+- **晨间合并 runbook**：
+  1. `mkdir logs/m2final && cp -r logs/m2/r{0,1,2} → r0..r2 && cp -r logs/m2_more/r{i} → r$((i+3))`（i=0..6 → r0..r9）
+  2. 合并两份 report 的 summary（整型字段相加；per_round 键 +3 重编号；
+     budget used 相加、limit 取值）
+  3. `extract_all(logs/m2final, samples, tasks, benchmark, training)` →
+     `_m2_acceptance(merged, manifest)` → 写 `reports/m2_final.json`
+- **现场归档不动**：`m2_r0prefit / m2_429abort / m2_53probe / m2_preflight`；
+  `logs/m2_more` 为新 7 轮独占目录。
