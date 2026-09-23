@@ -513,3 +513,48 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
 - py_compile ×3 双布局 ✓、`m1.run_tasks --dry-run` ✓。
 - **选项C 启动**：M1 回归（20 任务无 teacher → 自动 fixed_high）验证 agent/gate
   改动对 M1 零影响。
+
+### 2026-09-23 · M2 #3 收口三记档：契约漂移 + v2 断言语义 + teacher_decisions 落盘 gap
+
+- **契约漂移（用户认领）**：启动清单版 = 评审模式（`correct()`，有锚定）、§四版 =
+  独立作答——两版规格均用户所出，**定案：独立作答**。四维对照：
+
+  | 维度 | 评审模式 | 独立作答 |
+  |---|---|---|
+  | 锚定效应 | 有（teacher 倾向微调本地答案） | 无 |
+  | C 类 pair 质量 | 差（chosen/rejected 只差一步） | 好（两个独立最优解） |
+  | DPO 训练价值 | 低（学不到全局偏好） | 高 |
+  | 实现复杂度 | 略低 | 略高 |
+
+  **C 类 pair 的训练价值取决于 chosen/rejected 的独立性，锚定污染独立性
+  → 独立作答 = M2 正确选择。** `correct()` 保留为评审工具，但不产 C 类。
+- **断言调整背书（v2 语义顺序）**：v1 sentinel 判断先于 mode；v2 mode 先于 sentinel。
+  v2 更对：**fixed_high 是调度决策（此 mode 不采集），sentinel_no_teacher 是语义
+  决策（DONE/BLOCKED 不需要 teacher）——调度层在语义层之上**；fixed_high 下任何
+  decision 都不采集（含 sentinel）→ reason 必为 `mode_fixed_high`。
+- **⚠️ 关键路径 gap：`teacher_decisions` 只在内存，到不了 logs**。
+  `_run_shadow` 写 `state["teacher_decisions"]`，agent.close() 即丢；logger 不认识
+  该字段（M1 时不存在）→ M2 百任务 × 每任务 5-10 条 → sample_extractor 从 logs/
+  读不到 C 类 → **数据飞轮空转**。
+  - **采纳选项 A（增量 `teacher_shadow` 事件）**：`observe()` 加第五游标 +
+    `_clean_teacher_decision()` 白名单——与 step/decision/text_call 同构、按时间
+    对齐（诊断哪一步分歧）、M5 校准需要 per-step 数据。放弃选项 B（finalize 批量）：
+    无法按步对齐。
+  - **M2 顺序修正**：#4a logger 扩展（阻塞点，~40 行）→ #4b sample_extractor →
+    #5 m2/run_tasks。断言调整与本 gap 正交（gate 内部语义 vs logger 采集）。
+- **#4b 设计对齐（不写码，待回归绿开工）**：
+  - 输入 `logs/*.jsonl`（含 teacher_shadow）；输出 `samples/c_pairs.jsonl` /
+    `a_positive.jsonl` / `b_reject.jsonl` + `manifest.json`（计数/域分布/污染检查）。
+  - C 类筛选：agree → 不进 C；分歧且 teacher 有效 → **C 类（chosen=teacher，
+    rejected=local，方向严格）**；teacher 输出无效 → teacher_invalid，不进任何集。
+  - pair 结构：task_id / step / goal / `candidates_structured` + `candidates_rendered`
+    （**C3 双份存储**）/ chosen / rejected / source=teacher / api_model /
+    api_confidence / domain。
+  - C1 流程（抽前过 c1_check）：**benchmark 域 → 跳过**；训练域 → 保留；
+    未知域 → 保留但 `domain_unverified: true`，M2 结束人工复核。
+  - **TRAINING_DOMAINS 待拍板（推荐已记）**：先"允许所有非 benchmark 域 + 标
+    domain"，M2 结束按域分布再决定是否加白名单。BENCHMARK_DOMAINS 已由
+    c1_check 从 M1 20 任务提取（11 hosts，剔除 chromewebdata 伪域）。
+- **回归预期表（M1 回归 = M2#3 后零偏移验证）**：
+  pass 12 / fp 0 / crash 0 / decision fail 7——任何偏移都是回归信号
+  （M2#3 只加 shadow 分支，无 teacher 应走 fixed_high 完全不变）。
