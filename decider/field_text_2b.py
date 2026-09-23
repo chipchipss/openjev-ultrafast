@@ -86,12 +86,11 @@ def field_text(context: dict) -> tuple[str, dict]:
 # ---------------------------------------------------------------------------
 
 def _smoke() -> None:
-    import decider.field_text_2b as mod
+    import sys
 
-    # -m 运行时 __main__ 与 decider.field_text_2b 是两个模块副本；
-    # 把入口绑到被 patch 的副本上，保证 mod.post_chat 生效。
-    global field_text
-    field_text = mod.field_text
+    # 直接 patch 当前执行模块自身（-m 时即 __main__），不 import 具名副本——
+    # 平铺（decider/）与包内（jev_ultrafast/decider/）两种布局通用。
+    mod = sys.modules[__name__]
 
     os.environ["TEXT_HELPER_BASE_URL"] = "http://mock/v1"
     os.environ["TEXT_HELPER_MODEL"] = "mock-helper"

@@ -10,7 +10,7 @@
 
 | Step | 文件/事项 | 状态 |
 |---|---|---|
-| 1 | fork + demo.py 跑通 | ⬜（全局卡点） |
+| 1 | fork + demo.py 跑通 | ⬜（集成 + §八 已全绿，demo 等 2B 后端） |
 | 2 | evaluator.py | ✅ |
 | 3 | step_budget.py | ✅ |
 | 4 | decision_validator.py | ✅ |
@@ -22,7 +22,7 @@
 | 10 | logger.py | ✅ |
 | 11 | tasks.jsonl | ✅ |
 | 11 | run_tasks.py | ✅ |
-| 11 | e2e 20 任务 | ⬜（等 import 适配补丁） |
+| 11 | e2e 20 任务 | ⬜（等 2B 后端资产） |
 
 ---
 
@@ -235,3 +235,38 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
   其余全为 M1 标注新增（pre_execute 链）。**零意外漂移**，对话基线 == GitHub 上游。
 - **下一步（A 路径）**：用户按实测包结构出 agent.py import 适配补丁 → 合并入库 →
   3.12 环境 + 真实 2B 后端 → e2e 20 任务。
+
+### 2026-09-23 · M1 集成执行：integrate.sh + 桥接 + 3.12 环境 + §八 全绿
+
+- **冒烟可移植性修复（集成前置）**：decider 两冒烟的 `import decider.choose_2b as mod`
+  在包结构下会 ModuleNotFoundError——改 `mod = sys.modules[__name__]` 自 patch，
+  平铺（主仓）/ 包内（fork）两种布局通用；主仓平铺复验 19/19 + 8/8 不回归。
+- **集成**：`scripts/integrate.sh`（入库存档）执行——agent.py 替换 + 7 模块 +
+  decider/ + prompts/ 归位 `jev_ultrafast/` 包内；m1 / docs / specs 并入 fork 根，
+  与上游 design.md 等无文件名冲突。
+- **三处补丁（fork 实测标记）**：
+  - model.py 桥接 4 处：decider import ×2、`choose`→`choose_typesafe`、
+    `field_text`→`field_text_typesafe`（各加"原 TypeSafe 实现"docstring）、
+    文件末尾委托函数（agent.py import 不变）。action_space 两份并存（H2：Decision 层
+    不依赖 Runtime）。旧 TYPESAFE_* / TEXT_MODEL_* 默认不可达（M5 可加开关）。
+  - m1/run_tasks.py 4 行 import → `jev_ultrafast.*`（fork 专用版）——**两仓该文件
+    从此分叉**：主仓保留平铺 import（standalone dry-run 用），fork 用包内 import；
+    重新 integrate 后需按 §四 重打此补丁（已入 integrate 提示语）。
+  - .env.example 换 `DECIDER_2B_*` / `TEXT_HELPER_*`；pyproject 增
+    `[tool.hatch.build.targets.wheel]` packages + prompts force-include（§六.1）。
+- **环境**：uv 0.12.18 + CPython 3.12.14 + `uv sync`（httpx 0.28.1、
+  browser-harness、项目本体 editable）。系统 python3.10 不再参与 fork 验证。
+- **§八 验证全绿（.venv/bin/python）**：
+  1. py_compile 15 文件 → STEP1_PY_COMPILE_OK
+  2. 8 模块冒烟全过：step_budget 47/47、decision_validator 35/35、runtime_guard 40/40、
+     policy 34/34、confidence_gate 40/40、logger 40/40、choose_2b 19/19、
+     field_text_2b 8/8——与主仓数字逐一一致
+  3. `bridge ok`（model 委托 ×5 符号 + agent 可 import，browser_harness 就位）
+  4. `Loaded 20 tasks` + `DRY RUN OK`（包内 import）
+- **RuntimeWarning 说明（外观性）**：上游 `jev_ultrafast/__init__.py` =
+  `from .agent import Agent; from .browser import Browser` 急切导入，链到
+  agent → model → decider 与 4 个 pre_execute 模块，`python -m` 复执行时 runpy
+  提示 found in sys.modules——冒烟结果不受影响（sys.modules[__name__] 修复正为此）。
+- **e2e 唯一阻塞**：DE 无 2B 后端资产（无 GGUF / Ollama 权重）——后端就位 →
+  起服务 → `python -m m1.run_tasks` 跑 20 任务 → 按 §十一 报告
+  （summary/acceptance + 前 3 个 jsonl + error/traceback）。

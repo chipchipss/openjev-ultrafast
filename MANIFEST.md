@@ -2,8 +2,8 @@
 
 - 状态标记：✅ 已冻结 / 📝 草案 / ⬜ 待产出
 - 用途：丢失后按此清单重建。每个文件的关键内容已在对话中给出，可按摘要重建。
-- 本仓库当前状态：已落盘 22 件（docs 3 + agent.py + 顶层 7 py + prompts×3 + decider×5 + specs/task.schema + m1/tasks.jsonl + m1/run_tasks.py）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；⬜ 仅剩 api_teacher.py（M5 产出，不在 M1）。
-- 统计：✅ 39 · 📝 1 · ⬜ 1，合计 41（原稿 37 + 新增 _http.py、action_space.py、run_tasks.py）。
+- 本仓库当前状态：已落盘 23 件（docs 3 + agent.py + 顶层 7 py + prompts×3 + decider×5 + specs/task.schema + m1/tasks.jsonl + m1/run_tasks.py + scripts/integrate.sh）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；⬜ 仅剩 api_teacher.py（M5 产出，不在 M1）。集成后的运行树在 DE:/root/jev-ultrafast（fork，见 m1/m1-log.md）。
+- 统计：✅ 40 · 📝 1 · ⬜ 1，合计 42（原稿 37 + 新增 _http、action_space、run_tasks、integrate.sh）。
 
 ---
 
@@ -354,6 +354,8 @@ openjev-ultrafast/
 ├── policy.py                                ✅
 ├── confidence_gate.py                       ✅
 ├── api_teacher.py                           ⬜
+├── scripts/
+│   └── integrate.sh                         ✅ 新增（集成脚本）
 ├── decider/
 │   ├── __init__.py                          ✅
 │   ├── _http.py                             ✅
@@ -366,7 +368,7 @@ openjev-ultrafast/
     └── text_value.txt                       ✅
 ```
 
-- ✅ 已冻结文件：39 个（21 项基础文档 + agent.py + 7 顶层 py + prompts 3 + decider 5 + tasks.jsonl + run_tasks.py；其中已落盘 22 件 = docs 3 + agent.py + 顶层 py 7 + prompts 3 + decider 5 + specs 1 + m1 2）
+- ✅ 已冻结文件：40 个（21 项基础文档 + agent.py + 7 顶层 py + prompts 3 + decider 5 + tasks.jsonl + run_tasks.py + integrate.sh；其中已落盘 23 件 = docs 3 + agent.py + 顶层 py 7 + prompts 3 + decider 5 + specs 1 + m1 2 + scripts 1）
 - 📝 草案：1 个（m1/m1-log.md）
 - ⬜ 待产出：1 个（api_teacher.py，M5 产出）
 
