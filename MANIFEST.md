@@ -2,8 +2,8 @@
 
 - 状态标记：✅ 已冻结 / 📝 草案 / ⬜ 待产出
 - 用途：丢失后按此清单重建。每个文件的关键内容已在对话中给出，可按摘要重建。
-- 本仓库当前状态：已落盘 18 件（docs/01、09、10 + agent.py + evaluator / step_budget / decision_validator / runtime_guard / policy / confidence_gate + prompts×3 + decider×5）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
-- 统计：✅ 36 · 📝 1 · ⬜ 3，合计 40（原稿 37 件 + 新增 _http.py、action_space.py、agent.py 改造稿；落盘 18 件）。
+- 本仓库当前状态：已落盘 19 件（docs/01、09、10 + agent.py + evaluator / step_budget / decision_validator / runtime_guard / policy / confidence_gate / logger + prompts×3 + decider×5）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
+- 统计：✅ 37 · 📝 1 · ⬜ 2，合计 40（原稿 37 件 + 新增 _http.py、action_space.py、agent.py 改造稿；落盘 19 件）。
 
 ---
 
@@ -276,7 +276,7 @@ m1/
 
 ## 五、M1 阶段待产出代码文件
 
-顶层 6 个 py + prompts×3 + decider×5 已落盘，其余尚未开始（logger.py / api_teacher.py / tasks.jsonl）。列出便于规划目录。
+顶层 7 个 py + prompts×3 + decider×5 已落盘，其余尚未开始（api_teacher.py / tasks.jsonl）。列出便于规划目录。
 
 ```text
 openjev-ultrafast/
@@ -284,7 +284,7 @@ openjev-ultrafast/
 ├── step_budget.py          ✅ StepBudget（已落盘）
 ├── decision_validator.py   ✅ DecisionValidator（D8 三级一致性，已落盘）
 ├── runtime_guard.py        ✅ Runtime 契约严格校验（A9，已落盘）
-├── logger.py               ⬜ 统一日志出口
+├── logger.py               ✅ 统一日志出口（已落盘）
 ├── policy.py               ✅ Policy（先空实现 + 黑名单，已落盘）
 ├── confidence_gate.py      ✅ Confidence Gate（先固定 HIGH，已落盘）
 ├── api_teacher.py          ⬜ API Teacher（M1 后期）
@@ -348,7 +348,7 @@ openjev-ultrafast/
 ├── step_budget.py                           ✅
 ├── decision_validator.py                    ✅
 ├── runtime_guard.py                         ✅
-├── logger.py                                ⬜
+├── logger.py                                ✅
 ├── policy.py                                ✅
 ├── confidence_gate.py                       ✅
 ├── api_teacher.py                           ⬜
@@ -364,9 +364,9 @@ openjev-ultrafast/
     └── text_value.txt                       ✅
 ```
 
-- ✅ 已冻结文件：36 个（21 项基础文档 + agent.py + 6 顶层 py + prompts 3 + decider 5；其中已落盘 18 件 = docs 3 + agent.py + 顶层 py 6 + prompts 3 + decider 5）
+- ✅ 已冻结文件：37 个（21 项基础文档 + agent.py + 7 顶层 py + prompts 3 + decider 5；其中已落盘 19 件 = docs 3 + agent.py + 顶层 py 7 + prompts 3 + decider 5）
 - 📝 草案：1 个（m1/m1-log.md）
-- ⬜ 待产出：3 个（tasks.jsonl + logger.py + api_teacher.py）
+- ⬜ 待产出：2 个（tasks.jsonl + api_teacher.py）
 
 ---
 

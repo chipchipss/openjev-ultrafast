@@ -19,7 +19,7 @@
 | 7 | confidence_gate.py | ✅ |
 | 8 | decider/ + prompts/ | ✅ |
 | 9 | agent.py 改造 | ✅ |
-| 10 | Logger 统一 | ⬜ |
+| 10 | logger.py | ✅ |
 | 11 | 20 tasks | ⬜ |
 
 ---
@@ -182,3 +182,26 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
 - **观察（供 Step 10 Logger）**：DONE / BLOCKED 终态 tick 的 act 走哨兵分支早返回，
   该步 `pre_execute` 不进 history（与基座"终态步无 history 行"一致）——
   Logger 若要终态预算快照需另取（`state["pre_execute"]` 在该分支 pop 后未写入任何地方）。
+
+### 2026-09-23 · Step 10 落盘：logger.py（代码侧全部就位）
+
+- **Step 9 两点观察的处置**：① 同步点（fork 包结构）记入本日志，不影响产出；
+  ② 终态 pre_execute 丢失**不在 logger 里绕过**——用
+  `task_result.final_budget`（`finalize(step_budget=...)`）补偿，
+  设计边界不假装不存在。
+- **设计要点**：四个数据源（history / decisions / text_calls / transitions）
+  各自独立游标，重复 observe 返回 []；只读鸭子类型、不 import agent；
+  白名单字段过滤（未知字段不进日志，冒烟测例 12 验证）；
+  `page_changed=None` 保留（`k in h` 而非 `h[k] is not None`）；
+  懒开文件（不 flush 不产生空文件）；5 类事件、一个 task 一个 JSONL。
+- **接口**：`observe(state, *, step_budget=None) -> list[dict]`、
+  `finalize(task_result, *, step_budget=None, final_page=None) -> dict`；
+  task_result 兼容 dataclass（evaluator.TaskResult）与 dict。
+- **与 evaluator 的衔接（Step 11 用）**：
+  循环内 `logger.observe(agent.state, step_budget=agent.step_budget)` →
+  终态 `result = evaluate(spec, page, history, status, meta=...)` →
+  `logger.finalize(result, step_budget=agent.step_budget, final_page=page)`。
+- 冒烟：`py_compile` 通过，`SMOKE OK: 40/40`（13 类路径：空 state / 游标重复 /
+  增量抽取 / decisions·text_calls / budget_transition 增量 / finalize 双输入 /
+  JSONL 内容 / flush_every=1 / close 幂等 / 参数校验 / 白名单过滤 / 非 dict state）。
+- **Step 11 前置**：fork jev-ultrafast（全局卡点）+ m1/tasks.jsonl + m1/run_tasks.py。
