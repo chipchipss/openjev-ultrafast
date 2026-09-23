@@ -34,6 +34,10 @@ def post_chat(
         body["response_format"] = response_format
     if temperature is not None:
         body["temperature"] = temperature
+    # M1: 显式关闭 Thinking。实测 agnes-3.0-flash 默认已关，但 distributor 渠道
+    # 会漂（探针见 m1/m1-log.md）；恒带此字段做渠道无关的 JSON 格式保险。
+    # 注意：thinking:{disabled} / enable_thinking:false 在该端点反而会触发 thinking，禁用。
+    body["reasoning"] = {"enabled": False}
     headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
 
     started = time.perf_counter()

@@ -270,3 +270,27 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
 - **e2e 唯一阻塞**：DE 无 2B 后端资产（无 GGUF / Ollama 权重）——后端就位 →
   起服务 → `python -m m1.run_tasks` 跑 20 任务 → 按 §十一 报告
   （summary/acceptance + 前 3 个 jsonl + error/traceback）。
+
+### 2026-09-23 · 后端接入：agnes-3.0-flash + Thinking 关闭 + Chrome 就位
+
+- **key 定位**：omp 配置 `~/.omp/agent/config.yml` 默认 `agnes-3.0-flash` 直连
+  `https://apihub.agnes-ai.com/v1`，api_key 走 env
+  `HERMES_CUSTOM_APIHUB_AGNES_AI_COM_API_KEY`（= `~/.hermes/.env:536`，sk-3eJ3…Y89）；
+  `models.yml` 另一把 sk-vjep… 走 LA 本地 8787/bili 代理，DE 不可用，弃用。
+  fork/.env 已配 `DECIDER_2B_*` + `TEXT_HELPER_*`（同端点同模型），chmod 600。
+- **连通实测（走 decider 真实通道 `_http.post_chat`）**：plain `OK` 825ms；
+  `response_format=json_object` → `{"ok": true}` 592ms，usage 正常返回。
+- **Thinking 探针（6 候选，单发对比）**：
+  - **默认即关**：无 reasoning_content、无 reasoning tokens；但不带 response_format
+    时输出带 ```` ```json ```` 围栏。
+  - 干净胜出者：`reasoning:{enabled:false}`（587ms、7 tokens、裸 JSON）、
+    `reasoning_effort:none`、`thinkingLevel:off`。
+  - **毒参数**：`thinking:{disabled}` 与 `enable_thinking:false` 反而触发 thinking
+    （37 reasoning tokens + reasoning_content）——禁用这两个。
+  - distributor 渠道会漂（在案教训）→ `_http.post_chat` 恒带
+    `reasoning:{enabled:false}`（上游 TEXT_MODEL "none" 同款）做渠道无关保险。
+- **叠加验证**：`response_format` + `reasoning` 关闭同发 → COMBINED_OK
+  （parsed dict、reasoning_content=False）。注意：choose_2b 的 `_parse_response`
+  是裸 `json.loads`、无围栏容忍——完全依赖 response_format 生效（已实测生效）。
+- **Chrome**：DE 装 `google-chrome-stable 154.0.8037.57`（browser_harness 为本地
+  CDP 模式、不自带浏览器）——e2e 浏览器前提就位。
