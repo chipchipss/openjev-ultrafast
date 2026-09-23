@@ -2,8 +2,8 @@
 
 - 状态标记：✅ 已冻结 / 📝 草案 / ⬜ 待产出
 - 用途：丢失后按此清单重建。每个文件的关键内容已在对话中给出，可按摘要重建。
-- 本仓库当前状态：已落盘 15 件（docs/01、09、10 + evaluator / step_budget / decision_validator / runtime_guard / policy / confidence_gate + prompts×3 + decider×3）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
-- 统计：✅ 33 · 📝 1 · ⬜ 3，合计 37（原稿对话计为 26/13、目录树核算 21/15；落盘 15 件并新增 m1-log 后为 33/1/3）。
+- 本仓库当前状态：已落盘 17 件（docs/01、09、10 + evaluator / step_budget / decision_validator / runtime_guard / policy / confidence_gate + prompts×3 + decider×5）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
+- 统计：✅ 35 · 📝 1 · ⬜ 3，合计 39（原稿 37 件 + 新增 decider/_http.py、decider/action_space.py；落盘 17 件）。
 
 ---
 
@@ -276,7 +276,7 @@ m1/
 
 ## 五、M1 阶段待产出代码文件
 
-顶层 6 个 py + prompts×3 + decider×3 已落盘，其余尚未开始（logger.py / api_teacher.py / tasks.jsonl）。列出便于规划目录。
+顶层 6 个 py + prompts×3 + decider×5 已落盘，其余尚未开始（logger.py / api_teacher.py / tasks.jsonl）。列出便于规划目录。
 
 ```text
 openjev-ultrafast/
@@ -290,15 +290,17 @@ openjev-ultrafast/
 ├── api_teacher.py          ⬜ API Teacher（M1 后期）
 ├── decider/
 │   ├── __init__.py                          ✅（已落盘）
+│   ├── _http.py                             ✅ OpenAI 兼容 HTTP 客户端（新增，已落盘）
+│   ├── action_space.py                      ✅ 移植 model.py:action_space()（新增，已落盘）
 │   ├── choose_2b.py                         ✅ 替换 model.py:choose（已落盘）
 │   └── field_text_2b.py                     ✅ 替换 model.py:field_text（已落盘）
 └── prompts/
-    ├── next_action.txt                      ✅ 移植 questions.py:NEXT_ACTION（按契约新写）
-    ├── target.txt                           ✅ 移植 questions.py:TARGET（按契约新写）
-    └── text_value.txt                       ✅ 移植 questions.py:TEXT_VALUE（按契约新写）
+    ├── next_action.txt                      ✅ 移植 questions.py:NEXT_ACTION（对话原文，覆盖旧稿）
+    ├── target.txt                           ✅ 移植 questions.py:TARGET（对话原文，M1 暂不加载，D16 保留）
+    └── text_value.txt                       ✅ 移植 questions.py:TEXT_VALUE（对话原文，覆盖旧稿）
 ```
 
-来源说明：questions.py / model.py 原文不在 LA、DE 任何机器（基座 Step 1 未 fork）。prompts 三件与 decider 三件按已冻结文档契约新写，非逐字移植；基座 fork 后 Step 7 对接适配，prompts 原文到位后对照合并（见 m1/m1-log.md 同步点）。
+来源说明（2026-09-23 更新）：prompts×3 与 decider×5 实现原文由用户在对话中给出并落盘，覆盖此前按契约新写稿；questions.py / model.py 原文仍不在 LA、DE 任何机器（基座 Step 1 未 fork），Step 9 接入 agent.py 时以基座为准复核（见 m1/m1-log.md 同步点）。运行依赖新增 httpx（decider/_http.py）。
 
 替换点（唯一改 jev-ultrafast 的两处）：
 
@@ -351,6 +353,8 @@ openjev-ultrafast/
 ├── api_teacher.py                           ⬜
 ├── decider/
 │   ├── __init__.py                          ✅
+│   ├── _http.py                             ✅
+│   ├── action_space.py                      ✅
 │   ├── choose_2b.py                         ✅
 │   └── field_text_2b.py                     ✅
 └── prompts/
@@ -359,7 +363,7 @@ openjev-ultrafast/
     └── text_value.txt                       ✅
 ```
 
-- ✅ 已冻结文件：33 个（21 项基础文档 + 6 顶层 py + prompts 3 + decider 3；其中已落盘 15 件 = docs 3 + 顶层 py 6 + prompts 3 + decider 3）
+- ✅ 已冻结文件：35 个（21 项基础文档 + 6 顶层 py + prompts 3 + decider 5；其中已落盘 17 件 = docs 3 + 顶层 py 6 + prompts 3 + decider 5）
 - 📝 草案：1 个（m1/m1-log.md）
 - ⬜ 待产出：3 个（tasks.jsonl + logger.py + api_teacher.py）
 

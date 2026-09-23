@@ -16,11 +16,11 @@
 | 4 | decision_validator.py | ✅ |
 | 5 | runtime_guard.py | ✅ |
 | 6 | policy.py | ✅ |
-| 6 | confidence_gate.py | ✅ |
-| 7 | choose_2b() | ✅ |
-| 8 | pre_execute 接入 agent.py | ⬜ |
-| 9 | Logger 统一 | ⬜ |
-| 10 | 20 tasks | ⬜ |
+| 7 | confidence_gate.py | ✅ |
+| 8 | decider/ + prompts/ | ✅ |
+| 9 | pre_execute 接入 agent.py | ⬜ |
+| 10 | Logger 统一 | ⬜ |
+| 11 | 20 tasks | ⬜ |
 
 ---
 
@@ -119,3 +119,40 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
 - 踩坑（测试侧）：D8 用例曾对同一 Fake 连调两次 `choose()` →
   `IndexError: pop from empty list`，且断言 `attr/want` 误传造成假 FAIL——
   每次调用前重建 Fake 后修复；非 choose_2b 逻辑问题。
+
+### 2026-09-23 · Step 8 落盘：8 件对话原文交付（进度表修正 6/7 拆分）
+
+- **进度表修正**：原表 Step 6 双行为笔误，按用户更正拆为 6 policy / 7
+  confidence_gate，后续顺延到 11；本轮 Step 8 = decider/ + prompts/ 全部落盘，
+  覆盖上一版按契约新写稿。
+- **协议变更**：单次调用——`next_action.txt` 一次输出 `operation + target +
+  双置信度`；choice 由 `_map_choice()` 代码推导（D8 天然成立：2B 从不输出
+  choice）。`target.txt` 按 D16 保留为资产，M1 不加载。
+- **新文件**：`decider/_http.py`（唯一 POST 实现，429/529/503 指数退避，失败抛
+  RuntimeError——契约对齐 model.py:post_json）、`decider/action_space.py`
+  （model.py:action_space() 移植副本而非 import，H2）。
+- **同步点新增**：
+
+  | 项 | 位置 | 来源 |
+  |---|---|---|
+  | action_space 三层结构 | decider/action_space.py | model.py:action_space()（任何差异都是 bug） |
+  | prompts×3 | prompts/*.txt | 对话原文（2026-09-23 覆盖旧稿） |
+
+- **运行依赖**：httpx（DE 装 `python3-httpx 0.22.0`，apt；DE 无 pip）。
+- **env 契约**：`DECIDER_2B_BASE_URL`(required) / `DECIDER_2B_MODEL` /
+  `DECIDER_2B_API_KEY`；`TEXT_HELPER_BASE_URL`(required) / `TEXT_HELPER_MODEL` /
+  `TEXT_HELPER_API_KEY`。
+- **接口**：`choose(state, goal, history) -> decision`（保留 choice / confidence /
+  probabilities[choice] / operation / target / usage / latency_ms / request
+  旧字段，agent.py 零改动）；`field_text(context) -> (text, helper)`——
+  `{"text": null}` → ValueError（D17：nothing typed，不编造）。
+- **冒烟踩坑（测试侧，非逻辑）**：
+  1. `-m` 双模块副本：`mod.post_chat` patch 打在 `decider.choose_2b` 副本，
+     裸调 `choose()` 走 `__main__` 副本 → 真发 HTTP `http://mock/v1` DNS 失败。
+     修复：`_smoke` 内 `global choose; choose = mod.choose` 绑到被 patch 副本
+     （field_text_2b 同款修法）。
+  2. SELECT 索引 off-by-one：fixture 中 e1/e2 共享 node12 → e4 是 element
+     `"3"`，合法 target 为 `"3:1"`（与 decision_validator 冒烟 `{"3:1","3:2"}`
+     一致），原断言 `"4:1"` 会抛 ValueError。已改断言，非 action_space 问题。
+- 冒烟：choose_2b `SMOKE OK: 19/19`（11 类路径）、
+  field_text_2b `SMOKE OK: 8/8`（6 类路径）。

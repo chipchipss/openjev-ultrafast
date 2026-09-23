@@ -1,10 +1,7 @@
-"""2B Decider 包：Decision 层替换实现（H2）。
+"""Decider 层。替换 jev-ultrafast 的 model.py:choose() 和 field_text()。
 
-接口边界（B）：OpenAI-compatible HTTP，后端经 base_url + model 配置，
-不绑定 llama-cpp-python / Ollama / vLLM 任一实现。
-
-子模块直接导入（不做包级预导入，避免 `python -m decider.*` 重复执行）：
-
-    from decider.choose_2b import choose
-    from decider.field_text_2b import field_text
+硬约束 H2：Decision 层与 Runtime 解耦。
+对外契约：
+  decider.choose_2b.choose(state, goal, history) -> decision
+  decider.field_text_2b.field_text(context) -> (text, helper)
 """

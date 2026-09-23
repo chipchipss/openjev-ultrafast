@@ -1,169 +1,172 @@
-"""Text Helper 2B：字段文本提取（替换 model.py:field_text()，H2）。
-
-接口边界（B）：复用 Decider2B 的 OpenAI-compatible HTTP 通道
-（POST {base_url}/chat/completions），不绑定具体后端。
+"""Text Helper。替换 jev-ultrafast 的 model.py:field_text()。
 
 关联硬约束：
-  A8   Text Helper 独立于 Decision Model；模型输出必须结构化 {"text": ...}
-  D17  找不到值必须返回 null，不得编造；坏输出走 ValueError——
-       这是设计特性，不是 bug
-
-prompts/text_value.txt 为问题模板（<<hint>> / <<context>> 占位）。
-
-来源说明：questions.py / model.py 原文不在 LA、DE 任何机器（基座 Step 1 未 fork），
-prompts 按已冻结文档契约新写；model.py:field_text() 原签名在 Step 7 对接时适配。
-本模块对外：field_text(hint, page) -> str | None。
+  A8  Text Helper 独立于 Decision Model
+  D17 Text Helper null 语义：找不到值时必须返回 null → raise ValueError
 """
 from __future__ import annotations
 
+import json
+import os
+import time
 from pathlib import Path
-from typing import Optional
 
-from .choose_2b import (
-    Decider2B,
-    DeciderError,
-    _context,
-    _extract_json,
-    default_client,
-    load_template,
-    render,
-)
+from ._http import post_chat
 
-SYSTEM_TEXT = "你是字段文本提取器。只输出一行 JSON，不要任何解释。"
+_PROMPTS = Path(__file__).parent.parent / "prompts"
 
 
-class FieldText2B:
-    def __init__(
-        self,
-        client: Optional[Decider2B] = None,
-        prompts_dir: Optional[Path] = None,
-    ) -> None:
-        if client is not None and prompts_dir is not None:
-            raise ValueError("prompts_dir only applies when client is omitted")
-        self._client = client or Decider2B(prompts_dir=prompts_dir)
-
-    def field_text(self, hint: str, page: dict) -> Optional[str]:
-        """返回页面中该字段的真实文本；找不到返回 None（D17，禁止编造）。"""
-        if not isinstance(hint, str) or not hint.strip():
-            raise ValueError("field_text: hint must be a non-empty str")
-        if not isinstance(page, dict):
-            raise TypeError("page must be a dict")
-
-        template = load_template(self._client.prompts_dir, "text_value.txt")
-        user = render(template, {"hint": hint, "context": _context(page)})
-        content, _meta = self._client.infer(SYSTEM_TEXT, user)
-
-        # D17：坏输出 → ValueError（设计特性）；HTTP 通道问题保持 DeciderError
-        try:
-            obj = _extract_json(content)
-        except DeciderError as e:
-            raise ValueError(f"field_text: unparseable model output: {e}") from e
-        if not isinstance(obj, dict) or "text" not in obj:
-            raise ValueError('field_text: model output must be {"text": ...}')
-        text = obj["text"]
-        if text is None:
-            return None
-        if not isinstance(text, str):
-            raise ValueError(
-                f"field_text: text must be str or null, got {type(text).__name__}"
-            )
-        if not text.strip():
-            return None
-        return text
+def _env(name: str, default: str = "", *, required: bool = False) -> str:
+    v = os.environ.get(name, default)
+    if required and not v:
+        raise RuntimeError(f"Missing required env var {name}")
+    return v
 
 
-_default: Optional[FieldText2B] = None
+def _load_prompt(name: str) -> str:
+    p = _PROMPTS / name
+    if not p.exists():
+        raise RuntimeError(f"Prompt file not found: {p}")
+    return p.read_text(encoding="utf-8").strip()
 
 
-def field_text(hint: str, page: dict) -> Optional[str]:
-    """model.py:field_text() 的替换入口（Step 7 接线）。"""
-    global _default
-    if _default is None:
-        _default = FieldText2B(client=default_client())
-    return _default.field_text(hint, page)
+def field_text(context: dict) -> tuple[str, dict]:
+    base_url = _env("TEXT_HELPER_BASE_URL", required=True)
+    model = _env("TEXT_HELPER_MODEL", "text-helper")
+    api_key = _env("TEXT_HELPER_API_KEY", "")
+
+    system = _load_prompt("text_value.txt")
+    user = json.dumps(context, ensure_ascii=False)
+    messages = [
+        {"role": "system", "content": system},
+        {"role": "user", "content": user},
+    ]
+
+    started = time.perf_counter()
+    result, _ = post_chat(
+        base_url=base_url,
+        model=model,
+        api_key=api_key,
+        messages=messages,
+        max_tokens=256,
+        response_format={"type": "json_object"},
+        temperature=0.0,
+    )
+    latency_ms = round((time.perf_counter() - started) * 1000)
+
+    try:
+        content = result["choices"][0]["message"]["content"]
+    except (KeyError, IndexError, TypeError):
+        raise ValueError("Text helper returned unexpected response shape") from None
+
+    try:
+        output = json.loads(content)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Text helper returned non-JSON: {e}") from None
+
+    # D17: 严格要求 {"text": ...}
+    if not isinstance(output, dict) or set(output) != {"text"}:
+        raise ValueError("Text helper must return exactly {'text': ...}")
+
+    value = output["text"]
+    if value is None:
+        raise ValueError("Text helper returned null; nothing typed.")
+    if not isinstance(value, str) or not value.strip() or len(value) > 2000:
+        raise ValueError("Text helper returned invalid text; nothing typed.")
+
+    return value, {
+        "model": model,
+        "latency_ms": latency_ms,
+        "usage": result.get("usage", {}),
+    }
 
 
 # ---------------------------------------------------------------------------
-# Smoke test
+# Smoke（mock post_chat，无网络依赖）
 # ---------------------------------------------------------------------------
 
-if __name__ == "__main__":
+def _smoke() -> None:
+    import decider.field_text_2b as mod
+
+    # -m 运行时 __main__ 与 decider.field_text_2b 是两个模块副本；
+    # 把入口绑到被 patch 的副本上，保证 mod.post_chat 生效。
+    global field_text
+    field_text = mod.field_text
+
+    os.environ["TEXT_HELPER_BASE_URL"] = "http://mock/v1"
+    os.environ["TEXT_HELPER_MODEL"] = "mock-helper"
+
     passed = 0
     total = 0
 
     def check(name, cond):
-        global passed, total
+        nonlocal passed, total
         total += 1
         if cond:
             passed += 1
         else:
             print(f"FAIL: {name}")
 
-    def check_raises(name, fn, exc):
-        global passed, total
-        total += 1
-        try:
-            fn()
-        except exc:
-            passed += 1
-        except Exception as e:
-            print(f"FAIL: {name} (raised {type(e).__name__}: {e})")
-        else:
-            print(f"FAIL: {name} (no raise)")
+    def fake_post(content_obj):
+        def _f(*, base_url, model, api_key, messages, **kw):
+            return ({"choices": [{"message": {"content": json.dumps(content_obj)}}],
+                     "usage": {}}, 5)
+        return _f
 
-    class Fake:
-        def __init__(self, content):
-            self.content = content
-            self.calls = []
+    ctx = {"goal": "搜索 OpenAI", "field": {"label": "Search"},
+           "page": {"title": "Google", "text": ""}, "recent_actions": []}
 
-        def infer(self, system, user):
-            self.calls.append((system, user))
-            return self.content, {"model": "fake-2b", "latency_ms": 1.0}
+    # --- 正常路径 ---
+    mod.post_chat = fake_post({"text": "OpenAI"})
+    value, helper = field_text(ctx)
+    check("value OpenAI", value == "OpenAI")
+    check("helper has model", helper["model"] == "mock-helper")
+    check("helper has latency_ms", isinstance(helper["latency_ms"], int))
 
-    def make(content):
-        ft = FieldText2B(client=Decider2B(base_url="http://backend/v1", model="m"))
-        fake = Fake(content)
-        ft._client.infer = fake.infer
-        return ft, fake
+    # --- 空 text 拒绝 ---
+    mod.post_chat = fake_post({"text": ""})
+    try:
+        field_text(ctx)
+        check("empty text raises", False)
+    except ValueError:
+        check("empty text raises", True)
 
-    page = {
-        "url": "https://example.com", "title": "Example",
-        "text": "Profile page with name field", "actions": [],
-    }
+    # --- null 拒绝（D17） ---
+    mod.post_chat = fake_post({"text": None})
+    try:
+        field_text(ctx)
+        check("null text raises", False)
+    except ValueError:
+        check("null text raises", True)
 
-    # --- 正常提取 ---
-    ft, fake = make('{"text": "张三"}')
-    check("text extracted", ft.field_text("用户名", page) == "张三")
-    check("hint rendered", "用户名" in fake.calls[0][1])
-    check("context rendered", "https://example.com" in fake.calls[0][1])
-    check("no token left", "<<" not in fake.calls[0][1])
+    # --- 多字段拒绝 ---
+    mod.post_chat = fake_post({"text": "ok", "extra": 1})
+    try:
+        field_text(ctx)
+        check("extra key raises", False)
+    except ValueError:
+        check("extra key raises", True)
 
-    # --- null → None（D17 核心） ---
-    ft, _ = make('{"text": null}')
-    check("null → None", ft.field_text("用户名", page) is None)
+    # --- 超长拒绝 ---
+    mod.post_chat = fake_post({"text": "x" * 2001})
+    try:
+        field_text(ctx)
+        check("too long raises", False)
+    except ValueError:
+        check("too long raises", True)
 
-    # --- 空串视为未找到（防编造） ---
-    ft, _ = make('{"text": "   "}')
-    check("blank → None", ft.field_text("用户名", page) is None)
-
-    # --- 围栏 JSON 容忍 ---
-    ft, _ = make('```json\n{"text": "value"}\n```')
-    check("fenced json ok", ft.field_text("字段", page) == "value")
-
-    # --- D17 ValueError 路径 ---
-    ft, _ = make("the value is 张三")
-    check_raises("non-JSON → ValueError",
-                 lambda: ft.field_text("用户名", page), ValueError)
-    ft, _ = make('{"value": "张三"}')
-    check_raises("missing text key → ValueError",
-                 lambda: ft.field_text("用户名", page), ValueError)
-    ft, _ = make('{"text": 123}')
-    check_raises("non-str text → ValueError",
-                 lambda: ft.field_text("用户名", page), ValueError)
-
-    # --- hint 契约 ---
-    ft, _ = make('{"text": null}')
-    check_raises("empty hint → ValueError",
-                 lambda: ft.field_text("  ", page), ValueError)
+    # --- 缺 env ---
+    saved = os.environ.pop("TEXT_HELPER_BASE_URL", None)
+    try:
+        field_text(ctx)
+        check("missing env raises", False)
+    except RuntimeError:
+        check("missing env raises", True)
+    if saved is not None:
+        os.environ["TEXT_HELPER_BASE_URL"] = saved
 
     print(f"SMOKE OK: {passed}/{total}")
+
+
+if __name__ == "__main__":
+    _smoke()
