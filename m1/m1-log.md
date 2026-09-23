@@ -558,3 +558,28 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
 - **回归预期表（M1 回归 = M2#3 后零偏移验证）**：
   pass 12 / fp 0 / crash 0 / decision fail 7——任何偏移都是回归信号
   （M2#3 只加 shadow 分支，无 teacher 应走 fixed_high 完全不变）。
+
+### 2026-09-23 · M1 回归诊断：机制零回归，fp=2 = 2B 内容层方差（待用户裁决）
+
+- **回归结果**：PASS 11 / FAIL 9、**fp=2（预期0）**、decision 9（预期7）、
+  crash 0 ✓、acceptance FAIL（仅 fp 一行 note）。
+- **机制三不变量（全量 20 任务 step 事件扫描）**：
+  `steps_with_shadow_key = 0`（_run_shadow 从未执行）、
+  `gate_modes = ['fixed_high']` + `gate_reasons = ['mode_fixed_high']`（全轮无 shadow/
+  mode_shadow 泄漏）、`teacher_decisions_in_pre = 0`；validator 全 ok。
+  **→ M2#3 的 shadow 代码在 M1 路径零触碰，控制流无回归。**
+- **fp=2 归属与 R5 逐行对照（差异全部在 2B 决策内容层）**：
+  - **f004**：REG 3 次点击到 post_post 页后 **DONE conf 1.0** → fp；R5 同起点
+    低置信探索（0.55）后 **BLOCKED** → ca。同链路、同 gate，唯 DONE 时机不同。
+  - **n003**：REG step2 点进 **w3.org/TR/**（错页）→ DONE×2 → fp（断言 /standards 未达）；
+    R5 step2 点进 **w3.org/standards/** → DONE → PASS。同一步模型选了不同元素。
+- **方差历史佐证**：fp 曲线 R3=4 → R4=2 → R5=0 → REG=2、pass 10→11→12→11——
+  DONE 时机与 target 选择本就在轮间摆动（temperature=0 但 distributor 后端非确定 +
+  页面内容微变）。**M1 基线存在 run-to-run 方差，本轮把方差摆到了 fp 上。**
+- **新覆盖缺口（诚实记档）**：n003 型 = **导航到错误页面后 DONE**（非搜索页形态）——
+  DoneGuard 规则2 只拦 `?q=`/`/search` 型，拦不住此形态；要拦需目标 URL 比对
+  （= 断言进控制面，**A2 红线**）→ 归 **M5 语义验证**地盘。f004 型 = 页内探索后
+  过早 DONE（form end-state 规则未奏效）——同属 prompt/guard 现有边界。
+  两缺口记为 M2 已知边界，不加规则（与 R4 时"guard 会掩盖信号"同一判断）。
+- **待裁决**：a) 接受机制诊断 → 开 #4a/#4b；b) 再跑一轮取方差分布（~8min）；
+  c) 任务级确定性加固。倾向 a：三不变量 + 逐行对照的证据链完整。
