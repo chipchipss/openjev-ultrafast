@@ -15,10 +15,12 @@
 | 3 | step_budget.py | ✅ |
 | 4 | decision_validator.py | ✅ |
 | 5 | runtime_guard.py | ✅ |
-| 6 | choose_2b() | ⬜ |
-| 7 | pre_execute 接入 agent.py | ⬜ |
-| 8 | Logger 统一 | ⬜ |
-| 9 | 20 tasks | ⬜ |
+| 6 | policy.py | ✅ |
+| 6 | confidence_gate.py | ✅ |
+| 7 | choose_2b() | ⬜ |
+| 8 | pre_execute 接入 agent.py | ⬜ |
+| 9 | Logger 统一 | ⬜ |
+| 10 | 20 tasks | ⬜ |
 
 ---
 
@@ -70,3 +72,16 @@ runtime_guard.py 不 import snapshot.js / browser.py，以下结构常量在两�
 - 陷阱：`bool ≠ int`——所有 `_is_int` 显式排除 bool，冒烟含专门用例
   （`page_key[4] = True`）。
 - 冒烟：`SMOKE OK: 40/40`。
+
+### 2026-09-23 · policy + confidence_gate 落盘（pre_execute 链 5/5）
+
+- pre_execute 链组件齐：Policy → Validator → Runtime Guard → Confidence Gate → StepBudget
+  （A2 四元组：Policy / Validator / Confidence 分立实现，TaskSuccess = evaluator.py）。
+- **SENTINELS 同步点扩大**：`{"DONE", "BLOCKED"}` 现在在 decision_validator.py、
+  policy.py、confidence_gate.py 三处独立定义（外加 model.py + questions.py）——
+  改 sentinel 集合需同步，见上文同步点表。
+- policy 黑名单调整规则（G3）：M1 跑 20 任务后按实际误杀/漏杀**只改词表、不改逻辑**；
+  只匹配 action.label，不扫 page.text（避免说明文字误杀）。
+- confidence_gate：§5bis 状态机唯一实现处（B4）；M1 `mode=fixed_high` 永不升级，
+  M5 切换只改 `__init__` 参数；阈值从 StepBudget 读（degrade → 0.75，D1）。
+- 冒烟：policy `SMOKE OK: 34/34`、confidence_gate `SMOKE OK: 40/40`。

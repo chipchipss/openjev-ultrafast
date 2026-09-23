@@ -2,8 +2,8 @@
 
 - 状态标记：✅ 已冻结 / 📝 草案 / ⬜ 待产出
 - 用途：丢失后按此清单重建。每个文件的关键内容已在对话中给出，可按摘要重建。
-- 本仓库当前状态：已落盘 7 件（docs/01、09、10 + evaluator / step_budget / decision_validator / runtime_guard）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
-- 统计：✅ 25 · 📝 1 · ⬜ 11，合计 37（原稿对话计为 26/13、目录树核算 21/15；落盘 7 件并新增 m1-log 后为 25/1/11）。
+- 本仓库当前状态：已落盘 9 件（docs/01、09、10 + evaluator / step_budget / decision_validator / runtime_guard / policy / confidence_gate）+ 草案 m1/m1-log.md + 本清单 + 目录骨架；其余 ✅ 待落盘，⬜ 待产出。
+- 统计：✅ 27 · 📝 1 · ⬜ 9，合计 37（原稿对话计为 26/13、目录树核算 21/15；落盘 9 件并新增 m1-log 后为 27/1/9）。
 
 ---
 
@@ -276,7 +276,7 @@ m1/
 
 ## 五、M1 阶段待产出代码文件
 
-evaluator.py、step_budget.py、decision_validator.py、runtime_guard.py 已落盘，其余尚未开始。列出便于规划目录。
+evaluator.py、step_budget.py、decision_validator.py、runtime_guard.py、policy.py、confidence_gate.py 已落盘，其余尚未开始。列出便于规划目录。
 
 ```text
 openjev-ultrafast/
@@ -285,8 +285,8 @@ openjev-ultrafast/
 ├── decision_validator.py   ✅ DecisionValidator（D8 三级一致性，已落盘）
 ├── runtime_guard.py        ✅ Runtime 契约严格校验（A9，已落盘）
 ├── logger.py               ⬜ 统一日志出口
-├── policy.py               ⬜ Policy（先空实现 + 黑名单）
-├── confidence_gate.py      ⬜ Confidence Gate（先固定 HIGH）
+├── policy.py               ✅ Policy（先空实现 + 黑名单，已落盘）
+├── confidence_gate.py      ✅ Confidence Gate（先固定 HIGH，已落盘）
 ├── api_teacher.py          ⬜ API Teacher（M1 后期）
 ├── decider/
 │   ├── __init__.py
@@ -344,8 +344,8 @@ openjev-ultrafast/
 ├── decision_validator.py                    ✅
 ├── runtime_guard.py                         ✅
 ├── logger.py                                ⬜
-├── policy.py                                ⬜
-├── confidence_gate.py                       ⬜
+├── policy.py                                ✅
+├── confidence_gate.py                       ✅
 ├── api_teacher.py                           ⬜
 ├── decider/
 │   ├── __init__.py                          ⬜
@@ -357,9 +357,9 @@ openjev-ultrafast/
     └── text_value.txt                       ⬜
 ```
 
-- ✅ 已冻结文件：25 个（README + CHANGELOG + LICENSE + 11 docs + 5 specs + 2 m1 + evaluator.py + step_budget.py + decision_validator.py + runtime_guard.py；其中已落盘 7 件：01 / 09 / 10 / evaluator / step_budget / decision_validator / runtime_guard）
+- ✅ 已冻结文件：27 个（README + CHANGELOG + LICENSE + 11 docs + 5 specs + 2 m1 + evaluator.py + step_budget.py + decision_validator.py + runtime_guard.py + policy.py + confidence_gate.py；其中已落盘 9 件：01 / 09 / 10 / evaluator / step_budget / decision_validator / runtime_guard / policy / confidence_gate）
 - 📝 草案：1 个（m1/m1-log.md）
-- ⬜ 待产出：11 个（tasks.jsonl + 4 顶层 py + decider 3 件 + prompts 3 件）
+- ⬜ 待产出：9 个（tasks.jsonl + 2 顶层 py + decider 3 件 + prompts 3 件）
 
 ---
 
