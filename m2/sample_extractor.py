@@ -26,7 +26,8 @@ CLI：python3 -m m2.sample_extractor --logs ... --tasks ... [--benchmark-domains
 
 输出：
   c_pairs.jsonl     分歧且 teacher 有效 → chosen=teacher, rejected=local（DPO pair）
-  a_positive.jsonl  agree=true 且任务最终 true_success（teacher 背书的本地正确）
+  a_positive.jsonl  agree=true 且任务最终 true_success（teacher 背书的本地正确，
+                    行含 decision=被背书动作 [缺陷#7]）
   b_reject.jsonl    step.pre_execute.validator.code != "ok"
   manifest.json     计数 + 域分布 + fp_rate + high_variance_task + 污染检查
 
@@ -276,7 +277,18 @@ def extract_all(
         teacher = ev.get("teacher") or {}
         if ev.get("agree"):
             if final_quadrant.get(tid) == "true_success":
-                a_positive.append(base)
+                # 缺陷#7：a_positive 必须携带教师背书的本地决策——行内原只有 state
+                # 侧字段，无监督目标不可 SFT（M4a 数据准备时发现）。
+                local = ev.get("local") or {}
+                a_positive.append({
+                    **base,
+                    "decision": {
+                        "operation": local.get("operation"),
+                        "target":    local.get("target"),
+                        "operation_confidence": local.get("operation_confidence"),
+                        "target_confidence":    local.get("target_confidence"),
+                    },
+                })
             else:
                 counts["consistent_but_not_success"] += 1
         else:
@@ -498,6 +510,8 @@ def _smoke() -> None:
         # tT 现在只剩 _r0 文件：1 disagree + 1 agree → c=1 / a=1；fp 文件被删 → rounds 仅 _r0
         check("c_pairs = tT_r disagree + tP", len(c_rows) == 2)
         check("a_positive agree+success", len(a_rows) == 1)
+        check("缺陷#7: a_positive 携带被背书的 decision",
+              a_rows[0].get("decision", {}).get("target") == "1")
         check("b_reject bench-skipped", len(b_rows) == 0
               and manifest["counts"]["b_reject_skipped"] == 1)
         check("shadow invalid counted", manifest["shadow_status"].get("invalid") == 1)
