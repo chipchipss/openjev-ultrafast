@@ -876,3 +876,28 @@ ls logs/m2final/r*/ | grep -c jsonl   # 预期 500（10 轮 ×50）；不等 = �
   76（+过夜增量）个 c_pairs = 强 decider baseline，白天弱 decider 那轮 =
   弱 decider baseline，两条曲线对比才是"decider 能力 vs 分歧率"的关系本身。
   **对照实验 = M2 最有价值的产出**；验收不让路，让发现说话。
+
+#### 晨间执行 · TIER1 五判据全绿，M2 正式收口（2026-09-24 07:32 跑完 / 10:35 合并）
+
+- **过夜跑收官**：m2_more r0..r6 全 50/50（07:32 marker 触发）、全程 429=0、
+  无卡死——缺陷#5 修复扛完整夜（每轮 x005 完整收尾）。
+- **预检两道过**：10 轮全 =50；`logs/m2final` = **500 文件**（10×50）。
+- **合并 + 重抽 + `_m2_acceptance` 复算 → `reports/m2_final.json`：
+  `acceptance=True, notes=[]`**：
+
+| 判据 | 阈值 | m2final |
+|---|---|---|
+| decision_total | ≥1000 | **6044** |
+| c_pairs | ≥200 | **243**（TIER1） |
+| contamination | 0 | 0 |
+| system 空 | crash/api_unavailable=0 | error=0, `system_modes={}` |
+| teacher_shadow | 出现 | **2478** |
+
+- **数据资产**：a_positive **708** / c_pairs **243** / consistent_not_success 590；
+  recorded 1311、invalid 37、failed 4（≈4‰ 损耗）；样本落 `samples_final/`，
+  results 500 条（150+350），双原件 `logs/m2` + `logs/m2_more` 留证未动。
+- **按三档树走 TIER1**：正式收口 + 记档 **"强 decider baseline"**
+  （c_pairs=243 / agree≈84% / a_positive=708）；**不必等对照结果即可进 M3**；
+  白天可选跑弱 decider 对照轮（补完"能力差 vs 分歧率"曲线，M2 真正的最强产出）。
+- **当日累计四缺陷全修全档**：#agnes 渠道挂死（换 deepseek-flash）、
+  #5 predict 拒收死循环、#6 extractor 平层 glob、pkill 自匹配复踩。
