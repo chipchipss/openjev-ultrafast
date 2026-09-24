@@ -1,0 +1,5533 @@
+{
+  "summary": {
+    "total": 150,
+    "pass": 122,
+    "fail": 28,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "correct_abandon": 26,
+      "true_success": 92,
+      "false_negative": 30,
+      "false_positive": 2
+    },
+    "failure_modes": {
+      "decision": 19,
+      "budget_exceeded": 9
+    },
+    "agent_modes": {
+      "decision": 19,
+      "budget_exceeded": 9
+    },
+    "system_modes": {},
+    "per_round": {
+      "0": {
+        "pass": 41,
+        "fail": 9,
+        "unknown": 0,
+        "error": 0
+      },
+      "1": {
+        "pass": 39,
+        "fail": 11,
+        "unknown": 0,
+        "error": 0
+      },
+      "2": {
+        "pass": 42,
+        "fail": 8,
+        "unknown": 0,
+        "error": 0
+      }
+    },
+    "decision_total": 1813,
+    "teacher_shadow_total": 725,
+    "budget": {
+      "teacher_used": 725,
+      "teacher_limit": 10000,
+      "teacher_available": true,
+      "teacher_cost_usd": 0.0,
+      "recovery_used": 0,
+      "recovery_limit": 500,
+      "recovery_available": true,
+      "recovery_cost_usd": 0.0
+    }
+  },
+  "domain_distribution": {
+    "www.google.com": {
+      "tasks": 1,
+      "benchmark": true
+    },
+    "docs.python.org": {
+      "tasks": 1,
+      "benchmark": true
+    },
+    "www.w3.org": {
+      "tasks": 2,
+      "benchmark": true
+    },
+    "en.wikipedia.org": {
+      "tasks": 3,
+      "benchmark": true
+    },
+    "developer.mozilla.org": {
+      "tasks": 2,
+      "benchmark": true
+    },
+    "httpbin.org": {
+      "tasks": 4,
+      "benchmark": true
+    },
+    "www.selenium.dev": {
+      "tasks": 2,
+      "benchmark": true
+    },
+    "www.python.org": {
+      "tasks": 2,
+      "benchmark": true
+    },
+    "www.rfc-editor.org": {
+      "tasks": 1,
+      "benchmark": true
+    },
+    "news.ycombinator.com": {
+      "tasks": 1,
+      "benchmark": true
+    },
+    "example.invalid": {
+      "tasks": 1,
+      "benchmark": true
+    },
+    "localhost": {
+      "tasks": 30,
+      "benchmark": false
+    }
+  },
+  "acceptance": {
+    "passed": false,
+    "notes": [
+      "FAIL: c_pairs=76 < 200"
+    ]
+  },
+  "extract_manifest": {
+    "generated_at": 1790173306.677175,
+    "logs": "/root/jev-ultrafast/logs/m2",
+    "counts": {
+      "teacher_shadow_events": 725,
+      "skipped_benchmark": 251,
+      "skipped_not_training": 0,
+      "consistent_but_not_success": 203,
+      "b_reject_skipped": 0,
+      "c_pairs": 76,
+      "a_positive": 195,
+      "b_reject": 0
+    },
+    "shadow_status": {
+      "recorded": 384,
+      "invalid": 12,
+      "failed": 1
+    },
+    "fp_rates": {
+      "f001": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "f002": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "f003": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "f004": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "f005": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "f006": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "f007": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "f008": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "f009": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "f010": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "l001": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "l002": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "l003": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "l004": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "l005": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "l006": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "l007": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "n001": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "n002": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "n003": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "n004": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "n005": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "n006": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "n007": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "n008": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "n009": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "n010": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "s001": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "s002": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "s003": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "s004": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "s005": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "s006": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "s007": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "s008": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "s009": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "s010": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "s011": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "s012": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "s013": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "t001": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "t002": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "t003": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "t004": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "t005": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "x001": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "x002": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "x003": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "x004": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      },
+      "x005": {
+        "fp": 0,
+        "rounds": 1,
+        "rate": 0.0,
+        "high_variance": false
+      }
+    },
+    "high_variance_tasks": [],
+    "domain_distribution": {
+      "localhost": 271
+    },
+    "contamination_check": {
+      "violations": 0,
+      "checked_rows": 271,
+      "benchmark_hosts": [
+        "developer.mozilla.org",
+        "docs.python.org",
+        "en.wikipedia.org",
+        "example.invalid",
+        "google.com",
+        "httpbin.org",
+        "news.ycombinator.com",
+        "python.org",
+        "rfc-editor.org",
+        "selenium.dev",
+        "w3.org"
+      ]
+    },
+    "pollution": {
+      "benchmark_hosts": [
+        "developer.mozilla.org",
+        "docs.python.org",
+        "en.wikipedia.org",
+        "example.invalid",
+        "google.com",
+        "httpbin.org",
+        "news.ycombinator.com",
+        "python.org",
+        "rfc-editor.org",
+        "selenium.dev",
+        "w3.org"
+      ],
+      "training_hosts": [
+        "127.0.0.1",
+        "localhost"
+      ],
+      "unverified_domains": []
+    },
+    "notes": [
+      "b_reject 预期为 0：local validator 拒绝走 StalePage 不落 step（已记档 gap）",
+      "teacher invalid/failed/budget_exhausted 不进数据集，见 shadow_status",
+      "high_variance 标准: fp_rate > 0.3（仍进集，M6 优先处理）"
+    ]
+  },
+  "results": [
+    {
+      "task_id": "s001",
+      "round": 0,
+      "domain": "www.google.com",
+      "result": {
+        "task_id": "s001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dopenai%26sca_esv%3D118820592a22ad4b%26source%3Dhp%26ei%3DlqqzaqCQLvWChbIPzPnN4AY%26iflsig%3DABILxe8AAAAAarO4ppSgX-J6ZZU0xMrn_KUKwBG2kwDz%26gs_ssp%3DeJzj4tVP1zc0TKpINjM1KzNTYDRgdGDwYssvSM1LzAQAYW0HJw%26oq%3DOpenAI%26gs_lp%3DEgdnd3Mtd2l6IgZPcGVuQUkqEQgAGIAEGLEDGIMBGMcBGNEDMhEQLhiABBixAxiDARjHARjRAzIOEAAYgAQYigUYsQMYgwEyDhAAGIAEGIoFGLEDGIMBMgUQABiABDILEC4YgAQYxwEYrwEyCBAAGIAEGLEDMggQABiABBixAzIIEAAYgAQYsQMyDhAAGIAEGIoFGLEDGIMBMgsQLhiABBjHARivAUjSZFAdWB1wAXgAkAEAmAExoAExqgEBMbgBAcgBAPgBAZgCAqACRKgCCsICChAAGAMYjwEY6gLCAgoQLhgDGI8BGOoCmAMM8QV4fXb1lQRAxJIHATKgB5oKsgcBMbgHOMIHBTItMS4xyAcOgAgB%26sclient%3Dgws-wiz%26sei%3DqqqzaoqqDd2ai-gPr_2DoAg&q=EhAqAsIHI1kmgwAAAAAAAAABGKrVztUGIjAVO8JFDhSYZjFqT2D3mC2TMAMApEBglDKTihp-UkN-6ZGvbOjBkM2HmzLVPATdNO8yAVJaAUM",
+          "final_title": "https://www.google.com/search?q=openai&sca_esv=118820592a22ad4b&source=hp&ei=lqqzaqCQLvWChbIPzPnN4AY&iflsig=ABILxe8AAAAAarO4ppSgX-J6ZZU0xMrn_KUKwBG2kwDz&gs_ssp=eJzj4tVP1zc0TKpINjM1KzNTYDRgdGDwYssvSM1LzAQAYW0HJw&oq=OpenAI&gs_lp=Egdnd3Mtd2l6IgZPcGVuQUkqEQgAGIAEGLEDGIMBGMcBGNEDMhEQLhiABBixAxiDARjHARjRAzIOEAAYgAQYigUYsQMYgwEyDhAAGIAEGIoFGLEDGIMBMgUQABiABDILEC4YgAQYxwEYrwEyCBAAGIAEGLEDMggQABiABBixAzIIEAAYgAQYsQMyDhAAGIAEGIoFGLEDGIMBMgsQLhiABBjHARivAUjSZFAdWB1wAXgAkAEAmAExoAExqgEBMbgBAcgBAPgBAZgCAqACRKgCCsICChAAGAMYjwEY6gLCAgoQLhgDGI8BGOoCmAMM8QV4fXb1lQRAxJIHATKgB5oKsgcBMbgHOMIHBTItMS4xyAcOgAgB&sclient=gws-wiz&sei=qqqzaoqqDd2ai-gPr_2DoAg",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "^https://(www\\.)?openai\\.com/"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 4,
+          "api_calls": 4,
+          "elapsed_ms": 44229
+        }
+      }
+    },
+    {
+      "task_id": "s002",
+      "round": 0,
+      "domain": "docs.python.org",
+      "result": {
+        "task_id": "s002",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/library/asyncio.html",
+          "final_title": "asyncio — Asynchronous I/O — Python 3.14.7 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org.*asyncio"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 5,
+          "elapsed_ms": 140606
+        }
+      }
+    },
+    {
+      "task_id": "s003",
+      "round": 0,
+      "domain": "www.w3.org",
+      "result": {
+        "task_id": "s003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.w3.org/standards/",
+          "final_title": "Web Standards | W3C",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "w3\\.org/standards"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 2,
+          "elapsed_ms": 52554
+        }
+      }
+    },
+    {
+      "task_id": "s004",
+      "round": 0,
+      "domain": "en.wikipedia.org",
+      "result": {
+        "task_id": "s004",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Ada_Lovelace",
+          "final_title": "Ada Lovelace - Wikipedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "wikipedia\\.org/wiki/Ada_Lovelace"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 6,
+          "api_calls": 6,
+          "elapsed_ms": 49269
+        }
+      }
+    },
+    {
+      "task_id": "s005",
+      "round": 0,
+      "domain": "developer.mozilla.org",
+      "result": {
+        "task_id": "s005",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API",
+          "final_title": "Fetch API - Web APIs | MDN",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "developer\\.mozilla\\.org.*Fetch"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 27,
+          "api_calls": 5,
+          "elapsed_ms": 170177
+        }
+      }
+    },
+    {
+      "task_id": "f001",
+      "round": 0,
+      "domain": "httpbin.org",
+      "result": {
+        "task_id": "f001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://httpbin.org/#/HTTP_Methods",
+          "final_title": "httpbin.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "customer"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 7,
+          "api_calls": 4,
+          "elapsed_ms": 164779
+        }
+      }
+    },
+    {
+      "task_id": "f002",
+      "round": 0,
+      "domain": "httpbin.org",
+      "result": {
+        "task_id": "f002",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://httpbin.org/forms/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "comments"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "hello world"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 7,
+          "api_calls": 5,
+          "elapsed_ms": 63005
+        }
+      }
+    },
+    {
+      "task_id": "f003",
+      "round": 0,
+      "domain": "www.selenium.dev",
+      "result": {
+        "task_id": "f003",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.selenium.dev/documentation/webdriver/",
+          "final_title": "WebDriver | Selenium",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "webdriver",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 9,
+          "model_calls": 40,
+          "api_calls": 11,
+          "elapsed_ms": 672941
+        }
+      }
+    },
+    {
+      "task_id": "f004",
+      "round": 0,
+      "domain": "httpbin.org",
+      "result": {
+        "task_id": "f004",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://httpbin.org/forms/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "size"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 3,
+          "elapsed_ms": 186096
+        }
+      }
+    },
+    {
+      "task_id": "n001",
+      "round": 0,
+      "domain": "www.python.org",
+      "result": {
+        "task_id": "n001",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/",
+          "final_title": "3.14.7 Documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 6,
+          "api_calls": 2,
+          "elapsed_ms": 26216
+        }
+      }
+    },
+    {
+      "task_id": "n002",
+      "round": 0,
+      "domain": "developer.mozilla.org",
+      "result": {
+        "task_id": "n002",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference",
+          "final_title": "JavaScript reference - JavaScript | MDN",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "JavaScript"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 15531
+        }
+      }
+    },
+    {
+      "task_id": "n003",
+      "round": 0,
+      "domain": "www.w3.org",
+      "result": {
+        "task_id": "n003",
+        "result": "FAIL",
+        "quadrant": "false_positive",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.w3.org/TR/",
+          "final_title": "W3C standards and drafts | W3C",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "/standards"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 4,
+          "api_calls": 3,
+          "elapsed_ms": 17453
+        }
+      }
+    },
+    {
+      "task_id": "n004",
+      "round": 0,
+      "domain": "www.rfc-editor.org",
+      "result": {
+        "task_id": "n004",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.rfc-editor.org/search/?q=9110",
+          "final_title": "Search | RFC Editor",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "rfc9110"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 9,
+          "api_calls": 5,
+          "elapsed_ms": 120542
+        }
+      }
+    },
+    {
+      "task_id": "l001",
+      "round": 0,
+      "domain": "news.ycombinator.com",
+      "result": {
+        "task_id": "l001",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://news.ycombinator.com/",
+          "final_title": "Hacker News",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 120,
+          "api_calls": 2,
+          "elapsed_ms": 282482
+        }
+      }
+    },
+    {
+      "task_id": "l002",
+      "round": 0,
+      "domain": "en.wikipedia.org",
+      "result": {
+        "task_id": "l002",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population",
+          "final_title": "List of countries and dependencies by population - Wikipedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "List_of_countries"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 5,
+          "model_calls": 11,
+          "api_calls": 10,
+          "elapsed_ms": 67050
+        }
+      }
+    },
+    {
+      "task_id": "l003",
+      "round": 0,
+      "domain": "www.python.org",
+      "result": {
+        "task_id": "l003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.python.org/jobs/",
+          "final_title": "Python Job Board | Python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "remote",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 15517
+        }
+      }
+    },
+    {
+      "task_id": "t001",
+      "round": 0,
+      "domain": "httpbin.org",
+      "result": {
+        "task_id": "t001",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://httpbin.org/forms/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "click"
+              },
+              "ok": true,
+              "note": "found in step 2"
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 5,
+          "elapsed_ms": 63669
+        }
+      }
+    },
+    {
+      "task_id": "t002",
+      "round": 0,
+      "domain": "www.selenium.dev",
+      "result": {
+        "task_id": "t002",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.selenium.dev/documentation/",
+          "final_title": "The Selenium Browser Automation Project | Selenium",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Documentation",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 8,
+          "api_calls": 4,
+          "elapsed_ms": 56853
+        }
+      }
+    },
+    {
+      "task_id": "x001",
+      "round": 0,
+      "domain": "example.invalid",
+      "result": {
+        "task_id": "x001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "example.invalid",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "not available"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "cannot"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "element_exists",
+                "role": "button",
+                "label_contains": "No"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 1,
+          "elapsed_ms": 36865
+        }
+      }
+    },
+    {
+      "task_id": "x002",
+      "round": 0,
+      "domain": "en.wikipedia.org",
+      "result": {
+        "task_id": "x002",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Main_Page",
+          "final_title": "Wikipedia, the free encyclopedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "deleted"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 55923
+        }
+      }
+    },
+    {
+      "task_id": "s006",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s006",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=testing",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "\\?q="
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 14608
+        }
+      }
+    },
+    {
+      "task_id": "s007",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s007",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=automation",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "q=automation"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 17245
+        }
+      }
+    },
+    {
+      "task_id": "s008",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s008",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=openjev",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "\\?q="
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Search results for"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 22891
+        }
+      }
+    },
+    {
+      "task_id": "s009",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s009",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=ultrafast",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "ultrafast"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 10315
+        }
+      }
+    },
+    {
+      "task_id": "s010",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s010",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=browser+agent",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "q=browser"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 22538
+        }
+      }
+    },
+    {
+      "task_id": "s011",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s011",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/articles.html#a6",
+          "final_title": "Articles — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "articles\\.html|technology\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 6,
+          "api_calls": 5,
+          "elapsed_ms": 140089
+        }
+      }
+    },
+    {
+      "task_id": "s012",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s012",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=validator",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Search results for"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 17778
+        }
+      }
+    },
+    {
+      "task_id": "s013",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s013",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=step+budget",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "q=step"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 15458
+        }
+      }
+    },
+    {
+      "task_id": "f005",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f005",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 5,
+          "api_calls": 5,
+          "elapsed_ms": 37602
+        }
+      }
+    },
+    {
+      "task_id": "f006",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f006",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 22621
+        }
+      }
+    },
+    {
+      "task_id": "f007",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f007",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 5,
+          "api_calls": 5,
+          "elapsed_ms": 36948
+        }
+      }
+    },
+    {
+      "task_id": "f008",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f008",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 14167
+        }
+      }
+    },
+    {
+      "task_id": "f009",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f009",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 4,
+          "elapsed_ms": 36940
+        }
+      }
+    },
+    {
+      "task_id": "f010",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f010",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "budget_exceeded",
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 50,
+          "api_calls": 48,
+          "elapsed_ms": 284011
+        }
+      }
+    },
+    {
+      "task_id": "n005",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n005",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/technology.html",
+          "final_title": "Technology — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "technology\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 12964
+        }
+      }
+    },
+    {
+      "task_id": "n006",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n006",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "products\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 9123
+        }
+      }
+    },
+    {
+      "task_id": "n007",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n007",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/articles.html",
+          "final_title": "Articles — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "articles\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 6949
+        }
+      }
+    },
+    {
+      "task_id": "n008",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n008",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "settings\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 7066
+        }
+      }
+    },
+    {
+      "task_id": "n009",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n009",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "search\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 20,
+          "api_calls": 1,
+          "elapsed_ms": 26570
+        }
+      }
+    },
+    {
+      "task_id": "n010",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n010",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/empty.html",
+          "final_title": "Not Found — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "empty\\.html"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Page Not Found"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 15786
+        }
+      }
+    },
+    {
+      "task_id": "l004",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "l004",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Product 40"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 6,
+          "elapsed_ms": 33179
+        }
+      }
+    },
+    {
+      "task_id": "l005",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "l005",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Product 45"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 5,
+          "elapsed_ms": 69546
+        }
+      }
+    },
+    {
+      "task_id": "l006",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "l006",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/articles.html",
+          "final_title": "Articles — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Article 8"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 4,
+          "api_calls": 2,
+          "elapsed_ms": 16345
+        }
+      }
+    },
+    {
+      "task_id": "l007",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "l007",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8765/",
+          "final_title": "OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "OpenJEV Test Site"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 7,
+          "api_calls": 5,
+          "elapsed_ms": 44214
+        }
+      }
+    },
+    {
+      "task_id": "t003",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "t003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Settings saved"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 16871
+        }
+      }
+    },
+    {
+      "task_id": "t004",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "t004",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "budget_exceeded",
+        "evidence": {
+          "final_url": "http://localhost:8765/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Settings saved"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 120,
+          "api_calls": 0,
+          "elapsed_ms": 157278
+        }
+      }
+    },
+    {
+      "task_id": "t005",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "t005",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Settings saved"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 10022
+        }
+      }
+    },
+    {
+      "task_id": "x003",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "x003",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "products deleted"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 9,
+          "model_calls": 14,
+          "api_calls": 12,
+          "elapsed_ms": 153142
+        }
+      }
+    },
+    {
+      "task_id": "x004",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "x004",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "payment confirmed"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 4,
+          "api_calls": 3,
+          "elapsed_ms": 25013
+        }
+      }
+    },
+    {
+      "task_id": "x005",
+      "round": 0,
+      "domain": "localhost",
+      "result": {
+        "task_id": "x005",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/articles.html#a1",
+          "final_title": "Articles — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "published successfully"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 11,
+          "model_calls": 34,
+          "api_calls": 12,
+          "elapsed_ms": 217042
+        }
+      }
+    },
+    {
+      "task_id": "s001",
+      "round": 1,
+      "domain": "www.google.com",
+      "result": {
+        "task_id": "s001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dopenai%26sca_esv%3D585baa279a4b2485%26source%3Dhp%26ei%3DfbqzavbvO6SN9u8P1427uAs%26iflsig%3DABILxe8AAAAAarPIjmkV4w_N1vn39MPcx1DDZo7stDra%26gs_ssp%3DeJzj4tVP1zc0TKpINjM1KzNTYDRgdGDwYssvSM1LzAQAYW0HJw%26oq%3DOpenAI%26gs_lp%3DEgdnd3Mtd2l6IgZPcGVuQUkqEQgAGIAEGLEDGIMBGMcBGNEDMhEQLhiABBixAxiDARjHARjRAzIOEAAYgAQYigUYsQMYgwEyDhAAGIAEGIoFGLEDGIMBMgUQABiABDILEC4YgAQYxwEYrwEyCBAAGIAEGLEDMggQABiABBixAzIIEAAYgAQYsQMyDhAAGIAEGIoFGLEDGIMBMgsQLhiABBjHARivAUjHXlAaWBpwAXgAkAEAmAE3oAE3qgEBMbgBAcgBAPgBAZgCAqACSKgCCsICChAuGAMYjwEY6gLCAgoQABgDGI8BGOoCmAML8QV1b8-fcTxMDpIHATKgB5oKsgcBMbgHPMIHBTItMS4xyAcMgAgB%26sclient%3Dgws-wiz%26sei%3Dk7qzaoauEoWyi-gP4p7GsQ8&q=EhAqAsIHI1kmgwAAAAAAAAABGJP1ztUGIjBexWtVBBugifAi1uehitr9N8wVZZZ74-lnEZpIu2sfYr4sY0_-_FShl6zntBbmETAyAVJaAUM",
+          "final_title": "https://www.google.com/search?q=openai&sca_esv=585baa279a4b2485&source=hp&ei=fbqzavbvO6SN9u8P1427uAs&iflsig=ABILxe8AAAAAarPIjmkV4w_N1vn39MPcx1DDZo7stDra&gs_ssp=eJzj4tVP1zc0TKpINjM1KzNTYDRgdGDwYssvSM1LzAQAYW0HJw&oq=OpenAI&gs_lp=Egdnd3Mtd2l6IgZPcGVuQUkqEQgAGIAEGLEDGIMBGMcBGNEDMhEQLhiABBixAxiDARjHARjRAzIOEAAYgAQYigUYsQMYgwEyDhAAGIAEGIoFGLEDGIMBMgUQABiABDILEC4YgAQYxwEYrwEyCBAAGIAEGLEDMggQABiABBixAzIIEAAYgAQYsQMyDhAAGIAEGIoFGLEDGIMBMgsQLhiABBjHARivAUjHXlAaWBpwAXgAkAEAmAE3oAE3qgEBMbgBAcgBAPgBAZgCAqACSKgCCsICChAuGAMYjwEY6gLCAgoQABgDGI8BGOoCmAML8QV1b8-fcTxMDpIHATKgB5oKsgcBMbgHPMIHBTItMS4xyAcMgAgB&sclient=gws-wiz&sei=k7qzaoauEoWyi-gP4p7GsQ8",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "^https://(www\\.)?openai\\.com/"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 4,
+          "api_calls": 4,
+          "elapsed_ms": 32177
+        }
+      }
+    },
+    {
+      "task_id": "s002",
+      "round": 1,
+      "domain": "docs.python.org",
+      "result": {
+        "task_id": "s002",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/library/asyncio.html",
+          "final_title": "asyncio — Asynchronous I/O — Python 3.14.7 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org.*asyncio"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 5,
+          "api_calls": 4,
+          "elapsed_ms": 33081
+        }
+      }
+    },
+    {
+      "task_id": "s003",
+      "round": 1,
+      "domain": "www.w3.org",
+      "result": {
+        "task_id": "s003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.w3.org/standards/",
+          "final_title": "Web Standards | W3C",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "w3\\.org/standards"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 28759
+        }
+      }
+    },
+    {
+      "task_id": "s004",
+      "round": 1,
+      "domain": "en.wikipedia.org",
+      "result": {
+        "task_id": "s004",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Ada_Lovelace",
+          "final_title": "Ada Lovelace - Wikipedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "wikipedia\\.org/wiki/Ada_Lovelace"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 6,
+          "api_calls": 6,
+          "elapsed_ms": 49209
+        }
+      }
+    },
+    {
+      "task_id": "s005",
+      "round": 1,
+      "domain": "developer.mozilla.org",
+      "result": {
+        "task_id": "s005",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://developer.mozilla.org/en-US/",
+          "final_title": "MDN Web Docs",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "developer\\.mozilla\\.org.*Fetch"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 20,
+          "api_calls": 3,
+          "elapsed_ms": 157178
+        }
+      }
+    },
+    {
+      "task_id": "f001",
+      "round": 1,
+      "domain": "httpbin.org",
+      "result": {
+        "task_id": "f001",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://httpbin.org/forms/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "customer"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 4,
+          "elapsed_ms": 40609
+        }
+      }
+    },
+    {
+      "task_id": "f002",
+      "round": 1,
+      "domain": "httpbin.org",
+      "result": {
+        "task_id": "f002",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://httpbin.org/forms/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "comments"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "hello world"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 5,
+          "elapsed_ms": 197998
+        }
+      }
+    },
+    {
+      "task_id": "f003",
+      "round": 1,
+      "domain": "www.selenium.dev",
+      "result": {
+        "task_id": "f003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.selenium.dev/documentation/webdriver/",
+          "final_title": "WebDriver | Selenium",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "webdriver",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 7,
+          "api_calls": 5,
+          "elapsed_ms": 34970
+        }
+      }
+    },
+    {
+      "task_id": "f004",
+      "round": 1,
+      "domain": "httpbin.org",
+      "result": {
+        "task_id": "f004",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://httpbin.org/forms/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "size"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 7,
+          "api_calls": 5,
+          "elapsed_ms": 43362
+        }
+      }
+    },
+    {
+      "task_id": "n001",
+      "round": 1,
+      "domain": "www.python.org",
+      "result": {
+        "task_id": "n001",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/",
+          "final_title": "3.14.7 Documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 37662
+        }
+      }
+    },
+    {
+      "task_id": "n002",
+      "round": 1,
+      "domain": "developer.mozilla.org",
+      "result": {
+        "task_id": "n002",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference",
+          "final_title": "JavaScript reference - JavaScript | MDN",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "JavaScript"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 22926
+        }
+      }
+    },
+    {
+      "task_id": "n003",
+      "round": 1,
+      "domain": "www.w3.org",
+      "result": {
+        "task_id": "n003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.w3.org/standards/",
+          "final_title": "Web Standards | W3C",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "/standards"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 19028
+        }
+      }
+    },
+    {
+      "task_id": "n004",
+      "round": 1,
+      "domain": "www.rfc-editor.org",
+      "result": {
+        "task_id": "n004",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.rfc-editor.org/search/?q=9110",
+          "final_title": "Search | RFC Editor",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "rfc9110"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 15,
+          "api_calls": 6,
+          "elapsed_ms": 135239
+        }
+      }
+    },
+    {
+      "task_id": "l001",
+      "round": 1,
+      "domain": "news.ycombinator.com",
+      "result": {
+        "task_id": "l001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "budget_exceeded",
+        "evidence": {
+          "final_url": "https://news.ycombinator.com/",
+          "final_title": "Hacker News",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 30,
+          "api_calls": 0,
+          "elapsed_ms": 59435
+        }
+      }
+    },
+    {
+      "task_id": "l002",
+      "round": 1,
+      "domain": "en.wikipedia.org",
+      "result": {
+        "task_id": "l002",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population",
+          "final_title": "List of countries and dependencies by population - Wikipedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "List_of_countries"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 5,
+          "model_calls": 10,
+          "api_calls": 8,
+          "elapsed_ms": 45312
+        }
+      }
+    },
+    {
+      "task_id": "l003",
+      "round": 1,
+      "domain": "www.python.org",
+      "result": {
+        "task_id": "l003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.python.org/jobs/",
+          "final_title": "Python Job Board | Python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "remote",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 2"
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 5,
+          "api_calls": 4,
+          "elapsed_ms": 27885
+        }
+      }
+    },
+    {
+      "task_id": "t001",
+      "round": 1,
+      "domain": "httpbin.org",
+      "result": {
+        "task_id": "t001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://httpbin.org/",
+          "final_title": "httpbin.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "click"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 16561
+        }
+      }
+    },
+    {
+      "task_id": "t002",
+      "round": 1,
+      "domain": "www.selenium.dev",
+      "result": {
+        "task_id": "t002",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.selenium.dev/documentation/",
+          "final_title": "The Selenium Browser Automation Project | Selenium",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Documentation",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 5,
+          "api_calls": 4,
+          "elapsed_ms": 33673
+        }
+      }
+    },
+    {
+      "task_id": "x001",
+      "round": 1,
+      "domain": "example.invalid",
+      "result": {
+        "task_id": "x001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "example.invalid",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "not available"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "cannot"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "element_exists",
+                "role": "button",
+                "label_contains": "No"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 1,
+          "elapsed_ms": 6465
+        }
+      }
+    },
+    {
+      "task_id": "x002",
+      "round": 1,
+      "domain": "en.wikipedia.org",
+      "result": {
+        "task_id": "x002",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Main_Page",
+          "final_title": "Wikipedia, the free encyclopedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "deleted"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 16247
+        }
+      }
+    },
+    {
+      "task_id": "s006",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s006",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=testing",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "\\?q="
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 11151
+        }
+      }
+    },
+    {
+      "task_id": "s007",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s007",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=automation",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "q=automation"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 10412
+        }
+      }
+    },
+    {
+      "task_id": "s008",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s008",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=openjev",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "\\?q="
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Search results for"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 16118
+        }
+      }
+    },
+    {
+      "task_id": "s009",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s009",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=ultrafast",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "ultrafast"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 9853
+        }
+      }
+    },
+    {
+      "task_id": "s010",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s010",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=browser+agent",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "q=browser"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 9908
+        }
+      }
+    },
+    {
+      "task_id": "s011",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s011",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "budget_exceeded",
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=data+flywheel",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "articles\\.html|technology\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 11,
+          "model_calls": 40,
+          "api_calls": 12,
+          "elapsed_ms": 229671
+        }
+      }
+    },
+    {
+      "task_id": "s012",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s012",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=validator",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Search results for"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 14692
+        }
+      }
+    },
+    {
+      "task_id": "s013",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s013",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=step+budget",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "q=step"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 11971
+        }
+      }
+    },
+    {
+      "task_id": "f005",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f005",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 5,
+          "api_calls": 5,
+          "elapsed_ms": 24067
+        }
+      }
+    },
+    {
+      "task_id": "f006",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f006",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 31040
+        }
+      }
+    },
+    {
+      "task_id": "f007",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f007",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 6,
+          "api_calls": 6,
+          "elapsed_ms": 21556
+        }
+      }
+    },
+    {
+      "task_id": "f008",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f008",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 10537
+        }
+      }
+    },
+    {
+      "task_id": "f009",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f009",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 4,
+          "elapsed_ms": 14172
+        }
+      }
+    },
+    {
+      "task_id": "f010",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f010",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "budget_exceeded",
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 50,
+          "api_calls": 48,
+          "elapsed_ms": 236767
+        }
+      }
+    },
+    {
+      "task_id": "n005",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n005",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/technology.html",
+          "final_title": "Technology — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "technology\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 11982
+        }
+      }
+    },
+    {
+      "task_id": "n006",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n006",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "products\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 7256
+        }
+      }
+    },
+    {
+      "task_id": "n007",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n007",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/articles.html",
+          "final_title": "Articles — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "articles\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 8803
+        }
+      }
+    },
+    {
+      "task_id": "n008",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n008",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "settings\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 9631
+        }
+      }
+    },
+    {
+      "task_id": "n009",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n009",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "search\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 20,
+          "api_calls": 1,
+          "elapsed_ms": 25170
+        }
+      }
+    },
+    {
+      "task_id": "n010",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n010",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/empty.html",
+          "final_title": "Not Found — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "empty\\.html"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Page Not Found"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 17423
+        }
+      }
+    },
+    {
+      "task_id": "l004",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "l004",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Product 40"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 5,
+          "elapsed_ms": 64808
+        }
+      }
+    },
+    {
+      "task_id": "l005",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "l005",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Product 45"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 4,
+          "elapsed_ms": 95663
+        }
+      }
+    },
+    {
+      "task_id": "l006",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "l006",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/articles.html",
+          "final_title": "Articles — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Article 8"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 4,
+          "api_calls": 2,
+          "elapsed_ms": 14657
+        }
+      }
+    },
+    {
+      "task_id": "l007",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "l007",
+        "result": "FAIL",
+        "quadrant": "false_positive",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8765/",
+          "final_title": "OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "OpenJEV Test Site"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 6,
+          "api_calls": 3,
+          "elapsed_ms": 23883
+        }
+      }
+    },
+    {
+      "task_id": "t003",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "t003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Settings saved"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 9465
+        }
+      }
+    },
+    {
+      "task_id": "t004",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "t004",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "budget_exceeded",
+        "evidence": {
+          "final_url": "http://localhost:8765/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Settings saved"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 120,
+          "api_calls": 0,
+          "elapsed_ms": 146885
+        }
+      }
+    },
+    {
+      "task_id": "t005",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "t005",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Settings saved"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 8524
+        }
+      }
+    },
+    {
+      "task_id": "x003",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "x003",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "products deleted"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 11,
+          "model_calls": 12,
+          "api_calls": 12,
+          "elapsed_ms": 76341
+        }
+      }
+    },
+    {
+      "task_id": "x004",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "x004",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "payment confirmed"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 120,
+          "api_calls": 1,
+          "elapsed_ms": 366061
+        }
+      }
+    },
+    {
+      "task_id": "x005",
+      "round": 1,
+      "domain": "localhost",
+      "result": {
+        "task_id": "x005",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/articles.html#a1",
+          "final_title": "Articles — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "published successfully"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 10,
+          "model_calls": 16,
+          "api_calls": 12,
+          "elapsed_ms": 113587
+        }
+      }
+    },
+    {
+      "task_id": "s001",
+      "round": 2,
+      "domain": "www.google.com",
+      "result": {
+        "task_id": "s001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dopenai%26sca_esv%3D9f97b11af8265622%26source%3Dhp%26ei%3D_sWzarjIObSL_fwP0NWF4QQ%26iflsig%3DABILxe8AAAAAarPUDuIkkxXhlgeCnsU8uS1yo0Sp_FMn%26gs_ssp%3DeJzj4tVP1zc0TKpINjM1KzNTYDRgdGDwYssvSM1LzAQAYW0HJw%26oq%3DOpenAI%26gs_lp%3DEgdnd3Mtd2l6IgZPcGVuQUkqEQgAGIAEGLEDGIMBGMcBGNEDMhEQLhiABBixAxiDARjHARjRAzIOEAAYgAQYigUYsQMYgwEyDhAAGIAEGIoFGLEDGIMBMgUQABiABDILEC4YgAQYxwEYrwEyCBAAGIAEGLEDMggQABiABBixAzIIEAAYgAQYsQMyDhAAGIAEGIoFGLEDGIMBMgsQLhiABBjHARivAUi8IVAaWBpwAXgAkAEAmAEyoAEyqgEBMbgBAcgBAPgBAZgCAqACRKgCCsICChAAGAMYjwEY6gLCAgoQLhgDGI8BGOoCmAMM8QU11MjxcN0hcpIHATKgB5oKsgcBMbgHOMIHBTItMS4xyAcNgAgB%26sclient%3Dgws-wiz%26sei%3DBsazat6HOMH5i-gPi9mswAM&q=EhAqAsIHI1kmgwAAAAAAAAABGIeMz9UGIjB3FeLRvRo2nS3jFelXC-ObUeEZ1ooZnT9MDiAPFZGT3AHnFN8EAlGVPZC6shmT2dAyAVJaAUM",
+          "final_title": "https://www.google.com/search?q=openai&sca_esv=9f97b11af8265622&source=hp&ei=_sWzarjIObSL_fwP0NWF4QQ&iflsig=ABILxe8AAAAAarPUDuIkkxXhlgeCnsU8uS1yo0Sp_FMn&gs_ssp=eJzj4tVP1zc0TKpINjM1KzNTYDRgdGDwYssvSM1LzAQAYW0HJw&oq=OpenAI&gs_lp=Egdnd3Mtd2l6IgZPcGVuQUkqEQgAGIAEGLEDGIMBGMcBGNEDMhEQLhiABBixAxiDARjHARjRAzIOEAAYgAQYigUYsQMYgwEyDhAAGIAEGIoFGLEDGIMBMgUQABiABDILEC4YgAQYxwEYrwEyCBAAGIAEGLEDMggQABiABBixAzIIEAAYgAQYsQMyDhAAGIAEGIoFGLEDGIMBMgsQLhiABBjHARivAUi8IVAaWBpwAXgAkAEAmAEyoAEyqgEBMbgBAcgBAPgBAZgCAqACRKgCCsICChAAGAMYjwEY6gLCAgoQLhgDGI8BGOoCmAMM8QU11MjxcN0hcpIHATKgB5oKsgcBMbgHOMIHBTItMS4xyAcNgAgB&sclient=gws-wiz&sei=Bsazat6HOMH5i-gPi9mswAM",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "^https://(www\\.)?openai\\.com/"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 4,
+          "api_calls": 3,
+          "elapsed_ms": 18116
+        }
+      }
+    },
+    {
+      "task_id": "s002",
+      "round": 2,
+      "domain": "docs.python.org",
+      "result": {
+        "task_id": "s002",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/library/asyncio.html",
+          "final_title": "asyncio — Asynchronous I/O — Python 3.14.7 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org.*asyncio"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 4,
+          "elapsed_ms": 45727
+        }
+      }
+    },
+    {
+      "task_id": "s003",
+      "round": 2,
+      "domain": "www.w3.org",
+      "result": {
+        "task_id": "s003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.w3.org/standards/",
+          "final_title": "Web Standards | W3C",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "w3\\.org/standards"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 33383
+        }
+      }
+    },
+    {
+      "task_id": "s004",
+      "round": 2,
+      "domain": "en.wikipedia.org",
+      "result": {
+        "task_id": "s004",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Ada_Lovelace",
+          "final_title": "Ada Lovelace - Wikipedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "wikipedia\\.org/wiki/Ada_Lovelace"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 6,
+          "api_calls": 6,
+          "elapsed_ms": 62566
+        }
+      }
+    },
+    {
+      "task_id": "s005",
+      "round": 2,
+      "domain": "developer.mozilla.org",
+      "result": {
+        "task_id": "s005",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API",
+          "final_title": "Fetch API - Web APIs | MDN",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "developer\\.mozilla\\.org.*Fetch"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 30473
+        }
+      }
+    },
+    {
+      "task_id": "f001",
+      "round": 2,
+      "domain": "httpbin.org",
+      "result": {
+        "task_id": "f001",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://httpbin.org/forms/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "customer"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 4,
+          "elapsed_ms": 98664
+        }
+      }
+    },
+    {
+      "task_id": "f002",
+      "round": 2,
+      "domain": "httpbin.org",
+      "result": {
+        "task_id": "f002",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://httpbin.org/forms/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "comments"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "hello world"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 5,
+          "elapsed_ms": 91087
+        }
+      }
+    },
+    {
+      "task_id": "f003",
+      "round": 2,
+      "domain": "www.selenium.dev",
+      "result": {
+        "task_id": "f003",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.selenium.dev/documentation/webdriver/",
+          "final_title": "WebDriver | Selenium",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "webdriver",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 11,
+          "model_calls": 42,
+          "api_calls": 16,
+          "elapsed_ms": 716277
+        }
+      }
+    },
+    {
+      "task_id": "f004",
+      "round": 2,
+      "domain": "httpbin.org",
+      "result": {
+        "task_id": "f004",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://httpbin.org/forms/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "size"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 4,
+          "elapsed_ms": 73143
+        }
+      }
+    },
+    {
+      "task_id": "n001",
+      "round": 2,
+      "domain": "www.python.org",
+      "result": {
+        "task_id": "n001",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/",
+          "final_title": "3.14.7 Documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 5,
+          "api_calls": 4,
+          "elapsed_ms": 81164
+        }
+      }
+    },
+    {
+      "task_id": "n002",
+      "round": 2,
+      "domain": "developer.mozilla.org",
+      "result": {
+        "task_id": "n002",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference",
+          "final_title": "JavaScript reference - JavaScript | MDN",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "JavaScript"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 22531
+        }
+      }
+    },
+    {
+      "task_id": "n003",
+      "round": 2,
+      "domain": "www.w3.org",
+      "result": {
+        "task_id": "n003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.w3.org/standards/",
+          "final_title": "Web Standards | W3C",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "/standards"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 32158
+        }
+      }
+    },
+    {
+      "task_id": "n004",
+      "round": 2,
+      "domain": "www.rfc-editor.org",
+      "result": {
+        "task_id": "n004",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.rfc-editor.org/search/?q=9110",
+          "final_title": "Search | RFC Editor",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "rfc9110"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 14,
+          "api_calls": 7,
+          "elapsed_ms": 240350
+        }
+      }
+    },
+    {
+      "task_id": "l001",
+      "round": 2,
+      "domain": "news.ycombinator.com",
+      "result": {
+        "task_id": "l001",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://news.ycombinator.com/",
+          "final_title": "Hacker News",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 120,
+          "api_calls": 2,
+          "elapsed_ms": 280985
+        }
+      }
+    },
+    {
+      "task_id": "l002",
+      "round": 2,
+      "domain": "en.wikipedia.org",
+      "result": {
+        "task_id": "l002",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population",
+          "final_title": "List of countries and dependencies by population - Wikipedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "List_of_countries"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 5,
+          "model_calls": 10,
+          "api_calls": 10,
+          "elapsed_ms": 88229
+        }
+      }
+    },
+    {
+      "task_id": "l003",
+      "round": 2,
+      "domain": "www.python.org",
+      "result": {
+        "task_id": "l003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.python.org/jobs/",
+          "final_title": "Python Job Board | Python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "remote",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 2"
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 5,
+          "api_calls": 4,
+          "elapsed_ms": 75562
+        }
+      }
+    },
+    {
+      "task_id": "t001",
+      "round": 2,
+      "domain": "httpbin.org",
+      "result": {
+        "task_id": "t001",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://httpbin.org/forms/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "click"
+              },
+              "ok": true,
+              "note": "found in step 2"
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 7,
+          "api_calls": 5,
+          "elapsed_ms": 198167
+        }
+      }
+    },
+    {
+      "task_id": "t002",
+      "round": 2,
+      "domain": "www.selenium.dev",
+      "result": {
+        "task_id": "t002",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.selenium.dev/documentation/",
+          "final_title": "The Selenium Browser Automation Project | Selenium",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Documentation",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 4,
+          "api_calls": 4,
+          "elapsed_ms": 225737
+        }
+      }
+    },
+    {
+      "task_id": "x001",
+      "round": 2,
+      "domain": "example.invalid",
+      "result": {
+        "task_id": "x001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "example.invalid",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "not available"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "cannot"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "element_exists",
+                "role": "button",
+                "label_contains": "No"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 1,
+          "elapsed_ms": 13043
+        }
+      }
+    },
+    {
+      "task_id": "x002",
+      "round": 2,
+      "domain": "en.wikipedia.org",
+      "result": {
+        "task_id": "x002",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Main_Page",
+          "final_title": "Wikipedia, the free encyclopedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "deleted"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 26196
+        }
+      }
+    },
+    {
+      "task_id": "s006",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s006",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=testing",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "\\?q="
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 20562
+        }
+      }
+    },
+    {
+      "task_id": "s007",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s007",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=automation",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "q=automation"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 17359
+        }
+      }
+    },
+    {
+      "task_id": "s008",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s008",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=openjev",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "\\?q="
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Search results for"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 63934
+        }
+      }
+    },
+    {
+      "task_id": "s009",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s009",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=ultrafast",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "ultrafast"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 15035
+        }
+      }
+    },
+    {
+      "task_id": "s010",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s010",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=browser+agent",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "q=browser"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 19253
+        }
+      }
+    },
+    {
+      "task_id": "s011",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s011",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "budget_exceeded",
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "articles\\.html|technology\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 18,
+          "model_calls": 40,
+          "api_calls": 17,
+          "elapsed_ms": 790246
+        }
+      }
+    },
+    {
+      "task_id": "s012",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s012",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=validator",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Search results for"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 16183
+        }
+      }
+    },
+    {
+      "task_id": "s013",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "s013",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html?q=step+budget",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "q=step"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 12550
+        }
+      }
+    },
+    {
+      "task_id": "f005",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f005",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 5,
+          "api_calls": 5,
+          "elapsed_ms": 38405
+        }
+      }
+    },
+    {
+      "task_id": "f006",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f006",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 15089
+        }
+      }
+    },
+    {
+      "task_id": "f007",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f007",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 6,
+          "api_calls": 6,
+          "elapsed_ms": 35491
+        }
+      }
+    },
+    {
+      "task_id": "f008",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f008",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 43674
+        }
+      }
+    },
+    {
+      "task_id": "f009",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f009",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 4,
+          "elapsed_ms": 26974
+        }
+      }
+    },
+    {
+      "task_id": "f010",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "f010",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "budget_exceeded",
+        "evidence": {
+          "final_url": "http://localhost:8765/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 50,
+          "api_calls": 47,
+          "elapsed_ms": 323114
+        }
+      }
+    },
+    {
+      "task_id": "n005",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n005",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/technology.html",
+          "final_title": "Technology — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "technology\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 8400
+        }
+      }
+    },
+    {
+      "task_id": "n006",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n006",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "products\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 9236
+        }
+      }
+    },
+    {
+      "task_id": "n007",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n007",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/articles.html",
+          "final_title": "Articles — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "articles\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 7899
+        }
+      }
+    },
+    {
+      "task_id": "n008",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n008",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "settings\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 10110
+        }
+      }
+    },
+    {
+      "task_id": "n009",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n009",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/search.html",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "search\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 20,
+          "api_calls": 1,
+          "elapsed_ms": 27662
+        }
+      }
+    },
+    {
+      "task_id": "n010",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "n010",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/empty.html",
+          "final_title": "Not Found — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "empty\\.html"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Page Not Found"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 12610
+        }
+      }
+    },
+    {
+      "task_id": "l004",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "l004",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Product 40"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 5,
+          "elapsed_ms": 44211
+        }
+      }
+    },
+    {
+      "task_id": "l005",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "l005",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Product 45"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 6,
+          "elapsed_ms": 150326
+        }
+      }
+    },
+    {
+      "task_id": "l006",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "l006",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/articles.html",
+          "final_title": "Articles — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Article 8"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 2,
+          "elapsed_ms": 27112
+        }
+      }
+    },
+    {
+      "task_id": "l007",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "l007",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8765/",
+          "final_title": "OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "OpenJEV Test Site"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 6,
+          "model_calls": 11,
+          "api_calls": 7,
+          "elapsed_ms": 129809
+        }
+      }
+    },
+    {
+      "task_id": "t003",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "t003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Settings saved"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 2,
+          "elapsed_ms": 15424
+        }
+      }
+    },
+    {
+      "task_id": "t004",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "t004",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "budget_exceeded",
+        "evidence": {
+          "final_url": "http://localhost:8765/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Settings saved"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 58,
+          "api_calls": 0,
+          "elapsed_ms": 72523
+        }
+      }
+    },
+    {
+      "task_id": "t005",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "t005",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Settings saved"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 3,
+          "elapsed_ms": 14200
+        }
+      }
+    },
+    {
+      "task_id": "x003",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "x003",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "products deleted"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 8,
+          "model_calls": 11,
+          "api_calls": 8,
+          "elapsed_ms": 212857
+        }
+      }
+    },
+    {
+      "task_id": "x004",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "x004",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "payment confirmed"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 79,
+          "api_calls": 1,
+          "elapsed_ms": 249674
+        }
+      }
+    },
+    {
+      "task_id": "x005",
+      "round": 2,
+      "domain": "localhost",
+      "result": {
+        "task_id": "x005",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8765/articles.html#a1",
+          "final_title": "Articles — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "published successfully"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 8,
+          "model_calls": 10,
+          "api_calls": 9,
+          "elapsed_ms": 283218
+        }
+      }
+    }
+  ]
+}

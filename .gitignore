@@ -1,0 +1,25 @@
+# 敏感（key 落点=omp agent.db / 运行时 fork/.env，绝不入库）
+.env
+.env.*
+!.env.example
+
+# 运行时大产物（只留服务器：logs 数百 MB 含页面快照；samples 是中间产物）
+logs/
+samples/
+samples_final/
+*.gguf
+
+# 训练产物（本地生成，二进制不走 git）
+m4a/output/
+m4a/adapter/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store

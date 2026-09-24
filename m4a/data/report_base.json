@@ -1,0 +1,50 @@
+{
+  "counts": {
+    "total": 951,
+    "train": 837,
+    "val": 114,
+    "by_origin_train": {
+      "a_positive": 629,
+      "c_pairs": 208
+    },
+    "by_origin_val": {
+      "a_positive": 79,
+      "c_pairs": 35
+    },
+    "skipped_no_target": {
+      "a_positive": 0,
+      "c_pairs": 0
+    }
+  },
+  "split": {
+    "unit": "task_id (domain=单域 localhost, 域级隔离退化为任务级)",
+    "rule": "hv 任务强制入 train（M6 队列+val 求干净）; normal 层 sorted 取 ~10% -> val",
+    "tasks_total": 28,
+    "tasks_hv_total": 1,
+    "tasks_val": 3,
+    "val_task_ids": [
+      "f010",
+      "n008",
+      "s011"
+    ]
+  },
+  "domains": {
+    "all": {
+      "localhost": 951
+    },
+    "train": {
+      "localhost": 837
+    },
+    "val": {
+      "localhost": 114
+    }
+  },
+  "high_variance": {
+    "train": 13,
+    "val": 0
+  },
+  "gaps": [
+    "user prompt 缺 Current page(url/title/text) 与 Recent actions 段——samples/日志未采集；v2 需 logger shadow 增记 page+history（弱 decider 对照轮顺带）",
+    "c_pairs 的 target_confidence = api_confidence 行级近似（shadow chosen 未存 tc）"
+  ]
+}
