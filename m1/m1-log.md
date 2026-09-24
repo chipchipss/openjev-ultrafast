@@ -901,3 +901,34 @@ ls logs/m2final/r*/ | grep -c jsonl   # 预期 500（10 轮 ×50）；不等 = �
   白天可选跑弱 decider 对照轮（补完"能力差 vs 分歧率"曲线，M2 真正的最强产出）。
 - **当日累计四缺陷全修全档**：#agnes 渠道挂死（换 deepseek-flash）、
   #5 predict 拒收死循环、#6 extractor 平层 glob、pkill 自匹配复踩。
+
+### 2026-09-24 · M4a 数据准备：Qwen2.5 SFT 落盘（5/5 任务清）
+
+- **缺陷#7（本轮发现）**：`a_positive` 行内只有 state 侧字段、**无监督目标**
+  （教师背书的本地动作没存）→ 不可 SFT。修 extractor 补 `decision`
+  （operation/target/真值 oc/tc）→ 冒烟 **22/22 双布局**（含回归断言）→
+  m2final 重抽（counts 不变：影子2478 / c_pairs243 / a_positive708）。
+- **格式契约**（`m4a/prepare_sft.py`，与运行时逐字对齐）：
+  system = `jev_ultrafast/prompts/next_action.txt`（部署真源）；
+  user = Goal + Available operations + Elements + 收口句（复刻
+  `_build_user_prompt` 段落序；**缺 Current page / Recent actions 段——
+  samples 与日志均未采集**，v2 需 logger shadow 增记 page+history，
+  弱 decider 对照轮顺带采集）；
+  assistant = 4 键 JSON——a_positive 用 decision 真值，c_pairs 用
+  chosen=teacher（tc=api_confidence 行级近似，记档）；oc 缺失跳过不造数（实测 0 跳过）。
+  meta 带 C4 来源标记（origin/task_id/step/domain/category/high_variance/api_model）。
+- **切分**：domain 全量单域 `localhost` → 域级隔离退化为**任务级**（28 任务，
+  val=3 normal：`f010/n008/s011`）；**唯一 hv 任务强制入 train**（docs"仍进集,
+  M6 优先处理"队列语义 + val 求干净，hv: train13 行/val0）。
+  迭代记录：首版"每10取1"把唯一 hv 任务整只扫进 val → 反向修正。
+- **产物**（`/root/jev-ultrafast/m4a/data/`）：`train.jsonl` **837** +
+  `val.jsonl` **114**（总 951 = a629+79 / c208+35，零跳过）+ `report.json` +
+  `token_stats.json`。
+- **token 分布**（LA `uv` + transformers，`Qwen/Qwen2.5-1.5B-Instruct`
+  真分词、`apply_chat_template` 全文模板）：全量落 **513-1024 桶**——
+  train min652/p50 743/p90 799/p99 806/max806；val min709/p50 757/p99 808/max810。
+  → **SFT max_len=1024 覆盖 100%**（512 不可用）。
+- **过程 bug×2 记档**：① 新版 transformers `apply_chat_template`
+  `return_dict=True` 默认 → `len()`=2 伪影（`return_dict=False` 修）；
+  ② uv 环境 `jinja2<3.1` → chat template 渲染缺件（`--with jinja2` 补）。
+- 提交 `4180581`。
