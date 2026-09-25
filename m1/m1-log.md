@@ -381,3 +381,24 @@ acceptance: PASSED（system_modes 空，无 crash/无 fp/20 task 全有 TaskResu
 - 原始采集过程不可从 clone 重放（需服务器 logs/samples_final）
 
 **下一步**：M3 (Reranker 条件性) / M4b (扩数据训练) / M5 (Confidence Gate 校准)
+
+---
+
+### 2026-09-25 · P2 判决：M3 Reranker SKIP
+
+**P2a（本地探针）**：
+- 6 个页面 observe：omitted_actions 全 0，actions_count 最大 87（远低于 250 cap）
+- snapshot.js 的 MAX_ELEMENTS=250 从不触发
+
+**P2b（M1 20 任务日志）**：
+- MAX_TARGETS_PER_OP=20 cap：9 个任务触发（prob=20），11 个未触发
+- cap 触发组 PASS 4/9 = 44%
+- 未触发组 PASS 2/5 = 40%
+- cap 与 PASS 率无明显相关
+
+**结论**：当前 M1 样本无证据支持"candidate 截断 -> 失败 -> 需要 Reranker"。
+M3 SKIP（措辞：当前样本未发现足以支持 M3 的信号，不能推断普遍结论）。
+
+**附带发现**：6 个任务（l002/l003/n004/t001/x001/x002）的 decision probabilities 只有 1 项
+（全是 SCROLL_DOWN / WAIT / control）——Decision 层偏向 control action，
+与 Reranker 无关，属 M4b / M5 观察范围。
