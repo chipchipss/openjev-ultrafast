@@ -31,7 +31,7 @@ $BenchEnv = @{
     "TYPESAFE_API_KEY"      = "local"
     "TEXT_HELPER_BASE_URL"  = "https://api.deepseek.com/v1"
     "TEXT_HELPER_MODEL"     = "deepseek-chat"
-    "TEXT_HELPER_API_KEY"   = "REDACTED"
+    "TEXT_HELPER_API_KEY"   = "<YOUR_DEEPSEEK_API_KEY>"
 }
 
 # ═══════════════════════════════════════════════════════════════════
