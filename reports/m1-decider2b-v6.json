@@ -1,0 +1,670 @@
+{
+  "summary": {
+    "total": 20,
+    "pass": 8,
+    "fail": 12,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "correct_abandon": 11,
+      "false_negative": 8
+    },
+    "failure_modes": {
+      "decision": 11,
+      "crash": 1
+    },
+    "agent_modes": {
+      "decision": 11
+    },
+    "system_modes": {
+      "crash": 1
+    }
+  },
+  "acceptance": {
+    "passed": false,
+    "notes": [
+      "FAIL: system failure_modes present: {'crash': 1}",
+      "FAIL: f002 FAIL without quadrant"
+    ]
+  },
+  "results": [
+    {
+      "task_id": "s001",
+      "result": {
+        "task_id": "s001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.google.com/",
+          "final_title": "Google",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "^https://(www\\.)?openai\\.com/"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4396
+        }
+      }
+    },
+    {
+      "task_id": "s002",
+      "result": {
+        "task_id": "s002",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://docs.python.org/3/",
+          "final_title": "3.14.7 Documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org.*asyncio"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 14489
+        }
+      }
+    },
+    {
+      "task_id": "s003",
+      "result": {
+        "task_id": "s003",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.w3.org/",
+          "final_title": "W3C",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "w3\\.org/standards"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 4920
+        }
+      }
+    },
+    {
+      "task_id": "s004",
+      "result": {
+        "task_id": "s004",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Main_Page",
+          "final_title": "Wikipedia, the free encyclopedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "wikipedia\\.org/wiki/Ada_Lovelace"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 7,
+          "api_calls": 0,
+          "elapsed_ms": 9042
+        }
+      }
+    },
+    {
+      "task_id": "s005",
+      "result": {
+        "task_id": "s005",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://developer.mozilla.org/zh-CN/docs/Web/API/Fetch_API",
+          "final_title": "Fetch API - Web API | MDN",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "developer\\.mozilla\\.org.*Fetch"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 5,
+          "model_calls": 6,
+          "api_calls": 0,
+          "elapsed_ms": 9341
+        }
+      }
+    },
+    {
+      "task_id": "f001",
+      "result": {
+        "task_id": "f001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://httpbin.org/#/HTTP_Methods/post_post",
+          "final_title": "httpbin.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "customer"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 5,
+          "model_calls": 7,
+          "api_calls": 0,
+          "elapsed_ms": 41351
+        }
+      }
+    },
+    {
+      "task_id": "f002",
+      "error": "agent_loop_raised",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 108, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 480, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 338, in command\n    return self.command(\"act\", {\"fingerprint\": state[\"page\"][\"fingerprint\"]})\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 422, in command\n    text, helper = field_text(context)\n                   ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 262, in field_text\n    return _field_text_2b(context)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\field_text_2b.py\", line 34, in field_text\n    base_url = _env(\"TEXT_HELPER_BASE_URL\", required=True)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\field_text_2b.py\", line 22, in _env\n    raise RuntimeError(f\"Missing required env var {name}\")\nRuntimeError: Missing required env var TEXT_HELPER_BASE_URL\n",
+      "result": {
+        "task_id": "f002",
+        "result": "FAIL",
+        "quadrant": null,
+        "failure_class": "system",
+        "failure_mode": "crash",
+        "evidence": {
+          "final_url": "https://httpbin.org/forms/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "comments"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "hello world"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2728
+        }
+      }
+    },
+    {
+      "task_id": "f003",
+      "result": {
+        "task_id": "f003",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.selenium.dev/",
+          "final_title": "Selenium",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "webdriver",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 5,
+          "model_calls": 40,
+          "api_calls": 0,
+          "elapsed_ms": 25311
+        }
+      }
+    },
+    {
+      "task_id": "f004",
+      "result": {
+        "task_id": "f004",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://httpbin.org/forms/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "size"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 4712
+        }
+      }
+    },
+    {
+      "task_id": "n001",
+      "result": {
+        "task_id": "n001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.python.org/doc/",
+          "final_title": "Our Documentation | Python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 5785
+        }
+      }
+    },
+    {
+      "task_id": "n002",
+      "result": {
+        "task_id": "n002",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference",
+          "final_title": "JavaScript 参考 - JavaScript | MDN",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "JavaScript"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 5,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 19072
+        }
+      }
+    },
+    {
+      "task_id": "n003",
+      "result": {
+        "task_id": "n003",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.w3.org/",
+          "final_title": "W3C",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "/standards"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 51391
+        }
+      }
+    },
+    {
+      "task_id": "n004",
+      "result": {
+        "task_id": "n004",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.rfc-editor.org/",
+          "final_title": "RFC Editor",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "rfc9110"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 15378
+        }
+      }
+    },
+    {
+      "task_id": "l001",
+      "result": {
+        "task_id": "l001",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://news.ycombinator.com/hide?id=49830606&goto=news",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            }
+          ]
+        },
+        "meta": {
+          "steps": 5,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 108168
+        }
+      }
+    },
+    {
+      "task_id": "l002",
+      "result": {
+        "task_id": "l002",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Main_Page",
+          "final_title": "Wikipedia, the free encyclopedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "List_of_countries"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 8641
+        }
+      }
+    },
+    {
+      "task_id": "l003",
+      "result": {
+        "task_id": "l003",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.python.org/",
+          "final_title": "Welcome to Python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "remote",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 8855
+        }
+      }
+    },
+    {
+      "task_id": "t001",
+      "result": {
+        "task_id": "t001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://httpbin.org/",
+          "final_title": "httpbin.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "click"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1744
+        }
+      }
+    },
+    {
+      "task_id": "t002",
+      "result": {
+        "task_id": "t002",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.selenium.dev/documentation/",
+          "final_title": "The Selenium Browser Automation Project | Selenium",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Documentation",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 6429
+        }
+      }
+    },
+    {
+      "task_id": "x001",
+      "result": {
+        "task_id": "x001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "example.invalid",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "not available"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "cannot"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "element_exists",
+                "role": "button",
+                "label_contains": "No"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 4092
+        }
+      }
+    },
+    {
+      "task_id": "x002",
+      "result": {
+        "task_id": "x002",
+        "result": "PASS",
+        "quadrant": "false_negative",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Main_Page",
+          "final_title": "Wikipedia, the free encyclopedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "deleted"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3747
+        }
+      }
+    }
+  ]
+}

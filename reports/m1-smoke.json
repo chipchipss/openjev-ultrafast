@@ -1,0 +1,27 @@
+{
+  "summary": {
+    "total": 1,
+    "pass": 0,
+    "fail": 0,
+    "unknown": 0,
+    "error": 1,
+    "quadrants": {},
+    "failure_modes": {},
+    "agent_modes": {},
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": false,
+    "notes": [
+      "FAIL: 1 tasks missing TaskResult: ['s001']"
+    ]
+  },
+  "results": [
+    {
+      "task_id": "s001",
+      "result": "ERROR",
+      "error": "agent_init_failed: RuntimeError: daemon default didn't come up -- check C:\\Users\\Administrator\\.config\\browser-harness\\tmp\\bu-default.log",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m4a\\integrate.py\", line 94, in run_one\n    ag = agent_mod.Agent(url=start_url, goals=spec_task[\"goal\"],\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\agent.py\", line 57, in __init__\n    self.browser = Browser(url)\n                   ^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\AppData\\Local\\Temp\\laya-ultrafast\\laya_ultrafast\\browser.py\", line 22, in __init__\n    ensure_daemon()\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\admin.py\", line 708, in ensure_daemon\n    raise RuntimeError(f\"daemon {name or NAME} didn't come up -- check {ipc.log_path(name or NAME)}\")\nRuntimeError: daemon default didn't come up -- check C:\\Users\\Administrator\\.config\\browser-harness\\tmp\\bu-default.log\n"
+    }
+  ]
+}

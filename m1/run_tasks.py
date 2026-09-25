@@ -26,8 +26,8 @@ _ROOT = Path(__file__).resolve().parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from evaluator import evaluate                      # noqa: E402
-from logger import Logger                           # noqa: E402
+from jev_ultrafast.evaluator import evaluate          # noqa: E402
+from jev_ultrafast.logger import Logger               # noqa: E402
 
 
 def _load_tasks(path: Path) -> list[dict]:
@@ -53,12 +53,40 @@ def _resolve_start_url(spec: dict, override: str | None) -> str:
     return f"https://{domain}"
 
 
+def _reset_cdp() -> None:
+    """每个 task 间重置 CDP：杀 Chrome + 重启干净实例 + 预热 daemon。
+
+    治 f004 类 `no close frame received or sent`（浏览器会话累积后 WS 断帧）。
+    跨平台安全：非 Windows / 找不到 Chrome 时静默跳过（daemon 自修兜底）。
+    """
+    import subprocess
+    import platform
+    from browser_harness.admin import ensure_daemon
+    system = platform.system()
+    if system != "Windows":
+        return
+    chrome = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+    profile = r"C:\Users\Administrator\chrome-jev-profile"
+    try:
+        subprocess.run(["taskkill", "/F", "/IM", "chrome.exe"],
+                       capture_output=True, timeout=15)
+        time.sleep(2)
+        subprocess.Popen([chrome, f"--remote-debugging-port=9222",
+                          f"--user-data-dir={profile}",
+                          "--no-first-run", "--no-default-browser-check",
+                          "about:blank"],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(5)
+        ensure_daemon()
+    except Exception as e:
+        print(f"    [cdp-reset] warn: {type(e).__name__}: {e}")
+
 def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dict:
     """运行单个 task。返回 {task_id, result, error?}。
 
     import 延后到函数内：fork 完成前 import Agent 会 fail，不应阻塞 --dry-run。
     """
-    from agent import Agent  # noqa: WPS433
+    from jev_ultrafast.agent import Agent  # noqa: WPS433
 
     task_id = spec["task_id"]
     logger = Logger(task_id=task_id, log_dir=log_dir)
@@ -229,6 +257,8 @@ def main() -> int:
     parser.add_argument("--screenshots", action="store_true")
     parser.add_argument("--dry-run", action="store_true",
                         help="只加载 + 校验 tasks，不启动 browser")
+    parser.add_argument("--task-delay", type=float, default=3.0,
+                        help="seconds to wait between tasks (rate-limit friendly)")
     args = parser.parse_args()
 
     tasks = _load_tasks(args.tasks)
@@ -240,7 +270,7 @@ def main() -> int:
 
     if args.dry_run:
         # 只做 schema 级 sanity check
-        from evaluator import TERMINAL_STATUSES  # noqa: F401
+        from jev_ultrafast.evaluator import TERMINAL_STATUSES  # noqa: F401
         for spec in tasks:
             for key in ("task_id", "domain", "category", "goal", "budget", "success_assertion"):
                 if key not in spec:
@@ -257,6 +287,8 @@ def main() -> int:
         tid = spec["task_id"]
         start_url = _resolve_start_url(spec, args.start_url)
         print(f"[{i}/{len(tasks)}] {tid}  {start_url}")
+        if i > 1:
+            _reset_cdp()
         try:
             r = _run_one(spec, args.log_dir, start_url, args.screenshots)
         except Exception as e:
@@ -266,6 +298,8 @@ def main() -> int:
         res = raw.get("result") if isinstance(raw, dict) else raw
         print(f"    → {r.get('error') or res}")
         results.append(r)
+        if i < len(tasks):
+            time.sleep(args.task_delay)
 
     summary = _summarize(results)
     ok, notes = _check_m1_acceptance(summary, results)

@@ -1,0 +1,41 @@
+{
+  "base": {
+    "tag": "base",
+    "total": 114,
+    "valid_json": 114,
+    "op_ok": 27,
+    "target_ok": 10,
+    "by_origin": {
+      "a_positive": {
+        "total": 79,
+        "op_ok": 26,
+        "target_ok": 10
+      },
+      "c_pairs": {
+        "total": 35,
+        "op_ok": 1,
+        "target_ok": 0
+      }
+    }
+  },
+  "lora": {
+    "tag": "lora",
+    "total": 114,
+    "valid_json": 114,
+    "op_ok": 80,
+    "target_ok": 80,
+    "by_origin": {
+      "a_positive": {
+        "total": 79,
+        "op_ok": 59,
+        "target_ok": 59
+      },
+      "c_pairs": {
+        "total": 35,
+        "op_ok": 21,
+        "target_ok": 21
+      }
+    }
+  },
+  "delta_target_acc": 61.40350877192983
+}

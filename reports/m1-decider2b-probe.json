@@ -1,0 +1,70 @@
+{
+  "summary": {
+    "total": 3,
+    "pass": 0,
+    "fail": 1,
+    "unknown": 0,
+    "error": 2,
+    "quadrants": {},
+    "failure_modes": {
+      "crash": 1
+    },
+    "agent_modes": {},
+    "system_modes": {
+      "crash": 1
+    }
+  },
+  "acceptance": {
+    "passed": false,
+    "notes": [
+      "FAIL: 2 tasks missing TaskResult: ['s002', 's003']",
+      "FAIL: system failure_modes present: {'crash': 1}",
+      "FAIL: s001 FAIL without quadrant"
+    ]
+  },
+  "results": [
+    {
+      "task_id": "s001",
+      "error": "agent_loop_raised",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 108, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 480, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 334, in command\n    self.command(\"predict\", {})\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 364, in command\n    state[\"decision\"] = choose(state[\"page\"], state[\"goal\"], state[\"history\"])\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 237, in choose\n    return choose_typesafe(state, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 134, in choose_typesafe\n    result = post_json(url, key, body)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 25, in post_json\n    raise RuntimeError(\"Model connection failed; no action executed.\") from None\nRuntimeError: Model connection failed; no action executed.\n",
+      "result": {
+        "task_id": "s001",
+        "result": "FAIL",
+        "quadrant": null,
+        "failure_class": "system",
+        "failure_mode": "crash",
+        "evidence": {
+          "final_url": "https://www.google.com/",
+          "final_title": "Google",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "^https://(www\\.)?openai\\.com/"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 0,
+          "api_calls": 0,
+          "elapsed_ms": 34852
+        }
+      }
+    },
+    {
+      "task_id": "s002",
+      "result": "ERROR",
+      "error": "agent_init_failed: RuntimeError: WebSocket connection closed",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 96, in _run_one\n    agent = Agent(url=start_url, goals=spec[\"goal\"], task_spec=spec,\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 71, in __init__\n    self.browser = Browser(url)\n                   ^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 28, in __init__\n    self.call(\"Page.navigate\", url=url)\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 42, in call\n    return cdp(method, session_id=self.session, **params)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 74, in cdp\n    return _send(\n           ^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 68, in _send\n    if \"error\" in r: raise RuntimeError(r[\"error\"])\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: WebSocket connection closed\n"
+    },
+    {
+      "task_id": "s003",
+      "error": "runner_exception: C:\\Users\\Administrator\\.config\\browser-harness\\runtime\\bu-default.port",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 293, in main\n    r = _run_one(spec, args.log_dir, start_url, args.screenshots)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 150, in _run_one\n    agent.close()\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 483, in close\n    self.browser.close()\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 127, in close\n    cdp(\"Target.closeTarget\", targetId=self.target)\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 74, in cdp\n    return _send(\n           ^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 53, in _send\n    c, token = ipc.connect(NAME, timeout=IPC_CONNECT_TIMEOUT_SECONDS)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\_ipc.py\", line 91, in connect\n    if port is None: raise FileNotFoundError(str(port_path(name)))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: C:\\Users\\Administrator\\.config\\browser-harness\\runtime\\bu-default.port\n"
+    }
+  ]
+}

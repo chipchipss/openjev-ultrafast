@@ -23,3 +23,49 @@ venv/
 .vscode/
 .idea/
 .DS_Store
+
+# === Temp debug artifacts (2026-09-25 cleanup) ===
+m4a/_*.jsonl
+m4a/_*.json
+m4a/_*.log
+m4a/probe_*.py
+m4a/dump_*.py
+m4a/dump_*.json
+m4a/test_*.py
+m4a/breakdown_client.py
+m4a/compare_v4_v3.py
+m4a/count_stale.py
+m4a/extract_*.py
+m4a/f003_diag.py
+m4a/grab_raw.py
+m4a/restore_converter_scan.py
+m4a/run_m1_v*.ps1
+m4a/run_m1_probe.ps1
+m4a/run_m1.ps1
+
+# Task extraction files (regenerated on demand)
+m1/tasks-3.jsonl
+m1/tasks-*.jsonl
+!m1/tasks.jsonl
+
+# Build/upload artifacts
+unsloth_compiled_cache/
+openjev-full.tar.gz
+patch10.py
+run_m1.ps1*.txt
+*.tar.gz
+
+# Reports (temp probes only)
+reports/probe-*.json
+reports/s002-*.json
+reports/m1-local*.json
+
+# Logs / model artifacts (already should be here, keep if not)
+logs/
+m4a/adapter/
+m4a/output/
+
+# Python caches
+__pycache__/
+*.pyc
+.pytest_cache/
