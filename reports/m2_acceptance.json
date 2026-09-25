@@ -1,0 +1,82 @@
+{
+  "milestone": "M2",
+  "name": "数据飞轮",
+  "frozen_at": "2026-09-25",
+  "acceptance": {
+    "passed": true,
+    "criteria": [
+      {
+        "id": "M2.1",
+        "desc": "decision_total >= 1000",
+        "target": 1000,
+        "actual": 6044,
+        "passed": true,
+        "source": "reports/m2_final.json"
+      },
+      {
+        "id": "M2.2",
+        "desc": "c_pairs >= 200",
+        "target": 200,
+        "actual": 243,
+        "passed": true,
+        "source": "reports/m2_final.json"
+      },
+      {
+        "id": "M2.3",
+        "desc": "contamination = 0",
+        "target": 0,
+        "actual": 0,
+        "passed": true,
+        "source": "m2/c1_check.py"
+      },
+      {
+        "id": "M2.4",
+        "desc": "system_modes empty",
+        "target": {},
+        "actual": {},
+        "passed": true,
+        "source": "reports/m2_final.json"
+      },
+      {
+        "id": "M2.5",
+        "desc": "dataset split is reproducible from the published dataset artifacts",
+        "target": "fixed split",
+        "actual": "task_id-based, val=f010/n008/s011",
+        "passed": true,
+        "source": "m4a/data/report.json"
+      }
+    ]
+  },
+  "dataset": {
+    "total": 951,
+    "by_origin": {
+      "a_positive": 708,
+      "c_pairs": 243
+    },
+    "train": 837,
+    "val": 114,
+    "split_rule": "by task_id (not random); domain=localhost (single domain)",
+    "token_lengths": {
+      "train_p50": 743,
+      "train_p99": 806,
+      "val_p50": 757,
+      "val_p99": 808
+    },
+    "files": {
+      "train": "m4a/data/train.jsonl",
+      "val": "m4a/data/val.jsonl",
+      "report": "m4a/data/report.json",
+      "manifest": "reports/m2_final.json"
+    }
+  },
+  "raw_data_note": "原始 logs（logs/m2/, logs/m2_more/）与 samples_final/ 在服务器 /root/jev-ultrafast/，不随仓库发布。本地含训练用转换后数据（m4a/data/）与验收报告（reports/m2_final.json）。",
+  "reproducibility_scope": {
+    "acceptance_reproducible": "yes — 根据 m2_final.json + m4a/data/report.json + train/val 验证 M2 五条判据",
+    "raw_collection_replayable": "no — 完整重放原始采集需服务器 logs/samples_final，未随仓库发布"
+  },
+  "known_gaps": [
+    "user prompt 缺 Current page (url/title/text) 与 Recent actions 段（samples 未采集；v2 靠 logger shadow 补 page+history 字段）",
+    "c_pairs 的 target_confidence = api_confidence 行级近似，非 shadow chosen 的真 tc"
+  ],
+  "next_milestone": "M3 (Reranker, 条件性) 或 M4b (扩数据训练) 或 M5 (Confidence Gate 校准)"
+}

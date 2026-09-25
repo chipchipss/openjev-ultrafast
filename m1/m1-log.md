@@ -353,3 +353,31 @@ acceptance: PASSED（system_modes 空，无 crash/无 fp/20 task 全有 TaskResu
   - model.py: _candidate_filter(25/80)
   - model.py: choose() 顶层 RuntimeError → StalePage（缺陷#9）
   - agent.py: 1.5b Loop Detection on decisions（缺陷#10）
+
+---
+
+### 2026-09-25 · M2 正式收口（ACCEPTED）
+
+**五条判据全过**：
+- M2.1 decision_total = 6044 (≥1000) ✅
+- M2.2 c_pairs = 243 (≥200) ✅
+- M2.3 contamination = 0 ✅
+- M2.4 system_modes = {} ✅
+- M2.5 dataset split reproducible（task_id-based, val=f010/n008/s011）✅
+
+**数据集**：951 样本 = 837 train / 114 val
+- a_positive 708 / c_pairs 243
+- token p50=743 / p99=806
+
+**验收报告**：`reports/m2_acceptance.json`
+**数据源**：`reports/m2_final.json`（原始采集日志在服务器，不随仓库发布）
+
+**已知 gap（保留）**：
+1. user prompt 缺 Current page + Recent actions 段
+2. c_pairs 的 target_confidence = api_confidence 行级近似
+
+**reproducibility 边界**：
+- acceptance 可复现（用 m2_final.json + report.json + train/val）
+- 原始采集过程不可从 clone 重放（需服务器 logs/samples_final）
+
+**下一步**：M3 (Reranker 条件性) / M4b (扩数据训练) / M5 (Confidence Gate 校准)

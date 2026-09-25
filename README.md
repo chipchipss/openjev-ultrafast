@@ -598,7 +598,7 @@ openjev-ultrafast/
 
 | M1 最小闭环 | ✅ 完成（decider-2B 基线：PASS=7/20、acceptance PASS、无 crash） |
 
-| M2 数据飞轮 | ✅ 951 训练样本 + 2478 shadow 事件 |
+| M2 数据飞轮 | ✅ 完成（6044 decisions / 243 c_pairs / 951 训练样本 / split 可复现） |
 
 | M3 Reranker | ⬜ 未启动（D2 条件性，需先证明 Filter+ActionSpace+Decider 不足） |
 
