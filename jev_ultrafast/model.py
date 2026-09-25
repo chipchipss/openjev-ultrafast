@@ -9,6 +9,7 @@ import urllib.request
 import httpx
 
 from .questions import NEXT_ACTION, TARGET, TEXT_VALUE
+from .decider.provider import register_provider, decide, list_providers
 
 # --- M1: Decision 层替换为 decider ---
 from .decider.choose_2b import choose as _choose_2b
@@ -244,17 +245,20 @@ def field_text_typesafe(context):
 
 # --- M1: 委托给 decider（agent.py 的 import 不变） ---
 
+def _typesafe_provider(state, goal, history):
+    return choose_typesafe(state, goal, history)
+
+def _openai_provider(state, goal, history):
+    return _choose_2b(state, goal, history)
+
+register_provider("typesafe", _typesafe_provider)
+register_provider("openai", _openai_provider)
+
 def choose(state, goal, history):
-    """支持路由：typesafe wire 或 openai 兼容。"""
     from .browser import StalePage
-    mode = os.environ.get("DECIDER_MODE", "openai")
     try:
-        if mode == "typesafe":
-            return choose_typesafe(state, goal, history)
-        return _choose_2b(state, goal, history)
+        return decide(state, goal, history)
     except RuntimeError as e:
-        # 缺陷#9: decider 连接抖动不应崩掉整个任务
-        # 转 StalePage → agent 重 observe + 重 predict
         raise StalePage(f"Decider connection failed: {e}") from None
 
 def field_text(context):
