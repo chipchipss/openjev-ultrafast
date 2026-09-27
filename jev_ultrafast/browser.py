@@ -110,7 +110,20 @@ class Browser:
                 "(() => { const c=window.__jevFast; "
                 f"return c ? [c.pageKey(),c.guard(c.nodes.get({node}))] : null; }})()"
             )
-            return current == [page["page_key"], page["guards"].get(str(node))]
+            expected = [page["page_key"], page["guards"].get(str(node))]
+            if current is None:
+                # 页面导航中/缓存已清（__jevFast 不存在）——与"目标消失"同义
+                return False
+            if current != expected:
+                cur_pk = current[0] if isinstance(current, list) and len(current) > 0 else None
+                cur_guard = current[1] if isinstance(current, list) and len(current) > 1 else None
+                print("FRESH_MISMATCH")
+                print("  node:", node)
+                print("  page_key_equal:", cur_pk == expected[0])
+                print("  guard_equal:", cur_guard == expected[1])
+                print("  current_page_key:", cur_pk)
+                print("  expected_page_key:", expected[0])
+                print("  current_guard:", cur_guard)
         return self.evaluate(MARKER) == page["marker"]
 
     def act(self, action, page, text=None):

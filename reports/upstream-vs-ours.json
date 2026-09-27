@@ -1,0 +1,90 @@
+[
+  {
+    "side": "upstream",
+    "task": "s004",
+    "status": "blocked",
+    "steps": 4,
+    "wall_s": 69.2,
+    "final_url": "https://en.wikipedia.org/wiki/Main_Page",
+    "decision_lat_p50": 7025,
+    "decision_lat_max": 7082,
+    "n_decisions_measured": 4
+  },
+  {
+    "side": "ours",
+    "task": "s004",
+    "status": "blocked",
+    "steps": 2,
+    "wall_s": 24.8,
+    "final_url": "https://en.wikipedia.org/wiki/Ada_Lovelace",
+    "decision_lat_p50": 1508,
+    "decision_lat_max": 1885,
+    "n_decisions_measured": 2
+  },
+  {
+    "side": "upstream",
+    "task": "n003",
+    "status": "error:ValueError",
+    "steps": 60,
+    "wall_s": 94.4,
+    "final_url": "",
+    "decision_lat_p50": 1008,
+    "decision_lat_max": 2134,
+    "n_decisions_measured": 60
+  },
+  {
+    "side": "ours",
+    "task": "n003",
+    "status": "blocked",
+    "steps": 3,
+    "wall_s": 5.5,
+    "final_url": "https://www.w3.org/standards/",
+    "decision_lat_p50": 830,
+    "decision_lat_max": 1048,
+    "n_decisions_measured": 3
+  },
+  {
+    "side": "upstream",
+    "task": "n001",
+    "status": "blocked",
+    "steps": 4,
+    "wall_s": 8.9,
+    "final_url": "https://www.python.org/doc/",
+    "decision_lat_p50": 982,
+    "decision_lat_max": 1047,
+    "n_decisions_measured": 4
+  },
+  {
+    "side": "ours",
+    "task": "n001",
+    "status": "blocked",
+    "steps": 3,
+    "wall_s": 11.5,
+    "final_url": "https://docs.python.org/3/",
+    "decision_lat_p50": 987,
+    "decision_lat_max": 2463,
+    "n_decisions_measured": 3
+  },
+  {
+    "side": "upstream",
+    "task": "f004",
+    "status": "blocked",
+    "steps": 4,
+    "wall_s": 6.2,
+    "final_url": "https://httpbin.org/post",
+    "decision_lat_p50": 427,
+    "decision_lat_max": 887,
+    "n_decisions_measured": 4
+  },
+  {
+    "side": "ours",
+    "task": "f004",
+    "status": "blocked",
+    "steps": 3,
+    "wall_s": 3.9,
+    "final_url": "https://httpbin.org/forms/post",
+    "decision_lat_p50": 613,
+    "decision_lat_max": 928,
+    "n_decisions_measured": 3
+  }
+]

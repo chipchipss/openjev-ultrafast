@@ -7,13 +7,16 @@
 """
 from __future__ import annotations
 
+import os
 import random
 import sys
 import time
 
 import httpx
 
-_CLIENT = httpx.Client(timeout=60.0)
+# Optional egress proxy (env HTTPX_PROXY). Groq 等 endpoint 在部分网络下
+# 需要走本地代理；未设置时行为不变。
+_CLIENT = httpx.Client(timeout=60.0, proxy=os.environ.get("HTTPX_PROXY") or None)
 
 _RETRYABLE = frozenset({429, 529, 503})
 
@@ -39,7 +42,10 @@ def post_chat(
     # M1: 显式关闭 Thinking。实测 agnes-3.0-flash 默认已关，但 distributor 渠道
     # 会漂（探针见 m1/m1-log.md）；恒带此字段做渠道无关的 JSON 格式保险。
     # 注意：thinking:{disabled} / enable_thinking:false 在该端点反而会触发 thinking，禁用。
-    body["reasoning"] = {"enabled": False}
+    # Groq 拒收 reasoning 字段（HTTP 400: property 'reasoning' is unsupported）——
+    # 仅对非 groq 端点发送；gpt-oss 系默认无 thinking，输出即最终答案。
+    if "api.groq.com" not in base_url:
+        body["reasoning"] = {"enabled": False}
     headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
 
     started = time.perf_counter()

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 import traceback
@@ -87,14 +88,36 @@ def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dic
     import 延后到函数内：fork 完成前 import Agent 会 fail，不应阻塞 --dry-run。
     """
     from jev_ultrafast.agent import Agent  # noqa: WPS433
+    from jev_ultrafast.api_teacher import APITeacher  # noqa: WPS433
+    from api_budget import APIBudget  # noqa: WPS433
 
     task_id = spec["task_id"]
     logger = Logger(task_id=task_id, log_dir=log_dir)
     started = time.perf_counter()
 
+    # M1.5 teacher shadow（A 档）：TEACHER_SHADOW=1 时接线。触发策略——
+    # stall-gated：仅 stale_retry_run>=2（reject 循环已开始烧决策）时 shadow，
+    # 而非每决策都调。样本天然落在 2B 失败点（M4b P0 价值密度最高），调用省 90%+。
+    api_teacher = api_budget = None
+    if os.environ.get("TEACHER_SHADOW") == "1":
+        try:
+            api_budget = APIBudget(
+                teacher_limit=int(os.environ.get("TEACHER_LIMIT", "8")),
+                recovery_limit=0,
+            )
+            api_teacher = APITeacher(api_budget)
+        except Exception as e:
+            print(f"[teacher] init failed, shadow disabled: {e}")
+            api_teacher = api_budget = None
+
+    agent_kwargs = {}
+    if api_teacher is not None:
+        agent_kwargs["api_teacher"] = api_teacher
+        agent_kwargs["api_budget"] = api_budget
+
     try:
         agent = Agent(url=start_url, goals=spec["goal"], task_spec=spec,
-                      screenshots=screenshot)
+                      screenshots=screenshot, **agent_kwargs)
     except Exception as e:
         logger.close()
         return {
@@ -109,9 +132,13 @@ def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dic
             logger.observe(agent.state, step_budget=agent.step_budget)
     except Exception as e:
         # Agent loop 抛出未捕获异常：仍尝试评估 + finalize
+        print("AGENT_EXCEPTION")
+        traceback.print_exc()
         tb = traceback.format_exc()
+        exc_repr = repr(e)
     else:
         tb = None
+        exc_repr = None
 
     # 循环结束后抽取剩余事件 + 评估
     try:
@@ -154,6 +181,7 @@ def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dic
     if tb is not None:
         out["error"] = "agent_loop_raised"
         out["traceback"] = tb
+        out["exception"] = exc_repr
     if eval_error is not None:
         out["error"] = out.get("error") or "evaluate_raised"
         out["eval_error"] = eval_error
@@ -213,11 +241,13 @@ def _check_m1_acceptance(summary: dict, results: list[dict]) -> tuple[bool, list
         tr = r.get("result")
         if not isinstance(tr, dict):
             continue
-        if tr.get("result") == "FAIL" and not tr.get("failure_mode"):
+        # negative 任务正确拒绝（true_success + FAIL）无 failure_mode 是设计
+        # 行为——"拒绝"不是 agent 失败。仅 positive FAIL 强制 failure_mode。
+        if (tr.get("result") == "FAIL" and not tr.get("failure_mode")
+                and tr.get("quadrant") != "true_success"):
             ok = False
             notes.append(f"FAIL: {r['task_id']} FAIL without failure_mode")
             break
-
     # 3. False Positive = 0
     fp = summary["quadrants"].get("false_positive", 0)
     if fp != 0:

@@ -1,6 +1,7 @@
 """The complete agent loop. Typed choices, observable state, bounded execution."""
 
 import base64
+import os
 import time
 from pathlib import Path
 
@@ -52,13 +53,19 @@ def _done_guard(decision: dict, state: dict) -> str | None:
                          "submitted", "已提交", "谢谢", "完成")
         if not any(w in page_text_lower for w in confirm_words):
             return "submit goal without visible confirmation"
+    # 规则 5（缺陷#13）：search 类 goal 必须有提交证据——"输入≠提交"。
+    # 填入关键词、甚至看到 autocomplete 都不是完成；唯一可接受证据：
+    # URL 发生过变化（提交导航）或当前页已离开起点域路径（结果页）。
+    if any(w in goal for w in ("search", "find", "look up", "搜索")):
+        committed = any(h.get("outcome", {}).get("url_changed") for h in state["history"])
+        if not committed:
+            return "search goal without submission (no URL transition since input)"
     # 规则 4：scroll / find 类任务，history 里必须有 scroll 动作
-    if any(w in goal_lower for w in ("scroll", "find")):
+    if any(w in goal_lower for w in ("scroll",)):
         has_scroll = any(h.get("kind") == "scroll" for h in state["history"])
         if not has_scroll:
             return "scroll goal without scroll action"
     return None
-
 
 class Agent:
     def __init__(self, url, goals, *, record_dir=None, screenshots=False,
@@ -170,10 +177,10 @@ class Agent:
                     "reason": "same_choice_3_times",
                 }
                 return False
-                # 1.5b Loop Detection (缺陷#10: decisions 死循环，执行失败不写 history)
-        dcisions = state.get("decisions", [])
-        if len(dcisions) >= 3:
-            last3 = dcisions[-3:]
+        # 1.5b Loop Detection (缺陷#10: decisions 死循环，执行失败不写 history)
+        decisions = state.get("decisions", [])
+        if len(decisions) >= 3:
+            last3 = decisions[-3:]
             if (last3[0].get("choice") is not None
                     and all(d.get("choice") == last3[0].get("choice") for d in last3)
                     and all(d.get("fingerprint") == last3[0].get("fingerprint") for d in last3)):
@@ -184,31 +191,51 @@ class Agent:
                 }
                 return False
 
-# 2. DecisionValidator (D8 三级一致性)
+        # 2. DecisionValidator (D8 三级一致性)
         val = decision_validator.validate(decision, page)
         pre["validator"] = val.to_dict()
         if not val.valid:
-            # 走 StalePage 路径：重新 observe → 重新 predict
-            raise StalePage(f"Decision invalid: {val.code} — {val.reason}")
+            pre["validator_retry"] = {
+                "code": val.code,
+                "reason": val.reason,
+            }
+            # stale decision 不应该 crash
+            # 丢弃当前 decision，重新 observe
+            state["status"] = "retry"
+            return False
 
         # 2.5 DoneGuard（R5：rule-based DONE 拦截，与决策 2/3 同构走 StalePage）
         guard_reason = _done_guard(decision, state)
         if guard_reason is not None:
             raise StalePage(f"DONE guard rejected: {guard_reason}")
 
-        # 3. Policy (A3)
+        # 3. M1.5 teacher shadow（A 档，stall-gated）——必须在 Policy/Validator
+        # 拒绝路径之前：t001 实测 3 次黑名单 deny 在 Policy 段即 blocked，
+        # 放在 gate 段（原 M2 位置）shadow 永远够不到最 valuable 的失败点。
+        # 触发：stale_retry_run>=2（reject 循环已开始）。样本=2B 失败点的
+        # state + teacher 正解（M4b P0 价值密度最高）。
+        stall = state.get("stale_retry_run", 0) >= 2
+        gate_shadow = self.confidence_gate.mode == ConfidenceGate.MODE_SHADOW
+        if (gate_shadow and self.api_teacher is not None
+                and (stall or os.environ.get("TEACHER_SHADOW_EVERY") == "1")):
+            self._run_shadow(decision, pre)
+
+        # 4. Policy (A3) —— 缺陷#14：黑名单命中是"该候选不可执行"，
+        # 不是"任务死亡"。soft reject：拒该决策重选（StalePage 同构）；
+        # 连续 3 次命中同一黑名单才升级 blocked。
         pol = policy.check(decision, page)
         pre["policy"] = pol.to_dict()
         if not pol.allow:
-            state["status"] = "blocked"
-            return False
+            state["policy_deny_run"] = state.get("policy_deny_run", 0) + 1
+            if state["policy_deny_run"] >= 3:
+                state["status"] = "blocked"
+                return False
+            raise StalePage(f"Policy denied: {pol.code} — {pol.reason}")
+        state["policy_deny_run"] = 0
 
-        # 4. ConfidenceGate (A5 / D9 / B4)
+        # 5. ConfidenceGate (A5 / D9 / B4)
         gate = self.confidence_gate.decide(decision, step_budget=self.step_budget)
         pre["confidence_gate"] = gate.to_dict()
-        # 5. Shadow 采集（M2）
-        if gate.shadow_requested and self.api_teacher is not None:
-            self._run_shadow(decision, pre)
 
         # 6. §5bis 状态机（仅 calibrated 下 go_teacher=True 时进入）
         if not gate.go_teacher:
@@ -351,10 +378,28 @@ class Agent:
                     return self.snapshot()
                 return self.command("act", {"fingerprint": state["page"]["fingerprint"]})
             except StalePage:
+                # 缺陷#15：reject 循环收口。StalePage 重试消耗决策但页面 fingerprint
+                # 无变化时（l003 实况：40 决策 8 个抖动 fp），1.5b 永不触发。
+                # 连续 5 次重试且无任何已执行步进 → blocked（世界无进展，重试无意义）。
+                state["stale_retry_run"] = state.get("stale_retry_run", 0) + 1
                 state["decision"] = None
                 state["status"] = "ready"
                 state["pre_execute"] = None  # M1: 清理暂存
-                state["page"] = state["browser"].observe(screenshot=self.screenshots)
+                if state["stale_retry_run"] >= 5 and not state["history"]:
+                    state["status"] = "blocked"
+                    return self.snapshot()
+                # 缺陷#15b（v0927-m11 n003 实况）：导航进行中 observe 会连抛
+                # 'Document is navigating'，逃逸本 handler 变 crash。有界退避
+                # 等导航落地；全部失败则干净 blocked（世界不可达，非模型错）。
+                for attempt in range(5):
+                    try:
+                        state["page"] = state["browser"].observe(screenshot=self.screenshots)
+                        break
+                    except StalePage:
+                        if attempt == 4:
+                            state["status"] = "blocked"
+                            return self.snapshot()
+                        time.sleep(0.2 * (attempt + 1))
                 state["elapsed_ms"] = round((time.perf_counter() - state["started_at"]) * 1000)
                 return self.snapshot()
         elif name == "predict":
@@ -364,6 +409,14 @@ class Agent:
                 state["started_at"] = time.perf_counter()
             if not state["browser"].fresh(state["page"]):
                 state["page"] = state["browser"].observe(screenshot=self.screenshots)
+            # M1.5 机制②：记录上一轮可见 node 集合——本轮新出现的 node
+            # （autocomplete 建议、弹层等"世界刚提供的选项"）在 choose_typesafe
+            # 中获得显著性权重。DOM 无变化（fresh）时集合不变，无额外开销。
+            state["prev_node_ids"] = state.get("last_node_ids")
+            state["last_node_ids"] = {a.get("node") for a in state["page"]["actions"]}
+            # M1.5 机制③：当前页态即"已访问"（任务起点页也是——toggle 回起点
+            # 必须被识别为环边）。
+            state.setdefault("visited_fps", set()).add(state["page"]["fingerprint"])
             state["decision"] = None
             if state["status"] in {"done", "blocked", "budget_exceeded"}:
                 raise ValueError("This run has stopped. Start a fresh demo.")
@@ -460,6 +513,9 @@ class Agent:
                     "target": decision["target"],
                     "page_changed": None,
                     "url": page["url"],
+                    # M1.5 机制③：执行前页指纹——SPA toggle 判据（点击后
+                    # fingerprint 落回已访问集合 = 环边，无论 pc 真假）
+                    "page_fp_before": page["fingerprint"],
                     "usage": decision["usage"],
                     "executed_ms": round((time.perf_counter() - state["started_at"]) * 1000),
                     "elapsed_ms": state["elapsed_ms"],
@@ -467,11 +523,29 @@ class Agent:
                     "pre_execute": pre,
                 }
             )
-            state["page"] = state["browser"].observe(screenshot=self.screenshots)
-            state["elapsed_ms"] = round((time.perf_counter() - state["started_at"]) * 1000)
+            page_changed = state["page"]["fingerprint"] != page["fingerprint"]
+            url_changed = state["page"]["url"] != page["url"]
+            # M1.5 机制③：维护已访问页指纹集合（observe 产出的每个新页态入集）。
+            # SPA toggle：点击后落回已见过的页态 = 环边，choose_typesafe 据此剔除。
+            state.setdefault("visited_fps", set()).add(state["page"]["fingerprint"])
+
+            if url_changed:
+                outcome_status = "url_changed"
+            elif state["history"][-1]["kind"] == "wait":
+                outcome_status = "wait_no_change"
+            elif page_changed:
+                outcome_status = "dom_changed"
+            else:
+                outcome_status = "no_effect"
+
             state["history"][-1].update(
-                page_changed=state["page"]["fingerprint"] != page["fingerprint"],
+                page_changed=page_changed,
                 url=state["page"]["url"],
+                outcome={
+                    "status": outcome_status,
+                    "page_changed": page_changed,
+                    "url_changed": url_changed,
+                },
                 elapsed_ms=state["elapsed_ms"],
             )
             if state["record"]:

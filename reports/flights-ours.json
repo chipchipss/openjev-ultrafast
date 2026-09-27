@@ -1,0 +1,16 @@
+{
+ "status": "blocked",
+ "wall_s": 13.63,
+ "steps": 3,
+ "final_url": "https://www.google.com/travel/flights?hl=en",
+ "decision_lat_p50": 407,
+ "decision_lat_min": 395,
+ "decision_lat_max": 1701,
+ "n_decisions": 3,
+ "text_latencies": [
+  1823,
+  786
+ ],
+ "dec_sum_s": 2.5,
+ "text_sum_s": 2.6
+}

@@ -28,9 +28,9 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 MARKER_LEN = 10
-PAGE_KEY_LEN = 7
+PAGE_KEY_LEN = 6
 GUARD_LEN = 14
-INPUT_STATE_LEN = 6
+INPUT_STATE_LEN = 5
 
 MARKER_FIELDS = (
     "time_origin", "href", "scroll_x", "scroll_y",
@@ -110,30 +110,26 @@ def _check_input_state(idx: int, state: Any) -> None:
             f"item {idx} must be a list of length {INPUT_STATE_LEN}",
             state,
         )
-    identity, value, checked, selected_index, disabled, read_only = state
-    if not _is_int(identity) or identity < 1:
-        raise RuntimeContractViolation(
-            "input_states", f"item {idx}[0] identity must be int >= 1", identity,
-        )
+    value, checked, selected_index, disabled, read_only = state
     if not isinstance(value, str):
         raise RuntimeContractViolation(
-            "input_states", f"item {idx}[1] value must be str", value,
+            "input_states", f"item {idx}[0] value must be str", value,
         )
     if not _is_bool(checked):
         raise RuntimeContractViolation(
-            "input_states", f"item {idx}[2] checked must be bool", checked,
+            "input_states", f"item {idx}[1] checked must be bool", checked,
         )
     if not _is_int(selected_index):
         raise RuntimeContractViolation(
-            "input_states", f"item {idx}[3] selected_index must be int", selected_index,
+            "input_states", f"item {idx}[2] selected_index must be int", selected_index,
         )
     if not _is_bool(disabled):
         raise RuntimeContractViolation(
-            "input_states", f"item {idx}[4] disabled must be bool", disabled,
+            "input_states", f"item {idx}[3] disabled must be bool", disabled,
         )
     if not _is_bool(read_only):
         raise RuntimeContractViolation(
-            "input_states", f"item {idx}[5] read_only must be bool", read_only,
+            "input_states", f"item {idx}[4] read_only must be bool", read_only,
         )
 
 
@@ -149,7 +145,7 @@ def _check_input_states(states: Any) -> None:
 # ---------------------------------------------------------------------------
 
 def validate_page_key(page_key: Any) -> None:
-    """page_key: [timeOrigin, href, scrollX, scrollY, innerWidth, innerHeight, input_states]"""
+    """page_key: [timeOrigin, href, scrollX, scrollY, innerWidth, innerHeight]"""
     if not isinstance(page_key, list) or len(page_key) != PAGE_KEY_LEN:
         raise RuntimeContractViolation(
             "page_key", f"must be a list of length {PAGE_KEY_LEN}", page_key,
@@ -158,89 +154,12 @@ def validate_page_key(page_key: Any) -> None:
         raise RuntimeContractViolation("page_key", "[0] time_origin must be numeric", page_key[0])
     if not isinstance(page_key[1], str):
         raise RuntimeContractViolation("page_key", "[1] href must be str", page_key[1])
-    for i in (2, 3):
+    for i in (2,3):
         if not _is_num(page_key[i]):
             raise RuntimeContractViolation("page_key", f"[{i}] must be numeric", page_key[i])
-    for i in (4, 5):
+    for i in (4,5):
         if not _is_int(page_key[i]):
             raise RuntimeContractViolation("page_key", f"[{i}] must be int", page_key[i])
-    _check_input_states(page_key[6])
-
-
-def validate_marker(marker: Any) -> None:
-    """marker: [timeOrigin, href, scrollX, scrollY, innerWidth, innerHeight,
-                title, text, semantics, input_states]"""
-    if not isinstance(marker, list) or len(marker) != MARKER_LEN:
-        raise RuntimeContractViolation(
-            "marker", f"must be a list of length {MARKER_LEN}", marker,
-        )
-    if not _is_num(marker[0]):
-        raise RuntimeContractViolation("marker", "[0] time_origin must be numeric", marker[0])
-    if not isinstance(marker[1], str):
-        raise RuntimeContractViolation("marker", "[1] href must be str", marker[1])
-    for i in (2, 3):
-        if not _is_num(marker[i]):
-            raise RuntimeContractViolation("marker", f"[{i}] must be numeric", marker[i])
-    for i in (4, 5):
-        if not _is_int(marker[i]):
-            raise RuntimeContractViolation("marker", f"[{i}] must be int", marker[i])
-    if not isinstance(marker[6], str):
-        raise RuntimeContractViolation("marker", "[6] title must be str", marker[6])
-    if not isinstance(marker[7], str):
-        raise RuntimeContractViolation("marker", "[7] text must be str", marker[7])
-    if not isinstance(marker[8], list):
-        raise RuntimeContractViolation("marker", "[8] semantics must be a list", marker[8])
-    for i, item in enumerate(marker[8]):
-        if not isinstance(item, dict):
-            raise RuntimeContractViolation(
-                "marker", f"[8] semantics[{i}] must be an object", item,
-            )
-    _check_input_states(marker[9])
-
-
-def validate_guard(guard: Any) -> None:
-    """guard: None（已失联）或 14 元素数组。"""
-    if guard is None:
-        return
-    if not isinstance(guard, list) or len(guard) != GUARD_LEN:
-        raise RuntimeContractViolation(
-            "guard", f"must be None or a list of length {GUARD_LEN}", guard,
-        )
-    if not _is_int(guard[0]) or guard[0] < 1:
-        raise RuntimeContractViolation("guard", "[0] identity must be int >= 1", guard[0])
-    if not _is_str_or_null(guard[1]):
-        raise RuntimeContractViolation("guard", "[1] role must be str or null", guard[1])
-    if not isinstance(guard[2], str):
-        raise RuntimeContractViolation("guard", "[2] name must be str", guard[2])
-    if not _is_str_or_null(guard[3]):
-        raise RuntimeContractViolation("guard", "[3] value must be str or null", guard[3])
-    if not _is_bool_or_null(guard[4]):
-        raise RuntimeContractViolation("guard", "[4] checked must be bool or null", guard[4])
-    if not _is_int_or_null(guard[5]):
-        raise RuntimeContractViolation("guard", "[5] selectedIndex must be int or null", guard[5])
-    if not _is_bool_or_null(guard[6]):
-        raise RuntimeContractViolation("guard", "[6] readOnly must be bool or null", guard[6])
-    if not _is_bool(guard[7]):
-        raise RuntimeContractViolation("guard", "[7] disabled must be bool", guard[7])
-    for i in range(8, 12):
-        if not _is_str_or_null(guard[i]):
-            raise RuntimeContractViolation("guard", f"[{i}] must be str or null", guard[i])
-    if not _is_str_or_null(guard[12]):
-        raise RuntimeContractViolation("guard", "[12] href must be str or null", guard[12])
-    if not isinstance(guard[13], str):
-        raise RuntimeContractViolation("guard", "[13] scope_text must be str", guard[13])
-
-
-def validate_guards(guards: Any) -> None:
-    """guards: {digit_string_node_id: guard_or_null}"""
-    if not isinstance(guards, dict):
-        raise RuntimeContractViolation("guards", "must be a dict", guards)
-    for key, val in guards.items():
-        if not isinstance(key, str) or not key.isdigit():
-            raise RuntimeContractViolation(
-                "guards", f"key {key!r} must be a digit-string node id", key,
-            )
-        validate_guard(val)
 
 
 # ---------------------------------------------------------------------------

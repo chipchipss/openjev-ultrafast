@@ -68,7 +68,8 @@ def action_space(actions):
             index = str(len(elements) + 1)
             indices[node] = index
             element = {k: action[k] for k in ("role", "value", "checked", "selected", "expanded") if k in action}
-            element.update(index=index, label=action["label"].split(" → ")[0], operations=[])
+            element.update(index=index, label=action["label"].split(" → ")[0], operations=[],
+                           node=node)  # M1.5 机制②：scoring 需要判"本轮新出现"
             if kind == "select":
                 element["value"] = action.get("current_value", "")
                 element["options"] = []
@@ -86,11 +87,41 @@ def action_space(actions):
         group[target] = action
     return elements, targets, controls
 
-def _candidate_filter(elements):
-    """截断候选元素：数量 + label 长度。L2 截断层；未来 L2 演进为相关性排序（M3）或模型
-    判断（M8）时替换本实现，接口不变。"""
+def _element_score(e, new_nodes=None):
+    """候选元素排序权重：可输入控件 > 按钮 > 其他 > 链接；新出现 node 加显著 bonus。
+
+    缺陷#11 Fix2：context (_candidate_filter) 与 criteria (choose_typesafe)
+    共用同一排序函数，保证模型看到的两个列表同源同序。
+    M1.5 机制②：new_nodes（上一轮不可见、本轮出现的 node id 集合）加
+    NEW_NODE_BOOST——autocomplete 建议/弹层是"世界刚提供的选项"，
+    s002 实况：填入后建议项埋在 25 个元素里，2B 看不见。
+    env M15_NEW_NODE_BOOST=0 关闭（默认 120：搜索框 100 < 新建议 220）。
+    """
+    score = 0
+    role = e.get("role", "")
+    if role in ("textbox", "searchbox", "combobox"):
+        score = 100
+    elif role == "button":
+        score = 50
+    elif role == "link":
+        score = -10
+    if new_nodes and e.get("node") is not None and str(e["node"]) in new_nodes:
+        score += int(os.environ.get("M15_NEW_NODE_BOOST", "120"))
+    return score
+
+
+def _candidate_filter(elements, new_nodes=None):
+    """候选元素排序 + 截断。
+
+    保持接口不变。优先把可输入/可操作的控件放到前面，
+    避免页面 logo、品牌链接等 DOM 前部元素抢占小模型注意力。
+    排序权重与 criteria 同源（_element_score，缺陷#11 Fix2）。
+    M1.5 机制②：new_nodes 本轮新出现的 node 加显著性权重（同源）。
+    """
     max_n = int(os.environ.get("DECIDER_MAX_ELEMENTS", "25"))
     max_l = int(os.environ.get("DECIDER_MAX_LABEL_CHARS", "80"))
+
+    ranked = sorted(elements, key=lambda e: _element_score(e, new_nodes), reverse=True)
 
     def trim(el):
         if isinstance(el, dict) and isinstance(el.get("label"), str):
@@ -98,15 +129,68 @@ def _candidate_filter(elements):
                 return {**el, "label": el["label"][:max_l] + "…"}
         return el
 
-    return [trim(e) for e in elements[:max_n]]
-
+    return [trim(e) for e in ranked[:max_n]]
 
 def choose_typesafe(state, goal, history):
     """原 TypeSafe 实现。M1 保留为参考/回退。"""
     MAX_TARGETS_PER_OP = 20
+    # M1.5 机制②：本轮新出现的 node（上轮不可见）→ 显著性权重。
+    # state["prev_node_ids"] 由 agent.predict 维护；离线/直调时缺省 None（关闭）。
+    prev_ids = state.get("prev_node_ids")
+    if prev_ids is not None:
+        new_nodes = {str(a.get("node")) for a in state["actions"]} - {str(n) for n in prev_ids}
+    else:
+        new_nodes = None
     elements, targets, controls = action_space(state["actions"])
-    # decider-2B 要求 choice criteria ≥ 2 项；单候选的 target 头会触发 422，先过滤。
-    valid_targets = {op: dict(list(c.items())[:MAX_TARGETS_PER_OP]) for op, c in targets.items() if len(c) >= 2}
+    # 缺陷#12（M1.5 机制①推广）：刚执行且无效果的 action（no_effect = 世界
+    # 证明该动作无法推进，DOM/URL 均无变化）对应的 choice 本轮从 action space
+    # 剔除——重做不可能推进，留它只会成为吸引子。原 #12 仅 fill；机制①推广到
+    # 全部 kind（n001 重复点无变化链接 / l002 短页连滚同构）。
+    # env 开关 M15_ALL_KIND_STALE=0 回退到 #12 原行为（fill only）。
+    stale_kinds = ({"fill"} if os.environ.get("M15_ALL_KIND_STALE", "1") != "1"
+                   else {"fill", "click", "scroll"})
+    stale_ids = {
+        h.get("choice")
+        for h in history[-2:]
+        if h.get("kind") in stale_kinds
+        and h.get("outcome", {}).get("status") == "no_effect"
+        and h.get("choice")
+    }
+    # M1.5 机制③（SPA toggle 破环）：某动作执行前的页态指纹在其执行时刻
+    # 已存在于 visited_fps（该时刻之前见过的所有页态）→ 它把世界带回旧态，
+    # 是环边，剔除——无论 pc 真假（MDN/w3c 下拉开合让 pc 恒 True，
+    # no_effect 判据对 SPA toggle 失明，s003/s005 实况）。
+    # 判据纯世界语言：回访已见状态 = 无进展。env M15_CYCLE_CUT=0 关闭。
+    if os.environ.get("M15_CYCLE_CUT", "1") == "1":
+        visited = state.get("visited_fps")
+        if visited:
+            for h in history[-3:]:
+                fp_before = h.get("page_fp_before")
+                if (fp_before is not None and fp_before in visited
+                        and h.get("page_changed") and h.get("choice")):
+                    stale_ids.add(h.get("choice"))
+    if stale_ids:
+        targets = {
+            op: {t: a for t, a in c.items() if a.get("id") not in stale_ids}
+            for op, c in targets.items()
+        }
+        targets = {op: c for op, c in targets.items() if c}
+        # control 类（SCROLL_DOWN/WAIT 等）走 controls 字典，同样按 id 剔除
+        controls = {op: a for op, a in controls.items() if a.get("id") not in stale_ids}
+        # context 同步剔除（缺陷#11 Fix2 同源原则）：element.index 就是
+        # action.node 的字符串形式，经 node→id 映射找到被剔除元素。
+        dead_nodes = {a["node"] for a in state["actions"]
+                      if a.get("id") in stale_ids and a.get("node") is not None}
+        elements = [e for e in elements if e["index"] not in {str(n) for n in dead_nodes}]
+    # 缺陷#11：不再按 len(c)>=2 过滤 operation——单候选 op 也必须保留在
+    # action space（否则 Runtime 给模型的世界缺能力：首页唯一搜索框的
+    # TYPE_TEXT 曾被整层删掉）。单候选 target 不发问（decider choice 需 ≥2 项），
+    # 在响应解析处确定性落定。criteria 排序与 context 同源（_element_score）。
+    valid_targets = {
+        op: dict(sorted(c.items(),
+                        key=lambda kv: -_element_score(kv[1], new_nodes))[:MAX_TARGETS_PER_OP])
+        for op, c in targets.items()
+    }
     labels = {
         "CLICK": "Click an element, button, menu option, autocomplete suggestion, or calendar day.",
         "TYPE_TEXT": "Enter or replace text in an editable field. A small LLM will supply the value from the goal.",
@@ -114,16 +198,25 @@ def choose_typesafe(state, goal, history):
     }
     operations = {key: labels[key] for key in valid_targets}
     operations.update({key: value["label"] for key, value in controls.items()})
-    operations.update(DONE="Every requirement is visibly satisfied.", BLOCKED="No supported operation can progress.")
+    operations.update(DONE=f"Every requirement is visibly satisfied: {goal}",
+                      BLOCKED="No supported operation can progress.")
     questions = {
         "operation": {"type": "choice", "criteria": operations, "instructions": {"goal": goal, "rules": NEXT_ACTION}}
     }
+    max_l = int(os.environ.get("DECIDER_MAX_LABEL_CHARS", "80"))
     for operation, candidates in valid_targets.items():
+        # 缺陷#11：单候选 target 不发问——action space 已唯一，属确定性解析，
+        # 不消耗模型不确定度。≥2 候选才作为独立 choice 问题交给模型。
+        if len(candidates) < 2:
+            continue
         questions[operation.lower() + "_target"] = {
             "type": "choice",
             "criteria": {
                 index: {
-                    "element": f"[{index}] {a['label']}",
+                    # 与 context 元素同一 label 来源：action_space 归一化
+                    # （split(' → ')[0]）+ 同一 80 字符截断。不用 elements[int(index)-1]
+                    # 位置反查——context 剔除（缺陷#12）后位置会漂移。
+                    "element": f"[{index}] {a['label'].split(' → ')[0][:max_l]}",
                     "current_value": a.get("current_value", a.get("value", "")),
                     **{k: a[k] for k in ("role", "checked", "selected", "expanded") if k in a},
                 }
@@ -135,9 +228,15 @@ def choose_typesafe(state, goal, history):
         "model": os.environ.get("TYPESAFE_MODEL", "jev-latest"),
         "state": {
             "page": {"url": state.get("url"), "title": state.get("title"), "text": (state.get("text") or "")[:1500]},
-            "elements": _candidate_filter(elements),
+            "elements": _candidate_filter(elements, new_nodes),
             "recent_actions": [
-                {k: h.get(k) for k in ("action", "kind", "text", "page_changed")} for h in history[-10:]
+                {
+                    "action": h.get("action"),
+                    "kind": h.get("kind"),
+                    "text": h.get("text"),
+                    "outcome": h.get("outcome"),
+                }
+                for h in history[-10:]
             ],
         },
         "questions": questions,
@@ -158,20 +257,27 @@ def choose_typesafe(state, goal, history):
         raise
     operation_answer = validate_choice(result["answers"].get("operation", {}), operations)
     operation = operation_answer["choice"]
-    # 被过滤的 target 头（< 2 候选）不出现在 questions 里；若模型仍选中它即契约违例。
-    if operation in targets and operation not in valid_targets:
-        raise ValueError(f"operation {operation} has < 2 targets; contract violation")
     target = None
     target_answer = None
     probabilities = {}
     if operation in valid_targets:
-        # Unused target heads cannot cause an action. Validate against the criteria actually sent
-        # (valid_targets is the truncated set decider scored), not the full targets dict.
         sent = valid_targets[operation]
-        target_answer = validate_choice(result["answers"].get(operation.lower() + "_target", {}), sent)
-        target = target_answer["choice"]
-        choice = sent[target]["id"]
-        probabilities = {a["id"]: target_answer["probabilities"][index] for index, a in sent.items()}
+        if len(sent) == 1:
+            # 缺陷#11：单候选确定性解析——不是模型的选择，confidence 恒 1.0
+            # 表示"由 action space 唯一决定"。
+            target = next(iter(sent))
+            target_answer = {"choice": target, "confidence": 1.0,
+                             "probabilities": {target: 1.0}}
+            choice = sent[target]["id"]
+            probabilities = {choice: 1.0}
+        else:
+            # Unused target heads cannot cause an action. Validate against the
+            # criteria actually sent (valid_targets is the truncated set decider
+            # scored), not the full targets dict.
+            target_answer = validate_choice(result["answers"].get(operation.lower() + "_target", {}), sent)
+            target = target_answer["choice"]
+            choice = sent[target]["id"]
+            probabilities = {a["id"]: target_answer["probabilities"][index] for index, a in sent.items()}
     else:
         choice = controls[operation]["id"] if operation in controls else operation
         probabilities[choice] = operation_answer["probabilities"][operation]
@@ -257,7 +363,8 @@ register_provider("openai", _openai_provider)
 def choose(state, goal, history):
     from .browser import StalePage
     try:
-        return decide(state, goal, history)
+        result = decide(state, goal, history)
+        return result
     except RuntimeError as e:
         raise StalePage(f"Decider connection failed: {e}") from None
 
