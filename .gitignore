@@ -59,6 +59,9 @@ run_m1.ps1*.txt
 reports/probe-*.json
 reports/s002-*.json
 reports/m1-local*.json
+reports/m1-decider2b-*.json
+reports/s004-history-test*.json
+m1/s004-only.jsonl
 
 # Logs / model artifacts (already should be here, keep if not)
 logs/
