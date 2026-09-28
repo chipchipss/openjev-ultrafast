@@ -89,7 +89,7 @@ def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dic
     """
     from jev_ultrafast.agent import Agent  # noqa: WPS433
     from jev_ultrafast.api_teacher import APITeacher  # noqa: WPS433
-    from api_budget import APIBudget  # noqa: WPS433
+    from jev_ultrafast.api_budget import APIBudget  # noqa: WPS433
 
     task_id = spec["task_id"]
     logger = Logger(task_id=task_id, log_dir=log_dir)
