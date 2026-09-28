@@ -8,7 +8,7 @@
 #  CONFIG
 # ═══════════════════════════════════════════════════════════════════
 $Repo         = "C:\Users\Administrator\openjev-ultrafast"
-$DeciderDir   = "C:\Users\Administrator\AppData\Local\Temp\decider"
+$DeciderDir   = "D:\openjev-models\decider"
 $ChromeExe    = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 $ChromeProfile= "C:\chrome-cdp-test"
 $PythonJev    = "C:\Users\Administrator\miniconda3\envs\jev\python.exe"
