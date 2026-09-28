@@ -20,7 +20,8 @@ LAYA_DEVICE = os.environ.get("LAYA_DEVICE", "cuda")
 LAYA_MODEL = os.environ.get(
     "LAYA_BROWSER_MODEL",
     # 默认 v17s（322M, 官方 live suite 62%）：比 421M 快 2 倍、同档准确率
-    str(Path(__file__).resolve().parents[2] / "models" / "laya-browser" / "v17s"),
+    # 权重统放 D:\openjev-models\repo（C 盘空间紧张；HF_HOME 同迁 D 盘）
+    r"D:\openjev-models\repo\laya-browser\v17s",
 )
 
 _agent = None
