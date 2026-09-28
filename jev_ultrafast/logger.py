@@ -272,6 +272,11 @@ class Logger:
         out = {k: td[k] for k in keys if k in td}
         if "actions_snapshot" in td:
             out["actions_snapshot"] = td["actions_snapshot"]
+        # M4b Logger v2：page/history 快照（SFT user prompt 与线上推理同构）
+        if "page_snapshot" in td:
+            out["page_snapshot"] = td["page_snapshot"]
+        if "history_snapshot" in td:
+            out["history_snapshot"] = td["history_snapshot"]
         return out
 
     @staticmethod

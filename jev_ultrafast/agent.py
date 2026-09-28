@@ -358,6 +358,23 @@ class Agent:
             # --- M2 #4a: 快照供 sample_extractor 使用（C3 structured 源）---
             # 浅拷贝 list(...)：基座约定 page 对象不被就地修改（browser.observe
             # 每次返回新对象）；若未来出现就地改 action dict 的路径需改 deepcopy。
+            # --- M2 #4a: 快照供 sample_extractor 使用（C3 structured 源）---
+            # 浅拷贝 list(...)：基座约定 page 对象不被就地修改（browser.observe
+            # 每次返回新对象）；若未来出现就地改 action dict 的路径需改 deepcopy。
+            # --- M4b Logger v2: 增记 page(url/title/text) + history——SFT user
+            # prompt 需与线上推理同构（_build_user_prompt 的 Recent action
+            # history 段 + choose_typesafe body 的 page 段），否则训练/推理漂移
+            # （m4a report.json 记档 gap 的修复）。
+            "page_snapshot": {
+                "url":   state["page"].get("url"),
+                "title": state["page"].get("title"),
+                "text":  (state["page"].get("text") or "")[:1500],
+            },
+            "history_snapshot": [
+                {"step": h.get("step"), "kind": h.get("kind"), "action": h.get("action"),
+                 "text": h.get("text"), "page_changed": h.get("page_changed")}
+                for h in state.get("history", [])[-10:]
+            ],
             "actions_snapshot": list(state["page"]["actions"]),
         }
         state["teacher_decisions"].append(entry)

@@ -273,6 +273,13 @@ def extract_all(
             "candidates_rendered":   rendered,
             "high_variance": rate > HIGH_VARIANCE_FP_RATE,
         }
+        # M4b Logger v2：page/history 快照透传（SFT user prompt 同构所需的
+        # Current page 与 Recent action history 两段）。旧日志无此字段 → 缺省
+        # None，prepare_sft 按旧格式降级（向后兼容）。
+        if ev.get("page_snapshot"):
+            base["page_snapshot"] = ev["page_snapshot"]
+        if ev.get("history_snapshot"):
+            base["history_snapshot"] = ev["history_snapshot"]
 
         teacher = ev.get("teacher") or {}
         if ev.get("agree"):

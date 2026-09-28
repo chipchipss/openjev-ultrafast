@@ -21,7 +21,7 @@
 import json
 from pathlib import Path
 
-ROOT = Path("/root/jev-ultrafast")
+ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "m4a" / "data"
 CLOSING = "Choose the next operation and target. Reply with one JSON object only."
 
@@ -29,8 +29,14 @@ SYSTEM = (ROOT / "jev_ultrafast" / "prompts" / "next_action.txt").read_text(
     encoding="utf-8").rstrip("\n")
 
 
-def _user_prompt(goal: str, rendered: str) -> str:
-    """把样本的 rendered（Elements 块 + Operations 块）重排成 runtime 段落顺序。"""
+def _user_prompt(goal: str, rendered: str, row: dict | None = None) -> str:
+    """把样本的 rendered（Elements 块 + Operations 块）重排成 runtime 段落顺序。
+
+    M4b v2：row 携带 page_snapshot/history_snapshot（Logger v2 新字段）时，
+    输出与线上 _build_user_prompt 段落完全同构（Goal → Recent action
+    history → Available operations → Elements → 收尾）；旧样本（无快照）
+    维持 v1 格式（无 history 段），训练时通过 meta.origin 区分批次。
+    """
     marker = "\nOperations:"
     if marker in rendered:
         elems, ops = rendered.split(marker, 1)
@@ -40,6 +46,27 @@ def _user_prompt(goal: str, rendered: str) -> str:
         ops_block = ""
         elems_block = "Elements:\n" + rendered.strip()
     parts = [f"Goal: {goal}", ""]
+    snap = (row or {}).get("page_snapshot") or {}
+    hist = (row or {}).get("history_snapshot") or []
+    if snap:
+        parts += [
+            "Current page:",
+            f"url: {snap.get('url', '')}",
+            f"title: {snap.get('title', '')}",
+            "text:",
+            (snap.get("text") or "")[:1500],
+            "",
+        ]
+    if hist:
+        lines = []
+        for h in hist:
+            ln = f"{h.get('step', '?')}. {h.get('kind', '?')} {h.get('action', '?')}"
+            if h.get("text"):
+                ln += f' text="{h["text"]}"'
+            if h.get("page_changed") is not None:
+                ln += f" page_changed={h['page_changed']}"
+            lines.append(ln)
+        parts += ["Recent action history:", *lines, ""]
     if ops_block:
         parts += [ops_block, ""]
     parts += [elems_block, "", CLOSING]
@@ -77,7 +104,7 @@ def _rows(path: Path, origin: str, skipped: dict) -> list[dict]:
             out.append({
                 "messages": [
                     {"role": "system", "content": SYSTEM},
-                    {"role": "user", "content": _user_prompt(goal, rendered)},
+                    {"role": "user", "content": _user_prompt(goal, rendered, r)},
                     {"role": "assistant",
                      "content": json.dumps(asst, ensure_ascii=False)},
                 ],
