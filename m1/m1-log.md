@@ -1030,3 +1030,38 @@ GPU 独占效应），文本 0.8s + 1.8s = 2.6s。结局与此前完全一致：
 
 距上游 7.1s 的剩余差距全部是 2B 决策推进力（提前收口少走 14 步 +
 收口前的重试循环），helper 与硬件两侧已做到本机最优。
+
+### 2026-09-27 · Laya 互补验证（encoder 决策头，Windows CUDA 原生可用）
+
+**动机**：评估 Laya（NandhaKishorM/laya，421M/322M encoder，RLCD 校准置信度）
+作为 decider-2B 的前置/互补决策模型。**澄清**：MLX 限制只在 laya-ultrafast
+（Mac port）；原版 Laya 是 PyTorch，Windows + CUDA 原生可跑。
+
+**本机实测（4060）**：
+- 加载 34s；单问 146-258ms；3 问一次前向 226-254ms；**显存仅 1.7-2.5GB**
+- `laya-serve`（官方 /v1/systemone 兼容）子进程起不来（uvicorn lifespan
+  gate），改走进程内 SDK 直调——provider 集成
+  `decider/laya_provider.py`（`DECIDER_MODE=laya`，v17s 322M 微调版
+  cklxx/laya-browser，head_max_len 恢复 768，HF 下载走 Swell 代理）
+
+**集成验证**：provider registry 注册成功；真实框架路径单决策 65-129ms
+（对比 decider-2B 407-900ms，快 4-8 倍）。
+
+**20 任务基准未完成（1h 超时）**：单任务追踪给出原因——laya 决策快
+(70-80ms/步) 但 **completion 判断弱**：点击导航链接后连续输出 DONE
+（conf 0.71-0.78），被 #13 DoneGuard 正确拒绝（search 类 goal 无
+url_changed 证据），拒绝循环烧满预算。这与官方文档自述一致：
+Laya 答窄问题强（字段映射/建议选择），"下一步/何时完成"弱；
+laya-browser 微调版 16 任务 62%， DONE 判断依赖真实落页样本。
+
+**判决**：
+1. Laya **不能单独当主力决策模型**（completion 判断缺口致命）
+2. **互补位置成立但需数据**：它的价值在 confidence 校准（RLCD 严格
+   proper scoring rules）+ 70ms 延迟 + 2GB 显存。正确用法是
+   M4b 数据同时喂两个模型——2B 出主力决策，Laya 微调后做
+   confidence 闸门（高置信直接执行，低置信升级 2B）
+3. 集成代码已就位（`DECIDER_MODE=laya`），M4b 后重评
+
+**附带修复**：`pip install laya` 会把 jev env 的 CUDA torch 降级为 CPU 版
+（依赖解析拉 torch 2.14+cpu），需 `--force-reinstall torch --index-url
+cu128 --no-deps` 恢复；下次装包先记 torch 版本。

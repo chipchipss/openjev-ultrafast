@@ -360,6 +360,14 @@ def _openai_provider(state, goal, history):
 register_provider("typesafe", _typesafe_provider)
 register_provider("openai", _openai_provider)
 
+# Laya（encoder 决策头，~50-100ms/步，显存 ~2GB）：DECIDER_MODE=laya 启用。
+# 延迟 import：未装 laya 包时不影响其他 provider。
+def _laya_provider(state, goal, history):
+    from .decider.laya_provider import decide_laya
+    return decide_laya(state, goal, history)
+
+register_provider("laya", _laya_provider)
+
 def choose(state, goal, history):
     from .browser import StalePage
     try:
