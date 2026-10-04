@@ -693,6 +693,71 @@ def form_fill(page: dict, goal: str, history: list) -> dict | None:
 # 4. 提交表单 → CLICK
 # ---------------------------------------------------------------------------
 
+_CHOOSE_RE = re.compile(
+    r"\b(select|choose|pick|check|tick)\s+(?:a|an|the|one)?\s*"
+    r"([\w][\w \-]{1,24}?)\s*(?:\bfrom\b|\bon\b|\bin\b|\bof\b|\bfor\b|[,.]|$)", re.I)
+
+
+def _norm_sel(s: str) -> str:
+    return " ".join(_tokens(s or "")).lower()
+
+
+def select_option(page: dict, goal: str, history: list) -> dict | None:
+    """目标要求「选一个 X」而 X 是单选/复选框组，且还没选 → 点一个。
+
+    select_first 只处理 <select> 下拉；httpbin 的 pizza size 是 radio 组
+    （name="size"，选项标签是 Small/Medium/Large），此前**没有任何技能**能表达
+    「选一个 size」。于是 form_submit 只看「动过一次」就提交 —— f004 实况：
+    goal "select a size from the dropdown, then submit the form"，走完 goto_path
+    就直接提交，目标要求的选项从未发生，断言失败。
+
+    判据（都在快照里：snapshot.js 把 name 属性与 radio/checkbox 的 checked 都带出来）：
+      · 目标里的选择对象先按**选项标签**匹配（"choose Medium"），
+        否则按**控件组名**匹配（"select a size" → name="size"）
+      · 组内已有 checked=="true" → 前置已满足，放行给 form_submit
+      · 组名命中多个不同控件 → 有歧义，回落模型
+    """
+    m = _CHOOSE_RE.search(goal or "")
+    if not m:
+        return None
+    noun = _norm_sel(m.group(2))
+    if not noun or len(noun) < 2:
+        return None
+
+    opts, groups = [], {}
+    for index, a in _indexed(page.get("actions") or []):
+        if a.get("kind") != "click":
+            continue
+        if "checked" not in a and (a.get("role") or "") not in ("radio", "checkbox"):
+            continue                                   # 只管 radio/checkbox 组
+        opts.append((index, a))
+        groups.setdefault(_norm_sel(a.get("name") or ""), []).append((index, a))
+    if not opts:
+        return None
+
+    recent = {h.get("choice") for h in (history or [])[-2:]}
+
+    # 1) 目标直接点名某个选项（"choose Medium"）
+    by_label = [(i, a) for i, a in opts if _norm_sel(a.get("label") or "") == noun]
+    if len(by_label) == 1:
+        i, a = by_label[0]
+        if i in recent or str(a.get("checked")).lower() == "true":
+            return None
+        return _decision("CLICK", i, a, "select_option")
+
+    # 2) 目标点名控件组（"select a size" → name="size"）：取第一个未选中的
+    hit = [g for name, g in groups.items() if name and (name == noun or noun in name)]
+    if len(hit) != 1:                 # 0 个=没有；>1 个=有歧义，回落模型
+        return None
+    group = hit[0]
+    if any(str(a.get("checked")).lower() == "true" for _, a in group):
+        return None                   # 已经选过了 → 前置满足，让 form_submit 收口
+    for i, a in group:
+        if i not in recent:
+            return _decision("CLICK", i, a, "select_option")
+    return None
+
+
 def form_submit(page: dict, goal: str, history: list) -> dict | None:
     # 闸门不能只认 "submit"：t003/t005 的 goal 是 "…then press **Save**"，
     # 旧写法直接 return None → 保存按钮永不点 → 页面不出现 "Settings saved" → FAIL。
@@ -1474,6 +1539,7 @@ def first_result(page: dict, goal: str, history: list) -> dict | None:
 SKILLS = (blocked_dead_page, page_not_ready, goal_reached, stop_when_visible,
           confirm_then_done, scroll_to_target, first_result,
           goto_path, explicit_target,
+          select_option,
           form_fill, form_submit, entity_fill, entity_confirm,
           trip_type, search_type, select_first, date_pick, search_submit)
 

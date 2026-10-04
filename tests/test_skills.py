@@ -728,6 +728,27 @@ def t_page_not_ready_allows_text_only():
     assert S.page_not_ready(blank, "x", []) is None
 
 
+@case("目标要求「选一个 X」而 X 是 radio 组 → 点一个（f004：此前无技能能表达）")
+def t_select_option_radio_group():
+    goal = "Go to /forms/post and select a size from the dropdown, then submit the form."
+    radios = [A(7, "click", "Small", 20, role="radio", name="size", checked="false"),
+              A(8, "click", "Medium", 21, role="radio", name="size", checked="false"),
+              A(9, "click", "Large", 22, role="radio", name="size", checked="false")]
+    p = page(radios, url="https://httpbin.org/forms/post")
+    d = S.select_option(p, goal, [])
+    assert d and d["operation"] == "CLICK" and d["choice"] == "e7", f"没点第一个 size：{d}"
+    assert d["skill"] == "select_option"
+    # 已选过 → 前置满足，放行给 form_submit
+    done = page([dict(radios[0], checked="true")] + radios[1:], url="https://httpbin.org/forms/post")
+    assert S.select_option(done, goal, []) is None, "已经选过还让再选"
+    # 目标直接点名选项（"choose Medium"）
+    g2 = "Choose Medium for the pizza, then submit."
+    d2 = S.select_option(p, g2, [])
+    assert d2 and d2["choice"] == "e8", f"按选项标签匹配失败：{d2}"
+    # 非 radio 控件不碰
+    assert S.select_option(page([A(1, "click", "Submit order", 11)], goal), goal, []) is None
+
+
 def main():
     # Windows PowerShell 5.1 的控制台是 GBK，而用例名里有 'ö' 等非 GBK 字符
     # （v1.16 / 源码里的地名）。print 会抛 UnicodeEncodeError 并**中断整个套件**，
