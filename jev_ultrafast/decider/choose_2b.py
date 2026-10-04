@@ -19,6 +19,8 @@ from pathlib import Path
 from ._http import post_chat
 from .action_space import action_space
 
+from ..anyjev_rotation import DEFAULT_LOG_MARGIN, rotate_vote
+
 _PROMPTS = Path(__file__).parent.parent / "prompts"
 SENTINELS = frozenset({"DONE", "BLOCKED"})
 
@@ -121,6 +123,21 @@ def _render_history(history: list[dict], limit: int = 10) -> str:
     return "\n".join(lines)
 
 
+def _render_page(state: dict) -> list[str]:
+    """Current page 段——与 m4a/prepare_sft._user_prompt 逐字节对齐（SFT 训练格式）。
+    缺 url/title/text 则整段省略（旧页态无快照时保持向后兼容）。"""
+    if not (state.get("url") or state.get("title") or state.get("text")):
+        return []
+    return [
+        "Current page:",
+        f"url: {state.get('url', '')}",
+        f"title: {state.get('title', '')}",
+        "text:",
+        (state.get("text") or "")[:1500],
+        "",
+    ]
+
+
 def _build_user_prompt(
     state: dict,
     goal: str,
@@ -133,6 +150,7 @@ def _build_user_prompt(
         [
             f"Goal: {goal}",
             "",
+            *_render_page(state),
             "Recent action history:",
             _render_history(history),
             "",
@@ -220,31 +238,23 @@ def _confidence(parsed: dict) -> tuple[float, float | None]:
     return oc, tc
 
 
-def choose(
+def _read_once(
+    actions: list[dict],
     state: dict,
     goal: str,
     history: list[dict],
+    *,
+    base_url: str,
+    model: str,
+    api_key: str,
+    system: str,
 ) -> dict:
-    actions = state.get("actions", [])[:30]
+    """一轮读取：按给定顺序给候选编号后问一次 decider。
 
+    `actions` 的顺序决定 action_space 的编号（1..N），也就是模型看到的**选项位置** ——
+    这正是 L0 旋转要置换的东西，所以整轮读取必须按 actions 参数化。
+    """
     elements, targets, controls = action_space(actions)
-
-    base_url = _env(
-        "DECIDER_2B_BASE_URL",
-        required=True,
-    )
-
-    model = _env(
-        "DECIDER_2B_MODEL",
-        "decider-2b",
-    )
-
-    api_key = _env(
-        "DECIDER_2B_API_KEY",
-        "",
-    )
-
-    system = _load_prompt("next_action.txt")
 
     user = _build_user_prompt(
         state,
@@ -306,13 +316,39 @@ def choose(
 
     oc, tc = _confidence(parsed)
 
+    return {
+        "parsed": parsed,
+        "operation": operation,
+        "choice": choice,
+        "target": norm_target,
+        "operation_confidence": oc,
+        "target_confidence": tc,
+        "result": result,
+        "messages": messages,
+        "latency_ms": latency_ms,
+    }
+
+
+def _to_decision(
+    read: dict,
+    *,
+    model: str,
+    extra: dict | None = None,
+) -> dict:
+    """把一轮读取摊平成 agent 期望的 decision dict。"""
+    operation = read["operation"]
+    norm_target = read["target"]
+    oc = read["operation_confidence"]
+    tc = read["target_confidence"]
+    choice = read["choice"]
+
     confidence = (
         oc
         if tc is None
         else min(oc, tc)
     )
 
-    return {
+    out = {
         "choice": choice,
         "operation": operation,
         "target": norm_target,
@@ -345,15 +381,106 @@ def choose(
         },
 
         # 元数据
-        "raw_answers": parsed,
+        "raw_answers": read["parsed"],
         "model": model,
-        "usage": result.get("usage", {}),
-        "latency_ms": latency_ms,
+        "usage": read["result"].get("usage", {}),
+        "latency_ms": read["latency_ms"],
         "request": {
             "model": model,
-            "messages": messages,
+            "messages": read["messages"],
         },
     }
+    if extra:
+        out.update(extra)
+    return out
+
+
+def choose(
+    state: dict,
+    goal: str,
+    history: list[dict],
+) -> dict:
+    actions = state.get("actions", [])[:30]
+
+    base_url = _env(
+        "DECIDER_2B_BASE_URL",
+        required=True,
+    )
+
+    model = _env(
+        "DECIDER_2B_MODEL",
+        "decider-2b",
+    )
+
+    api_key = _env(
+        "DECIDER_2B_API_KEY",
+        "",
+    )
+
+    system = _load_prompt("next_action.txt")
+
+    first = _read_once(
+        actions,
+        state,
+        goal,
+        history,
+        base_url=base_url,
+        model=model,
+        api_key=api_key,
+        system=system,
+    )
+
+    # L0 旋转（AnyJev，见 anyjev_rotation）：候选的**先后**会影响答案（上游实测 raw
+    # 顺序翻转率 0.230），把候选循环移位各问一遍即可精确抵消位置偏置。只对"选某个
+    # 元素"的决策有意义 —— DONE/BLOCKED 没有位置可换，首轮给出就直接采纳。
+    # 默认关闭（DECIDER_ROTATION 未设 = 0）；打开后每步多花 1..S-1 次 decider 调用。
+    try:
+        shifts = int(os.environ.get("DECIDER_ROTATION", "0"))
+    except ValueError:
+        shifts = 0
+    if shifts <= 1 or first["choice"] in SENTINELS:
+        return _to_decision(first, model=model)
+
+    index_of = {a.get("id"): i for i, a in enumerate(actions)}
+    base_pos = index_of.get(first["choice"])
+    seen: dict[int, dict] = {}
+    if base_pos is not None:
+        seen[base_pos] = first
+    identity = list(range(len(actions)))
+
+    def read_one(order: list[int]) -> int | None:
+        if order == identity:
+            return base_pos               # 原序那一轮 = 首轮，复用，不重复调用
+        permuted = [actions[i] for i in order]
+        r = _read_once(
+            permuted,
+            state,
+            goal,
+            history,
+            base_url=base_url,
+            model=model,
+            api_key=api_key,
+            system=system,
+        )
+        if r["choice"] in SENTINELS:
+            return None                   # 这一轮改判哨兵 → 弃权，不投票
+        pos = index_of.get(r["choice"])
+        if pos is None:
+            return None
+        seen.setdefault(pos, r)
+        return pos
+
+    winner, info = rotate_vote(
+        len(actions),
+        read_one,
+        shifts=shifts,
+        threshold=float(
+            os.environ.get("DECIDER_ROTATION_MARGIN", DEFAULT_LOG_MARGIN)
+        ),
+    )
+
+    chosen = seen.get(winner) if winner is not None else None
+    return _to_decision(chosen or first, model=model, extra={"rotation": info})
 
 
 # ---------------------------------------------------------------------------

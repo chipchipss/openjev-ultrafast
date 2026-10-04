@@ -245,6 +245,7 @@ class Logger:
             "operation_confidence", "target_confidence", "confidence",
             "model", "latency_ms", "usage",
             "fingerprint", "elapsed_ms", "rejected",
+            "skill",                       # M16 技能层：命中时记录技能名（诊断/归因用）
         )
         out = {k: d[k] for k in keys if k in d}
         if "probabilities" in d:

@@ -1,7 +1,13 @@
 ﻿param(
     [string]$Version = "",
     [int]$TaskDelay = 3,
-    [switch]$SkipClean
+    [switch]$SkipClean,
+    [string]$DeciderModel = "Mapika/decider-2b",
+    [string]$Fp8 = "0",
+    [string]$TextHelper = "groq",
+    # ExternalDecider: 决策服务已在 8000 上跑着（如 decider.serve_4bit），本脚本不再加载模型。
+    # 不加这个开关而 8000 已被占用时，第二个 uvicorn 会把同一份权重再加载一份进显存/内存。
+    [switch]$ExternalDecider
 )
 
 # ═══════════════════════════════════════════════════════════════════
@@ -16,22 +22,27 @@ $PythonDecider= "$DeciderDir\.venv\Scripts\python.exe"
 
 # Decider env (must be set BEFORE Start-Process so child inherits them)
 $DeciderEnv = @{
-    "DECIDER_MODEL"   = "Mapika/decider-2b"
+    "DECIDER_MODEL"   = $DeciderModel
     "HF_HUB_OFFLINE"  = "1"
     "USE_TF"          = "0"
     "DECIDER_COMPILE" = "0"
-    "DECIDER_FP8"     = "0"
+    "DECIDER_FP8"     = $Fp8
 }
 
 # Benchmark env
+$helperUrl = "https://api.groq.com/openai/v1"; $helperModel = "openai/gpt-oss-120b"; $helperKey = $env:GROQ_API_KEY
+if ($TextHelper -eq "deepseek") {
+    $helperUrl = "https://api.deepseek.com/v1"; $helperModel = "deepseek-chat"; $helperKey = $env:DEEPSEEK_API_KEY
+}
 $BenchEnv = @{
     "DECIDER_MODE"          = "typesafe"
     "PYTHONUTF8"            = "1"
     "TYPESAFE_BASE_URL"     = "http://127.0.0.1:8000/v1/systemone"
     "TYPESAFE_API_KEY"      = "local"
-    "TEXT_HELPER_BASE_URL"  = "https://api.deepseek.com/v1"
-    "TEXT_HELPER_MODEL"     = "deepseek-chat"
-    "TEXT_HELPER_API_KEY"   = $env:DEEPSEEK_API_KEY
+    "TEXT_HELPER_BASE_URL"  = $helperUrl
+    "TEXT_HELPER_MODEL"     = $helperModel
+    "TEXT_HELPER_API_KEY"   = $helperKey
+    "HTTPX_PROXY"           = "http://127.0.0.1:2080"
 }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -53,8 +64,8 @@ function Wait-Url($url, $maxSec = 60, $intervalSec = 2) {
 #  MAIN
 # ═══════════════════════════════════════════════════════════════════
 if (-not $Version) { $Version = "v" + (Get-Date -Format "MMdd-HHmm") }
-$ReportPath = "$Repo\reports\m1-decider2b-$Version.json"
-$LogDir     = "$Repo\logs\m1-decider2b-$Version"
+$ReportPath = "$Repo\reports\m1-$($DeciderModel -replace '[/\\.]','-')-$Version.json"
+$LogDir     = "$Repo\logs\m1-$($DeciderModel -replace '[/\\.]','-')-$Version"
 
 $deciderProc = $null
 $exitCode = 0
@@ -103,24 +114,30 @@ try {
     Ok "CDP ready"
 
     # ── 5. Start decider-2B ───────────────────────────────────────
-    Log "Step 5: start decider-2B (8000)"
-    if (-not (Test-Path "$Repo\logs")) { New-Item -ItemType Directory "$Repo\logs" -Force | Out-Null }
+    if ($ExternalDecider) {
+        Log "Step 5: use external decider on 8000 (no local load)"
+        if (-not (Wait-Url "http://127.0.0.1:8000/health" 10 2)) { Fail "external decider not answering /health on 8000" }
+        Ok "external decider ready"
+    } else {
+        Log "Step 5: start decider ($DeciderModel, fp8=$Fp8) on 8000"
+        if (-not (Test-Path "$Repo\logs")) { New-Item -ItemType Directory "$Repo\logs" -Force | Out-Null }
 
-    # Set decider env in current session so Start-Process inherits them
-    foreach ($k in $DeciderEnv.Keys) { Set-Item -Path "env:$k" -Value $DeciderEnv[$k] }
+        # Set decider env in current session so Start-Process inherits them
+        foreach ($k in $DeciderEnv.Keys) { Set-Item -Path "env:$k" -Value $DeciderEnv[$k] }
 
-    $deciderProc = Start-Process $PythonDecider `
-        -ArgumentList "-m","uvicorn","decider.serve:app","--host","0.0.0.0","--port","8000" `
-        -WorkingDirectory $DeciderDir `
-        -WindowStyle Hidden -PassThru `
-        -RedirectStandardOutput "$Repo\logs\decider_stdout.log" `
-        -RedirectStandardError  "$Repo\logs\decider_stderr.log"
+        $deciderProc = Start-Process $PythonDecider `
+            -ArgumentList "-m","uvicorn","decider.serve:app","--host","0.0.0.0","--port","8000" `
+            -WorkingDirectory $DeciderDir `
+            -WindowStyle Hidden -PassThru `
+            -RedirectStandardOutput "$Repo\logs\decider_stdout.log" `
+            -RedirectStandardError  "$Repo\logs\decider_stderr.log"
 
-    Log "  decider pid $($deciderProc.Id), waiting for /health..."
-    if (-not (Wait-Url "http://127.0.0.1:8000/health" 120 3)) {
-        Fail "decider not ready after 120s (see $Repo\logs\decider_stderr.log)"
+        Log "  decider pid $($deciderProc.Id), waiting for /health..."
+        if (-not (Wait-Url "http://127.0.0.1:8000/health" 120 3)) {
+            Fail "decider not ready after 120s (see $Repo\logs\decider_stderr.log)"
+        }
+        Ok "decider ready (pid $($deciderProc.Id))"
     }
-    Ok "decider ready (pid $($deciderProc.Id))"
 
     # ── 6. Set benchmark env ──────────────────────────────────────
     Log "Step 6: set benchmark env"

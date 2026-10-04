@@ -40,7 +40,7 @@ def _user_prompt(goal: str, rendered: str, row: dict | None = None) -> str:
     marker = "\nOperations:"
     if marker in rendered:
         elems, ops = rendered.split(marker, 1)
-        ops_block = "Available operations:" + ops.strip()
+        ops_block = "Available operations:\n" + ops.strip()
         elems_block = "Elements:\n" + elems.strip()
     else:  # 容错：无 Operations 块则整段当 Elements
         ops_block = ""
@@ -122,10 +122,18 @@ def _rows(path: Path, origin: str, skipped: dict) -> list[dict]:
 
 
 def main() -> None:
-    OUT.mkdir(parents=True, exist_ok=True)
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--samples", default=str(ROOT / "samples_final"),
+                    help="含 a_positive.jsonl / c_pairs.jsonl 的目录（默认 samples_final）")
+    ap.add_argument("--out", default=str(OUT), help="输出目录（默认 m4a/data）")
+    args = ap.parse_args()
+    samples_dir = Path(args.samples)
+    out_dir = Path(args.out)
+    out_dir.mkdir(parents=True, exist_ok=True)
     skipped = {"a_positive": 0, "c_pairs": 0}
-    rows = _rows(ROOT / "samples_final/a_positive.jsonl", "a_positive", skipped)
-    rows += _rows(ROOT / "samples_final/c_pairs.jsonl", "c_pairs", skipped)
+    rows = _rows(samples_dir / "a_positive.jsonl", "a_positive", skipped)
+    rows += _rows(samples_dir / "c_pairs.jsonl", "c_pairs", skipped)
 
     # --- 按 task_id 隔离切分（单域 → 域级隔离退化为任务级）---
     # hv（fp_rate>0.3）任务**强制入 train**（docs: "仍进集, M6 优先处理"=训练队列
@@ -145,7 +153,7 @@ def main() -> None:
     val = [r for r in rows if r["meta"]["task_id"] in val_tasks]
 
     for name, part in (("train", train), ("val", val)):
-        with (OUT / f"{name}.jsonl").open("w", encoding="utf-8") as f:
+        with (out_dir / f"{name}.jsonl").open("w", encoding="utf-8") as f:
             for r in part:
                 f.write(json.dumps(r, ensure_ascii=False) + "\n")
 
@@ -191,7 +199,7 @@ def main() -> None:
             "c_pairs 的 target_confidence = api_confidence 行级近似（shadow chosen 未存 tc）",
         ],
     }
-    (OUT / "report_base.json").write_text(
+    (out_dir / "report_base.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report["counts"], ensure_ascii=False))
     print("split:", report["split"]["unit"],

@@ -8,15 +8,17 @@
 #   - 采集目标：Logger v2 样本（page/history 快照齐全）
 param(
     [int]$Rounds = 12,          # 过夜目标：30 任务 × 12 轮 ≈ 360 任务轮
-    [int]$TaskDelaySec = 2
+    [int]$TaskDelaySec = 2,
+    [string]$Tag = "m4b-r1"     # 输出目录/报告标签（轮 2 传 -Tag m4b-r2）
 )
-$ErrorActionPreference = "Continue"
+ $ErrorActionPreference = "Continue"
 $py = "C:\Users\Administrator\miniconda3\envs\jev\python.exe"
 $root = "C:\Users\Administrator\openjev-ultrafast"
 Set-Location $root
 
 # ---- 环境统一（与 run_s004_history_test.ps1 同源）----
 $env:DECIDER_MODEL   = "Mapika/decider-2b"
+$env:HF_HOME         = "D:\openjev-models\hf"   # 权重统在 D 盘（用户级 env 未必传到子进程，显式设）
 $env:HF_HUB_OFFLINE  = "1"
 $env:USE_TF          = "0"
 $env:DECIDER_COMPILE = "0"
@@ -67,10 +69,10 @@ Start-Sleep 3
 # ---- 3. 轮次采集 ----
 $stamp = Get-Date -Format "yyyyMMdd-HHmm"
 for ($r = 1; $r -le $Rounds; $r++) {
-    $logDir = "logs/m4b-r1/r$r"
+    $logDir = "logs/$Tag/r$r"
     Log "=== round $r/$Rounds -> $logDir ==="
     & $py -m m1.run_tasks --tasks m2/tasks_extra_8766.jsonl --log-dir $logDir `
-        --report "reports/m4b-r1-round$r.json" 2>&1 | Select-Object -Last 6
+        --report "reports/$Tag-round$r.json" 2>&1 | Select-Object -Last 6
     # CDP 健康复位（每轮之间杀 chrome 重启，防会话累积劣化）
     Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -EA SilentlyContinue }
     Start-Sleep $TaskDelaySec
@@ -78,8 +80,8 @@ for ($r = 1; $r -le $Rounds; $r++) {
 
 # ---- 4. 抽样 + 晨报 ----
 Log "extracting samples (Logger v2 fields)..."
-& $py -m m2.sample_extractor --logs logs/m4b-r1 --tasks m2/tasks_extra_8766.jsonl --out "samples/m4b-r1" 2>&1 | Select-Object -Last 10
-Log "=== DONE. samples/m4b-r1/manifest.json is the morning report ==="
+& $py -m m2.sample_extractor --logs logs/$Tag --tasks m2/tasks_extra_8766.jsonl --out "samples/$Tag" --benchmark-domains config/no_benchmark_domains.txt 2>&1 | Select-Object -Last 10
+Log "=== DONE. samples/$Tag/manifest.json is the morning report ==="
 
 # ---- 清理 ----
 if ($decider) { Stop-Process -Id $decider.Id -Force -EA SilentlyContinue }

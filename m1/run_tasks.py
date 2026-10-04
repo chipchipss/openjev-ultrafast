@@ -62,7 +62,7 @@ def _reset_cdp() -> None:
     """
     import subprocess
     import platform
-    from browser_harness.admin import ensure_daemon
+    from jev_ultrafast.browser import _ensure_daemon
     system = platform.system()
     if system != "Windows":
         return
@@ -78,7 +78,7 @@ def _reset_cdp() -> None:
                           "about:blank"],
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(5)
-        ensure_daemon()
+        _ensure_daemon()
     except Exception as e:
         print(f"    [cdp-reset] warn: {type(e).__name__}: {e}")
 

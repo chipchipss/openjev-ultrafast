@@ -1,0 +1,14 @@
+{
+  "source_rows": 655,
+  "variants_per_row": 4,
+  "made": 2468,
+  "skipped_rows": 38,
+  "train": 2204,
+  "val": 264,
+  "val_tasks": [
+    "l006",
+    "s007"
+  ],
+  "conf_neutral": 0.5,
+  "seed": 20260929
+}
