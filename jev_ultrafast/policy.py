@@ -52,9 +52,13 @@ SENTINELS = frozenset({"DONE", "BLOCKED"})
 # ---------------------------------------------------------------------------
 
 IRREVERSIBLE_BLACKLIST = (
-    # 支付
+    # 支付。不可逆的是**交易**（扣款/下单），不是"提交表单"本身。
+    # "submit order" 已移出：它是表单动词，在 httpbin.org/forms/post 这类演示表单上
+    # 就是普通提交（f002 实况——Policy 拦下 "Submit order"，agent 正确填完表却
+    # 无法收口，整任务判 correct_abandon）。真实电商的不可逆面仍由
+    # place order / confirm order / checkout / buy now / pay now / purchase now 覆盖。
     "pay now", "confirm payment", "buy now", "checkout",
-    "place order", "confirm order", "submit order", "purchase now",
+    "place order", "confirm order", "purchase now",
     "确认付款", "立即支付", "立即购买", "提交订单", "确认订单", "立即下单",
     # 删除
     "delete account", "delete permanently", "remove account",
