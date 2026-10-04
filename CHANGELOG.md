@@ -11,21 +11,28 @@
 ### Status（实测，19 任务集 = m1/tasks.jsonl 去掉 s001）
 
 **生产配置第一次拿到有效基线**（裸 decider-2b / typesafe wire，一任务一进程，
-预检 9/9 域全通过）：**16 PASS / 2 FAIL / 0 ERROR over 18，`false_positive = 0`，5.8 分钟。**
+预检 9/9 域全通过）：**17 PASS / 1 FAIL / 0 ERROR over 18，`false_positive = 0`。**
 
-对照 `m1-final3.json` 在同一 18 个任务上的读数：**3 胜 1 负**（`f001`/`f002`/`l002`
-由 FAIL 转 PASS，`f004` 由 PASS 转 FAIL）。
+**方差**：同一份冻结代码连续三轮读数 **16 / 17 / 15**，`false_positive` 全为 0。
+逐任务看：**14 个稳定 PASS**，`f001` / `n004` / `l002` 各 2/3，`x001` 曾是稳定 FAIL
+（断言本身不可能满足，已重写）。所以这个基准带 **±1** 抖动，**单次读数不能当分数**。
 
-剩余 2 个失败：`f004`（`form_submit` 不等「选 size」就提交，见下）
-与 `x001`（`example.invalid`，已知评测器缺陷 —— chrome-error 页文本断言取不到，
-非能力缺口）。`t002` 仍是唯一 harness 缺口（18/19 确认）。
+剩余 1 个失败 `l002`（Wikipedia 列表页 + 滚动，2/3 通过）：轨迹显示
+`search_submit` 落到搜索结果页后 `goal_reached` 连续发了 5 次 DONE 并被 DoneGuard
+拒收（这步是对的 —— 结果页不等于到达），但真正到达文章页后 `goal_reached` 不再触发，
+模型随即点 "Hide Appearance"、"categories" 跑偏到 `Wikipedia:Categorizing_redirects`。
+**成因未查清**，记为已知缺口。
 
 | 模型 | 结果 | false_positive | 失败特征 |
 |---|---|---|---|
-| **decider-2b（裸，本轮）** | **16/18** | 0 | — |
+| **decider-2b（裸，本轮）** | **17/18** | 0 | — |
 | decider-2b + adapter_m4b | 8/15（基线同批 12/15） | 0 | 无增益，0 胜 4 负 |
 | Laya v17s (322M) | 6/18 | 0 | `model_calls ≫ steps`，反复输出终止操作 |
 | agent-jev 0.6B | 3/18 | 0 | 12/18 是 system crash，`model_calls=0` |
+
+**云端依赖：0。** 18 个任务 `api_calls = 0`，103 次本地模型调用。技能层直接从
+目标里取值（"from Zurich"、"on October 25"），text helper 根本没被触发。
+`.env` 里的 Groq 免费档只是目标未给出字面值时的兜底，不是依赖。
 
 ### Added
 - **技能 `goto_path`**：goal 里明写路径（"Go to /forms/post"）+ 页面上**唯一**同
