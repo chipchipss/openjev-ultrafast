@@ -3,6 +3,7 @@
 import json
 import math
 import os
+import re
 import time
 import urllib.request
 
@@ -87,6 +88,21 @@ def action_space(actions):
         group[target] = action
     return elements, targets, controls
 
+# M16：展开/多选类控件是"同形诱饵"（与目标字段同 role 同位置，但语义是展开更多）。
+_EXPANSION_RE = re.compile(
+    r"\belse\b|select multiple|multiple airports|nearby airports|toggle nearby"
+    r"|more options|add another|advanced",
+    re.I,
+)
+# M16b：破坏性控件（Reset / Clear / Delete…）。点了会清空已填好的表单，
+# 且往往看起来像个普通按钮（Flights v18 实况：模型连点 3 次 Reset，
+# 把已填好的出发地/目的地/日期全清掉 → 全项检查 false）。
+_DESTRUCTIVE_RE = re.compile(
+    r"\breset\b|\bclear\b|\bdelete\b|\bremove\b|\btrash\b|start over",
+    re.I,
+)
+
+
 def _element_score(e, new_nodes=None):
     """候选元素排序权重：可输入控件 > 按钮 > 其他 > 链接；新出现 node 加显著 bonus。
 
@@ -96,6 +112,11 @@ def _element_score(e, new_nodes=None):
     NEW_NODE_BOOST——autocomplete 建议/弹层是"世界刚提供的选项"，
     s002 实况：填入后建议项埋在 25 个元素里，2B 看不见。
     env M15_NEW_NODE_BOOST=0 关闭（默认 120：搜索框 100 < 新建议 220）。
+    M16：展开/多选类控件（"Where else?"、"Select multiple airports"、"Add another"
+    等）是诱饵——它们与目标字段同形但语义是"展开更多"，2B 常误选
+    （Flights 实况：模型把 "Where else?" 当成目的地字段）。给负权把它们压到
+    链接之下，但保留在候选里（不删，避免改变世界）。
+    env M16_EXPANSION_PENALTY=0 关闭（默认 150）。
     """
     score = 0
     role = e.get("role", "")
@@ -105,8 +126,10 @@ def _element_score(e, new_nodes=None):
         score = 50
     elif role == "link":
         score = -10
-    if new_nodes and e.get("node") is not None and str(e["node"]) in new_nodes:
-        score += int(os.environ.get("M15_NEW_NODE_BOOST", "120"))
+    if _EXPANSION_RE.search(e.get("label") or ""):
+        score -= int(os.environ.get("M16_EXPANSION_PENALTY", "150"))
+    if _DESTRUCTIVE_RE.search(e.get("label") or ""):
+        score -= int(os.environ.get("M16_DESTRUCTIVE_PENALTY", "200"))
     return score
 
 
@@ -368,8 +391,69 @@ def _laya_provider(state, goal, history):
 
 register_provider("laya", _laya_provider)
 
+# Laya 前置 + decider 回退：Laya 是 encoder 单前向（实测 32ms/步），decider-2B 是
+# 自回归（实测 3.3~4.0s/步，慢 ~110×）。先问 Laya；它抛错 / 决策结构非法 / 置信度
+# 低于阈值时才回退 decider。
+# 为什么必须先校验再返回：agent 侧对非法决策走 StalePage 重试，而重试会再问同一个
+# provider —— 这里放行非法决策就等于让同一个坏决策死循环（缺陷#18 同款教训）。
+# 用 DECIDER_MODE=laya_decider 启用。
+LAYA_MIN_CONF = float(os.environ.get("LAYA_MIN_CONF", "0.5"))
+# 被 decider 否决过一次哨兵的 goal → 整轮降级为 decider-only（见下方注释）。
+# 按 goal 记而不是全局单标志：一个进程一个 task（runner 就是这样跑的），但按 goal
+# 记更稳——将来一个进程跑多 task 时不会互相污染。
+_DEMOTED_GOALS: set = set()
+
+
+def _laya_then_decider(state, goal, history):
+    if goal in _DEMOTED_GOALS:
+        return _typesafe_provider(state, goal, history)
+    d = None
+    try:
+        d = _laya_provider(state, goal, history)
+    except Exception:
+        d = None
+    if isinstance(d, dict):
+        try:
+            from .decision_validator import validate as _validate
+            ok = _validate(d, state).valid
+        except Exception:
+            ok = False
+        conf = d.get("confidence")
+        # DONE/BLOCKED 决定整轮结束，不吃前置：交 decider 复核。
+        # 依据（wiki-laya-v1~v3 实测）：laya 在**空搜索页**上以 conf=0.7395 判 DONE，
+        # 0.5 门槛直接放行 → 3 步收口、目标 URL 没拿到；而 decider 同任务基线 20 步达成。
+        # 置信度阈值挡不住"自信的错判"，规则性门槛才挡得住。
+        serious = d.get("operation") in {"DONE", "BLOCKED"}
+        if ok and not serious and (conf is None or conf >= LAYA_MIN_CONF):
+            return d
+        if serious:
+            d2 = _typesafe_provider(state, goal, history)
+            # 复核被否决（decider 说的和前端不一样）→ 整轮降级，别让前端反复提同一个
+            # 哨兵（wiki-laya-v4 实况：22 次哨兵调用 / 229s，比纯 decider 的 138s 还慢）。
+            if d2.get("operation") != d.get("operation"):
+                _DEMOTED_GOALS.add(goal)
+            return d2
+    return _typesafe_provider(state, goal, history)
+
+
+register_provider("laya_decider", _laya_then_decider)
+
+# AgentJev-0.6B（aimeigaoshou/agent-jev，HTTP :8149，零解码单前向）：
+# DECIDER_MODE=agentjev 启用。延迟 import：服务未起时其他 provider 不受影响。
+def _agentjev_provider(state, goal, history):
+    from .decider.agentjev_provider import decide_agentjev
+    return decide_agentjev(state, goal, history)
+
+register_provider("agentjev", _agentjev_provider)
+
 def choose(state, goal, history):
     from .browser import StalePage
+    from . import skills
+    # M16：确定性技能层——goal 里字面可判的决策直接短路（省一次 2B 调用，
+    # 且确定性正确）。未命中一律回落模型，行为不变。
+    hit = skills.route(state, goal, history)
+    if hit is not None:
+        return hit
     try:
         result = decide(state, goal, history)
         return result
