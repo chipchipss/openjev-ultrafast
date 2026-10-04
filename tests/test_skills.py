@@ -765,6 +765,21 @@ def t_goal_reached_compound_nav_plus_scroll():
     assert S.goal_reached(there, pure, hist) is None, "纯滚动目标被误收口"
 
 
+@case("form_submit 不点 mailto:/tel: 链接（f001 实况：'Send email' 被当成提交按钮）")
+def t_form_submit_skips_non_http():
+    goal = "Fill in the form and submit it."
+    p = page([A(1, "click", "Send email to the developer", 11, href="mailto:me@example.com"),
+              A(2, "click", "Submit order", 12, role="button")],
+             url="https://httpbin.org/")
+    d = S.form_submit(p, goal, [{"step": 1, "kind": "fill", "choice": "e9", "action": "x"}])
+    assert d is not None and d["choice"] == "e2", f"选错了提交目标：{d}"
+    # 只有 mailto 候选时宁可不提交
+    only = page([A(1, "click", "Send email", 11, href="mailto:a@b.c")],
+                url="https://httpbin.org/")
+    assert S.form_submit(only, goal, [{"step": 1, "kind": "fill", "choice": "e9", "action": "x"}]) is None, \
+        "把 mailto 当成了提交按钮"
+
+
 def main():
     # Windows PowerShell 5.1 的控制台是 GBK，而用例名里有 'ö' 等非 GBK 字符
     # （v1.16 / 源码里的地名）。print 会抛 UnicodeEncodeError 并**中断整个套件**，

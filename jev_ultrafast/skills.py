@@ -793,6 +793,13 @@ def form_submit(page: dict, goal: str, history: list) -> dict | None:
     for index, a in _indexed(page.get("actions") or []):
         if a.get("kind") != "click":
             continue
+        # 非 http(s) 目标永远不可能是表单提交。SUBMIT_WORDS 含 "send"，
+        # 于是 httpbin 首页的 "Send email to the developer"（mailto: 链接）
+        # 被当成交付按钮连点 3 次（f001 实况：steps=1，点到页脚后 correct_abandon）。
+        # 与其不断扩充 SUBMIT_WORDS，不如按协议排除——这条判据是封闭的。
+        _h = (a.get("href") or "").strip().lower()
+        if _h and not (_h.startswith("http") or _h.startswith("/")):
+            continue
         lab_n = " ".join(_tokens(a.get("label") or ""))
         if not lab_n or lab_n.startswith("open"):
             continue                       # 开合开关（"Open ..."）不是提交

@@ -1,0 +1,51 @@
+{
+  "summary": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "true_success": 1
+    },
+    "failure_modes": {},
+    "agent_modes": {},
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "f004",
+      "result": {
+        "task_id": "f004",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://httpbin.org/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "size"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 6,
+          "model_calls": 7,
+          "api_calls": 0,
+          "elapsed_ms": 4633
+        }
+      }
+    }
+  ]
+}
