@@ -165,6 +165,21 @@ try {
     }
     Get-Process chrome, msedge, chromium -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
     Start-Sleep 3
+    # Reap orphaned browser_harness daemons. One task per process spawns one
+    # daemon per task, and nothing exits them: a 19-task run leaked 18 of them
+    # (~40MB each) because the kill regex above did not match
+    # "browser_harness.daemon". On a 16GB box that plus Chrome plus the 2.4GB
+    # decider is what turned a variance run into an OOM kill.
+    $reaped = 0
+    Get-Process python -EA SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object {
+        try { $cl = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)" -EA Stop).CommandLine
+              if ($cl -match "browser_harness") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue; $reaped++ } } catch {}
+    }
+    if ($reaped) { Log "  reaped $reaped orphaned browser_harness daemon(s)"; Start-Sleep 2 }
+    $os = Get-CimInstance Win32_OperatingSystem
+    $freeMB = [int]($os.FreePhysicalMemory / 1KB)
+    Log "  free memory: ${freeMB}MB"
+    if ($freeMB -lt 3000) { Die "only ${freeMB}MB free -- close other apps before benchmarking (16GB box, decider alone takes ~2.4GB)" }
     Remove-Item -Recurse -Force "$env:USERPROFILE\.config\browser-harness" -EA SilentlyContinue
     Ok "clean"
 
@@ -299,7 +314,7 @@ try {
     if ($svcProc -and -not $svcProc.HasExited) { Stop-Process -Id $svcProc.Id -Force -EA SilentlyContinue }
     Get-Process python -EA SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object {
         try { $cl = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)" -EA Stop).CommandLine
-              if ($cl -match "run_tasks|decider|serve|uvicorn|jev_service") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
+              if ($cl -match "run_tasks|decider|serve|uvicorn|jev_service|browser_harness") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
     }
     Get-Process chrome -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
     Start-Sleep 7

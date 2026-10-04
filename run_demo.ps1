@@ -159,7 +159,7 @@ try {
         if ($svcProc -and -not $svcProc.HasExited) { Stop-Process -Id $svcProc.Id -Force -EA SilentlyContinue }
         Get-Process python -EA SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object {
             try { $cl = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)" -EA Stop).CommandLine
-                  if ($cl -match "run_flights|decider\.serve|uvicorn") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
+                  if ($cl -match "run_flights|decider\.serve|uvicorn|browser_harness") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
         }
         Get-Process chrome -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
         Start-Sleep 7
