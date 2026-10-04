@@ -2,7 +2,15 @@
 
 一个跨平台、模型无关、可观测的 Browser Agent 框架。
 
-**Google Flights 端到端任务:13.6s**(本地 2B 决策模型 + Groq 文本 helper,零训练,详见[实验数据](#实验数据))。
+**Google Flights 端到端任务:10.4s**(本地 2B 决策模型,**零云端调用**,7 项独立校验全过)。
+
+```powershell
+.\run_demo.ps1                      # 一条命令跑通上面这个任务
+.\run_demo.ps1 -Task wikipedia       # 另一个 demo(1.4s)
+.\run_demo.ps1 -KeepOpen             # 跑完不关浏览器,自己看
+```
+
+M1 基准(19 任务集):**16/18,`false_positive = 0`**,全程本地,整轮 5.8 分钟。
 
 ## 这是什么
 
