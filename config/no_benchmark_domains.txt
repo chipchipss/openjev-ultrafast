@@ -1,0 +1,2 @@
+# M4b 测试站任务集 = 训练域，无 benchmark 域。
+# extract CLI: --benchmark-domains 此文件（空集；不传则默认取 --tasks 的全部域）
