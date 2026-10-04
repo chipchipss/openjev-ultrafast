@@ -749,6 +749,22 @@ def t_select_option_radio_group():
     assert S.select_option(page([A(1, "click", "Submit order", 11)], goal), goal, []) is None
 
 
+@case("复合目标（导航+滚动）：导航达成即可收口（l002 实况：已达正确文章却跑偏）")
+def t_goal_reached_compound_nav_plus_scroll():
+    goal = ("Open the Wikipedia 'List of countries by population' article and "
+            "scroll to the table.")
+    hist = [{"step": 1, "kind": "click", "choice": "e22",
+             "action": "List of countries by population", "outcome": {"url_changed": True}}]
+    there = {"url": "https://en.wikipedia.org/wiki/List_of_countries_by_population",
+             "title": "List of countries by population - Wikipedia",
+             "text": "This list ...", "actions": []}
+    d = S.goal_reached(there, goal, hist)
+    assert d and d["operation"] == "DONE", f"已站在目标文章上却不能收口：{d}"
+    # 纯滚动目标不受影响：仍然让位给 stop_when_visible
+    pure = "Scroll down the front page until you see at least 20 story links."
+    assert S.goal_reached(there, pure, hist) is None, "纯滚动目标被误收口"
+
+
 def main():
     # Windows PowerShell 5.1 的控制台是 GBK，而用例名里有 'ö' 等非 GBK 字符
     # （v1.16 / 源码里的地名）。print 会抛 UnicodeEncodeError 并**中断整个套件**，

@@ -233,7 +233,16 @@ def goal_reached(page: dict, goal: str, history: list) -> dict | None:
     if re.search(r"\b(delete|remove|destroy|permanently|book|buy|purchase|order)\b",
                  goal or "", re.I):
         return None
-    if re.search(r"\bscroll\b", goal or "", re.I):
+    if re.search(r"\bscroll\b", goal or "", re.I) and \
+            not re.search(r"\b(open|navigate|go to|visit|reach)\b", goal or "", re.I):
+        # 只在**纯滚动**目标上整体让位：那种目标「到达页面」确实不等于完成，
+        # 要靠 stop_when_visible 收口。
+        #
+        # 目标**同时**要求导航和滚动时，导航那半段达成就该能收口。l002 实况：
+        # "Open the Wikipedia 'List of countries by population' article and scroll to
+        # the table" —— agent 第 3 步已点进正确文章（final_url 一度正确），但这个
+        # 守卫让它永远产不出 DONE，于是继续乱点（点了 "Hide Appearance"、"categories"）
+        # 跑偏到 Wikipedia:Categorizing_redirects，把一个已达成的任务判失败。
         return None
     # 目标里"要填进去的值"全部出现在页面文本上 → 已经达成。
     # _phrases 故意跳过 "with 'X'" 形式的引号串（当值不当目标），于是
