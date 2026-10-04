@@ -12,6 +12,9 @@ samples_final/
 # 训练产物（本地生成，二进制不走 git）
 m4a/output/
 m4a/adapter/
+# M4b 训练出的 LoRA adapter（2026-10-04）：5 个目录合计 248MB，
+# 且已实测无增益（8/15 vs 基线 12/15），不进版本库。
+m4a/adapter_*/
 
 # Python
 __pycache__/
@@ -47,6 +50,8 @@ m4a/run_m1.ps1
 m1/tasks-3.jsonl
 m1/tasks-*.jsonl
 !m1/tasks.jsonl
+# 对照用的 19 任务集（2026-10-04 起是四路模型对照的唯一基准，需入库）
+!m1/tasks-laya-19.jsonl
 
 # Build/upload artifacts
 unsloth_compiled_cache/

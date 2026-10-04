@@ -16,7 +16,17 @@ import httpx
 
 # Optional egress proxy (env HTTPX_PROXY). Groq 等 endpoint 在部分网络下
 # 需要走本地代理；未设置时行为不变。
-_CLIENT = httpx.Client(timeout=60.0, proxy=os.environ.get("HTTPX_PROXY") or None)
+#
+# 关键：回环端点（本地 decider / laya-serve / 自托管 :8000）绝不能走出口代理。
+# 否则本地模型服务在线也会连接被拒（WinError 10061），并退避重试 6 次
+# （≈224s/任务），表现为「模型极慢 + 全部 correct_abandon + steps=0」——
+# 实为代理不可用，不是模型或框架问题（2026-10-04 adapter 对照实测）。
+_PROXY = os.environ.get("HTTPX_PROXY") or None
+_CLIENT = httpx.Client(
+    timeout=60.0,
+    proxy=_PROXY,
+    mounts={"all://127.0.0.1": None, "all://localhost": None} if _PROXY else {},
+)
 
 _RETRYABLE = frozenset({429, 529, 503})
 
@@ -31,8 +41,13 @@ def post_chat(
     response_format: dict | None = None,
     temperature: float | None = None,
     max_retries: int = 6,
+    extra_body: dict | None = None,
 ) -> tuple[dict, int]:
-    """POST {base_url}/chat/completions。返回 (response_json, latency_ms)。"""
+    """POST {base_url}/chat/completions。返回 (response_json, latency_ms)。
+
+    extra_body：provider 专有参数透传（如本地端点的 reasoning_effort）。
+    最后合并，可覆盖上面任何字段——换端点不必改代码。
+    """
     url = base_url.rstrip("/") + "/chat/completions"
     body: dict = {"model": model, "messages": messages, "max_tokens": max_tokens}
     if response_format is not None:
@@ -44,8 +59,12 @@ def post_chat(
     # 注意：thinking:{disabled} / enable_thinking:false 在该端点反而会触发 thinking，禁用。
     # Groq 拒收 reasoning 字段（HTTP 400: property 'reasoning' is unsupported）——
     # 仅对非 groq 端点发送；gpt-oss 系默认无 thinking，输出即最终答案。
+    # 注意：该字段对部分端点（本地 :7863）无效但无害；真正的开关是
+    # extra_body 里的 reasoning_effort（见下）。
     if "api.groq.com" not in base_url:
         body["reasoning"] = {"enabled": False}
+    if extra_body:
+        body.update(extra_body)
     headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
 
     started = time.perf_counter()
