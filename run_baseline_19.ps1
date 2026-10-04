@@ -115,7 +115,13 @@ function Assert-SvcAlive($svcProc, $where) {
 }
 
 function Invoke-Task($taskFile, $reportPath, $tid) {
-    $so = "$env:TEMP\btask_out.log"; $se = "$env:TEMP\btask_err.log"
+    # Per-task log filenames. A shared name races with the previous task's
+    # just-exited process on Windows (its redirect handle can outlive it by a
+    # moment), and it destroys the evidence: t002 died instantly in one full run
+    # and its stderr was overwritten by the next task before anyone read it.
+    # The failing task's logs are also copied into the part dir, so a run can be
+    # diagnosed after the fact instead of re-run blind.
+    $so = "$env:TEMP\btask_${tid}_out.log"; $se = "$env:TEMP\btask_${tid}_err.log"
     Remove-Item $so, $se -EA SilentlyContinue
     $p = Start-Process -FilePath $PythonJev `
         -ArgumentList @("-m","m1.run_tasks","--tasks",$taskFile,"--log-dir","$PartDir\logs\$tid","--report",$reportPath,"--task-delay","$TaskDelay") `
@@ -124,6 +130,16 @@ function Invoke-Task($taskFile, $reportPath, $tid) {
     if (-not $p.HasExited) {
         Warn "task exceeded ${TaskTimeoutSec}s -- killing pid $($p.Id)"
         Stop-Process -Id $p.Id -Force -EA SilentlyContinue; Start-Sleep 3; return $false
+    }
+    if (-not (Test-Report $reportPath) -and (Test-Path $se)) {
+        New-Item -ItemType Directory -Force -Path "$PartDir\failed" | Out-Null
+        Copy-Item $so, $se "$PartDir\failed\" -Force -EA SilentlyContinue
+        Rename-Item "$PartDir\failed\$($tid)_out.log" "${tid}.out.log" -Force -EA SilentlyContinue
+        Rename-Item "$PartDir\failed\$($tid)_err.log" "${tid}.err.log" -Force -EA SilentlyContinue
+        $ranMs = ((Get-Date) - $p.StartTime).TotalMilliseconds
+        if ($ranMs -lt 5000) {
+            Warn "$tid died instantly (${ranMs}ms, no TaskResult) -- startup crash, not a page problem; see $PartDir\failed\"
+        }
     }
     return $true
 }
