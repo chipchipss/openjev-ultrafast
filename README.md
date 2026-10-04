@@ -93,11 +93,46 @@ Logger → Dataset → Benchmark
 
 ## 快速开始
 
-### 依赖
+### 用它干你自己的事（任意任务）
 
-- Python 3.11+
-- Chrome / Chromium(CDP 9222)
-- 一个 OpenAI 兼容模型端点或 decider-2B
+```powershell
+# 一次性启动后端（decider 模型 + Chrome）——只需跑一次
+.\run_demo.ps1 -Task wikipedia    # 或者任何一种启动方式；跑完服务会被清理
+
+# 然后手动把两个后端拉起来（也可以用 --start-chrome 让脚本自己拉 Chrome）
+```
+
+手动起后端：
+
+```powershell
+# 1) Chrome（走你的出口代理；不需要代理就去掉最后一个参数）
+& "C:\Program Files\Google\Chrome\Application\chrome.exe" --headless=new `
+  --remote-debugging-port=9222 --user-data-dir=C:\chrome-cdp-test `
+  --no-first-run --proxy-server=http://127.0.0.1:2080
+
+# 2) 本地决策模型（~1 分钟加载）
+D:\openjev-models\decider\.venv\Scripts\python.exe -m uvicorn decider.serve:app `
+  --host 0.0.0.0 --port 8000  (工作目录 D:\openjev-models\decider)
+```
+
+跑任意任务：
+
+```powershell
+cd C:\Users\Administrator\openjev-ultrafast
+C:\Users\Administrator\miniconda3\envs\jev\python.exe scripts\run_task.py `
+  --url https://en.wikipedia.org/ `
+  --goal "Open the article about the Apollo program" `
+  --expect "Apollo"
+
+# --expect 给「完成证据」：它会拿去匹配最终页面的 URL/正文，全中才算成功。
+# 不给就只报告状态。--headed 可以看着它操作，--start-chrome 让脚本自己拉 Chrome。
+```
+
+### 跑基准
+
+```bash
+# 一键(Windows):起 decider + 全环境隔离 + 跑 20 任务
+./run_s004_history_test.ps1
 
 ### 安装
 
