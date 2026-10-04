@@ -75,8 +75,17 @@ def _done_guard(decision: dict, state: dict) -> str | None:
         committed = any(h.get("outcome", {}).get("url_changed") for h in state["history"])
         if not committed:
             return "search goal without submission (no URL transition since input)"
-    # 规则 4：scroll / find 类任务，history 里必须有 scroll 动作
-    if any(w in goal_lower for w in ("scroll",)):
+    # 规则 4：scroll / find 类任务，history 里必须有 scroll 动作。
+    # 只对**纯滚动**目标成立。复合目标（"Open the Wikipedia 'List of countries
+    # by population' article and scroll to the table"）也含 scroll，若一并要求，
+    # DONE 会被**永久否决**：goal_reached 在到达文章页后正确地发 DONE，却被这条
+    # 规则挡掉（结果页上那 5 次被拒的 DONE 就是它），agent 于是永远收不了口，
+    # 继续乱点——l002 实况：点了 "Hide Appearance"、"categories"，跑偏到
+    # Wikipedia:Categorizing_redirects，一个已经达成的任务被判失败。
+    # 复合目标的滚动那半段由 scroll_to_target / stop_when_visible 负责推进，
+    # 到达目标页本身就该是可接受的收口。
+    if any(w in goal_lower for w in ("scroll",)) and \
+            not re.search(r"\b(open|navigate|go to|visit|reach)\b", state["goal"], re.I):
         has_scroll = any(h.get("kind") == "scroll" for h in state["history"])
         if not has_scroll:
             return "scroll goal without scroll action"

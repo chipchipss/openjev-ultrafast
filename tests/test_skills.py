@@ -780,6 +780,26 @@ def t_form_submit_skips_non_http():
         "把 mailto 当成了提交按钮"
 
 
+@case("复合目标（导航+滚动）的 DONE 不被规则 4 永久否决（l002 实况：跑偏）")
+def t_done_guard_compound_scroll_goal():
+    from jev_ultrafast.agent import _done_guard
+    goal = ("Open the Wikipedia 'List of countries by population' article and "
+            "scroll to the table.")
+    hist = [{"step": 1, "kind": "click", "choice": "e22",
+             "action": "List of countries by population",
+             "outcome": {"url_changed": True}}]
+    st = {"goal": goal, "history": hist,
+          "page": {"url": "https://en.wikipedia.org/wiki/List_of_countries_by_population",
+                   "title": "List of countries by population - Wikipedia", "text": ""}}
+    assert _done_guard({"operation": "DONE"}, st) is None, \
+        "复合目标已到达导航目标却仍被否决"
+    # 纯滚动目标：没有滚动动作就不许 DONE（l001 的原保护）
+    pure = {"goal": "Scroll down the front page until you see at least 20 story links.",
+            "history": [], "page": {"url": "https://news.ycombinator.com/",
+                                    "title": "HN", "text": ""}}
+    assert _done_guard({"operation": "DONE"}, pure) is not None, "纯滚动目标被误放行"
+
+
 def main():
     # Windows PowerShell 5.1 的控制台是 GBK，而用例名里有 'ö' 等非 GBK 字符
     # （v1.16 / 源码里的地名）。print 会抛 UnicodeEncodeError 并**中断整个套件**，
