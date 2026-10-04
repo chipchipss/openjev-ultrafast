@@ -11,17 +11,19 @@
 ### Status（实测，19 任务集 = m1/tasks.jsonl 去掉 s001）
 
 **生产配置第一次拿到有效基线**（裸 decider-2b / typesafe wire，一任务一进程，
-预检 9/9 域全通过）：**17 PASS / 1 FAIL / 0 ERROR over 18，`false_positive = 0`。**
+预检 9/9 域全通过）：**19/19 全部产出有效结果 —— 项目史上第一次。18 PASS / 1 FAIL，
+`false_positive = 0`，全程 74 步，`api_calls = 0`。**
 
 **方差**：同一份冻结代码连续三轮读数 **16 / 17 / 15**，`false_positive` 全为 0。
 逐任务看：**14 个稳定 PASS**，`f001` / `n004` / `l002` 各 2/3，`x001` 曾是稳定 FAIL
-（断言本身不可能满足，已重写）。所以这个基准带 **±1** 抖动，**单次读数不能当分数**。
+（断言本身不可能满足，已重写为 guard 语义）。所以这个基准带 **±1** 抖动，
+**单次读数不能当分数**。
 
-剩余 1 个失败 `l002`（Wikipedia 列表页 + 滚动，2/3 通过）：轨迹显示
-`search_submit` 落到搜索结果页后 `goal_reached` 连续发了 5 次 DONE 并被 DoneGuard
-拒收（这步是对的 —— 结果页不等于到达），但真正到达文章页后 `goal_reached` 不再触发，
-模型随即点 "Hide Appearance"、"categories" 跑偏到 `Wikipedia:Categorizing_redirects`。
-**成因未查清**，记为已知缺口。
+`t002` 的「harness 缺口」真相：任务文件里我手写的那一行有个多余的 `]`
+（char 260 处 JSON 非法），单任务临时文件解析失败、进程秒死 —— 四轮里它都因此
+没产出报告。修掉后 19/19。这也解释了同日 `merge_reports.py` 在 char 260 的崩溃。
+
+剩余 1 个失败：`n001`（Python 文档导航，今天 2/3，方差项）。
 
 | 模型 | 结果 | false_positive | 失败特征 |
 |---|---|---|---|
