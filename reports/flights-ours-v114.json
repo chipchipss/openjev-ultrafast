@@ -1,0 +1,223 @@
+{
+ "status": "blocked",
+ "wall_s": 3.31,
+ "steps": 11,
+ "n_decisions": 12,
+ "decision_lat_p50": 0,
+ "decision_lat_max": 576,
+ "final_url": "https://www.google.com/travel/flights?tfs=CBwQARocagwIAxIIL20vMDg5NjZyDAgDEggvbS8wNGpwbBocagwIAxIIL20vMDRqcGxyDAgDEggvbS8wODk2NkABSAFwAYIBCwj___________8BmAEB&tfu=KgIIAw&hl=en",
+ "history": [
+  {
+   "step": 1,
+   "kind": "fill",
+   "action": "Where from? ",
+   "text": "Zurich",
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 2,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 3,
+   "kind": "click",
+   "action": "Zürich, Switzerland",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 4,
+   "kind": "fill",
+   "action": "Where to? ",
+   "text": "London",
+   "page_changed": true,
+   "outcome": "url_changed"
+  },
+  {
+   "step": 5,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 6,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 7,
+   "kind": "click",
+   "action": "London, United Kingdom",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 8,
+   "kind": "click",
+   "action": "Change ticket type. Round trip",
+   "text": null,
+   "page_changed": true,
+   "outcome": "url_changed"
+  },
+  {
+   "step": 9,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 10,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 11,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  }
+ ],
+ "decisions": [
+  {
+   "i": 0,
+   "choice": "e15",
+   "skill": "entity_fill",
+   "operation": "TYPE_TEXT",
+   "target": "15",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 1,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 2,
+   "choice": "e4",
+   "skill": "entity_confirm",
+   "operation": "CLICK",
+   "target": "3",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 3,
+   "choice": "e17",
+   "skill": "entity_fill",
+   "operation": "TYPE_TEXT",
+   "target": "16",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 4,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 5,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 6,
+   "choice": "e4",
+   "skill": "entity_confirm",
+   "operation": "CLICK",
+   "target": "3",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 7,
+   "choice": "e12",
+   "skill": "trip_type",
+   "operation": "CLICK",
+   "target": "12",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 8,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 9,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 10,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 11,
+   "choice": "BLOCKED",
+   "skill": null,
+   "operation": "BLOCKED",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  }
+ ],
+ "target_date": "2026-10-22",
+ "verification": {
+  "passed": false,
+  "checks": {
+   "search_page": false,
+   "one_way": false,
+   "origin": false,
+   "destination": false,
+   "date": false,
+   "year": false,
+   "results": false
+  },
+  "visible_flights": []
+ }
+}

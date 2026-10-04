@@ -1,0 +1,305 @@
+{
+ "status": "done",
+ "wall_s": 19.53,
+ "steps": 14,
+ "n_decisions": 18,
+ "decision_lat_p50": 0,
+ "decision_lat_max": 5193,
+ "final_url": "https://www.google.com/travel/flights/search?tfs=CBwQAhojEgoyMDI2LTEwLTIxagwIAxIIL20vMDg5NjZyBwgBEgNTVE5AAUgBcAGCAQsI____________AZgBAg&hl=en",
+ "history": [
+  {
+   "step": 1,
+   "kind": "fill",
+   "action": "Where from? ",
+   "text": "Zurich",
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 2,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 3,
+   "kind": "click",
+   "action": "Zürich, Switzerland",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 4,
+   "kind": "fill",
+   "action": "Where to? ",
+   "text": "London",
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 5,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 6,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "url_changed"
+  },
+  {
+   "step": 7,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 8,
+   "kind": "click",
+   "action": "London Stansted Airport (STN)",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 9,
+   "kind": "click",
+   "action": "Change ticket type. Round trip",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 10,
+   "kind": "click",
+   "action": "One way",
+   "text": null,
+   "page_changed": true,
+   "outcome": "url_changed"
+  },
+  {
+   "step": 11,
+   "kind": "fill",
+   "action": "Departure",
+   "text": "October 21, 2026",
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 12,
+   "kind": "click",
+   "action": "Wednesday, October 21, 2026",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 13,
+   "kind": "click",
+   "action": "Done. Search for one-way flights, departing on October 21, 2026",
+   "text": null,
+   "page_changed": false,
+   "outcome": "no_effect"
+  },
+  {
+   "step": 14,
+   "kind": "click",
+   "action": "Search",
+   "text": null,
+   "page_changed": true,
+   "outcome": "url_changed"
+  }
+ ],
+ "decisions": [
+  {
+   "i": 0,
+   "choice": "e15",
+   "skill": "entity_fill",
+   "operation": "TYPE_TEXT",
+   "target": "15",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 1,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 2,
+   "choice": "e4",
+   "skill": "entity_confirm",
+   "operation": "CLICK",
+   "target": "3",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 3,
+   "choice": "e17",
+   "skill": "entity_fill",
+   "operation": "TYPE_TEXT",
+   "target": "16",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 4,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 5,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 6,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 7,
+   "choice": "e7",
+   "skill": "entity_confirm",
+   "operation": "CLICK",
+   "target": "6",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 8,
+   "choice": "e12",
+   "skill": "trip_type",
+   "operation": "CLICK",
+   "target": "12",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 9,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 10,
+   "choice": "e2",
+   "skill": "trip_type",
+   "operation": "CLICK",
+   "target": "2",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 11,
+   "choice": "e20",
+   "skill": "date_pick",
+   "operation": "TYPE_TEXT",
+   "target": "18",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 12,
+   "choice": "e25",
+   "skill": "date_pick",
+   "operation": "CLICK",
+   "target": "24",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 13,
+   "choice": "e42",
+   "skill": "date_pick",
+   "operation": "CLICK",
+   "target": "41",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 14,
+   "choice": "e5",
+   "skill": null,
+   "operation": "CLICK",
+   "target": "4",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 15,
+   "choice": "e22",
+   "skill": null,
+   "operation": "CLICK",
+   "target": "19",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 16,
+   "choice": "e22",
+   "skill": null,
+   "operation": "CLICK",
+   "target": "19",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 17,
+   "choice": "DONE",
+   "skill": "stop_when_visible",
+   "operation": "DONE",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  }
+ ],
+ "target_date": "2026-10-21",
+ "verification": {
+  "passed": false,
+  "checks": {
+   "search_page": true,
+   "one_way": true,
+   "origin": true,
+   "destination": false,
+   "date": true,
+   "year": true,
+   "results": true
+  },
+  "visible_flights": [
+   "From 263 US dollars. 1 stop flight with SunExpress. Leaves Zurich Airport at 8:30 PM on Wednesday, October 21 and arrives at London Stansted Airport at 6:20 PM on Thursday, October 22. Total duration 22 hr 50 min.  Layover (1 of 1) is a 15 hr 10 min layover at Antalya Airport in Antalya. Select flight",
+   "From 288 US dollars. 1 stop flight with Turkish Airlines. Leaves Zurich Airport at 7:40 AM on Wednesday, October 21 and arrives at London Stansted Airport at 4:50 PM on Wednesday, October 21. Total duration 10 hr 10 min.  Layover (1 of 1) is a 3 hr 10 min layover at Istanbul Airport in Istanbul. Select flight",
+   "From 288 US dollars. 1 stop flight with Turkish Airlines. Leaves Zurich Airport at 6:50 PM on Wednesday, October 21 and arrives at London Stansted Airport at 4:40 PM on Thursday, October 22. Total duration 22 hr 50 min.  Layover (1 of 1) is a 15 hr 50 min layover at Istanbul Airport in Istanbul. Select flight"
+  ]
+ }
+}

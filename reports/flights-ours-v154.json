@@ -1,0 +1,595 @@
+{
+ "status": "done",
+ "wall_s": 10.16,
+ "steps": 27,
+ "n_decisions": 29,
+ "decision_lat_p50": 0,
+ "decision_lat_max": 0,
+ "final_url": "https://www.google.com/travel/flights/search?tfs=CBwQAhooEgoyMDI2LTEwLTIyagwIAxIIL20vMDg5NjZyDAgDEggvbS8wNGpwbEABSAFwAYIBCwj___________8BmAEC&hl=en",
+ "history": [
+  {
+   "step": 1,
+   "kind": "fill",
+   "action": "Where from?",
+   "text": "Zurich",
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 2,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 3,
+   "kind": "click",
+   "action": "Zürich, Switzerland",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 4,
+   "kind": "fill",
+   "action": "Where to? ",
+   "text": "London",
+   "page_changed": true,
+   "outcome": "url_changed"
+  },
+  {
+   "step": 5,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 6,
+   "kind": "click",
+   "action": "London, United Kingdom",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 7,
+   "kind": "click",
+   "action": "Change ticket type. Round trip",
+   "text": null,
+   "page_changed": true,
+   "outcome": "url_changed"
+  },
+  {
+   "step": 8,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 9,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 10,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 11,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 12,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 13,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 14,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 15,
+   "kind": "click",
+   "action": "One way",
+   "text": null,
+   "page_changed": true,
+   "outcome": "url_changed"
+  },
+  {
+   "step": 16,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 17,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 18,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 19,
+   "kind": "fill",
+   "action": "Departure",
+   "text": "October 22, 2026",
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 20,
+   "kind": "click",
+   "action": "Thursday, October 22, 2026",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 21,
+   "kind": "click",
+   "action": "Done. Search for one-way flights, departing on October 22, 2026",
+   "text": null,
+   "page_changed": false,
+   "outcome": "no_effect"
+  },
+  {
+   "step": 22,
+   "kind": "click",
+   "action": "Open Departure",
+   "text": null,
+   "page_changed": true,
+   "outcome": "url_changed"
+  },
+  {
+   "step": 23,
+   "kind": "click",
+   "action": "Search",
+   "text": null,
+   "page_changed": true,
+   "outcome": "url_changed"
+  },
+  {
+   "step": 24,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 25,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 26,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 27,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  }
+ ],
+ "decisions": [
+  {
+   "i": 0,
+   "choice": "e15",
+   "skill": "entity_fill",
+   "operation": "TYPE_TEXT",
+   "target": "15",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 1,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 2,
+   "choice": "e4",
+   "skill": "entity_confirm",
+   "operation": "CLICK",
+   "target": "3",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 3,
+   "choice": "e17",
+   "skill": "entity_fill",
+   "operation": "TYPE_TEXT",
+   "target": "16",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 4,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 5,
+   "choice": "e4",
+   "skill": "entity_confirm",
+   "operation": "CLICK",
+   "target": "3",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 6,
+   "choice": "e12",
+   "skill": "trip_type",
+   "operation": "CLICK",
+   "target": "12",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 7,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 8,
+   "choice": "wait",
+   "skill": "page_not_ready",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 9,
+   "choice": "wait",
+   "skill": "page_not_ready",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 10,
+   "choice": "wait",
+   "skill": "page_not_ready",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 11,
+   "choice": "wait",
+   "skill": "page_not_ready",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 12,
+   "choice": "wait",
+   "skill": "page_not_ready",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 13,
+   "choice": "wait",
+   "skill": "page_not_ready",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 14,
+   "choice": "e2",
+   "skill": "trip_type",
+   "operation": "CLICK",
+   "target": "2",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 15,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 16,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 17,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 18,
+   "choice": "e20",
+   "skill": "date_pick",
+   "operation": "TYPE_TEXT",
+   "target": "18",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 19,
+   "choice": "e25",
+   "skill": "date_pick",
+   "operation": "CLICK",
+   "target": "24",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 20,
+   "choice": "e70",
+   "skill": "date_pick",
+   "operation": "CLICK",
+   "target": "69",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 21,
+   "choice": "e2",
+   "skill": "date_pick",
+   "operation": "CLICK",
+   "target": "1",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 22,
+   "choice": "e22",
+   "skill": "search_submit",
+   "operation": "CLICK",
+   "target": "19",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 23,
+   "choice": "wait",
+   "skill": "stop_when_visible",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 24,
+   "choice": "wait",
+   "skill": "stop_when_visible",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 25,
+   "choice": "wait",
+   "skill": "stop_when_visible",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 26,
+   "choice": "wait",
+   "skill": "stop_when_visible",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 27,
+   "choice": "DONE",
+   "skill": "stop_when_visible",
+   "operation": "DONE",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 28,
+   "choice": "DONE",
+   "skill": "stop_when_visible",
+   "operation": "DONE",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  }
+ ],
+ "target_date": "2026-10-22",
+ "verification": {
+  "passed": true,
+  "checks": {
+   "search_page": true,
+   "one_way": true,
+   "origin": true,
+   "destination": true,
+   "date": true,
+   "year": true,
+   "results": true
+  },
+  "visible_flights": [
+   "From 85 US dollars.This price does not include overhead bin access. Nonstop flight with easyJet. Leaves Zurich Airport at 8:55 PM on Thursday, October 22 and arrives at London Gatwick Airport at 9:35 PM on Thursday, October 22. Total duration 1 hr 40 min.   Select flight",
+   "From 111 US dollars. Nonstop flight with British Airways. Leaves Zurich Airport at 7:15 AM on Thursday, October 22 and arrives at Heathrow Airport at 8:05 AM on Thursday, October 22. Total duration 1 hr 50 min.   Select flight",
+   "From 125 US dollars.This price does not include overhead bin access. Nonstop flight with SWISS. Leaves Zurich Airport at 3:35 PM on Thursday, October 22 and arrives at Heathrow Airport at 4:25 PM on Thursday, October 22. Total duration 1 hr 50 min.   Select flight"
+  ]
+ }
+}

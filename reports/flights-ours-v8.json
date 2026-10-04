@@ -1,0 +1,402 @@
+{
+ "status": "budget_exceeded",
+ "wall_s": 10.76,
+ "steps": 20,
+ "n_decisions": 24,
+ "decision_lat_p50": 0,
+ "decision_lat_max": 1177,
+ "final_url": "https://www.google.com/travel/flights?tfs=CBwQARoOagwIAxIIL20vMDg5NjYaDnIMCAMSCC9tLzA4OTY2QAFIAXABggELCP___________wGYAQE&tfu=KgIIAw&hl=en",
+ "history": [
+  {
+   "step": 1,
+   "kind": "fill",
+   "action": "Where from?",
+   "text": "Zurich",
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 2,
+   "kind": "click",
+   "action": "Zürich, Switzerland",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 3,
+   "kind": "fill",
+   "action": "Where to? ",
+   "text": "London",
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 4,
+   "kind": "click",
+   "action": "Toggle nearby airports for London, United Kingdom",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 5,
+   "kind": "click",
+   "action": "Destination, Select multiple airports",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 6,
+   "kind": "click",
+   "action": "Heathrow Airport (LHR)",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 7,
+   "kind": "click",
+   "action": "Heathrow Airport (LHR)",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 8,
+   "kind": "click",
+   "action": "London, United Kingdom",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 9,
+   "kind": "click",
+   "action": "London Stansted Airport (STN)",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 10,
+   "kind": "click",
+   "action": "London, United Kingdom",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 11,
+   "kind": "click",
+   "action": "London, United Kingdom",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 12,
+   "kind": "click",
+   "action": "London Stansted Airport (STN)",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 13,
+   "kind": "click",
+   "action": "Heathrow Airport (LHR)",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 14,
+   "kind": "click",
+   "action": "Heathrow Airport (LHR)",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 15,
+   "kind": "click",
+   "action": "London Stansted Airport (STN)",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 16,
+   "kind": "click",
+   "action": "London, United Kingdom",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 17,
+   "kind": "click",
+   "action": "London, United Kingdom",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 18,
+   "kind": "click",
+   "action": "London Stansted Airport (STN)",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 19,
+   "kind": "click",
+   "action": "Heathrow Airport (LHR)",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 20,
+   "kind": "click",
+   "action": "Heathrow Airport (LHR)",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  }
+ ],
+ "decisions": [
+  {
+   "i": 0,
+   "choice": "e15",
+   "skill": "entity_fill",
+   "operation": "TYPE_TEXT",
+   "target": "15",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 1,
+   "choice": "e3",
+   "skill": null,
+   "operation": "CLICK",
+   "target": "2",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 2,
+   "choice": "e4",
+   "skill": "entity_confirm",
+   "operation": "CLICK",
+   "target": "3",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 3,
+   "choice": "e17",
+   "skill": "entity_fill",
+   "operation": "TYPE_TEXT",
+   "target": "16",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 4,
+   "choice": "e17",
+   "skill": "entity_fill",
+   "operation": "TYPE_TEXT",
+   "target": "16",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 5,
+   "choice": "e3",
+   "skill": null,
+   "operation": "CLICK",
+   "target": "2",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 6,
+   "choice": "e5",
+   "skill": "entity_confirm",
+   "operation": "CLICK",
+   "target": "4",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 7,
+   "choice": "e3",
+   "skill": null,
+   "operation": "CLICK",
+   "target": "2",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 8,
+   "choice": "e6",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "5",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 9,
+   "choice": "e8",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "7",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 10,
+   "choice": "e4",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "3",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 11,
+   "choice": "e9",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "8",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 12,
+   "choice": "e16",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "15",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 13,
+   "choice": "e6",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "5",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 14,
+   "choice": "e7",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "6",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 15,
+   "choice": "e8",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "7",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 16,
+   "choice": "e10",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "9",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 17,
+   "choice": "e9",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "8",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 18,
+   "choice": "e4",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "3",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 19,
+   "choice": "e6",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "5",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 20,
+   "choice": "e7",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "6",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 21,
+   "choice": "e8",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "7",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 22,
+   "choice": "e10",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "9",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 23,
+   "choice": "e9",
+   "skill": "select_first",
+   "operation": "CLICK",
+   "target": "8",
+   "reason": null,
+   "pre": {}
+  }
+ ],
+ "verification": {
+  "passed": false,
+  "checks": {
+   "search_page": false,
+   "one_way": false,
+   "origin": false,
+   "destination": false,
+   "date": false,
+   "year": false,
+   "results": false
+  },
+  "visible_flights": []
+ }
+}

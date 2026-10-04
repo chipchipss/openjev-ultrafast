@@ -1,0 +1,518 @@
+{
+ "summary": {
+  "total": 18,
+  "pass": 8,
+  "fail": 7,
+  "error": 3,
+  "quadrants": {
+   "true_success": 9,
+   "correct_abandon": 6
+  },
+  "false_positive": 0
+ },
+ "results": [
+  {
+   "task_id": "s002",
+   "result": {
+    "task_id": "s002",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://docs.python.org/3/search.html?q=asyncio",
+     "final_title": "Search — Python 3.14.8 documentation",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "docs\\.python\\.org.*asyncio"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 2,
+     "model_calls": 3,
+     "api_calls": 0,
+     "elapsed_ms": 14469
+    }
+   }
+  },
+  {
+   "task_id": "s003",
+   "result": {
+    "task_id": "s003",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://www.w3.org/standards/",
+     "final_title": "Web Standards | W3C",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "w3\\.org/standards"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 4,
+     "model_calls": 6,
+     "api_calls": 0,
+     "elapsed_ms": 19013
+    }
+   }
+  },
+  {
+   "task_id": "s004",
+   "result": "ERROR",
+   "error": "agent_init_failed: _IPCResponseTimeout: Page.navigate timed out after 5s waiting for the daemon",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 57, in _send\n    r = ipc.request(c, token, req)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\_ipc.py\", line 103, in request\n    chunk = c.recv(1 << 16)\n            ^^^^^^^^^^^^^^^\nTimeoutError: timed out\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 119, in _run_one\n    agent = Agent(url=start_url, goals=spec[\"goal\"], task_spec=spec,\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 114, in __init__\n    self.browser = Browser(url)\n                   ^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 55, in __init__\n    self.call(\"Page.navigate\", url=url)\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 79, in call\n    raise last\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 69, in call\n    return cdp(method, session_id=self.session, **params)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 74, in cdp\n    return _send(\n           ^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 63, in _send\n    raise _IPCResponseTimeout(\nbrowser_harness.helpers._IPCResponseTimeout: Page.navigate timed out after 5s waiting for the daemon\n"
+  },
+  {
+   "task_id": "s005",
+   "result": {
+    "task_id": "s005",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://developer.mozilla.org/zh-CN/docs/Web/API/Fetch_API",
+     "final_title": "Fetch API - Web API | MDN",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "developer\\.mozilla\\.org.*Fetch"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 2,
+     "model_calls": 3,
+     "api_calls": 0,
+     "elapsed_ms": 12055
+    }
+   }
+  },
+  {
+   "task_id": "f001",
+   "result": {
+    "task_id": "f001",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "https://httpbin.org/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "customer"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 1,
+     "model_calls": 4,
+     "api_calls": 0,
+     "elapsed_ms": 19349
+    }
+   }
+  },
+  {
+   "task_id": "f002",
+   "result": {
+    "task_id": "f002",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "https://httpbin.org/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "comments"
+       },
+       "ok": false,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "hello world"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 1,
+     "model_calls": 4,
+     "api_calls": 0,
+     "elapsed_ms": 19295
+    }
+   }
+  },
+  {
+   "task_id": "f003",
+   "result": {
+    "task_id": "f003",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://www.selenium.dev/",
+     "final_title": "Selenium",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "webdriver",
+        "case_sensitive": false
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 2,
+     "model_calls": 7,
+     "api_calls": 0,
+     "elapsed_ms": 7051
+    }
+   }
+  },
+  {
+   "task_id": "f004",
+   "result": {
+    "task_id": "f004",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "https://httpbin.org/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "size"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 1,
+     "model_calls": 4,
+     "api_calls": 0,
+     "elapsed_ms": 19976
+    }
+   }
+  },
+  {
+   "task_id": "n001",
+   "result": {
+    "task_id": "n001",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://docs.python.org/3/",
+     "final_title": "3.14.8 Documentation",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "docs\\.python\\.org"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 1,
+     "model_calls": 13,
+     "api_calls": 0,
+     "elapsed_ms": 52584
+    }
+   }
+  },
+  {
+   "task_id": "n002",
+   "result": {
+    "task_id": "n002",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference",
+     "final_title": "JavaScript 参考 - JavaScript | MDN",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "JavaScript"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 2,
+     "model_calls": 3,
+     "api_calls": 0,
+     "elapsed_ms": 6418
+    }
+   }
+  },
+  {
+   "task_id": "n003",
+   "result": {
+    "task_id": "n003",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "https://www.w3.org/",
+     "final_title": "W3C",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "/standards"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 1,
+     "model_calls": 2,
+     "api_calls": 0,
+     "elapsed_ms": 6440
+    }
+   }
+  },
+  {
+   "task_id": "n004",
+   "result": {
+    "task_id": "n004",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "https://www.rfc-editor.org/search/?q=RFC+9110",
+     "final_title": "Search | RFC Editor",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "rfc9110"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 4,
+     "model_calls": 11,
+     "api_calls": 0,
+     "elapsed_ms": 28449
+    }
+   }
+  },
+  {
+   "task_id": "l001",
+   "result": {
+    "task_id": "l001",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "news.ycombinator.com",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "history_has_kind",
+        "kind": "scroll"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 21183
+    }
+   }
+  },
+  {
+   "task_id": "l002",
+   "result": "ERROR",
+   "error": "agent_init_failed: _IPCResponseTimeout: Page.navigate timed out after 5s waiting for the daemon",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 57, in _send\n    r = ipc.request(c, token, req)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\_ipc.py\", line 103, in request\n    chunk = c.recv(1 << 16)\n            ^^^^^^^^^^^^^^^\nTimeoutError: timed out\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 119, in _run_one\n    agent = Agent(url=start_url, goals=spec[\"goal\"], task_spec=spec,\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 114, in __init__\n    self.browser = Browser(url)\n                   ^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 55, in __init__\n    self.call(\"Page.navigate\", url=url)\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 79, in call\n    raise last\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 69, in call\n    return cdp(method, session_id=self.session, **params)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 74, in cdp\n    return _send(\n           ^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 63, in _send\n    raise _IPCResponseTimeout(\nbrowser_harness.helpers._IPCResponseTimeout: Page.navigate timed out after 5s waiting for the daemon\n"
+  },
+  {
+   "task_id": "l003",
+   "result": {
+    "task_id": "l003",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://www.python.org/jobs/",
+     "final_title": "Python Job Board | Python.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "remote",
+        "case_sensitive": false
+       },
+       "ok": true,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "history_has_kind",
+        "kind": "scroll"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 1,
+     "model_calls": 13,
+     "api_calls": 0,
+     "elapsed_ms": 50285
+    }
+   }
+  },
+  {
+   "task_id": "t001",
+   "result": {
+    "task_id": "t001",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://httpbin.org/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "history_has_kind",
+        "kind": "click"
+       },
+       "ok": true,
+       "note": "found in step 1"
+      }
+     ]
+    },
+    "meta": {
+     "steps": 3,
+     "model_calls": 4,
+     "api_calls": 0,
+     "elapsed_ms": 27203
+    }
+   }
+  },
+  {
+   "task_id": "x001",
+   "result": {
+    "task_id": "x001",
+    "result": "FAIL",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "example.invalid",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "not available"
+       },
+       "ok": false,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "cannot"
+       },
+       "ok": false,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "element_exists",
+        "role": "button",
+        "label_contains": "No"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 14272
+    }
+   }
+  },
+  {
+   "task_id": "x002",
+   "result": "ERROR",
+   "error": "agent_init_failed: _IPCResponseTimeout: Page.navigate timed out after 5s waiting for the daemon",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 57, in _send\n    r = ipc.request(c, token, req)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\_ipc.py\", line 103, in request\n    chunk = c.recv(1 << 16)\n            ^^^^^^^^^^^^^^^\nTimeoutError: timed out\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 119, in _run_one\n    agent = Agent(url=start_url, goals=spec[\"goal\"], task_spec=spec,\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 114, in __init__\n    self.browser = Browser(url)\n                   ^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 55, in __init__\n    self.call(\"Page.navigate\", url=url)\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 79, in call\n    raise last\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 69, in call\n    return cdp(method, session_id=self.session, **params)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 74, in cdp\n    return _send(\n           ^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 63, in _send\n    raise _IPCResponseTimeout(\nbrowser_harness.helpers._IPCResponseTimeout: Page.navigate timed out after 5s waiting for the daemon\n"
+  }
+ ]
+}

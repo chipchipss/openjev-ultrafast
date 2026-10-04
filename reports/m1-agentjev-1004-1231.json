@@ -1,0 +1,626 @@
+{
+ "summary": {
+  "total": 18,
+  "pass": 3,
+  "fail": 15,
+  "error": 0,
+  "quadrants": {
+   "true_success": 3,
+   "correct_abandon": 3
+  },
+  "false_positive": 0
+ },
+ "results": [
+  {
+   "task_id": "s002",
+   "result": {
+    "task_id": "s002",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://docs.python.org/3/search.html?q=asyncio",
+     "final_title": "Search — Python 3.14.8 documentation",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "docs\\.python\\.org.*asyncio"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 2,
+     "model_calls": 3,
+     "api_calls": 0,
+     "elapsed_ms": 14376
+    }
+   }
+  },
+  {
+   "task_id": "s003",
+   "error": "agent_loop_raised",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 131, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 726, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 453, in command\n    self.command(\"predict\", {})\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 544, in command\n    state[\"decision\"] = choose(state[\"page\"], state[\"goal\"], state[\"history\"])\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 458, in choose\n    result = decide(state, goal, history)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\provider.py\", line 69, in decide\n    return fn(observation, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 445, in _agentjev_provider\n    return decide_agentjev(state, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 83, in decide_agentjev\n    answers = {a[\"id\"]: a for a in result[\"answers\"]}\n                                   ~~~~~~^^^^^^^^^^^\nKeyError: 'answers'\n",
+   "exception": "KeyError('answers')",
+   "result": {
+    "task_id": "s003",
+    "result": "FAIL",
+    "quadrant": null,
+    "failure_class": "system",
+    "failure_mode": "crash",
+    "evidence": {
+     "final_url": "https://www.w3.org/",
+     "final_title": "W3C",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "w3\\.org/standards"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 0,
+     "api_calls": 0,
+     "elapsed_ms": 3303
+    }
+   }
+  },
+  {
+   "task_id": "s004",
+   "result": {
+    "task_id": "s004",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "en.wikipedia.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "wikipedia\\.org/wiki/Ada_Lovelace"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 21303
+    }
+   }
+  },
+  {
+   "task_id": "s005",
+   "error": "agent_loop_raised",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 131, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 726, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 453, in command\n    self.command(\"predict\", {})\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 544, in command\n    state[\"decision\"] = choose(state[\"page\"], state[\"goal\"], state[\"history\"])\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 458, in choose\n    result = decide(state, goal, history)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\provider.py\", line 69, in decide\n    return fn(observation, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 445, in _agentjev_provider\n    return decide_agentjev(state, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 80, in decide_agentjev\n    result = _post({\"state\": _state_payload(state, history), \"questions\": questions})\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 30, in _post\n    with urllib.request.urlopen(req, timeout=timeout) as resp:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 215, in urlopen\n    return opener.open(url, data, timeout)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 521, in open\n    response = meth(req, response)\n               ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 630, in http_response\n    response = self.parent.error(\n               ^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 559, in error\n    return self._call_chain(*args)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 492, in _call_chain\n    result = func(*args)\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 639, in http_error_default\n    raise HTTPError(req.full_url, code, msg, hdrs, fp)\nurllib.error.HTTPError: HTTP Error 400: Bad Request\n",
+   "exception": "<HTTPError 400: 'Bad Request'>",
+   "result": {
+    "task_id": "s005",
+    "result": "FAIL",
+    "quadrant": null,
+    "failure_class": "system",
+    "failure_mode": "crash",
+    "evidence": {
+     "final_url": "https://developer.mozilla.org/zh-CN/",
+     "final_title": "MDN Web Docs",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "developer\\.mozilla\\.org.*Fetch"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 0,
+     "api_calls": 0,
+     "elapsed_ms": 2156
+    }
+   }
+  },
+  {
+   "task_id": "f001",
+   "error": "agent_loop_raised",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 131, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 726, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 453, in command\n    self.command(\"predict\", {})\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 544, in command\n    state[\"decision\"] = choose(state[\"page\"], state[\"goal\"], state[\"history\"])\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 458, in choose\n    result = decide(state, goal, history)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\provider.py\", line 69, in decide\n    return fn(observation, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 445, in _agentjev_provider\n    return decide_agentjev(state, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 83, in decide_agentjev\n    answers = {a[\"id\"]: a for a in result[\"answers\"]}\n                                   ~~~~~~^^^^^^^^^^^\nKeyError: 'answers'\n",
+   "exception": "KeyError('answers')",
+   "result": {
+    "task_id": "f001",
+    "result": "FAIL",
+    "quadrant": null,
+    "failure_class": "system",
+    "failure_mode": "crash",
+    "evidence": {
+     "final_url": "https://httpbin.org/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "customer"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 0,
+     "api_calls": 0,
+     "elapsed_ms": 16268
+    }
+   }
+  },
+  {
+   "task_id": "f002",
+   "error": "agent_loop_raised",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 131, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 726, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 453, in command\n    self.command(\"predict\", {})\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 544, in command\n    state[\"decision\"] = choose(state[\"page\"], state[\"goal\"], state[\"history\"])\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 458, in choose\n    result = decide(state, goal, history)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\provider.py\", line 69, in decide\n    return fn(observation, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 445, in _agentjev_provider\n    return decide_agentjev(state, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 83, in decide_agentjev\n    answers = {a[\"id\"]: a for a in result[\"answers\"]}\n                                   ~~~~~~^^^^^^^^^^^\nKeyError: 'answers'\n",
+   "exception": "KeyError('answers')",
+   "result": {
+    "task_id": "f002",
+    "result": "FAIL",
+    "quadrant": null,
+    "failure_class": "system",
+    "failure_mode": "crash",
+    "evidence": {
+     "final_url": "https://httpbin.org/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "comments"
+       },
+       "ok": false,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "hello world"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 0,
+     "api_calls": 0,
+     "elapsed_ms": 18971
+    }
+   }
+  },
+  {
+   "task_id": "f003",
+   "error": "agent_loop_raised",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 131, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 726, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 453, in command\n    self.command(\"predict\", {})\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 544, in command\n    state[\"decision\"] = choose(state[\"page\"], state[\"goal\"], state[\"history\"])\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 458, in choose\n    result = decide(state, goal, history)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\provider.py\", line 69, in decide\n    return fn(observation, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 445, in _agentjev_provider\n    return decide_agentjev(state, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 83, in decide_agentjev\n    answers = {a[\"id\"]: a for a in result[\"answers\"]}\n                                   ~~~~~~^^^^^^^^^^^\nKeyError: 'answers'\n",
+   "exception": "KeyError('answers')",
+   "result": {
+    "task_id": "f003",
+    "result": "PASS",
+    "quadrant": null,
+    "failure_class": "system",
+    "failure_mode": "crash",
+    "evidence": {
+     "final_url": "https://www.selenium.dev/",
+     "final_title": "Selenium",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "webdriver",
+        "case_sensitive": false
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 0,
+     "api_calls": 0,
+     "elapsed_ms": 3598
+    }
+   }
+  },
+  {
+   "task_id": "f004",
+   "error": "agent_loop_raised",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 131, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 726, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 453, in command\n    self.command(\"predict\", {})\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 544, in command\n    state[\"decision\"] = choose(state[\"page\"], state[\"goal\"], state[\"history\"])\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 458, in choose\n    result = decide(state, goal, history)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\provider.py\", line 69, in decide\n    return fn(observation, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 445, in _agentjev_provider\n    return decide_agentjev(state, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 83, in decide_agentjev\n    answers = {a[\"id\"]: a for a in result[\"answers\"]}\n                                   ~~~~~~^^^^^^^^^^^\nKeyError: 'answers'\n",
+   "exception": "KeyError('answers')",
+   "result": {
+    "task_id": "f004",
+    "result": "FAIL",
+    "quadrant": null,
+    "failure_class": "system",
+    "failure_mode": "crash",
+    "evidence": {
+     "final_url": "https://httpbin.org/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "size"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 0,
+     "api_calls": 0,
+     "elapsed_ms": 15939
+    }
+   }
+  },
+  {
+   "task_id": "n001",
+   "error": "agent_loop_raised",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 131, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 726, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 453, in command\n    self.command(\"predict\", {})\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 544, in command\n    state[\"decision\"] = choose(state[\"page\"], state[\"goal\"], state[\"history\"])\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 458, in choose\n    result = decide(state, goal, history)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\provider.py\", line 69, in decide\n    return fn(observation, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 445, in _agentjev_provider\n    return decide_agentjev(state, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 80, in decide_agentjev\n    result = _post({\"state\": _state_payload(state, history), \"questions\": questions})\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 30, in _post\n    with urllib.request.urlopen(req, timeout=timeout) as resp:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 215, in urlopen\n    return opener.open(url, data, timeout)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 521, in open\n    response = meth(req, response)\n               ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 630, in http_response\n    response = self.parent.error(\n               ^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 559, in error\n    return self._call_chain(*args)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 492, in _call_chain\n    result = func(*args)\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 639, in http_error_default\n    raise HTTPError(req.full_url, code, msg, hdrs, fp)\nurllib.error.HTTPError: HTTP Error 400: Bad Request\n",
+   "exception": "<HTTPError 400: 'Bad Request'>",
+   "result": {
+    "task_id": "n001",
+    "result": "FAIL",
+    "quadrant": null,
+    "failure_class": "system",
+    "failure_mode": "crash",
+    "evidence": {
+     "final_url": "https://www.python.org/",
+     "final_title": "Welcome to Python.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "docs\\.python\\.org"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 0,
+     "api_calls": 0,
+     "elapsed_ms": 15256
+    }
+   }
+  },
+  {
+   "task_id": "n002",
+   "error": "agent_loop_raised",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 131, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 726, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 453, in command\n    self.command(\"predict\", {})\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 544, in command\n    state[\"decision\"] = choose(state[\"page\"], state[\"goal\"], state[\"history\"])\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 458, in choose\n    result = decide(state, goal, history)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\provider.py\", line 69, in decide\n    return fn(observation, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 445, in _agentjev_provider\n    return decide_agentjev(state, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 80, in decide_agentjev\n    result = _post({\"state\": _state_payload(state, history), \"questions\": questions})\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 30, in _post\n    with urllib.request.urlopen(req, timeout=timeout) as resp:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 215, in urlopen\n    return opener.open(url, data, timeout)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 521, in open\n    response = meth(req, response)\n               ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 630, in http_response\n    response = self.parent.error(\n               ^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 559, in error\n    return self._call_chain(*args)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 492, in _call_chain\n    result = func(*args)\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 639, in http_error_default\n    raise HTTPError(req.full_url, code, msg, hdrs, fp)\nurllib.error.HTTPError: HTTP Error 400: Bad Request\n",
+   "exception": "<HTTPError 400: 'Bad Request'>",
+   "result": {
+    "task_id": "n002",
+    "result": "FAIL",
+    "quadrant": null,
+    "failure_class": "system",
+    "failure_mode": "crash",
+    "evidence": {
+     "final_url": "https://developer.mozilla.org/zh-CN/",
+     "final_title": "MDN Web Docs",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "JavaScript"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 0,
+     "api_calls": 0,
+     "elapsed_ms": 737
+    }
+   }
+  },
+  {
+   "task_id": "n003",
+   "error": "agent_loop_raised",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 131, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 726, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 453, in command\n    self.command(\"predict\", {})\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 544, in command\n    state[\"decision\"] = choose(state[\"page\"], state[\"goal\"], state[\"history\"])\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 458, in choose\n    result = decide(state, goal, history)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\provider.py\", line 69, in decide\n    return fn(observation, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 445, in _agentjev_provider\n    return decide_agentjev(state, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 83, in decide_agentjev\n    answers = {a[\"id\"]: a for a in result[\"answers\"]}\n                                   ~~~~~~^^^^^^^^^^^\nKeyError: 'answers'\n",
+   "exception": "KeyError('answers')",
+   "result": {
+    "task_id": "n003",
+    "result": "FAIL",
+    "quadrant": null,
+    "failure_class": "system",
+    "failure_mode": "crash",
+    "evidence": {
+     "final_url": "https://www.w3.org/",
+     "final_title": "W3C",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "/standards"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 0,
+     "api_calls": 0,
+     "elapsed_ms": 1028
+    }
+   }
+  },
+  {
+   "task_id": "n004",
+   "error": "agent_loop_raised",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 131, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 726, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 453, in command\n    self.command(\"predict\", {})\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 544, in command\n    state[\"decision\"] = choose(state[\"page\"], state[\"goal\"], state[\"history\"])\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 458, in choose\n    result = decide(state, goal, history)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\provider.py\", line 69, in decide\n    return fn(observation, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 445, in _agentjev_provider\n    return decide_agentjev(state, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 83, in decide_agentjev\n    answers = {a[\"id\"]: a for a in result[\"answers\"]}\n                                   ~~~~~~^^^^^^^^^^^\nKeyError: 'answers'\n",
+   "exception": "KeyError('answers')",
+   "result": {
+    "task_id": "n004",
+    "result": "FAIL",
+    "quadrant": null,
+    "failure_class": "system",
+    "failure_mode": "crash",
+    "evidence": {
+     "final_url": "https://www.rfc-editor.org/",
+     "final_title": "RFC Editor",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "rfc9110"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 0,
+     "api_calls": 0,
+     "elapsed_ms": 2981
+    }
+   }
+  },
+  {
+   "task_id": "l001",
+   "result": {
+    "task_id": "l001",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "news.ycombinator.com",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "history_has_kind",
+        "kind": "scroll"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 21357
+    }
+   }
+  },
+  {
+   "task_id": "l002",
+   "result": {
+    "task_id": "l002",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "en.wikipedia.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "List_of_countries"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 21347
+    }
+   }
+  },
+  {
+   "task_id": "l003",
+   "error": "agent_loop_raised",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 131, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 726, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 453, in command\n    self.command(\"predict\", {})\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 544, in command\n    state[\"decision\"] = choose(state[\"page\"], state[\"goal\"], state[\"history\"])\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 458, in choose\n    result = decide(state, goal, history)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\provider.py\", line 69, in decide\n    return fn(observation, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 445, in _agentjev_provider\n    return decide_agentjev(state, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 80, in decide_agentjev\n    result = _post({\"state\": _state_payload(state, history), \"questions\": questions})\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 30, in _post\n    with urllib.request.urlopen(req, timeout=timeout) as resp:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 215, in urlopen\n    return opener.open(url, data, timeout)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 521, in open\n    response = meth(req, response)\n               ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 630, in http_response\n    response = self.parent.error(\n               ^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 559, in error\n    return self._call_chain(*args)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 492, in _call_chain\n    result = func(*args)\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\urllib\\request.py\", line 639, in http_error_default\n    raise HTTPError(req.full_url, code, msg, hdrs, fp)\nurllib.error.HTTPError: HTTP Error 400: Bad Request\n",
+   "exception": "<HTTPError 400: 'Bad Request'>",
+   "result": {
+    "task_id": "l003",
+    "result": "FAIL",
+    "quadrant": null,
+    "failure_class": "system",
+    "failure_mode": "crash",
+    "evidence": {
+     "final_url": "https://www.python.org/",
+     "final_title": "Welcome to Python.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "remote",
+        "case_sensitive": false
+       },
+       "ok": false,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "history_has_kind",
+        "kind": "scroll"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 0,
+     "api_calls": 0,
+     "elapsed_ms": 15251
+    }
+   }
+  },
+  {
+   "task_id": "t001",
+   "error": "agent_loop_raised",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 131, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 726, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 453, in command\n    self.command(\"predict\", {})\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 544, in command\n    state[\"decision\"] = choose(state[\"page\"], state[\"goal\"], state[\"history\"])\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 458, in choose\n    result = decide(state, goal, history)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\provider.py\", line 69, in decide\n    return fn(observation, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 445, in _agentjev_provider\n    return decide_agentjev(state, goal, history)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\agentjev_provider.py\", line 83, in decide_agentjev\n    answers = {a[\"id\"]: a for a in result[\"answers\"]}\n                                   ~~~~~~^^^^^^^^^^^\nKeyError: 'answers'\n",
+   "exception": "KeyError('answers')",
+   "result": {
+    "task_id": "t001",
+    "result": "FAIL",
+    "quadrant": null,
+    "failure_class": "system",
+    "failure_mode": "crash",
+    "evidence": {
+     "final_url": "https://httpbin.org/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "history_has_kind",
+        "kind": "click"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 0,
+     "api_calls": 0,
+     "elapsed_ms": 18245
+    }
+   }
+  },
+  {
+   "task_id": "x001",
+   "result": {
+    "task_id": "x001",
+    "result": "FAIL",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "example.invalid",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "not available"
+       },
+       "ok": false,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "cannot"
+       },
+       "ok": false,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "element_exists",
+        "role": "button",
+        "label_contains": "No"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 14241
+    }
+   }
+  },
+  {
+   "task_id": "x002",
+   "result": {
+    "task_id": "x002",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "en.wikipedia.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_not_contains",
+        "value": "deleted"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 21313
+    }
+   }
+  }
+ ]
+}

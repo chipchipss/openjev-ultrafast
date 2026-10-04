@@ -1,0 +1,635 @@
+{
+ "status": "blocked",
+ "wall_s": 11.44,
+ "steps": 22,
+ "n_decisions": 36,
+ "decision_lat_p50": 0,
+ "decision_lat_max": 0,
+ "final_url": "https://www.google.com/travel/flights?tfs=CBwQARocEgoyMDI2LTEwLTIyag4IAhIKL20vMDMwcWIzdEABSAFwAYIBCwj___________8BmAEC&tfu=KgIIAw&hl=en",
+ "history": [
+  {
+   "step": 1,
+   "kind": "fill",
+   "action": "Where from?",
+   "text": "Zurich",
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 2,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 3,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 4,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 5,
+   "kind": "click",
+   "action": "Change ticket type. Round trip",
+   "text": null,
+   "page_changed": false,
+   "outcome": "no_effect"
+  },
+  {
+   "step": 6,
+   "kind": "fill",
+   "action": "Where to? ",
+   "text": "London",
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 7,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 8,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 9,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 10,
+   "kind": "fill",
+   "action": "Departure",
+   "text": "October 22, 2026",
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 11,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 12,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 13,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 14,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 15,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 16,
+   "kind": "click",
+   "action": "One way",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 17,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 18,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 19,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "url_changed"
+  },
+  {
+   "step": 20,
+   "kind": "click",
+   "action": "Thursday, October 22, 2026",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 21,
+   "kind": "click",
+   "action": "Done. Search for one-way flights, departing on October 22, 2026",
+   "text": null,
+   "page_changed": false,
+   "outcome": "no_effect"
+  },
+  {
+   "step": 22,
+   "kind": "click",
+   "action": "Open Departure",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  }
+ ],
+ "decisions": [
+  {
+   "i": 0,
+   "choice": "e15",
+   "skill": "entity_fill",
+   "operation": "TYPE_TEXT",
+   "target": "15",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 1,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 2,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 3,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 4,
+   "choice": "e12",
+   "skill": "trip_type",
+   "operation": "CLICK",
+   "target": "12",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 5,
+   "choice": "e17",
+   "skill": "entity_fill",
+   "operation": "TYPE_TEXT",
+   "target": "16",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 6,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 7,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 8,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 9,
+   "choice": "e19",
+   "skill": "date_pick",
+   "operation": "TYPE_TEXT",
+   "target": "17",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 10,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 11,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 12,
+   "choice": "wait",
+   "skill": "page_not_ready",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 13,
+   "choice": "wait",
+   "skill": "page_not_ready",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 14,
+   "choice": "wait",
+   "skill": "page_not_ready",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 15,
+   "choice": "e2",
+   "skill": "trip_type",
+   "operation": "CLICK",
+   "target": "2",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 16,
+   "choice": null,
+   "skill": null,
+   "operation": null,
+   "target": null,
+   "reason": null,
+   "confidence": null,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 17,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 18,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 19,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 20,
+   "choice": "e26",
+   "skill": "date_pick",
+   "operation": "CLICK",
+   "target": "25",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 21,
+   "choice": "e71",
+   "skill": "date_pick",
+   "operation": "CLICK",
+   "target": "70",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 22,
+   "choice": "e71",
+   "skill": "date_pick",
+   "operation": "CLICK",
+   "target": "70",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 23,
+   "choice": "e2",
+   "skill": "date_pick",
+   "operation": "CLICK",
+   "target": "1",
+   "reason": null,
+   "confidence": 1.0,
+   "op_conf": 1.0,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 24,
+   "choice": null,
+   "skill": null,
+   "operation": null,
+   "target": null,
+   "reason": null,
+   "confidence": null,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 25,
+   "choice": null,
+   "skill": null,
+   "operation": null,
+   "target": null,
+   "reason": null,
+   "confidence": null,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 26,
+   "choice": null,
+   "skill": null,
+   "operation": null,
+   "target": null,
+   "reason": null,
+   "confidence": null,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 27,
+   "choice": null,
+   "skill": null,
+   "operation": null,
+   "target": null,
+   "reason": null,
+   "confidence": null,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 28,
+   "choice": null,
+   "skill": null,
+   "operation": null,
+   "target": null,
+   "reason": null,
+   "confidence": null,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 29,
+   "choice": null,
+   "skill": null,
+   "operation": null,
+   "target": null,
+   "reason": null,
+   "confidence": null,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 30,
+   "choice": null,
+   "skill": null,
+   "operation": null,
+   "target": null,
+   "reason": null,
+   "confidence": null,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 31,
+   "choice": null,
+   "skill": null,
+   "operation": null,
+   "target": null,
+   "reason": null,
+   "confidence": null,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 32,
+   "choice": null,
+   "skill": null,
+   "operation": null,
+   "target": null,
+   "reason": null,
+   "confidence": null,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 33,
+   "choice": null,
+   "skill": null,
+   "operation": null,
+   "target": null,
+   "reason": null,
+   "confidence": null,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 34,
+   "choice": null,
+   "skill": null,
+   "operation": null,
+   "target": null,
+   "reason": null,
+   "confidence": null,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 35,
+   "choice": null,
+   "skill": null,
+   "operation": null,
+   "target": null,
+   "reason": null,
+   "confidence": null,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  }
+ ],
+ "target_date": "2026-10-22",
+ "verification": {
+  "passed": false,
+  "checks": {
+   "search_page": false,
+   "one_way": true,
+   "origin": false,
+   "destination": false,
+   "date": true,
+   "year": true,
+   "results": false
+  },
+  "visible_flights": []
+ }
+}

@@ -1,0 +1,55 @@
+{
+  "summary": {
+    "total": 1,
+    "pass": 0,
+    "fail": 1,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "correct_abandon": 1
+    },
+    "failure_modes": {
+      "decision": 1
+    },
+    "agent_modes": {
+      "decision": 1
+    },
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "t001",
+      "result": {
+        "task_id": "t001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://httpbin.org/",
+          "final_title": "httpbin.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "click"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 240428
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,373 @@
+{
+ "status": "done",
+ "wall_s": 27.88,
+ "steps": 18,
+ "n_decisions": 22,
+ "decision_lat_p50": 0,
+ "decision_lat_max": 5731,
+ "final_url": "https://www.google.com/travel/flights/search?tfs=CBwQAhooEgoyMDI2LTEwLTIxagwIAxIIL20vMDg5NjZyDAgDEggvbS8wNGpwbEABSAFwAYIBCwj___________8BmAEC&hl=en",
+ "history": [
+  {
+   "step": 1,
+   "kind": "fill",
+   "action": "Where from? ",
+   "text": "Zurich",
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 2,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 3,
+   "kind": "click",
+   "action": "Zürich, Switzerland",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 4,
+   "kind": "fill",
+   "action": "Where to? ",
+   "text": "London",
+   "page_changed": true,
+   "outcome": "url_changed"
+  },
+  {
+   "step": 5,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 6,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 7,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 8,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 9,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 10,
+   "kind": "click",
+   "action": "London, United Kingdom",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 11,
+   "kind": "click",
+   "action": "Change ticket type. Round trip",
+   "text": null,
+   "page_changed": true,
+   "outcome": "url_changed"
+  },
+  {
+   "step": 12,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": true,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 13,
+   "kind": "wait",
+   "action": "Wait for the page to update",
+   "text": null,
+   "page_changed": false,
+   "outcome": "wait_no_change"
+  },
+  {
+   "step": 14,
+   "kind": "click",
+   "action": "One way",
+   "text": null,
+   "page_changed": true,
+   "outcome": "url_changed"
+  },
+  {
+   "step": 15,
+   "kind": "fill",
+   "action": "Departure",
+   "text": "October 21, 2026",
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 16,
+   "kind": "click",
+   "action": "Wednesday, October 21, 2026",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  },
+  {
+   "step": 17,
+   "kind": "click",
+   "action": "Done. Search for one-way flights, departing on October 21, 2026",
+   "text": null,
+   "page_changed": false,
+   "outcome": "no_effect"
+  },
+  {
+   "step": 18,
+   "kind": "click",
+   "action": "Search",
+   "text": null,
+   "page_changed": true,
+   "outcome": "url_changed"
+  }
+ ],
+ "decisions": [
+  {
+   "i": 0,
+   "choice": "e15",
+   "skill": "entity_fill",
+   "operation": "TYPE_TEXT",
+   "target": "15",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 1,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 2,
+   "choice": "e4",
+   "skill": "entity_confirm",
+   "operation": "CLICK",
+   "target": "3",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 3,
+   "choice": "e17",
+   "skill": "entity_fill",
+   "operation": "TYPE_TEXT",
+   "target": "16",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 4,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 5,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 6,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 7,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 8,
+   "choice": "wait",
+   "skill": "entity_confirm",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 9,
+   "choice": "e4",
+   "skill": null,
+   "operation": "CLICK",
+   "target": "3",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 10,
+   "choice": "e12",
+   "skill": "trip_type",
+   "operation": "CLICK",
+   "target": "12",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 11,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 12,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 13,
+   "choice": "wait",
+   "skill": "trip_type",
+   "operation": "WAIT",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 14,
+   "choice": "e2",
+   "skill": "trip_type",
+   "operation": "CLICK",
+   "target": "2",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 15,
+   "choice": "e20",
+   "skill": "date_pick",
+   "operation": "TYPE_TEXT",
+   "target": "18",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 16,
+   "choice": "e25",
+   "skill": "date_pick",
+   "operation": "CLICK",
+   "target": "24",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 17,
+   "choice": "e42",
+   "skill": "date_pick",
+   "operation": "CLICK",
+   "target": "41",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 18,
+   "choice": "e5",
+   "skill": null,
+   "operation": "CLICK",
+   "target": "4",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 19,
+   "choice": "e22",
+   "skill": null,
+   "operation": "CLICK",
+   "target": "19",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 20,
+   "choice": "e22",
+   "skill": null,
+   "operation": "CLICK",
+   "target": "19",
+   "reason": null,
+   "pre": {}
+  },
+  {
+   "i": 21,
+   "choice": "DONE",
+   "skill": "stop_when_visible",
+   "operation": "DONE",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  }
+ ],
+ "target_date": "2026-10-21",
+ "verification": {
+  "passed": true,
+  "checks": {
+   "search_page": true,
+   "one_way": true,
+   "origin": true,
+   "destination": true,
+   "date": true,
+   "year": true,
+   "results": true
+  },
+  "visible_flights": [
+   "From 47 US dollars.This price does not include overhead bin access. Nonstop flight with easyJet. Leaves Zurich Airport at 10:45 AM on Wednesday, October 21 and arrives at London Gatwick Airport at 11:30 AM on Wednesday, October 21. Total duration 1 hr 45 min.   Select flight",
+   "From 47 US dollars.This price does not include overhead bin access. Nonstop flight with easyJet. Leaves Zurich Airport at 6:05 PM on Wednesday, October 21 and arrives at London Gatwick Airport at 6:45 PM on Wednesday, October 21. Total duration 1 hr 40 min.   Select flight",
+   "From 123 US dollars. Nonstop flight with British Airways. Operated by BA Cityflyer. Leaves Zurich Airport at 2:55 PM on Wednesday, October 21 and arrives at London City Airport at 3:30 PM on Wednesday, October 21. Total duration 1 hr 35 min.   Select flight"
+  ]
+ }
+}

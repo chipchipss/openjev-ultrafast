@@ -1,0 +1,65 @@
+{
+ "status": "done",
+ "wall_s": 10.18,
+ "steps": 1,
+ "n_decisions": 3,
+ "decision_lat_p50": 57,
+ "decision_lat_max": 320,
+ "final_url": "https://en.wikipedia.org/wiki/Main_Page",
+ "history": [
+  {
+   "step": 1,
+   "kind": "click",
+   "action": "Close",
+   "text": null,
+   "page_changed": true,
+   "outcome": "dom_changed"
+  }
+ ],
+ "decisions": [
+  {
+   "i": 0,
+   "choice": "e4",
+   "skill": null,
+   "operation": "CLICK",
+   "target": "3",
+   "reason": null,
+   "confidence": 0.776,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 1,
+   "choice": "e18",
+   "skill": null,
+   "operation": "CLICK",
+   "target": "17",
+   "reason": null,
+   "confidence": 0.7931,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  },
+  {
+   "i": 2,
+   "choice": "DONE",
+   "skill": null,
+   "operation": "DONE",
+   "target": null,
+   "reason": null,
+   "confidence": 0.7395,
+   "op_conf": null,
+   "diag": null,
+   "pre": {}
+  }
+ ],
+ "target_date": "2026-10-22",
+ "verification": {
+  "passed": false,
+  "checks": {
+   "article_url": false
+  },
+  "final_url": "https://en.wikipedia.org/wiki/Main_Page"
+ }
+}

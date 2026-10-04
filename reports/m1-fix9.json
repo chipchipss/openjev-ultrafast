@@ -1,0 +1,223 @@
+{
+  "summary": {
+    "total": 6,
+    "pass": 2,
+    "fail": 4,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "correct_abandon": 3,
+      "true_success": 2
+    },
+    "failure_modes": {
+      "decision": 3,
+      "crash": 1
+    },
+    "agent_modes": {
+      "decision": 3
+    },
+    "system_modes": {
+      "crash": 1
+    }
+  },
+  "acceptance": {
+    "passed": false,
+    "notes": [
+      "FAIL: system failure_modes present: {'crash': 1}",
+      "FAIL: f002 FAIL without quadrant"
+    ]
+  },
+  "results": [
+    {
+      "task_id": "s001",
+      "result": {
+        "task_id": "s001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.google.com/",
+          "final_title": "Google",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "^https://(www\\.)?openai\\.com/"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 7,
+          "api_calls": 0,
+          "elapsed_ms": 70957
+        }
+      }
+    },
+    {
+      "task_id": "s002",
+      "result": {
+        "task_id": "s002",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://docs.python.org/",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org.*asyncio"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1772
+        }
+      }
+    },
+    {
+      "task_id": "s003",
+      "result": {
+        "task_id": "s003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.w3.org/standards/",
+          "final_title": "Web Standards | W3C",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "w3\\.org/standards"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 8,
+          "api_calls": 0,
+          "elapsed_ms": 32005
+        }
+      }
+    },
+    {
+      "task_id": "s004",
+      "result": {
+        "task_id": "s004",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Ada_Lovelace",
+          "final_title": "Ada Lovelace - Wikipedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "wikipedia\\.org/wiki/Ada_Lovelace"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 4357
+        }
+      }
+    },
+    {
+      "task_id": "f002",
+      "error": "agent_loop_raised",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 131, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 702, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 445, in command\n    return self.command(\"act\", {\"fingerprint\": state[\"page\"][\"fingerprint\"]})\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 615, in command\n    state[\"browser\"].act(action, page, text=text)\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 207, in act\n    if action[\"kind\"] != \"reload\" and not self.fresh(page, action):\n                                          ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 137, in fresh\n    current = self.evaluate(\n              ^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 77, in evaluate\n    response = self.call(\"Runtime.evaluate\", expression=expression, returnByValue=True)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 64, in call\n    return cdp(method, session_id=self.session, **params)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 74, in cdp\n    return _send(\n           ^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 68, in _send\n    if \"error\" in r: raise RuntimeError(r[\"error\"])\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: {'code': -32001, 'message': 'Session with given id not found.'}\n",
+      "exception": "RuntimeError(\"{'code': -32001, 'message': 'Session with given id not found.'}\")",
+      "result": {
+        "task_id": "f002",
+        "result": "FAIL",
+        "quadrant": null,
+        "failure_class": "system",
+        "failure_mode": "crash",
+        "evidence": {
+          "final_url": "https://httpbin.org/#/",
+          "final_title": "httpbin.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "comments"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "hello world"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 14814
+        }
+      }
+    },
+    {
+      "task_id": "n004",
+      "result": {
+        "task_id": "n004",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.rfc-editor.org/search/",
+          "final_title": "Search | RFC Editor",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "rfc9110"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 6,
+          "api_calls": 0,
+          "elapsed_ms": 27617
+        }
+      }
+    }
+  ]
+}

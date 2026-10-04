@@ -1065,3 +1065,89 @@ laya-browser 微调版 16 任务 62%， DONE 判断依赖真实落页样本。
 **附带修复**：`pip install laya` 会把 jev env 的 CUDA torch 降级为 CPU 版
 （依赖解析拉 torch 2.14+cpu），需 `--force-reinstall torch --index-url
 cu128 --no-deps` 恢复；下次装包先记 torch 版本。
+
+---
+
+### 2026-10-04 · 决策模型四路对照（19 任务集，去掉 s001）
+
+**动机**：W1 的「一次干净对照」扩成四路 —— 裸 decider-2b vs Laya v17s vs
+agent-jev 0.6B vs 自训 adapter_m4b。统一 19 任务（s001 因 Google 反爬剔除），
+一任务一进程（daemon 死不再连坐），与 `reports/m1-final3.json`（decider-2b
+15/20）逐任务并排。
+
+| 模型 | 结果 | fp | 失败特征 |
+|---|---|---|---|
+| **decider-2b（裸）** | **13/17** | 0 | — |
+| Laya v17s (322M) | 6/18 | 0 | `model_calls ≫ steps`，反复输出终止操作 |
+| agent-jev 0.6B | 3/18 | 0 | **12/18 是 system crash**，`model_calls=0` |
+| decider-2b + adapter_m4b | **8/15**（基线同批 12/15） | 0 | 无增益，0 胜 4 负 |
+
+**Laya v17s 判决（补完 09-27 的「待重评」）**：不采用。10 个负例全是
+`correct_abandon`；4 个任务 `model_calls=1 / steps=0`（一次决策即终止）。
+cklxx 官方 benchmark 报 62%，本框架 6/18=33%，差距来自「下一步该做什么」
+这个开放问题——正是 Laya 的已知短板（答窄问题强，答开放问题弱）。
+证据 `reports/m1-laya19-1004-1212.json`。
+
+**agent-jev 判决**：不采用。18 个任务里 **12 个 `failure_mode=crash`、
+`failure_class=system`、`model_calls=0`、耗时 3 秒**——agent 在第一次决策前
+就崩，页面正常加载，非连接失败（日志 0 处 connection failed）。是 provider
+与 `jev_service` 的响应契约不匹配（`answers[].value` / `distribution`），
+不是模型质量问题。3 个「通过」里 x002 是 steps=0 的白送 credit。
+证据 `reports/m1-agentjev-1004-1231.json`。
+
+**adapter_m4b 判决：无增益，不采用。** 前两轮跑出的 3/17 与 3/17 均**无效**——
+根因是 `decider/_http.py` 把回环请求也套上了 `HTTPX_PROXY`，本地服务在线却被
+拒绝连接，退避重试 6 次（≈224s/任务）。修复回环绕过代理后重跑：
+
+| 项 | 值 |
+|---|---|
+| 结果 | **8 PASS / 7 FAIL / 3 ERROR（18 任务）** |
+| 基线同批 15 任务 | **12 PASS** |
+| 差分 | **0 胜 4 负**（f004 / n003 / n004 / l001） |
+| false_positive | **0** |
+| 单任务耗时 | **~35s**（修复前 224s） |
+
+M4b 的 655 行采集数据**没有带来任何提升**，与 M4a 的 951 行 → 6/20 一致。
+证据 `reports/m1-adapter_m4b-1004-1505.json`。
+
+**保留**：`x002`（guard 语义负向任务）与 `l002`/`t002`/`s004` 为 harness ERROR，
+fp=0 在 17 个任务上成立，adapter 上未验证到 x002。但 adapter 已被 0 胜 4 负
+否决，补跑不改变结论。
+
+**这一轮真正确立的结论 —— M1 存在框架天花板，不是模型天花板**：
+
+| 模型 | 类型 | M1 |
+|---|---|---|
+| DeepSeek Flash | 商业 API 前沿 | 12/20 |
+| glm-5.3-flash | 商业 API 前沿 | 12/20 |
+| decider-2b | 本地 2B | **13–15/20** |
+
+**两个前沿商业 API 模型都打不过本地 2B。** M1 全是 DOM 索引动作选择，
+前沿大模型在此过度思考、格式更易出错。故 19 任务集测的是
+**模型与 action space 的契合度**，不是模型能力。换模型的边际收益已被
+四次连续失败（Laya 6/18、agent-jev 3/18、adapter 8/15 vs 基线 12/15、
+M4a 6/20）证实很低。
+
+**采集管线的方向性问题（有外部佐证）**：M4a 951 行→6/20、M4b 655 行→无效，
+两次自训均无增益。cklxx 独立记录了两条同向结论：
+① `Mind2Web alone kills DONE / TYPE_TEXT`（无 DONE 样本，CLICK 占绝对多数）
+② 模板化 DONE goal 会泄漏措辞，模型学会「stop when ⇒ DONE」，
+   **DONE 样本必须是执行动作后的真实落地页**。
+本项目 M2/M4b 采集大概率缺这一层 → 后续若再训，先改采集而非改模型。
+
+**硬线复盘**：四轮 `false_positive` 全为 0，包括只有 6/18、3/18 的弱模型。
+**DoneGuard 与决策模型无关，治理层在弱模型下依然生效**——这是治理四件套
+唯一被跨模型独立验证过的能力。
+
+**遗留**：`decider-4b`（权重已下、NF4 通路已冒烟）未测。按
+`00-project-plan.md` §3.1 自定门槛「需 ≥17/20 才值得换」，而历史方差为
+15–16/20，且前沿 API 仅 12/20——**建议不测**，除非要闭合候选清单。
+
+**基础设施产出**（本轮新增，均为 ASCII-only PowerShell 5.1 兼容）：
+- `run_overnight_laya.ps1` / `run_agentjev_19.ps1` / `run_adapter_m4b.ps1`
+  —— 一任务一进程 + 试点闸门 + 墙钟上限 + ERROR 重试 + 收尾验证
+- `m1/merge_reports.py` —— 碎片合并 + 基线差分 + fp 硬线打印
+- 一任务一进程是**关键修复**：daemon 崩溃从「连坐整轮」变成「最多损失 1 个任务」
+- `Test-Report` 需额外拒绝含 `connection failed` 的报告，否则重跑会把
+  假结果当有效跳过
+- 服务存活判定必须查**进程对象**（`$proc.HasExited`），不能只靠 HTTP 探测

@@ -1,0 +1,35 @@
+{
+ "status": "blocked",
+ "wall_s": 0.03,
+ "steps": 0,
+ "n_decisions": 1,
+ "decision_lat_p50": 0,
+ "decision_lat_max": 0,
+ "final_url": "chrome-error://chromewebdata/",
+ "history": [],
+ "decisions": [
+  {
+   "i": 0,
+   "choice": "BLOCKED",
+   "skill": "blocked_dead_page",
+   "operation": "BLOCKED",
+   "target": null,
+   "reason": null,
+   "pre": {}
+  }
+ ],
+ "target_date": "2026-10-21",
+ "verification": {
+  "passed": false,
+  "checks": {
+   "search_page": false,
+   "one_way": false,
+   "origin": false,
+   "destination": false,
+   "date": false,
+   "year": false,
+   "results": false
+  },
+  "visible_flights": []
+ }
+}

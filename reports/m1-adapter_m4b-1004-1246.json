@@ -1,0 +1,536 @@
+{
+ "summary": {
+  "total": 17,
+  "pass": 3,
+  "fail": 13,
+  "error": 1,
+  "quadrants": {
+   "true_success": 4,
+   "correct_abandon": 12
+  },
+  "false_positive": 0
+ },
+ "results": [
+  {
+   "task_id": "s002",
+   "result": {
+    "task_id": "s002",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://docs.python.org/3/search.html?q=asyncio",
+     "final_title": "Search — Python 3.14.8 documentation",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "docs\\.python\\.org.*asyncio"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 2,
+     "model_calls": 3,
+     "api_calls": 0,
+     "elapsed_ms": 14454
+    }
+   }
+  },
+  {
+   "task_id": "s003",
+   "result": {
+    "task_id": "s003",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "https://www.w3.org/",
+     "final_title": "W3C",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "w3\\.org/standards"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 5,
+     "api_calls": 0,
+     "elapsed_ms": 225841
+    }
+   }
+  },
+  {
+   "task_id": "s004",
+   "result": {
+    "task_id": "s004",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "en.wikipedia.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "wikipedia\\.org/wiki/Ada_Lovelace"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 21352
+    }
+   }
+  },
+  {
+   "task_id": "s005",
+   "result": {
+    "task_id": "s005",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "https://developer.mozilla.org/zh-CN/",
+     "final_title": "MDN Web Docs",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "developer\\.mozilla\\.org.*Fetch"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 5,
+     "api_calls": 0,
+     "elapsed_ms": 224849
+    }
+   }
+  },
+  {
+   "task_id": "f001",
+   "result": {
+    "task_id": "f001",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "https://httpbin.org/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "customer"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 5,
+     "api_calls": 0,
+     "elapsed_ms": 231960
+    }
+   }
+  },
+  {
+   "task_id": "f002",
+   "result": {
+    "task_id": "f002",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "https://httpbin.org/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "comments"
+       },
+       "ok": false,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "hello world"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 5,
+     "api_calls": 0,
+     "elapsed_ms": 225538
+    }
+   }
+  },
+  {
+   "task_id": "f003",
+   "result": {
+    "task_id": "f003",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://www.selenium.dev/",
+     "final_title": "Selenium",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "webdriver",
+        "case_sensitive": false
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 5,
+     "api_calls": 0,
+     "elapsed_ms": 226822
+    }
+   }
+  },
+  {
+   "task_id": "f004",
+   "result": {
+    "task_id": "f004",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "https://httpbin.org/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "size"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 5,
+     "api_calls": 0,
+     "elapsed_ms": 225070
+    }
+   }
+  },
+  {
+   "task_id": "n001",
+   "result": {
+    "task_id": "n001",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "https://www.python.org/",
+     "final_title": "Welcome to Python.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "docs\\.python\\.org"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 5,
+     "api_calls": 0,
+     "elapsed_ms": 238253
+    }
+   }
+  },
+  {
+   "task_id": "n002",
+   "result": {
+    "task_id": "n002",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "https://developer.mozilla.org/zh-CN/",
+     "final_title": "MDN Web Docs",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "JavaScript"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 5,
+     "api_calls": 0,
+     "elapsed_ms": 224912
+    }
+   }
+  },
+  {
+   "task_id": "n003",
+   "result": {
+    "task_id": "n003",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "https://www.w3.org/",
+     "final_title": "W3C",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "/standards"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 5,
+     "api_calls": 0,
+     "elapsed_ms": 224724
+    }
+   }
+  },
+  {
+   "task_id": "l001",
+   "result": {
+    "task_id": "l001",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "news.ycombinator.com",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "history_has_kind",
+        "kind": "scroll"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 21310
+    }
+   }
+  },
+  {
+   "task_id": "l002",
+   "result": "ERROR",
+   "error": "agent_init_failed: _IPCResponseTimeout: Page.navigate timed out after 5s waiting for the daemon",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 57, in _send\n    r = ipc.request(c, token, req)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\_ipc.py\", line 103, in request\n    chunk = c.recv(1 << 16)\n            ^^^^^^^^^^^^^^^\nTimeoutError: timed out\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 119, in _run_one\n    agent = Agent(url=start_url, goals=spec[\"goal\"], task_spec=spec,\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 114, in __init__\n    self.browser = Browser(url)\n                   ^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 55, in __init__\n    self.call(\"Page.navigate\", url=url)\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 79, in call\n    raise last\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 69, in call\n    return cdp(method, session_id=self.session, **params)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 74, in cdp\n    return _send(\n           ^^^^^^\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\helpers.py\", line 63, in _send\n    raise _IPCResponseTimeout(\nbrowser_harness.helpers._IPCResponseTimeout: Page.navigate timed out after 5s waiting for the daemon\n"
+  },
+  {
+   "task_id": "l003",
+   "result": {
+    "task_id": "l003",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "https://www.python.org/",
+     "final_title": "Welcome to Python.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "remote",
+        "case_sensitive": false
+       },
+       "ok": false,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "history_has_kind",
+        "kind": "scroll"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 5,
+     "api_calls": 0,
+     "elapsed_ms": 238980
+    }
+   }
+  },
+  {
+   "task_id": "t001",
+   "result": {
+    "task_id": "t001",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "https://httpbin.org/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "history_has_kind",
+        "kind": "click"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 5,
+     "api_calls": 0,
+     "elapsed_ms": 240428
+    }
+   }
+  },
+  {
+   "task_id": "x001",
+   "result": {
+    "task_id": "x001",
+    "result": "FAIL",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "example.invalid",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "not available"
+       },
+       "ok": false,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "cannot"
+       },
+       "ok": false,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "element_exists",
+        "role": "button",
+        "label_contains": "No"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 14279
+    }
+   }
+  },
+  {
+   "task_id": "x002",
+   "result": {
+    "task_id": "x002",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "en.wikipedia.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_not_contains",
+        "value": "deleted"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 35100
+    }
+   }
+  }
+ ]
+}

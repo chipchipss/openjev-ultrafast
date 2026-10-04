@@ -1,0 +1,214 @@
+{
+  "summary": {
+    "total": 6,
+    "pass": 2,
+    "fail": 4,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "correct_abandon": 4,
+      "true_success": 2
+    },
+    "failure_modes": {
+      "decision": 4
+    },
+    "agent_modes": {
+      "decision": 4
+    },
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "s001",
+      "result": {
+        "task_id": "s001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.google.com/search?q=openai&sca_esv=800f17b7812d8a3a&sxsrf=APpeQntyOGKXa5DoSHhVaPtwGeXVibAK0Q%3A1790829107101&source=hp&ei=M-K9aqXsBOLEkPIP4I7DsAQ&iflsig=ABILxe8AAAAAar3wQ3lF0PYT1aCLM_nnggy7-ROcg4NG&gs_ssp=eJzj4tVP1zc0TKpINjM1KzNTYDRgdGDwYssvSM1LzAQAYW0HJw&oq=OpenAI&gs_lp=Egdnd3Mtd2l6IgZPcGVuQUkqEAgAGIAEGIoFGEMYxwEY0QMyEBAuGIAEGIoFGEMYxwEY0QMyBRAAGIAEMgUQABiABDIKEAAYgAQYigUYQzIFEAAYgAQyBRAAGIAEMgUQABiABDIFEAAYgAQyBRAAGIAEMgUQABiABEjfAlAmWCZwAHgAkAEAmAHKAaABhwOqAQUwLjEuMbgBAcgBAPgBAZgCAqACpQOoAgrCAhEQABjlBhiKAxjnBhjqAhi0ApgD0gHxBcs3-MzvdYlgkgcDMi0yoAeaCbIHAzItMrgHpQPCBwUyLTEuMcgHF4AIAQ&sclient=gws-wiz",
+          "final_title": "openai - Google 搜索",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "^https://(www\\.)?openai\\.com/"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 9,
+          "api_calls": 0,
+          "elapsed_ms": 70812
+        }
+      }
+    },
+    {
+      "task_id": "s002",
+      "result": {
+        "task_id": "s002",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://docs.python.org/3/",
+          "final_title": "3.14.8 Documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org.*asyncio"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 24696
+        }
+      }
+    },
+    {
+      "task_id": "s003",
+      "result": {
+        "task_id": "s003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.w3.org/standards/",
+          "final_title": "Web Standards | W3C",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "w3\\.org/standards"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 8,
+          "api_calls": 0,
+          "elapsed_ms": 34985
+        }
+      }
+    },
+    {
+      "task_id": "s004",
+      "result": {
+        "task_id": "s004",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Ada_Lovelace",
+          "final_title": "Ada Lovelace - Wikipedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "wikipedia\\.org/wiki/Ada_Lovelace"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 3661
+        }
+      }
+    },
+    {
+      "task_id": "f002",
+      "result": {
+        "task_id": "f002",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://httpbin.org/#/HTTP_Methods/post_post",
+          "final_title": "httpbin.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "comments"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "hello world"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 6,
+          "api_calls": 0,
+          "elapsed_ms": 16736
+        }
+      }
+    },
+    {
+      "task_id": "n004",
+      "result": {
+        "task_id": "n004",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.rfc-editor.org/search/",
+          "final_title": "Search | RFC Editor",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "rfc9110"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 7,
+          "api_calls": 0,
+          "elapsed_ms": 28486
+        }
+      }
+    }
+  ]
+}

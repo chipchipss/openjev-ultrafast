@@ -1,0 +1,662 @@
+{
+  "summary": {
+    "total": 20,
+    "pass": 14,
+    "fail": 6,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "correct_abandon": 5,
+      "true_success": 15
+    },
+    "failure_modes": {
+      "decision": 5
+    },
+    "agent_modes": {
+      "decision": 5
+    },
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "s001",
+      "result": {
+        "task_id": "s001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.google.com/sorry/index?continue=https://www.google.com/search%3Fq%3Dopenai%26sca_esv%3Dd0c3879c3aba1c72%26sxsrf%3DAPpeQnsSfCsYfoMgjZaSMXFyfOkGrO7pfg%253A1790765772803%26source%3Dhp%26ei%3DzOq8arC_L9rakPIPnv_IqQM%26iflsig%3DABILxe8AAAAAarz43MZQ6TS1iBp_36gA1D9siitO4CdO%26gs_ssp%3DeJzj4tVP1zc0TKpINjM1KzNTYDRgdGDwYssvSM1LzAQAYW0HJw%26oq%3DOpenAI%26gs_lp%3DEgdnd3Mtd2l6IgZPcGVuQUkqCwgAGIAEGMcBGNEDMgsQLhiABBjHARjRAzIFEAAYgAQyBRAAGIAEMgUQABiABDIFEAAYgAQyBRAAGIAEMgUQABiABDIFEAAYgAQyBRAAGIAEMgUQABiABEiKA1AiWCJwAXgAkAEAmAHaAaAB2gGqAQMyLTG4AQHIAQD4AQGYAgGgAuwBqAIAmAME8QWg2VRfpimrhZIHAzItMaAHiwSyBwMyLTG4B-wBwgcDMy0xyAcQgAgB%26sclient%3Dgws-wiz%26sei%3Dz-q8aoD0F56ekPIP58S20AE&q=EhAmB_EwAAABVQIWPv_-Kj6VGM_V89UGIjD5okx4nCJhF8fHMJoFOyDhKjZRSP0JUqAuZXecgX8DtAl80SKFYarIxvNPiYgDWKIyAVJaAUM",
+          "final_title": "https://www.google.com/search?q=openai&sca_esv=d0c3879c3aba1c72&sxsrf=APpeQnsSfCsYfoMgjZaSMXFyfOkGrO7pfg%3A1790765772803&source=hp&ei=zOq8arC_L9rakPIPnv_IqQM&iflsig=ABILxe8AAAAAarz43MZQ6TS1iBp_36gA1D9siitO4CdO&gs_ssp=eJzj4tVP1zc0TKpINjM1KzNTYDRgdGDwYssvSM1LzAQAYW0HJw&oq=OpenAI&gs_lp=Egdnd3Mtd2l6IgZPcGVuQUkqCwgAGIAEGMcBGNEDMgsQLhiABBjHARjRAzIFEAAYgAQyBRAAGIAEMgUQABiABDIFEAAYgAQyBRAAGIAEMgUQABiABDIFEAAYgAQyBRAAGIAEMgUQABiABEiKA1AiWCJwAXgAkAEAmAHaAaAB2gGqAQMyLTG4AQHIAQD4AQGYAgGgAuwBqAIAmAME8QWg2VRfpimrhZIHAzItMaAHiwSyBwMyLTG4B-wBwgcDMy0xyAcQgAgB&sclient=gws-wiz&sei=z-q8aoD0F56ekPIP58S20AE",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "^https://(www\\.)?openai\\.com/"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 17803
+        }
+      }
+    },
+    {
+      "task_id": "s002",
+      "result": {
+        "task_id": "s002",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/search.html?q=asyncio",
+          "final_title": "Search — Python 3.14.7 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org.*asyncio"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 7239
+        }
+      }
+    },
+    {
+      "task_id": "s003",
+      "result": {
+        "task_id": "s003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.w3.org/standards/",
+          "final_title": "Web Standards | W3C",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "w3\\.org/standards"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 6014
+        }
+      }
+    },
+    {
+      "task_id": "s004",
+      "result": {
+        "task_id": "s004",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Ada_Lovelace",
+          "final_title": "Ada Lovelace - Wikipedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "wikipedia\\.org/wiki/Ada_Lovelace"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 6573
+        }
+      }
+    },
+    {
+      "task_id": "s005",
+      "result": {
+        "task_id": "s005",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://developer.mozilla.org/zh-CN/docs/Web/API/Fetch_API",
+          "final_title": "Fetch API - Web API | MDN",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "developer\\.mozilla\\.org.*Fetch"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 10430
+        }
+      }
+    },
+    {
+      "task_id": "f001",
+      "result": {
+        "task_id": "f001",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://httpbin.org/forms/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "customer"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 4198
+        }
+      }
+    },
+    {
+      "task_id": "f002",
+      "result": {
+        "task_id": "f002",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://httpbin.org/forms/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "comments"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "hello world"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 6590
+        }
+      }
+    },
+    {
+      "task_id": "f003",
+      "result": {
+        "task_id": "f003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.selenium.dev/",
+          "final_title": "Selenium",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "webdriver",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 11064
+        }
+      }
+    },
+    {
+      "task_id": "f004",
+      "result": {
+        "task_id": "f004",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://httpbin.org/forms/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "size"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 8,
+          "model_calls": 11,
+          "api_calls": 0,
+          "elapsed_ms": 18742
+        }
+      }
+    },
+    {
+      "task_id": "n001",
+      "result": {
+        "task_id": "n001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.python.org/doc/",
+          "final_title": "Our Documentation | Python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 22876
+        }
+      }
+    },
+    {
+      "task_id": "n002",
+      "result": {
+        "task_id": "n002",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference",
+          "final_title": "JavaScript 参考 - JavaScript | MDN",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "JavaScript"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 13366
+        }
+      }
+    },
+    {
+      "task_id": "n003",
+      "result": {
+        "task_id": "n003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.w3.org/standards/",
+          "final_title": "Web Standards | W3C",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "/standards"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5618
+        }
+      }
+    },
+    {
+      "task_id": "n004",
+      "result": {
+        "task_id": "n004",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.rfc-editor.org/",
+          "final_title": "RFC Editor",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "rfc9110"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 13859
+        }
+      }
+    },
+    {
+      "task_id": "l001",
+      "result": {
+        "task_id": "l001",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://space.bl2.net/",
+          "final_title": "Космос сейчас · Belle Lune 2",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            }
+          ]
+        },
+        "meta": {
+          "steps": 5,
+          "model_calls": 8,
+          "api_calls": 0,
+          "elapsed_ms": 22318
+        }
+      }
+    },
+    {
+      "task_id": "l002",
+      "result": {
+        "task_id": "l002",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population",
+          "final_title": "List of countries and dependencies by population - Wikipedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "List_of_countries"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 14,
+          "api_calls": 0,
+          "elapsed_ms": 16421
+        }
+      }
+    },
+    {
+      "task_id": "l003",
+      "result": {
+        "task_id": "l003",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://2022.pycascades.com/news/",
+          "final_title": "News - PyCascades 2022",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "remote",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            }
+          ]
+        },
+        "meta": {
+          "steps": 20,
+          "model_calls": 33,
+          "api_calls": 0,
+          "elapsed_ms": 86051
+        }
+      }
+    },
+    {
+      "task_id": "t001",
+      "result": {
+        "task_id": "t001",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://httpbin.org/",
+          "final_title": "httpbin.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "click"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 3790
+        }
+      }
+    },
+    {
+      "task_id": "t002",
+      "result": {
+        "task_id": "t002",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.selenium.dev/documentation/",
+          "final_title": "The Selenium Browser Automation Project | Selenium",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Documentation",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 11368
+        }
+      }
+    },
+    {
+      "task_id": "x001",
+      "result": {
+        "task_id": "x001",
+        "result": "FAIL",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "example.invalid",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "not available"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "cannot"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "element_exists",
+                "role": "button",
+                "label_contains": "No"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 4977
+        }
+      }
+    },
+    {
+      "task_id": "x002",
+      "result": {
+        "task_id": "x002",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Earth",
+          "final_title": "Earth - Wikipedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "deleted"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 24054
+        }
+      }
+    }
+  ]
+}

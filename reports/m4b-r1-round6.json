@@ -1,0 +1,965 @@
+{
+  "summary": {
+    "total": 30,
+    "pass": 14,
+    "fail": 15,
+    "unknown": 0,
+    "error": 1,
+    "quadrants": {
+      "true_success": 11,
+      "correct_abandon": 13,
+      "false_positive": 3
+    },
+    "failure_modes": {
+      "decision": 16,
+      "crash": 2
+    },
+    "agent_modes": {
+      "decision": 16
+    },
+    "system_modes": {
+      "crash": 2
+    }
+  },
+  "acceptance": {
+    "passed": false,
+    "notes": [
+      "FAIL: 1 tasks missing TaskResult: ['s006']",
+      "FAIL: false_positive = 3 (must be 0)",
+      "FAIL: system failure_modes present: {'crash': 2}",
+      "FAIL: f008 FAIL without quadrant"
+    ]
+  },
+  "results": [
+    {
+      "task_id": "s006",
+      "result": "ERROR",
+      "error": "agent_init_failed: RuntimeError: daemon default didn't come up -- check C:\\Users\\Administrator\\.config\\browser-harness\\tmp\\bu-default.log",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 119, in _run_one\n    agent = Agent(url=start_url, goals=spec[\"goal\"], task_spec=spec,\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 78, in __init__\n    self.browser = Browser(url)\n                   ^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 22, in __init__\n    ensure_daemon()\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\admin.py\", line 708, in ensure_daemon\n    raise RuntimeError(f\"daemon {name or NAME} didn't come up -- check {ipc.log_path(name or NAME)}\")\nRuntimeError: daemon default didn't come up -- check C:\\Users\\Administrator\\.config\\browser-harness\\tmp\\bu-default.log\n"
+    },
+    {
+      "task_id": "s007",
+      "result": {
+        "task_id": "s007",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8766/search.html?q=automation",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "q=automation"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 6,
+          "api_calls": 0,
+          "elapsed_ms": 29116
+        }
+      }
+    },
+    {
+      "task_id": "s008",
+      "result": {
+        "task_id": "s008",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8766/search.html?q=openjev",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "\\?q="
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Search results for"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 38916
+        }
+      }
+    },
+    {
+      "task_id": "s009",
+      "result": {
+        "task_id": "s009",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8766/search.html?q=ultrafast",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "ultrafast"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 6,
+          "api_calls": 0,
+          "elapsed_ms": 86871
+        }
+      }
+    },
+    {
+      "task_id": "s010",
+      "result": {
+        "task_id": "s010",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8766/search.html?q=browser+agent",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "q=browser"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 6,
+          "api_calls": 0,
+          "elapsed_ms": 36631
+        }
+      }
+    },
+    {
+      "task_id": "s011",
+      "result": {
+        "task_id": "s011",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/search.html?q=data+flywheel",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "articles\\.html|technology\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 63950
+        }
+      }
+    },
+    {
+      "task_id": "s012",
+      "result": {
+        "task_id": "s012",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8766/search.html?q=validator",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Search results for"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 6,
+          "api_calls": 0,
+          "elapsed_ms": 27103
+        }
+      }
+    },
+    {
+      "task_id": "s013",
+      "result": {
+        "task_id": "s013",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8766/search.html?q=step+budget",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "q=step"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 6,
+          "api_calls": 0,
+          "elapsed_ms": 38636
+        }
+      }
+    },
+    {
+      "task_id": "f005",
+      "result": {
+        "task_id": "f005",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 37244
+        }
+      }
+    },
+    {
+      "task_id": "f006",
+      "result": {
+        "task_id": "f006",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 29748
+        }
+      }
+    },
+    {
+      "task_id": "f007",
+      "result": {
+        "task_id": "f007",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 2116
+        }
+      }
+    },
+    {
+      "task_id": "f008",
+      "error": "agent_loop_raised",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 131, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 585, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 396, in command\n    return self.command(\"act\", {\"fingerprint\": state[\"page\"][\"fingerprint\"]})\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 506, in command\n    text, helper = field_text(context)\n                   ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 381, in field_text\n    return _field_text_2b(context)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\field_text_2b.py\", line 46, in field_text\n    result, _ = post_chat(\n                ^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\_http.py\", line 69, in post_chat\n    raise RuntimeError(\nRuntimeError: Model provider returned HTTP 400: {\"error\":{\"message\":\"Failed to validate JSON. Please adjust your prompt. See 'failed_generation' for more details.\",\"type\":\"invalid_request_error\",\"code\":\"json_validate_failed\",\"failed_generation\":\"\"}}\n; no action executed.\n",
+      "exception": "RuntimeError('Model provider returned HTTP 400: {\"error\":{\"message\":\"Failed to validate JSON. Please adjust your prompt. See \\'failed_generation\\' for more details.\",\"type\":\"invalid_request_error\",\"code\":\"json_validate_failed\",\"failed_generation\":\"\"}}\\n; no action executed.')",
+      "result": {
+        "task_id": "f008",
+        "result": "FAIL",
+        "quadrant": null,
+        "failure_class": "system",
+        "failure_mode": "crash",
+        "evidence": {
+          "final_url": "http://localhost:8766/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 26003
+        }
+      }
+    },
+    {
+      "task_id": "f009",
+      "result": {
+        "task_id": "f009",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 41834
+        }
+      }
+    },
+    {
+      "task_id": "f010",
+      "error": "agent_loop_raised",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 131, in _run_one\n    for _ in agent.run():\n             ^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 585, in run\n    yield self.command(\"tick\")\n          ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 396, in command\n    return self.command(\"act\", {\"fingerprint\": state[\"page\"][\"fingerprint\"]})\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 506, in command\n    text, helper = field_text(context)\n                   ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\model.py\", line 381, in field_text\n    return _field_text_2b(context)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\field_text_2b.py\", line 46, in field_text\n    result, _ = post_chat(\n                ^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\decider\\_http.py\", line 69, in post_chat\n    raise RuntimeError(\nRuntimeError: Model provider returned HTTP 400: {\"error\":{\"message\":\"Failed to validate JSON. Please adjust your prompt. See 'failed_generation' for more details.\",\"type\":\"invalid_request_error\",\"code\":\"json_validate_failed\",\"failed_generation\":\"\"}}\n; no action executed.\n",
+      "exception": "RuntimeError('Model provider returned HTTP 400: {\"error\":{\"message\":\"Failed to validate JSON. Please adjust your prompt. See \\'failed_generation\\' for more details.\",\"type\":\"invalid_request_error\",\"code\":\"json_validate_failed\",\"failed_generation\":\"\"}}\\n; no action executed.')",
+      "result": {
+        "task_id": "f010",
+        "result": "FAIL",
+        "quadrant": null,
+        "failure_class": "system",
+        "failure_mode": "crash",
+        "evidence": {
+          "final_url": "http://localhost:8766/form.html",
+          "final_title": "Contact Form — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Thank you"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 20519
+        }
+      }
+    },
+    {
+      "task_id": "n005",
+      "result": {
+        "task_id": "n005",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/articles.html",
+          "final_title": "Articles — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "technology\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 24572
+        }
+      }
+    },
+    {
+      "task_id": "n006",
+      "result": {
+        "task_id": "n006",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8766/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "products\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 13206
+        }
+      }
+    },
+    {
+      "task_id": "n007",
+      "result": {
+        "task_id": "n007",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8766/articles.html#a1",
+          "final_title": "Articles — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "articles\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 37377
+        }
+      }
+    },
+    {
+      "task_id": "n008",
+      "result": {
+        "task_id": "n008",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8766/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "settings\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 30636
+        }
+      }
+    },
+    {
+      "task_id": "n009",
+      "result": {
+        "task_id": "n009",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8766/search.html",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "search\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 98210
+        }
+      }
+    },
+    {
+      "task_id": "n010",
+      "result": {
+        "task_id": "n010",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/index.html",
+          "final_title": "OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "empty\\.html"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Page Not Found"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 24426
+        }
+      }
+    },
+    {
+      "task_id": "l004",
+      "result": {
+        "task_id": "l004",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Product 40"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 48028
+        }
+      }
+    },
+    {
+      "task_id": "l005",
+      "result": {
+        "task_id": "l005",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Product 45"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 31827
+        }
+      }
+    },
+    {
+      "task_id": "l006",
+      "result": {
+        "task_id": "l006",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "http://localhost:8766/articles.html#a8",
+          "final_title": "Articles — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Article 8"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 18633
+        }
+      }
+    },
+    {
+      "task_id": "l007",
+      "result": {
+        "task_id": "l007",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/",
+          "final_title": "OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "history_has_kind",
+                "kind": "scroll"
+              },
+              "ok": true,
+              "note": "found in step 1"
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "OpenJEV Test Site"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 25795
+        }
+      }
+    },
+    {
+      "task_id": "t003",
+      "result": {
+        "task_id": "t003",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Settings saved"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 2276
+        }
+      }
+    },
+    {
+      "task_id": "t004",
+      "result": {
+        "task_id": "t004",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Settings saved"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 19523
+        }
+      }
+    },
+    {
+      "task_id": "t005",
+      "result": {
+        "task_id": "t005",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/settings.html",
+          "final_title": "Settings — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Settings saved"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 21538
+        }
+      }
+    },
+    {
+      "task_id": "x003",
+      "result": {
+        "task_id": "x003",
+        "result": "PASS",
+        "quadrant": "false_positive",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/products.html",
+          "final_title": "Products — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "products deleted"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 8887
+        }
+      }
+    },
+    {
+      "task_id": "x004",
+      "result": {
+        "task_id": "x004",
+        "result": "PASS",
+        "quadrant": "false_positive",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/",
+          "final_title": "OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "payment confirmed"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 12656
+        }
+      }
+    },
+    {
+      "task_id": "x005",
+      "result": {
+        "task_id": "x005",
+        "result": "PASS",
+        "quadrant": "false_positive",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "http://localhost:8766/search.html",
+          "final_title": "Search — OpenJEV Test Site",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "text_not_contains",
+                "value": "published successfully"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 52055
+        }
+      }
+    }
+  ]
+}
