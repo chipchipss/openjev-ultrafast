@@ -1,7 +1,7 @@
 """OpenJEV MCP server -- expose the browser agent as Claude Code tools.
 
 Three tools:
-  agent_status   -- check the backend stack (Chrome CDP + local decider + proxy)
+  agent_status   -- check the backend stack (Chrome CDP + StartLux wire server + proxy)
   agent_run      -- run ONE natural-language task on ONE page
   demo_flights   -- the verified Google Flights end-to-end demo
 
@@ -21,6 +21,10 @@ PY_JEV = r"C:\Users\Administrator\miniconda3\envs\jev\python.exe"
 CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 PROXY = "http://127.0.0.1:2080"
 
+# Decision base: StartLux-Decision-2B gguf_server (:8090, TypeSafe wire).
+# scripts\startlux_serve.ps1 owns the full stack (llama-server :8081 + wire :8090).
+WIRE_PORT = 8090
+
 mcp = MCPServer("openjev")
 
 
@@ -36,11 +40,12 @@ def _cdp_alive() -> bool:
 
 
 def _decider_alive() -> bool:
+    """The StartLux wire server answers /health on :8090."""
     try:
         import httpx
 
-        r = httpx.get("http://127.0.0.1:8000/health", timeout=2)
-        return r.status_code == 200
+        return httpx.get(f"http://127.0.0.1:{WIRE_PORT}/health",
+                         timeout=2).status_code == 200
     except Exception:
         return False
 
@@ -62,20 +67,23 @@ def _start_chrome(proxy: bool = True) -> None:
 
 
 def _start_decider() -> None:
-    """Start the local decider service; block until /health answers (~70s)."""
-    env = dict(os.environ, DECIDER_MODEL="Mapika/decider-2b", HF_HUB_OFFLINE="1",
-               USE_TF="0", DECIDER_COMPILE="0", DECIDER_FP8="0", PYTHONUTF8="1")
+    """Start the full StartLux stack (llama-server :8081 + wire :8090).
+
+    scripts\\startlux_serve.ps1 owns process cleanup + health polling; run it
+    detached and wait for the wire server here.
+    """
     subprocess.Popen(
-        [r"D:\openjev-models\decider\.venv\Scripts\python.exe", "-m", "uvicorn",
-         "decider.serve:app", "--host", "0.0.0.0", "--port", "8000"],
-        cwd=r"D:\openjev-models\decider", env=env,
+        ["powershell", "-ExecutionPolicy", "Bypass",
+         "-File", rf"{REPO}\scripts\startlux_serve.ps1"],
+        cwd=rf"{REPO}\scripts",
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         creationflags=subprocess.CREATE_NO_WINDOW)
-    for _ in range(90):
+    for _ in range(120):
         if _decider_alive():
             return
         time.sleep(2)
-    raise RuntimeError("decider did not answer /health within 180s")
+    raise RuntimeError("StartLux wire server did not answer /health within 240s "
+                       f"on :{WIRE_PORT} (see logs\\startlux-*.err.log)")
 
 
 def _ensure_stack(proxy: bool = True) -> str:
@@ -90,13 +98,16 @@ def _ensure_stack(proxy: bool = True) -> str:
     return "; ".join(notes) if notes else "backend already running"
 
 
-def _run_in_repo(args: list[str], timeout_s: int = 300) -> tuple[int, str]:
+def _run_in_repo(args: list[str], timeout_s: int = 300,
+                 env_extra: dict | None = None) -> tuple[int, str]:
     """Run run_task.py in the repo and return (exit_code, tail_of_output)."""
+    env = dict(os.environ, PYTHONUTF8="1")
+    if env_extra:
+        env.update(env_extra)
     proc = subprocess.run(
         [PY_JEV, "scripts/run_task.py", *args],
         cwd=REPO, capture_output=True, text=True, encoding="utf-8",
-        errors="replace", timeout=timeout_s,
-        env=dict(os.environ, PYTHONUTF8="1"),
+        errors="replace", timeout=timeout_s, env=env,
     )
     out = (proc.stdout or "") + (("\n[stderr] " + proc.stderr) if proc.stderr.strip() else "")
     lines = out.strip().splitlines()
@@ -106,8 +117,8 @@ def _run_in_repo(args: list[str], timeout_s: int = 300) -> tuple[int, str]:
 # ---------------------------------------------------------------- tools
 @mcp.tool()
 def agent_status() -> str:
-    """Check the OpenJEV browser-agent backend: Chrome CDP on 9222, the local
-    decider-2b model service on 8000, and whether the egress proxy answers.
+    """Check the OpenJEV browser-agent backend: Chrome CDP on 9222, the StartLux
+    decision wire server on 8090, and whether the egress proxy answers.
     Does not start anything."""
     proxy_ok = False
     try:
@@ -119,7 +130,7 @@ def agent_status() -> str:
         pass
     return json.dumps({
         "chrome_cdp_9222": _cdp_alive(),
-        "decider_8000": _decider_alive(),
+        "startlux_wire_8090": _decider_alive(),
         "proxy_2080": proxy_ok,
         "note": "agent_run will auto-start missing pieces; proxy down means "
                 "proxy-only sites (wikipedia) fail while direct-reachable "
@@ -169,7 +180,7 @@ def demo_flights() -> str:
         cwd=REPO, capture_output=True, text=True, encoding="utf-8",
         errors="replace", timeout=420,
         env=dict(os.environ, PYTHONUTF8="1", DECIDER_MODE="typesafe",
-                 TYPESAFE_BASE_URL="http://127.0.0.1:8000/v1/systemone",
+                 TYPESAFE_BASE_URL=f"http://127.0.0.1:{WIRE_PORT}/v1/systemone",
                  TYPESAFE_API_KEY="local", HTTPX_PROXY=PROXY),
     )
     lines = ((proc.stdout or "") + (proc.stderr or "")).strip().splitlines()

@@ -58,12 +58,25 @@ def main() -> int:
         subprocess.Popen([chrome, *flags])
         time.sleep(8)
 
-    # The decision backend must already be running (run_demo.ps1 / decider.serve).
-    # Default to the production wire so an ad-hoc run "just works" against a bare
-    # local decider on :8000 -- run_task.py raised "Missing DECIDER_2B_BASE_URL"
-    # otherwise, because DECIDER_MODE unset falls back to the openai provider.
+    # The decision backend must already be running (startlux_serve.ps1 / startlux_serve)
+    # or is auto-started by the MCP server. Default to the StartLux wire (:8090);
+    # the old decider on :8000 also matches if that is what is up.
+    import urllib.request
+
     os.environ.setdefault("DECIDER_MODE", "typesafe")
-    os.environ.setdefault("TYPESAFE_BASE_URL", "http://127.0.0.1:8000/v1/systemone")
+    if not os.environ.get("TYPESAFE_BASE_URL"):
+        if os.environ.get("OPENJEV_WIRE_PORT"):
+            base = f"http://127.0.0.1:{os.environ['OPENJEV_WIRE_PORT']}/v1/systemone"
+        else:
+            def _alive(port: int) -> bool:
+                try:
+                    return urllib.request.urlopen(
+                        f"http://127.0.0.1:{port}/health", timeout=2).status == 200
+                except Exception:
+                    return False
+            base = ("http://127.0.0.1:8090/v1/systemone" if _alive(8090)
+                    else "http://127.0.0.1:8000/v1/systemone")
+        os.environ["TYPESAFE_BASE_URL"] = base
     os.environ.setdefault("TYPESAFE_API_KEY", "local")
 
     from jev_ultrafast.agent import Agent
