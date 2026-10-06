@@ -10,7 +10,7 @@
 .\run_demo.ps1 -KeepOpen             # 跑完不关浏览器,自己看
 ```
 
-M1 基准(19 任务集):**16/18,`false_positive = 0`**,全程本地,整轮 5.8 分钟。
+M1 基准(19 任务集,三轮冻结读数):**18 PASS / 1 FAIL,`false_positive = 0`**,全程零云端调用,整轮 6 分钟(±1 抖动,单次读数不作数)。
 
 ## 这是什么
 
@@ -131,8 +131,18 @@ C:\Users\Administrator\miniconda3\envs\jev\python.exe scripts\run_task.py `
 ### 跑基准
 
 ```bash
-# 一键(Windows):起 decider + 全环境隔离 + 跑 20 任务
-./run_s004_history_test.ps1
+# 一键(Windows):起 decider + 全环境隔离 + 一任务一进程跑 19 任务
+./run_baseline_19.ps1
+
+# 或手动
+python3 -m m1.run_tasks --tasks m1/tasks-laya-19.jsonl --log-dir logs/ --report reports/run.json
+```
+
+合并逐任务碎片报告(与基线差分、打印 fp 硬线判决):
+
+```bash
+python3 -m m1.merge_reports
+```
 
 ### 安装
 
@@ -168,13 +178,7 @@ helper 选型实测(单字段值抽取,中位延迟):Groq `gpt-oss-120b` **~1.6s
 
 ### 跑 M1 benchmark
 
-```bash
-# 一键(Windows):起 decider + 全环境隔离 + 跑 20 任务
-./run_s004_history_test.ps1
-
-# 或手动
-python3 -m m1.run_tasks --tasks m1/tasks.jsonl --log-dir logs/ --report reports/run.json
-```
+见上面「跑基准」一节:`run_baseline_19.ps1` 是生产配置(裸 decider-2B / typesafe wire)的干净基线 runner。
 
 ### 跑上游对照
 
@@ -212,22 +216,24 @@ register_provider("my_model", my_decide_fn)
 
 ## 实验数据
 
-### M1 benchmark(20 任务:search / form / navigate / list / toggle / negative)
+### M1 四路模型对照(19 任务集 `m1/tasks-laya-19.jsonl`,全部实测)
 
-| Decision 后端 | 训练数据 | PASS | false_positive | crash |
-|---|---|---|---|---|
-| DeepSeek Flash(API) | — | 12/20 (60%) | 0 | 0 |
-| decider-2B(Mapika) | ~1,000,000 | 13/20 (65%) | 0 | 0 |
-| glm-5.3-flash 直插(零适配) | — | 12/20 (60%) | 0 | 0 |
-| Qwen2.5-3B-LoRA(本项目 M4a) | 951 | 6/20 (30%) | 0 | 0 |
+| Decision 后端 | 结果 | false_positive | 失败特征 |
+|---|---|---|---|
+| **decider-2b(裸,生产配置)** | **17/18**(三轮 16/17/15,±1 抖动) | 0 | — |
+| decider-2b + adapter_m4b | 8/15(同批基线 12/15) | 0 | 无增益,0 胜 4 负 |
+| Laya v17s (322M) | 6/18 | 0 | `model_calls ≫ steps`,反复输出终止操作 |
+| agent-jev 0.6B | 3/18 | 0 | 12/18 是 system crash,`model_calls=0` |
+| DeepSeek Flash(API) | 12/20 | 0 | — |
+| glm-5.3-flash 直插(零适配) | 12/20 | 0 | — |
+| Qwen2.5-3B-LoRA(本项目 M4a) | 6/20 | 0 | — |
 
-decider-2B 13/20 为框架增益后读数(M1.5 三机制 + 评估器修正,全程零训练);false_positive 全线为 0 = DONE Guard 有效;FP 安全硬线在任何后端下都不破。
+关键结论:
 
-关键观察:
-
-1. 框架增益 +7 PASS(6→13),零训练——Runtime 保证 action space 正确性与安全硬线,模型只负责排序
-2. 即插即用成立:glm-5.3-flash 零适配接入即达 12/20;接入任意 OpenAI 兼容模型 = 改 3 个环境变量
-3. 两个本地模型 false_positive 都是 0 —— DONE Guard 起作用
+1. **生产配置 = 裸 decider-2B + skills 层 + 治理四件套**:19/19 有效、18 PASS、`false_positive = 0`、`api_calls = 0`(全程零云端)、6 分钟/轮。基准带 ±1 抖动,单次读数不作数
+2. **模型线关闭**:两个前沿商业 API 都只有 12/20 —— M1 测的是框架契合度,不是模型能力;decider-4b 判定不值得测
+3. **训练线关闭**:两次自训均无增益;DONE 样本必须来自真实落地页(模板化 DONE 会教坏终止判断)
+4. `fp = 0` 的注脚:一部分是被 Policy 黑名单拦下的合法动作(误杀)撑起来的假象——模型被拦导致任务失败,失败自然不产生假阳性。查硬线时同时查误杀率
 
 ### 航班 demo:helper 后端四方案对决(同一任务)
 
@@ -278,9 +284,10 @@ openjev-ultrafast/
 ├── scripts/               # 本地 text helper 服务等
 ├── specs/                 # JSON Schema
 ├── docs/                  # 硬约束 + 架构 + 阶段
-├── reports/               # benchmark 报告
-├── run_m1.ps1             # 一键跑 M1
-└── run_s004_history_test.ps1  # 一键 decider + 环境隔离 + 基准
+├── reports/               # benchmark 报告(运行产物目录已不入库,见 .gitignore)
+├── run_baseline_19.ps1    # 生产配置 19 任务基线(一任务一进程 + 预检 + 收尾验证)
+├── run_demo.ps1           # 一条命令 demo(flights / wikipedia)
+└── scripts/run_task.py    # 跑任意任务 + 完成证据校验
 ```
 
 ## 硬约束
@@ -298,10 +305,12 @@ openjev-ultrafast/
 | M2 数据飞轮 | ✅ ACCEPTED(6044 decisions / 243 c_pairs / split 可复现) |
 | M3 Reranker | ⏸ SKIP(M1 probe 无 cap-failure 相关性) |
 | M4a 本地训练诊断 | ✅ COMPLETED(Δtarget_acc +61.4pp) |
-| M4b 扩数据训练 | ⏳ 剩余差距的唯一主通道(2B 复杂弹层推进力) |
-| M5 Confidence 校准 | ⏳ 架构就位 |
-| M6 Benchmark | ⏳ |
-| M7 Ultrafast | ⏳ |
+| M4b 扩数据训练 | ⏸ CLOSED(adapter_m4b 8/15 无增益;两次自训均无增益) |
+| M5 Confidence 校准 | ⏸ 架构就位,无实测需求 |
+| M6 Benchmark | ✅ 19 任务集 + 四路对照完成(±1 方差已知) |
+| M7 Ultrafast | ⏸ 自用已达标,不做产品 |
+
+下一步(未动):合并后的 L2-L6(真实站点 50 任务、回归 CI 化、helper 本地化)。
 
 ## License
 

@@ -67,6 +67,31 @@ reports/m1-local*.json
 reports/m1-decider2b-*.json
 reports/s004-history-test*.json
 m1/s004-only.jsonl
+# 逐任务运行产物目录(baseline-*/ adapter-*/ agentjev-*/ overnight-laya-*/):
+# 证据已汇总进顶层 reports/*.json(被 CHANGELOG/docs 引用),逐任务碎片不入库。
+reports/baseline-*/
+reports/adapter-*/
+reports/agentjev-*/
+reports/overnight-laya-*/
+# M4b 训练 checkpoint(2026-10-05 补:output_m4b 与 adapter_* 同属 248MB 无增益产物,
+# 当时 ignore 模式漏罩了 output_m4b/)
+m4a/output_m4b/
+# 运行期临时报告(runner 写入,合并后即弃)
+reports/run.json
+reports/tmp-*.json
+# 历史迭代探针(每轮一文件;结论已汇总进 m1-final3 / m1-baseline-* / docs 引用的证据 JSON)
+reports/*-v[0-9]*.json
+reports/m1-fix*.json
+reports/m1-skills*.json
+reports/m1-final.json
+reports/m1-final2.json
+reports/m2-gen*.json
+reports/m4b-r1-round*.json
+reports/flights-dbg.json
+reports/demo-*.json
+reports/m1-native-*.json
+reports/m1-s003-*.json
+reports/wiki-*.json
 
 # Logs / model artifacts (already should be here, keep if not)
 logs/
