@@ -96,23 +96,13 @@ Logger → Dataset → Benchmark
 ### 用它干你自己的事（任意任务）
 
 ```powershell
-# 一次性启动后端（decider 模型 + Chrome）——只需跑一次
-.\run_demo.ps1 -Task wikipedia    # 或者任何一种启动方式；跑完服务会被清理
+# 一条命令把决策底座拉起来（StartLux-Decision-2B GGUF，llama.cpp + wire server）
+.\scripts\startlux_serve.ps1        # llama-server :8081 + /v1/systemone :8090
 
-# 然后手动把两个后端拉起来（也可以用 --start-chrome 让脚本自己拉 Chrome）
-```
-
-手动起后端：
-
-```powershell
-# 1) Chrome（走你的出口代理；不需要代理就去掉最后一个参数）
+# Chrome（走你的出口代理；不需要代理就去掉最后一个参数）
 & "C:\Program Files\Google\Chrome\Application\chrome.exe" --headless=new `
   --remote-debugging-port=9222 --user-data-dir=C:\chrome-cdp-test `
   --no-first-run --proxy-server=http://127.0.0.1:2080
-
-# 2) 本地决策模型（~1 分钟加载）
-D:\openjev-models\decider\.venv\Scripts\python.exe -m uvicorn decider.serve:app `
-  --host 0.0.0.0 --port 8000  (工作目录 D:\openjev-models\decider)
 ```
 
 跑任意任务：
@@ -131,8 +121,12 @@ C:\Users\Administrator\miniconda3\envs\jev\python.exe scripts\run_task.py `
 ### 跑基准
 
 ```bash
-# 一键(Windows):起 decider + 全环境隔离 + 一任务一进程跑 19 任务
+# 默认底座（旧 decider-2B）：一条命令全包——起服务 + 环境隔离 + 一任务一进程跑 19 任务
 ./run_baseline_19.ps1
+
+# StartLux-Decision-2B 底座：先把服务拉起来，再让 runner 用现成的 8090
+.\scripts\startlux_serve.ps1
+./run_baseline_19.ps1 -NoService -SvcPort 8090
 
 # 或手动
 python3 -m m1.run_tasks --tasks m1/tasks-laya-19.jsonl --log-dir logs/ --report reports/run.json
@@ -154,14 +148,17 @@ source .venv/bin/activate
 pip install httpx[http2] browser-harness==0.1.13
 ```
 
+StartLux-Decision-2B 权重（Q8_0 GGUF，2GB）从 Hugging Face 拉取：
+`startlux-models/StartLux-Decision-2B-Q8_0-GGUF`，放到 `D:\openjev-models\startlux-decision-2b`（或改 `scripts\startlux_serve.ps1` 里的路径）。llama.cpp 用 CUDA 12.4 预编译版（`scripts\startlux_serve.ps1` 里的 `$LlamaDir`）。
+
 ### 配置
 
 `.env`(参考 `.env.example` 结构;**key 只放这里,不要写进任何被提交的文件**):
 
 ```dotenv
-# Decision:本地 decider 服务(TypeSafe wire)
+# Decision:StartLux gguf_server（默认底座,TypeSafe wire 兼容）
 DECIDER_MODE=typesafe
-TYPESAFE_BASE_URL=http://127.0.0.1:8000/v1/systemone
+TYPESAFE_BASE_URL=http://127.0.0.1:8090/v1/systemone
 TYPESAFE_API_KEY=local
 
 # Text Helper(TYPE_TEXT 时取字段值):任意 OpenAI 兼容端点
@@ -178,7 +175,7 @@ helper 选型实测(单字段值抽取,中位延迟):Groq `gpt-oss-120b` **~1.6s
 
 ### 跑 M1 benchmark
 
-见上面「跑基准」一节:`run_baseline_19.ps1` 是生产配置(裸 decider-2B / typesafe wire)的干净基线 runner。
+见上面「跑基准」一节。`run_baseline_19.ps1` 是生产配置的干净基线 runner(一任务一进程 + 逐域预检 + 收尾验证);StartLux 底座加 `-NoService -SvcPort 8090`。
 
 ### 跑上游对照
 
@@ -186,23 +183,27 @@ helper 选型实测(单字段值抽取,中位延迟):Groq `gpt-oss-120b` **~1.6s
 
 ## 接入一个新模型
 
-### 方式 1:OpenAI 兼容端点(Decision)
+决策层是插槽(`DECIDER_MODE`),换底座不改框架。已验证的三种方式:
 
-只改 `.env`:
+### 方式 1:StartLux-Decision(TypeSafe wire,默认,推荐)
+
+开源决策模型,wire 格式与 jev 兼容,即插即用。`scripts\startlux_serve.ps1` 拉起后:
+
+```dotenv
+DECIDER_MODE=typesafe
+TYPESAFE_BASE_URL=http://127.0.0.1:8090/v1/systemone
+TYPESAFE_API_KEY=local
+```
+
+### 方式 2:OpenAI 兼容端点(任意通用 LLM)
+
+只改 `.env`(注意:M1 实测通用 LLM 契合度差,详见实验数据——这条路能用,不保证好使):
 
 ```dotenv
 DECIDER_MODE=openai
 DECIDER_2B_BASE_URL=http://127.0.0.1:8000/v1
 DECIDER_2B_MODEL=your-model
 DECIDER_2B_API_KEY=local
-```
-
-### 方式 2:TypeSafe wire 格式(如 decider-2B)
-
-```dotenv
-DECIDER_MODE=typesafe
-TYPESAFE_BASE_URL=http://127.0.0.1:8000/v1/systemone
-TYPESAFE_API_KEY=local
 ```
 
 ### 方式 3:自定义后端
@@ -220,7 +221,8 @@ register_provider("my_model", my_decide_fn)
 
 | Decision 后端 | 结果 | false_positive | 失败特征 |
 |---|---|---|---|
-| **decider-2b(裸,生产配置)** | **17/18**(三轮 16/17/15,±1 抖动) | 0 | — |
+| **StartLux-Decision-2B(Q8_0 GGUF + M18 floor)** | **17 PASS 三轮全稳**(1845/1910/2033) | 0 | n001 导航循环、n004 SPA 结果页早读 |
+| decider-2b(裸) | 15-17(三轮 16/17/15,±1 抖动) | 0 | — |
 | decider-2b + adapter_m4b | 8/15(同批基线 12/15) | 0 | 无增益,0 胜 4 负 |
 | Laya v17s (322M) | 6/18 | 0 | `model_calls ≫ steps`,反复输出终止操作 |
 | agent-jev 0.6B | 3/18 | 0 | 12/18 是 system crash,`model_calls=0` |
@@ -230,8 +232,8 @@ register_provider("my_model", my_decide_fn)
 
 关键结论:
 
-1. **生产配置 = 裸 decider-2B + skills 层 + 治理四件套**:19/19 有效、18 PASS、`false_positive = 0`、`api_calls = 0`(全程零云端)、6 分钟/轮。基准带 ±1 抖动,单次读数不作数
-2. **模型线关闭**:两个前沿商业 API 都只有 12/20 —— M1 测的是框架契合度,不是模型能力;decider-4b 判定不值得测
+1. **默认底座 = StartLux-Decision-2B + skills 层(含 M18 探索地板)+ 治理四件套**:对 decider-2b 4 胜(f001/f002/l002/x001)2 负,热决策 ~65ms(旧底座 0.4-1.1s),整轮 3.7 分钟,`false_positive = 0` 三轮全守,`api_calls = 0`(全程零云端)。**17/17 零方差是本项目第一次拿到不带 ±1 注脚的读数**
+2. **模型线关闭(M1 结论)——但换底座 ≠ 重开模型线**:M1 测出"通用 LLM 契合度不行";StartLux 是在 TypeSafe wire 上专门训练的决策模型,wire 即插即用,半天接入。M18 探索地板(BLOCKED 前必须探索)修掉了它唯一的坏习惯:首拍 0.74-0.77 置信度放弃
 3. **训练线关闭**:两次自训均无增益;DONE 样本必须来自真实落地页(模板化 DONE 会教坏终止判断)
 4. `fp = 0` 的注脚:一部分是被 Policy 黑名单拦下的合法动作(误杀)撑起来的假象——模型被拦导致任务失败,失败自然不产生假阳性。查硬线时同时查误杀率
 
@@ -307,11 +309,11 @@ openjev-ultrafast/
 | M4a 本地训练诊断 | ✅ COMPLETED(Δtarget_acc +61.4pp) |
 | M4b 扩数据训练 | ⏸ CLOSED(adapter_m4b 8/15 无增益;两次自训均无增益) |
 | M18 Decision 换底座 | ✅ StartLux-Decision-2B 接入,17/17 三轮全稳(fp=0、~65ms/步),成为默认 |
-| M5 Confidence 校准 | ⏸ 架构就位,无实测需求 |
-| M6 Benchmark | ✅ 19 任务集 + 四路对照完成(±1 方差已知) |
+| M5 Confidence 校准 | ⏸ 架构就位;StartLux 概率输出已逐决策落日志,输入现成 |
+| M6 Benchmark | ✅ 19 任务集 + 四路对照完成(StartLux 17/17 零方差) |
 | M7 Ultrafast | ⏸ 自用已达标,不做产品 |
 
-下一步(未动):合并后的 L2-L6(真实站点 50 任务、回归 CI 化、helper 本地化)。
+下一步(未动):n004 SPA 结果页等待判据(17→18 的现实路径);L2-L6(真实站点 50 任务、回归 CI 化、helper 本地化)。
 
 ## License
 
