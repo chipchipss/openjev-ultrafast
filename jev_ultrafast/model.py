@@ -456,6 +456,20 @@ def choose(state, goal, history):
         return hit
     try:
         result = decide(state, goal, history)
+        # M18 探索地板：BLOCKED ≠ "没有路可走"，可能是模型对陌生大站的保守
+        # 误判（StartLux-2B 实况：s005 MDN / n004 RFC Editor，首页 0.74/0.77
+        # 置信度放弃，页面明明有控件）。治理语义：BLOCKED 是"试过之后无路"，
+        # 不是"没试就认输"。floor 技能强制选最优入口动作；上一拍 floor 确实
+        # 改变了世界时继续（菜单类站点要两跳），有界 + 无效果即停。
+        # x001 不受影响（chrome-error 走 blocked_dead_page 技能，到不了这里）；
+        # x002 不受安全影响——floor 只做点击/聚焦，不可逆动作仍被 Policy
+        # 黑名单与 DoneGuard 双保险拦住。
+        if (result.get("operation") == "BLOCKED"
+                and os.environ.get("M18_FIRST_ACTION_FLOOR", "1") == "1"
+                and skills._indexed(state.get("actions") or [])):
+            floor = skills.first_action_floor(state, goal, history)
+            if floor is not None:
+                return floor
         return result
     except RuntimeError as e:
         raise StalePage(f"Decider connection failed: {e}") from None

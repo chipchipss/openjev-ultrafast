@@ -179,6 +179,95 @@ def page_not_ready(page: dict, goal: str, history: list) -> dict | None:
 
 
 # ---------------------------------------------------------------------------
+# 1b. 首步探索地板（M18）：第 0 拍模型 BLOCKED → 强制选最显著的真实动作
+# ---------------------------------------------------------------------------
+
+def first_action_floor(page: dict, goal: str, history: list) -> dict | None:
+    """模型 BLOCKED、页面有真实可交互元素 → 强制探索一次。
+
+    BLOCKED 的语义是"试过之后无路可走"。一步没走就放弃，是对陌生页面的保守
+    误判（StartLux-2B 实况：s005 MDN 首页 0.74 / n004 RFC Editor 首页 0.77
+    置信度 BLOCKED，两页都有可推进的控件）。
+
+    由 model.choose() 在拿到模型 BLOCKED 后调用（此时技能层已全部落空）。
+    这里不再重问模型——直接按打分取最优可交互元素执行。
+
+    探索预算：不限于第 0 拍——**上一拍也是 floor 且改变了世界**时继续兜
+    （菜单类站点一跳展开不了目标，s005 实况：floor 点开 HTML 菜单后模型在
+    第 2 拍又 BLOCKED，而真实路径 Web APIs → Fetch API 需要两跳）。上限
+    MAX_FLOOR_STEPS 次真实动作；上一步没改变世界（点了没反应）也停——
+    floor 在死控体上重试只会重演 no_effect 循环。
+
+    打分：role 权重（textbox > button > link）+ goal token 重合 bonus
+    （s005 的真实入口是 "Web APIs"——goal 含 "API"，一次对齐；RFC 首页
+    的 searchbox role=100 天然命中）。
+
+    为什么安全：
+      - 有界（MAX_FLOOR_STEPS），且每次都要求世界确实变了；
+      - 只从真实元素里选（_indexed 过滤 scroll/wait/reload 合成控件）；
+      - 后续安全链不变：Policy 黑名单 / DoneGuard / Validator 照常拦。
+    env M18_FIRST_ACTION_FLOOR=0 关闭。
+    """
+    if os.environ.get("M18_FIRST_ACTION_FLOOR", "1") != "1":
+        return None
+    candidates = _indexed(page.get("actions") or [])
+    if not candidates:
+        return None
+    if history:
+        # 探索中：整条链必须是 floor 且每拍都改变了世界，且没超预算。
+        # 中间插过一次模型决策（skill=None）→ 链断，放行模型判断。
+        floor_hist = [h for h in history if h.get("skill") == "first_action_floor"]
+        if not floor_hist or len(floor_hist) != len(history):
+            return None
+        if len(floor_hist) > _MAX_FLOOR_STEPS:
+            return None
+        if not floor_hist[-1].get("page_changed"):
+            return None
+    goal_tokens = {t for t in _tokens(goal) if t not in STOPWORDS}
+    # 排除 floor 自己已点过的元素：菜单按钮点开后仍在新页态里、分数仍最高，
+    # 不剔除就是 SPA toggle 循环（s005 实况：Web APIs 连点 3 次，开→合→开）。
+    # M1.5 机制③同原则：重做已做过的动作不构成进展。
+    tried = {h.get("choice") for h in (history or []) if h.get("skill") == "first_action_floor"}
+    candidates = [(i, a) for i, a in candidates if a.get("id") not in tried]
+    if not candidates:
+        return None
+    best = max(candidates,
+               key=lambda ia: _floor_score(ia[1]) + _goal_overlap(ia[1], goal_tokens))
+    index, action = best
+    op = KIND_TO_OP[action["kind"]]
+    return _decision(op, index, action, "first_action_floor")
+
+
+_MAX_FLOOR_STEPS = int(os.environ.get("M18_FLOOR_MAX_STEPS", "3"))
+
+
+def _floor_score(a: dict) -> int:
+    """role 权重（与 model._element_score 同构，此处不 import 避免循环依赖）。"""
+    role = a.get("role", "")
+    if role in ("textbox", "searchbox", "combobox"):
+        return 100
+    if role == "button":
+        return 50
+    if role == "link":
+        return -10
+    return 0
+
+
+def _goal_overlap(a: dict, goal_tokens: set) -> int:
+    """goal 与 label 的内容词重合数 ×40：把 "Web APIs"（goal 含 api）顶到
+    并列按钮之上；不喧宾夺主（搜索框 role=100 仍高于纯重合）。
+    单复数归一（api/apis）：去尾 s 再比，别让英文复数毁掉唯一的高分入口。"""
+    if not goal_tokens:
+        return 0
+    label_tokens = {_stem(t) for t in _content(a.get("label") or "")}
+    return 40 * len(goal_tokens & label_tokens)
+
+
+def _stem(t: str) -> str:
+    return t[:-1] if len(t) > 3 and t.endswith("s") else t
+
+
+# ---------------------------------------------------------------------------
 # 2. 显式目标 → CLICK
 # ---------------------------------------------------------------------------
 

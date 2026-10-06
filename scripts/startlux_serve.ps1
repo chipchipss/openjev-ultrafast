@@ -19,10 +19,14 @@ Get-CimInstance Win32_Process -Filter "Name = 'python.exe'" |
     ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 
 # --- 1) llama-server: Q8_0 2B, GPU offload, 16k ctx --------------------------
+# -lm none (no mmap): with mmap the whole 2GB file lands in the process working
+# set and on this 16GB box that read "6.7GB RAM in use" and tripped the runner's
+# 3GB free-memory gate. All 99 layers go to VRAM anyway; the KV cache (16k ctx,
+# 4 parallel slots) stays in RAM at a few hundred MB.
 $llama = Start-Process -FilePath "$LlamaDir\llama-server.exe" -ArgumentList @(
     "-m", "$ModelDir\StartLux-Decision-2B-Q8_0.gguf",
     "-ngl", "99", "-c", "16384", "--parallel", "4", "--port", "8081",
-    "--host", "127.0.0.1"
+    "--host", "127.0.0.1", "-lm", "none"
 ) -WindowStyle Hidden -PassThru -RedirectStandardOutput "$LogDir\startlux-llama.log" -RedirectStandardError "$LogDir\startlux-llama.err.log"
 Write-Host "llama-server pid=$($llama.Id) on :8081"
 

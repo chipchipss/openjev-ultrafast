@@ -800,6 +800,74 @@ def t_done_guard_compound_scroll_goal():
     assert _done_guard({"operation": "DONE"}, pure) is not None, "纯滚动目标被误放行"
 
 
+@case("first_action_floor：第 0 拍 BLOCKED 时挑显著性+goal 重合最高的动作（s005/n004 实况）")
+def t_first_action_floor_picks_entry():
+    # MDN 首页同构：链接 + 搜索框 + 合成控件。floor 必须选搜索框（textbox > link），
+    # 且绝不选合成控件（SYNTH 里的 scroll/wait/reload 不进 _indexed）。
+    p = page([A(1, "click", "Home", 11, role="link"),
+              A(2, "fill", "Search MDN", 12, role="searchbox")],
+             url="https://developer.mozilla.org/zh-CN/")
+    d = S.first_action_floor(p, "Search MDN for 'fetch'.", [])
+    assert d is not None, "有真实控件时 floor 不该放行模型 BLOCKED"
+    assert d["choice"] == "e2", f"该选搜索框，选了 {d['choice']}"
+    assert d["operation"] == "TYPE_TEXT" and d["skill"] == "first_action_floor"
+    # validator 接受（否则 agent 侧会走 StalePage 重试，floor 白搭）
+    from jev_ultrafast import decision_validator as _dv
+    assert _dv.validate(d, p).valid, "floor 决策未通过 validator"
+
+
+@case("first_action_floor：goal 重合加分顶起正确菜单（s005 实况：Web APIs）")
+def t_first_action_floor_goal_overlap():
+    # MDN 首页没有搜索框（搜索面板要点开才出现），真实路径是 Web APIs 菜单。
+    # goal 含 "API" → "Web APIs" 按钮得 +40 重合分，压过并列的其他按钮。
+    p = page([A(1, "click", "MDN", 11, role="link"),
+              A(2, "click", "HTML", 12, role="button"),
+              A(3, "click", "CSS", 13, role="button"),
+              A(4, "click", "Web APIs", 14, role="button")],
+             url="https://developer.mozilla.org/zh-CN/")
+    d = S.first_action_floor(p, "Search MDN for 'fetch' and open the Fetch API reference page.", [])
+    assert d is not None and d["choice"] == "e4", \
+        f"goal 重合应选中 Web APIs，选了 {d and d['choice']}"
+
+
+@case("first_action_floor：探索有界——上一拍 floor 改变了世界才继续，超上限即停")
+def t_first_action_floor_bounded_exploration():
+    p = page([A(1, "click", "HTML", 12, role="button"),
+              A(2, "click", "CSS", 13, role="button")],
+             url="https://developer.mozilla.org/")
+    # 第 1 拍：floor 动作改变了世界 → 继续兜，且**不再点同一个元素**（SPA toggle）
+    h1 = [{"step": 1, "kind": "click", "choice": "e1", "skill": "first_action_floor",
+           "page_changed": True}]
+    d = S.first_action_floor(p, "g", h1)
+    assert d is not None, "floor 后世界变了应继续探索"
+    assert d["choice"] == "e2", f"已点过的元素被重复选中（toggle 循环）：{d['choice']}"
+    # 上一拍 floor 没改变世界 → 停（死控体重试只会 no_effect 循环）
+    h2 = [{"step": 1, "kind": "click", "choice": "e1", "skill": "first_action_floor",
+           "page_changed": False}]
+    assert S.first_action_floor(p, "g", h2) is None
+    # 超出 MAX_FLOOR_STEPS → 停
+    h3 = [{"step": i, "kind": "click", "choice": f"e{i}", "skill": "first_action_floor",
+           "page_changed": True} for i in range(1, 5)]
+    assert S.first_action_floor(p, "g", h3) is None
+    # 中间插过一次模型决策 → floor 链断，不继续
+    h4 = [{"step": 1, "kind": "click", "choice": "e1", "skill": "first_action_floor",
+           "page_changed": True},
+          {"step": 2, "kind": "click", "choice": "e1", "skill": None,
+           "page_changed": True}]
+    assert S.first_action_floor(p, "g", h4) is None
+
+
+@case("first_action_floor：有历史（非 floor 链）/ 零真实控件时一律让位")
+def t_first_action_floor_gates():
+    p = page([A(1, "fill", "Search MDN", 12, role="searchbox")],
+             url="https://developer.mozilla.org/")
+    # 已走过一步且不是 floor → BLOCKED 是"看过世界后的判断"，放行
+    assert S.first_action_floor(p, "g", [{"step": 1, "kind": "click", "choice": "e1"}]) is None
+    # 只有合成控件的页（真空白）→ 没有可探索的东西，放行
+    bare = {"url": "https://x.test/", "actions": list(SYNTH)}
+    assert S.first_action_floor(bare, "g", []) is None
+
+
 def main():
     # Windows PowerShell 5.1 的控制台是 GBK，而用例名里有 'ö' 等非 GBK 字符
     # （v1.16 / 源码里的地名）。print 会抛 UnicodeEncodeError 并**中断整个套件**，
