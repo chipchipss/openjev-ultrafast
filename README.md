@@ -2,13 +2,15 @@
 
 一个跨平台、模型无关、可观测的 Browser Agent 框架。
 
-**Google Flights 端到端任务:10.4s**(本地 2B 决策模型,**零云端调用**,7 项独立校验全过)。
+**Google Flights 端到端任务:10.4s**(旧 decider-2B 底座实测,**零云端调用**,7 项独立校验全过;当前默认底座 StartLux-Decision-2B 决策快一个数量级,见下)。
 
 ```powershell
-.\run_demo.ps1                      # 一条命令跑通上面这个任务
+.\run_demo.ps1                      # 一条命令跑通上面这个任务(注意:内部写死旧 decider-2B 底座 :8000)
 .\run_demo.ps1 -Task wikipedia       # 另一个 demo(1.4s)
 .\run_demo.ps1 -KeepOpen             # 跑完不关浏览器,自己看
 ```
+
+> `run_demo.ps1` 是历史 demo 入口。日常使用走「快速开始」:`startlux_serve.ps1` + `run_task.py`。
 
 M1 基准(19 任务集,冻结三轮):**decider-2B 15-17 PASS(±1)**;**StartLux-Decision-2B(接入 2026-10-06)17/17 PASS 三轮全稳、`false_positive = 0`、热决策 ~65ms、整轮 3.7 分钟**,全程零云端调用。
 
@@ -42,16 +44,16 @@ OpenJEV Ultrafast 补的就是这块。
 
 同一本地 decider-2B 后端、同一批任务,pristine 上游 vs 本框架([完整数据](reports/upstream-vs-ours.json)):
 
-| task | 上游(steps / wall / 每步延迟) | 本框架 | 终点 |
+| task | 上游(steps / wall) | 本框架 | 终点 |
 |---|---|---|---|
-| s004 Wikipedia 搜索 | 4 步 / 69.2s / **7.0s/步** | 2 步 / 24.8s / **1.5s/步** | 上游滞留首页;本框架到达目标条目 |
-| n003 W3C | **60 步 / 94.4s**(烧满 120 次调用后崩溃) | 3 步 / 5.5s,正确 blocked 收口 | 都到 /standards/ |
-| n001 Python docs | 4 步 / 8.9s | 3 步 / 11.5s | 都到文档区 |
-| f004 httpbin 表单 | 4 步 / 6.2s | 3 步 / 3.9s | 都提交 |
+| s004 Wikipedia 搜索(目标 Ada Lovelace) | 4 步 / 69.2s / ~17.3s/步 | 2 步 / 24.8s / ~12.4s/步 | 上游滞留首页(blocked);本框架到达目标条目 |
+| n003 W3C | **60 步 / 94.4s,ValueError 崩溃,无终点** | 3 步 / 5.5s,正确 blocked 收口 | 本框架到 /standards/;上游未产出任何终点 |
+| n001 Python docs | 4 步 / 8.9s | 3 步 / 11.5s(更慢) | 上游到 /doc/;本框架到 docs.python.org/3/(更深一层) |
+| f004 httpbin 表单 | 4 步 / 6.2s,终到 /post(提交完成) | 3 步 / 3.9s,停在 /forms/post(**未提交**) | 上游更完整 |
 
-决策延迟同量级(0.4-1.1s vs 上游云端 178ms),任务级 wall time **4/4 更快或持平**。差距来源:上游把 6000 字符页面文本整体塞进决策 state(输入大一个数量级),且没有死循环收口(靠 MAX_STEPS 烧步数)。
+任务级 wall time **3/4 更快,1/4 更慢**(n001:上游 8.9s vs 本框架 11.5s——本框架多走一层才到文档区)。差距来源:上游把 6000 字符页面文本整体塞进决策 state(输入大一个数量级),且没有死循环收口(n003 烧满 60 步决策后 ValueError 崩溃)。
 
-框架增益换来的:决策输入小 → 单步快 → 收敛早 → 总时间短,外加循环检测 / 窗口 / 预算三层安全收口。
+这张表说明两件事:框架增益(收敛快、有收口)是真的,**但上游并非处处更差**——它赢了 f004(提交完整)和 n001(单步延迟)。这是 2026-09-24 的旧底座读数,保留作历史基准;当前默认底座的成绩见下面「实验数据」。
 
 ## 架构
 
@@ -96,39 +98,40 @@ Logger → Dataset → Benchmark
 ### 用它干你自己的事（任意任务）
 
 ```powershell
-# 一条命令把决策底座拉起来（StartLux-Decision-2B GGUF，llama.cpp + wire server）
+# 1) 一条命令把决策底座拉起来（StartLux-Decision-2B GGUF,llama.cpp + wire server）
 .\scripts\startlux_serve.ps1        # llama-server :8081 + /v1/systemone :8090
 
-# Chrome（走你的出口代理；不需要代理就去掉最后一个参数）
+# 2) Chrome（走你的出口代理；不需要代理就去掉最后一个参数）
 & "C:\Program Files\Google\Chrome\Application\chrome.exe" --headless=new `
   --remote-debugging-port=9222 --user-data-dir=C:\chrome-cdp-test `
   --no-first-run --proxy-server=http://127.0.0.1:2080
 ```
 
-跑任意任务：
+跑任意任务（`--start-chrome` 可以让脚本自己拉 Chrome,省掉上面第 2 步）：
 
 ```powershell
 cd C:\Users\Administrator\openjev-ultrafast
 C:\Users\Administrator\miniconda3\envs\jev\python.exe scripts\run_task.py `
+  --start-chrome `
   --url https://en.wikipedia.org/ `
   --goal "Open the article about the Apollo program" `
   --expect "Apollo"
 
 # --expect 给「完成证据」：它会拿去匹配最终页面的 URL/正文，全中才算成功。
-# 不给就只报告状态。--headed 可以看着它操作，--start-chrome 让脚本自己拉 Chrome。
+# 不给就只报告状态。--headed 可以看着它操作。
 ```
 
 ### 跑基准
 
 ```bash
-# 默认底座（旧 decider-2B）：一条命令全包——起服务 + 环境隔离 + 一任务一进程跑 19 任务
-./run_baseline_19.ps1
-
-# StartLux-Decision-2B 底座：先把服务拉起来，再让 runner 用现成的 8090
+# StartLux-Decision-2B 底座（当前默认）：先拉服务,再让 runner 用现成的 8090
 .\scripts\startlux_serve.ps1
 ./run_baseline_19.ps1 -NoService -SvcPort 8090
 
-# 或手动
+# 旧 decider-2B 底座（runner 默认走它,端口 8000）：一条命令全包
+./run_baseline_19.ps1
+
+# 或手动跑
 python3 -m m1.run_tasks --tasks m1/tasks-laya-19.jsonl --log-dir logs/ --report reports/run.json
 ```
 
@@ -175,7 +178,7 @@ helper 选型实测(单字段值抽取,中位延迟):Groq `gpt-oss-120b` **~1.6s
 
 ### 跑 M1 benchmark
 
-见上面「跑基准」一节。`run_baseline_19.ps1` 是生产配置的干净基线 runner(一任务一进程 + 逐域预检 + 收尾验证);StartLux 底座加 `-NoService -SvcPort 8090`。
+见上面「跑基准」一节。`run_baseline_19.ps1` 是干净的基线 runner(一任务一进程 + 逐域预检 + 收尾验证);StartLux 底座加 `-NoService -SvcPort 8090`,旧 decider-2B 底座直接跑(默认 :8000)。
 
 ### 跑上游对照
 
@@ -208,11 +211,15 @@ DECIDER_2B_API_KEY=local
 
 ### 方式 3:自定义后端
 
-在 `jev_ultrafast/decider/` 实现一个函数,签名 `(observation, goal, history) -> decision`,然后:
+在 `jev_ultrafast/decider/` 实现一个函数,契约(全文见 `jev_ultrafast/decider/provider.py`):
+
+- 签名 `(observation, goal, history) -> decision`
+- 返回值必须符合 `specs/decision.schema.json`(choice/operation/target + 概率字段)
+- 连接/服务失败抛 `RuntimeError`(agent 会转 StalePage 重试)
 
 ```python
 from jev_ultrafast.decider.provider import register_provider
-register_provider("my_model", my_decide_fn)
+register_provider("my_model", my_decide_fn)   # 然后设 DECIDER_MODE=my_model
 ```
 
 ## 实验数据
@@ -246,7 +253,9 @@ register_provider("my_model", my_decide_fn)
 | 本地 Qwen3B(CPU) | 2.3s | 52.0s | 102.1s |
 | 本地 Qwen3B(GPU 共驻) | 89.8s | 2.1s | 152.4s |
 
-教训:8GB 消费级 GPU 无法同时舒适承载 decider-2B + 3B helper(大 state 下显存挤压,决策 0.5s→20s);helper 单独跑 CPU 又太慢。**decider 独占 GPU + helper 走快云**是消费级硬件最优解。三种 helper 下决策行为完全一致(3 步收口同位置)= A8 独立性被行为级验证。
+(「总耗时」含 Chrome 启动、页面加载等 ~8.5s 固定开销,不等于前两列之和。)
+
+教训:8GB 消费级 GPU 无法同时舒适承载 decider-2B + 3B helper(大 state 下显存挤压,决策 0.5s→20s);helper 单独跑 CPU 又太慢。**decider 独占 GPU + helper 走快云**是消费级硬件最优解。三种 helper 下决策行为完全一致(3 步收口同位置)= A8 独立性被行为级验证。注:本表为 2026-09-25 decider-2B 底座的实测,helper 结论(取值小活儿交给快云)对 StartLux 底座同样适用。
 
 ### 兼容性贡献
 
@@ -267,7 +276,8 @@ openjev-ultrafast/
 │   ├── agent.py           # Agent loop(pre_execute 链 + 收口)
 │   ├── browser.py         # Runtime
 │   ├── snapshot.js        # 原子快照
-│   ├── model.py           # Decision 入口(provider registry 转发 + M1.5 机制)
+│   ├── model.py           # Decision 入口(provider registry 转发 + M1.5 机制 + M18 地板挂点)
+│   ├── skills.py          # M16 确定性技能层 + M18 first-action floor(字面可判的决策零模型调用)
 │   ├── decider/           # Decision Provider 实现
 │   │   ├── provider.py    # 契约 + registry
 │   │   ├── choose_2b.py   # OpenAI 兼容 provider
@@ -283,12 +293,12 @@ openjev-ultrafast/
 ├── m1/                    # M1 benchmark + 回归 harness
 ├── m2/                    # M2 数据飞轮
 ├── m4a/                   # M4a 本地训练
-├── scripts/               # 本地 text helper 服务等
+├── scripts/               # startlux_serve.ps1(决策底座)/ run_task.py / 本地 helper 等
 ├── specs/                 # JSON Schema
 ├── docs/                  # 硬约束 + 架构 + 阶段
 ├── reports/               # benchmark 报告(运行产物目录已不入库,见 .gitignore)
-├── run_baseline_19.ps1    # 生产配置 19 任务基线(一任务一进程 + 预检 + 收尾验证)
-├── run_demo.ps1           # 一条命令 demo(flights / wikipedia)
+├── run_baseline_19.ps1    # 基线 runner(一任务一进程 + 预检 + 收尾验证;旧底座默认,StartLux 加 -NoService -SvcPort 8090)
+├── run_demo.ps1           # 历史 demo 入口(内部写死旧 decider-2B :8000)
 └── scripts/run_task.py    # 跑任意任务 + 完成证据校验
 ```
 
@@ -308,7 +318,8 @@ openjev-ultrafast/
 | M3 Reranker | ⏸ SKIP(M1 probe 无 cap-failure 相关性) |
 | M4a 本地训练诊断 | ✅ COMPLETED(Δtarget_acc +61.4pp) |
 | M4b 扩数据训练 | ⏸ CLOSED(adapter_m4b 8/15 无增益;两次自训均无增益) |
-| M18 Decision 换底座 | ✅ StartLux-Decision-2B 接入,17/17 三轮全稳(fp=0、~65ms/步),成为默认 |
+| **M8 Decision 换底座** | ✅ **StartLux-Decision-2B 接入(2026-10-06),17/17 三轮全稳(fp=0、~65ms/步),成为默认**。M8 的"零修改"验收成立:换底座只动了 `.env` + runner 端口参数 + 新增 M18 探索地板技能,Runtime/治理层零改动 |
+| M18 探索地板 | ✅ 随 M8 引入:模型 BLOCKED 且页面有真实控件时强制探索(skills.py `first_action_floor`);s005 由此 0 步放弃翻成 PASS |
 | M5 Confidence 校准 | ⏸ 架构就位;StartLux 概率输出已逐决策落日志,输入现成 |
 | M6 Benchmark | ✅ 19 任务集 + 四路对照完成(StartLux 17/17 零方差) |
 | M7 Ultrafast | ⏸ 自用已达标,不做产品 |

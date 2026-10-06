@@ -267,13 +267,20 @@ M5: 按需调用 Teacher（Confidence Gate 触发）
 
 ---
 
-## 十一、M8：模型扩展 ⬜
+## 十一、M8：模型扩展 ✅（2026-10-06 完成）
 
 **目标**：换 Decider 不动其他。
 
 **路径**：2B → 4B → 7B → 多模态。
 
 **验收**：换 Decider 后，Browser / Filter / Validator / Policy / Logger / Benchmark **零修改**。
+
+**结果（2026-10-06）**：✅ 达成。
+- 新底座：**StartLux-Decision-2B**（Q8_0 GGUF，llama.cpp `-lm none` + `startlux_decision.gguf_server`，/v1/systemone wire 兼容，`-NoService -SvcPort 8090`）
+- 改动面：`.env` 端点 + runner `-SvcPort` 参数 + `-NoService` 守卫（防 Step-2 清理误杀外部 wire 服务）。Runtime / Validator / Policy / Logger / Benchmark **零修改** —— 验收成立
+- 读数：17 PASS ×3 冻结轮（1006-1845/1910/2033），fp=0，热决策 ~65ms，整轮 3.7 分钟；对 decider-2b 基线 4 胜 2 负
+- 附属技能 **M18 first-action floor**（`skills.first_action_floor`）：模型 BLOCKED 且页面有真实控件 → 有界强制探索（≤3 步、世界无变化即停、已试元素剔除、模型决策插手即断）。s005 由 0 步放弃翻成 PASS。env `M18_FIRST_ACTION_FLOOR=0` 关闭
+- 剩余失败（稳定、预存在）：n001 导航循环、n004 RFC 搜索 SPA 结果页早读
 
 ---
 
@@ -284,6 +291,7 @@ M5: 按需调用 Teacher（Confidence Gate 触发）
 | v1.0 | 2026-09-23 | 初版（9 阶段） |
 | v1.1 | 2026-09-23 | M1 收口记录，R5 归档 |
 | **v1.2** | **2026-09-23** | **A0.3 修订：api_teacher 归属从 M5 前移到 M2** |
+| **v1.3** | **2026-10-06** | **M8 收口：StartLux-Decision-2B 接入并成为默认底座；附属 M18 探索地板技能** |
 
 ---
 
