@@ -7,7 +7,10 @@ param(
     [string]$Fp8 = "0",
     [string]$TextHelper = "groq",
     [int]$PilotCount = 2,
-    [switch]$NoService,     # decider already listening on 8000
+    [switch]$NoService,     # decider already listening on $SvcPort
+    # TypeSafe wire endpoint to point tasks at. Must match where the service
+    # actually listens (default 8000 = decider.serve; 8090 = StartLux gguf_server).
+    [int]$SvcPort = 8000,
     # Egress proxy for Chrome AND for the preflight probe. Empty = no proxy.
     [string]$ProxyUrl = "http://127.0.0.1:2080",
     [switch]$AllowUnreachableDomains   # run anyway even if some domains are down
@@ -93,7 +96,7 @@ function Get-DomainReachability($tasksFile) {
     }
     return $out
 }
-function Svc-Alive { try { Invoke-RestMethod "http://127.0.0.1:8000/health" -TimeoutSec 3 | Out-Null; return $true } catch { return $false } }
+function Svc-Alive { try { Invoke-RestMethod "http://127.0.0.1:$SvcPort/health" -TimeoutSec 3 | Out-Null; return $true } catch { return $false } }
 function Wait-Svc($maxSec = 240) { for ($i=0; $i -lt $maxSec/3; $i++) { if (Svc-Alive) { return $true }; Start-Sleep 3 }; return $false }
 
 # A report is trustworthy only if it has a real TaskResult AND no transport
@@ -175,9 +178,12 @@ try {
 
     # -- 2. clean --
     Log "Step 2: kill python, clean CDP residue"
+    # With -NoService the TypeSafe endpoint is EXTERNAL (e.g. StartLux gguf_server
+    # on 8090) -- its python must survive this step. Note "serve" alone matches
+    # "gguf_server"; the -NoService guard is what keeps the external wire alive.
     Get-Process python -EA SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object {
         try { $cl = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)" -EA Stop).CommandLine
-              if ($cl -match "decider|run_tasks|serve|uvicorn|jev_service") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
+              if (-not $NoService -and $cl -match "decider|run_tasks|serve|uvicorn|jev_service") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
     }
     Get-Process chrome, msedge, chromium -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
     Start-Sleep 3
@@ -201,8 +207,8 @@ try {
 
     # -- 3. decider service --
     if ($NoService) {
-        Log "Step 3: use existing service on 8000"
-        if (-not (Wait-Svc 10)) { Die "no /health on 8000" }
+        Log "Step 3: use existing service on $SvcPort"
+        if (-not (Wait-Svc 10)) { Die "no /health on $SvcPort" }
         Ok "service reachable"
     } else {
         Log "Step 3: start decider ($DeciderModel, fp8=$Fp8) on 8000"
@@ -260,7 +266,7 @@ try {
     Log "Step 5: set env"
     Set-Env @{
         "DECIDER_MODE"          = "typesafe"
-        "TYPESAFE_BASE_URL"     = "http://127.0.0.1:8000/v1/systemone"
+        "TYPESAFE_BASE_URL"     = "http://127.0.0.1:$SvcPort/v1/systemone"
         "TYPESAFE_API_KEY"      = "local"
         "TEXT_HELPER_BASE_URL"  = $helperUrl
         "TEXT_HELPER_MODEL"     = $helperModel
@@ -268,7 +274,7 @@ try {
         "HTTPX_PROXY"           = "http://127.0.0.1:2080"
         "PYTHONUTF8"            = "1"
     }
-    Ok "DECIDER_MODE=typesafe -> 127.0.0.1:8000"
+    Ok "DECIDER_MODE=typesafe -> 127.0.0.1:$SvcPort"
 
     # -- 6. task loop --
     $lines = @(Get-Content "$Repo\$Tasks" -Encoding UTF8 | Where-Object { $_.Trim() -ne "" })
