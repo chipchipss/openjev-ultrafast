@@ -10,7 +10,7 @@
 .\run_demo.ps1 -KeepOpen             # 跑完不关浏览器,自己看
 ```
 
-M1 基准(19 任务集,三轮冻结读数):**18 PASS / 1 FAIL,`false_positive = 0`**,全程零云端调用,整轮 6 分钟(±1 抖动,单次读数不作数)。
+M1 基准(19 任务集,冻结三轮):**decider-2B 15-17 PASS(±1)**;**StartLux-Decision-2B(接入 2026-10-06)17/17 PASS 三轮全稳、`false_positive = 0`、热决策 ~65ms、整轮 3.7 分钟**,全程零云端调用。
 
 ## 这是什么
 
@@ -306,6 +306,7 @@ openjev-ultrafast/
 | M3 Reranker | ⏸ SKIP(M1 probe 无 cap-failure 相关性) |
 | M4a 本地训练诊断 | ✅ COMPLETED(Δtarget_acc +61.4pp) |
 | M4b 扩数据训练 | ⏸ CLOSED(adapter_m4b 8/15 无增益;两次自训均无增益) |
+| M18 Decision 换底座 | ✅ StartLux-Decision-2B 接入,17/17 三轮全稳(fp=0、~65ms/步),成为默认 |
 | M5 Confidence 校准 | ⏸ 架构就位,无实测需求 |
 | M6 Benchmark | ✅ 19 任务集 + 四路对照完成(±1 方差已知) |
 | M7 Ultrafast | ⏸ 自用已达标,不做产品 |
