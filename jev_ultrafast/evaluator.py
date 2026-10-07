@@ -47,7 +47,41 @@ SYSTEM_MODES = frozenset({
     "crash",
     "observe_failed",
     "assertion_error",
+    "blocked_by_bot_wall",
 })
+
+# 反爬/人机验证墙：站点根本没让我们进门，任务不可能"被做对"。真实站批次里
+# r101/r104 这类 FAIL 被记成 agent 决策失败，而决策本身是对的（诚实 BLOCK）。
+# 词表与阈值全部来自 2026-10-07 实测的墙页快照，不收录没见过的猜测：
+#   pubmed  -> title "正在检查您的浏览器 - reCAPTCHA"   text 66 字符 / 3 action
+#   pypi    -> title "Client Challenge"                text 82 字符 / 6 action
+#   对照：reCAPTCHA - Wikipedia 1416 字符 / 52 action；MDN 1351/37；arXiv 检索页 1325/61
+# 单看标题会误伤（真有一篇文章的标题就是 "reCAPTCHA - Wikipedia"），所以墙判据
+# 必须是"标记命中 + 页面薄"两条同时成立——阈值两侧都有 3 倍以上余量。
+_WALL_TITLE = ("just a moment", "client challenge", "recaptcha", "checking your browser")
+_WALL_TEXT = (
+    "enter the characters seen in the image",
+    "download audio captcha",
+    "正在检查浏览器",
+)
+_WALL_MAX_TEXT = 400
+_WALL_MAX_ACTIONS = 12
+
+
+def is_bot_wall(page: Optional[dict]) -> bool:
+    """终页是否是验证墙（标记命中且页面薄）。"""
+    if not isinstance(page, dict):
+        return False
+    text = (page.get("text") or "")
+    actions = page.get("actions") or []
+    if len(text) > _WALL_MAX_TEXT or len(actions) > _WALL_MAX_ACTIONS:
+        return False
+    title = (page.get("title") or "").lower()
+    if any(m in title for m in _WALL_TITLE):
+        return True
+    low = text.lower()
+    return any(m in low for m in _WALL_TEXT)
+
 
 TERMINAL_STATUSES = frozenset({
     "done",
@@ -297,6 +331,7 @@ def _classify(
     quadrant: Optional[Quadrant],
     history: list[dict],
     category: str = "positive",
+    final_page: Optional[dict] = None,
 ) -> tuple[Optional[FailureClass], Optional[str]]:
     if status == "error":
         return "system", "crash"
@@ -304,6 +339,12 @@ def _classify(
         return "system", "observe_failed"
     if quadrant in (None, "true_success", "false_negative"):
         return None, None
+
+    # 墙页：站点没让我们进门，FAIL 的成因在环境不在决策。象限与 result 一律不动
+    # （该 FAIL 还是 FAIL，pass/fail 口径不被这道分支放松），只换归因。
+    # false_positive 永不豁免——假阳性是安全硬线，任何外因都不能替它开脱。
+    if quadrant != "false_positive" and is_bot_wall(final_page):
+        return "system", "blocked_by_bot_wall"
 
     if status == "budget_exceeded":
         return "agent", "budget_exceeded"
@@ -391,7 +432,8 @@ def evaluate(
     behavior = (spec.get("extensions") or {}).get("behavior") or _infer_behavior(spec)
     result: Result = "PASS" if assertion_ok else "FAIL"
     quadrant = _quadrant(status, result, category, behavior)
-    failure_class, failure_mode = _classify(status, result, quadrant, history, category)
+    failure_class, failure_mode = _classify(status, result, quadrant, history,
+                                            category, final_page)
 
     return TaskResult(
         task_id=task_id,

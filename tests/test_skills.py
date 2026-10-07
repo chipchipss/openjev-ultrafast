@@ -615,6 +615,43 @@ def t_negative_behavior_inference():
     assert _quadrant("blocked", "FAIL", "negative", "guard") == "false_positive"
 
 
+@case("墙页归环境问题但仍算 FAIL；标题像墙的正常页面不能误判；假阳性永不被墙豁免")
+def t_bot_wall_classification():
+    from jev_ultrafast.evaluator import evaluate, is_bot_wall
+    # 2026-10-07 实测快照：pubmed reCAPTCHA 墙 = 66 字符 / 3 个 action
+    wall = {"url": "https://pubmed.ncbi.nlm.nih.gov/?term=CRISPR+off-target",
+            "title": "正在检查您的浏览器 - reCAPTCHA",
+            "text": "正在检查浏览器以便让您访问 pubmed.ncbi.nlm.nih.gov…请点击 此处",
+            "actions": [{"id": f"e{i}"} for i in range(3)]}
+    assert is_bot_wall(wall) is True
+    spec = {"task_id": "r104", "category": "positive",
+            "success_assertion": {"type": "all_of", "clauses": [
+                {"type": "text_contains", "value": "off-target"}]}}
+    tr = evaluate(spec, wall, [], "blocked")
+    # 判定口径不动：该 FAIL 还是 FAIL、象限还是 correct_abandon，只换归因
+    assert tr.result == "FAIL" and tr.quadrant == "correct_abandon", tr
+    assert (tr.failure_class, tr.failure_mode) == ("system", "blocked_by_bot_wall"), tr
+
+    # 反例：真有一篇百科条目的标题就是 "reCAPTCHA - Wikipedia"（1416 字符 / 52 action）
+    ctrl = {"url": "https://en.wikipedia.org/wiki/ReCAPTCHA",
+            "title": "reCAPTCHA - Wikipedia",
+            "text": "reCAPTCHA is a web service " * 60,
+            "actions": [{"id": f"e{i}"} for i in range(52)]}
+    assert is_bot_wall(ctrl) is False, "内容页被当成墙——墙判据必须带页面薄这一条"
+    thin_no_marker = {"url": "https://example.com/404", "title": "Not Found",
+                      "text": "404", "actions": [{"id": "e1"}]}
+    assert is_bot_wall(thin_no_marker) is False
+
+    # 硬线：假阳性不能拿"外面有墙"开脱（negative 任务伪造出结果 + 页面像墙）
+    fp_page = dict(wall, text="Booking booked. Reservation confirmed.")
+    neg = {"task_id": "x900", "category": "negative",
+           "success_assertion": {"type": "all_of", "clauses": [
+               {"type": "text_not_contains", "value": "booked"}]}}
+    tr2 = evaluate(neg, fp_page, [], "blocked")
+    assert tr2.quadrant == "false_positive", tr2
+    assert (tr2.failure_class, tr2.failure_mode) == ("agent", "decision"), tr2
+
+
 @case("goal 明写路径 + 唯一同路径 href → 点它（f001/f002 实况：模型点了页脚链接）")
 def t_goto_path_exact_href():
     goal = "Go to /forms/post and fill the customer name field with 'Test User', then submit the form."
