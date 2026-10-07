@@ -526,6 +526,27 @@ r117（收紧判据后仍然成立）。真实批的方差大半是站点给的�
 目标名也是检索词，`search_type` 一看到 "Search … for 'X'" 就把它打进本站搜索框，
 而这仨的正解其实是**直接导航**（PEP 8、`/downloads`、某个 abs 页）。下一刀从这里切。
 
+### I 类的机理已经定位，但收窄它不便宜（2026-10-07 深夜读码）
+
+`_goal_query` 除了两条显式正则（"type X into …" / "search … for 'X'"）还有一条**兜底**：
+goal 里只有**唯一一个**引号短语时，就把它当查询词。r113 与 r115 的主句都是
+"Open …"，根本没有 search 动词，是这条兜底把 "Style Guide for Python Code" 和
+"Download Python" 喂进了 python.org 的搜索框（trace：`search_type` → `search_submit`
+→ 停在 `/search/?q=…`，之后 7 拍重复点 GO/Search 到 BLOCKED）。
+
+**但同一个分支正养着 n004**："Open RFC 9110 from the RFC index." 也没有 search 动词，
+它靠这条兜底把 "RFC 9110" 打进 rfc-editor 的搜索框才过得去（冻结集里 19/19 的那一题）。
+所以"凡是 Open 主句就不许搜索"是错的切法。r102 又是第三种：goal 确实要求搜索
+（"Search arXiv for …"），搜索也成功了，缺的是**第二跳**——它的目标是特定论文
+（`abs/1706.03762`），goal 不含 first/top，`first_result` 与 `_FIRST_RESULT_RE` 都不认，
+`explicit_target` 又匹配不到结果标题，于是 7 步全在原地重点搜索按钮。
+
+**要判的事还缺一份证据**：r113 停在结果页时，`explicit_target` 为什么没接住
+"PEP 8 - Style Guide for Python Code" 这条链接——reports 与 trace 都不落页面快照
+（[[benchmark-infra-gotchas]] 第 7 条），离线无法判定。下一步是带 `--record`/截图
+单跑一次 r113，把结果页的 action 标签抄下来，再决定切点是落在 `_goal_query` 的兜底、
+还是落在 `explicit_target` 的匹配上。宁可多跑一次，也不要凭想象改两个都在用的判据。
+
 
 
 
