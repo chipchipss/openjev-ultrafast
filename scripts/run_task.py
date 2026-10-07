@@ -47,8 +47,16 @@ def main() -> int:
     proxy = os.environ.get("HTTPX_PROXY", "")
     if args.start_chrome:
         import shutil
+
         chrome = shutil.which("chrome") or r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-        subprocess.run(["taskkill", "/F", "/IM", "chrome.exe"], capture_output=True)
+        # Kill only OUR headless instance (identified by the CDP profile in its
+        # command line) -- the user's own browser must never be collateral.
+        subprocess.run(
+            ["powershell", "-NoProfile", "-Command",
+            "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" |"
+            " Where-Object { $_.CommandLine -like '*chrome-cdp-test*' } |"
+            " ForEach-Object { Stop-Process -Id $_.ProcessId -Force -EA SilentlyContinue }"],
+            capture_output=True)
         time.sleep(2)
         flags = ["--headless=new" if not args.headed else "--start-maximized",
                  "--remote-debugging-port=9222", "--user-data-dir=C:\\chrome-cdp-test",

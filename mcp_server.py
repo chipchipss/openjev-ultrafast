@@ -51,7 +51,14 @@ def _decider_alive() -> bool:
 
 
 def _start_chrome(proxy: bool = True) -> None:
-    subprocess.run(["taskkill", "/F", "/IM", "chrome.exe"], capture_output=True)
+    # Only ever kill OUR headless instance (CDP profile in its command line);
+    # the user's own browser must never be collateral.
+    subprocess.run(
+        ["powershell", "-NoProfile", "-Command",
+        "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" |"
+        " Where-Object { $_.CommandLine -like '*chrome-cdp-test*' } |"
+        " ForEach-Object { Stop-Process -Id $_.ProcessId -Force -EA SilentlyContinue }"],
+        capture_output=True)
     time.sleep(2)
     flags = ["--headless=new", "--remote-debugging-port=9222",
              "--user-data-dir=C:\\chrome-cdp-test", "--no-first-run",
