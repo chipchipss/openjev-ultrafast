@@ -21,9 +21,12 @@ if ($TaskId) {
     $Label    = $TaskId
     # Extract the single line ourselves: the caller had to pre-build this file
     # before, and a stale one silently measures the wrong task.
+    # Whitespace-tolerant pattern: m2/tasks_real.jsonl is written with json.dumps
+    # default separators ("task_id": "r113") while m1/tasks.jsonl is compact; the
+    # old exact match only covered the compact form, so no real-web task could run.
     $src = Get-ChildItem -Path @((Join-Path $Repo "m1"), (Join-Path $Repo "m2")) `
             -Filter "tasks*.jsonl" -EA SilentlyContinue |
-        ForEach-Object { Select-String -Path $_.FullName -Pattern "`"task_id`":`"$TaskId`"" -EA SilentlyContinue } |
+        ForEach-Object { Select-String -Path $_.FullName -Pattern "`"task_id`"\s*:\s*`"$TaskId`"" -EA SilentlyContinue } |
         Select-Object -First 1
     if ($src) { $src.Line | Set-Content -Path $TaskFile -Encoding UTF8 }
     elseif (-not (Test-Path $TaskFile)) { Write-Host "no task $TaskId found and no $TaskFile"; exit 2 }
