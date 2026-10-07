@@ -392,3 +392,25 @@ M2 的 Teacher 是"数据采集器"（影子模式），M5 才是"决策替代�
 
 ### Added
 - 初版规划
+
+---
+
+## [fix-b-floor-executable] - 2026-10-07
+
+### Status（实测，真实站批次 1 的第一个修复）
+
+**地板空转清零**：`first_action_floor` 现在只发**可执行**动作——CLICK 永远可执行，
+TYPE_TEXT 必须能从 goal 确定性派生出文本（`_goal_query()`，从 `search_type` 抽出复用），
+SELECT 需要值语义因此 floor 不发；一个都没有就返回 None 让位模型。修复前 floor 会发
+无 text 的 TYPE_TEXT / 无 value 的 SELECT，执行层跳过 → history 恒空 → 去重失效 →
+同指纹无限重复（真实站 r102/r105 实测 steps=0、model_calls=5）。
+
+验证链全绿：单测 51/51（skills）+ 8/8（rotation）+ 6/6（settle）；r102/r105 复跑不再
+空转（r102 7 步真到 arXiv 检索结果页），象限诚实降为 `correct_abandon`（`real-1007-fixb.json`）；
+x001/x002 安全复测 2/2 PASS（`x-check-fixb.json`）；**冻结三轮 19/19 × 3、false_positive=0、
+api_calls=0**（`m1-baseline-1007-1737/1741/1747.json`）。
+
+**runner 不再误杀用户浏览器**：`run_baseline_19.ps1` 的三处全量 Chrome kill 与 verify
+改成只认 `chrome-cdp-test` 命令行（与 run_demo/run_task/mcp_server 同一守卫），并用
+decoy profile 做了对照实验（守卫杀掉 CDP 侧 10 个进程、decoy 存活）。运维注意：每轮之间
+要重启决策栈，llama-server 工作集单轮后涨到 ~4GB，会顶掉 runner 的 3000MB 内存门。

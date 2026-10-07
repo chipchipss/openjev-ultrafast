@@ -816,6 +816,28 @@ def t_first_action_floor_picks_entry():
     assert _dv.validate(d, p).valid, "floor 决策未通过 validator"
 
 
+@case("first_action_floor：只发可执行动作（real-1007 r102/r105 空转教训）")
+def t_first_action_floor_executable_only():
+    # 无 text 的 TYPE_TEXT / 无值的 SELECT 执行不了 → history 恒空 → 去重失效
+    # → 同一决策连发 5 次空转（r102/r105 实况）。floor 现在必须：
+    # 1) 全不可执行时让位 None；
+    p = page([A(1, "select", "Field to search", 11, role="combobox"),
+              A(2, "fill", "Search", 12, role="textbox")], url="https://arxiv.org/")
+    d = S.first_action_floor(p, "Open the Releases page of the pytorch/pytorch repository.", [])
+    assert d is None, "SELECT 不可发,无派生文本的 fill 也不可发"
+    # 2) 跳过不可执行的最高分,取次优 CLICK;
+    p2 = page([A(1, "select", "Field to search", 11, role="combobox"),
+               A(2, "click", "Login", 12, role="link")], url="https://arxiv.org/")
+    d = S.first_action_floor(p2, "Search arXiv for 'Attention Is All You Need'.", [])
+    assert d is not None and d["operation"] == "CLICK" and d["choice"] == "e2", \
+        f"SELECT 应被跳过、CLICK 兜底：{d}"
+    # 3) fill + goal 可派生文本 → TYPE_TEXT **带 text**（不依赖 helper）。
+    d = S.first_action_floor(p, "Search arXiv for 'Attention Is All You Need'.", [])
+    assert d is not None and d["operation"] == "TYPE_TEXT" and d["choice"] == "e2", \
+        f"可派生文本时 fill 仍是首选：{d}"
+    assert d.get("text") == "Attention Is All You Need", f"决策必须自带文本：{d}"
+
+
 @case("first_action_floor：goal 重合加分顶起正确菜单（s005 实况：Web APIs）")
 def t_first_action_floor_goal_overlap():
     # MDN 首页没有搜索框（搜索面板要点开才出现），真实路径是 Web APIs 菜单。

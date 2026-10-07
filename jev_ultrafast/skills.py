@@ -231,11 +231,18 @@ def first_action_floor(page: dict, goal: str, history: list) -> dict | None:
     candidates = [(i, a) for i, a in candidates if a.get("id") not in tried]
     if not candidates:
         return None
-    best = max(candidates,
-               key=lambda ia: _floor_score(ia[1]) + _goal_overlap(ia[1], goal_tokens))
-    index, action = best
-    op = KIND_TO_OP[action["kind"]]
-    return _decision(op, index, action, "first_action_floor")
+    query = _goal_query(goal or "")
+    # 只发**可执行**动作（real-1007 r102/r105 教训）：CLICK 永远可执行；
+    # TYPE_TEXT 需 goal 能确定性派生文本；SELECT 需要值语义,floor 给不出 →
+    # 跳过。按分数从高到低取第一个可执行的。
+    for index, action in sorted(candidates, reverse=True,
+                                 key=lambda ia: _floor_score(ia[1]) + _goal_overlap(ia[1], goal_tokens)):
+        kind = action["kind"]
+        if kind == "click":
+            return _decision("CLICK", index, action, "first_action_floor")
+        if kind == "fill" and query:
+            return _decision("TYPE_TEXT", index, action, "first_action_floor", text=query)
+    return None
 
 
 _MAX_FLOOR_STEPS = int(os.environ.get("M18_FLOOR_MAX_STEPS", "3"))
@@ -950,9 +957,14 @@ def _searchbox(a: dict) -> bool:
     return bool(_SEARCHBOX_RE.search(a.get("label") or ""))
 
 
-def search_type(page: dict, goal: str, history: list) -> dict | None:
-    m = _TYPE_RE.search(goal or "") or _SEARCH_RE.search(goal or "")
+def _goal_query(goal: str) -> str | None:
+    """goal 里可确定性派生的搜索词（显式正则优先，单一短语兜底）。
 
+    search_type 与 first_action_floor 共用同一判据：派生不出文本的 TYPE_TEXT
+    动作不可执行——real-1007 实况 r102/r105，floor 发无 text 的 TYPE_TEXT、
+    agent 无从执行、history 恒空、去重失效，同一决策连发 5 次空转。
+    """
+    m = _TYPE_RE.search(goal or "") or _SEARCH_RE.search(goal or "")
     query = m.group("q") if m else None
     if not query:
         # 兜底：goal 里有唯一显式 token（RFC 号 / 引号串，非路径）→ 当作查询词。
@@ -966,6 +978,11 @@ def search_type(page: dict, goal: str, history: list) -> dict | None:
         cand = [p for p in _phrases(goal or "") if not p.startswith("/")]
         if len(cand) == 1:
             query = cand[0]
+    return query
+
+
+def search_type(page: dict, goal: str, history: list) -> dict | None:
+    query = _goal_query(goal or "")
     if not query:
         return None
     hist = history or []

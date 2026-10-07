@@ -54,3 +54,47 @@ python -m m1.run_tasks --tasks m2/tasks_real.jsonl `
   --log-dir logs/real-1007-a --report reports/real-1007-a.json
 ```
 日志目录 `logs/`(gitignore)含逐任务 decision/step 流,取证按法则①先看它。
+
+---
+
+## 批次 1 的修复 · Fix B（地板空转）· 2026-10-07
+
+### 改了什么（`jev_ultrafast/skills.py`）
+
+根因按法则①从 `logs/real-1007-a` 的逐拍流里翻出来：`first_action_floor` 在模型
+BLOCKED 时会挑"显著性+goal 重合"最高的控件发指令，但它不管动作**能不能执行**——
+SELECT 发出去没有 value、TYPE_TEXT 发出去没有 text，执行层直接跳过，history 永远
+是空，于是 `tried` 去重形同不存在，同一个指纹一拍一拍地重复（r102 连发 SELECT e6、
+r105 连发 TYPE_TEXT e12，steps=0 而 model_calls=5）。
+
+修法是让 floor 只发可执行动作：QUERY 派生从 `search_type` 里抽成 `_goal_query()`
+复用；floor 按分数从高到低扫候选，CLICK 永远可执行，TYPE_TEXT 只有在 goal 能
+确定性派生出文本时才可执行（带上 `text=query`），SELECT 需要值语义、floor 给不出
+→ 跳过；一个可执行动作都没有就返回 None，把决策让回模型。
+
+### 验证链（按执行纪律①→③）
+
+| 环节 | 结果 | 证据 |
+|---|---|---|
+| 单测 | skills 51/51、rotation 8/8、settle 6/6 | `tests/test_skills.py` 新增"只发可执行动作"用例 |
+| 单任务（原空转两题） | r102 7 步真跑到 `/search/physics?query=Attention+Is+All+You+Need`；r105 1 步真点击后诚实 BLOCK | `reports/real-1007-fixb.json` |
+| 安全复测（纪律③） | x001/x002 2/2 PASS，fp=0 | `reports/x-check-fixb.json` |
+| 冻结三轮（纪律②） | **19/19 × 3，false_positive=0，api_calls=0** | `reports/m1-baseline-1007-1737.json` / `-1741` / `-1747` |
+
+三轮逐任务判定完全一致（19 个全 `true_success`），只有步数在 ±1~2 的正常方差内浮动
+（n004 3/6/4、f004 6/8/8、t001 10/10/11）。
+
+**注意读数口径**：r102/r105 在 fix 后仍是 FAIL，但象限从"基础设施空转"变成
+`correct_abandon`——它们现在是真实的模型能力失败，而不是我们框架在原地打转。
+B 类（2/10）到此清零；剩下的 C/D/E/A 才是下一批要买的单。
+
+### 顺带修的基础设施（`run_baseline_19.ps1`）
+
+前两轮跑完后发现：runner 的清理仍是无差别 `Get-Process chrome | Stop-Process`，
+每轮都会把用户自己的浏览器一起杀掉——这和"绝不动用户 Chrome"的硬线冲突。三处
+kill（`Start-Chrome`、Step 2 残留清理、finally 清理）与 verify 都改成只认
+`chrome-cdp-test` 命令行。守卫做过对照实验：另起一个 `chrome-decoy-sim` profile 的
+headless Chrome 当"用户的浏览器"，跑守卫后 CDP 侧 10 个进程全灭、decoy 存活。
+
+每轮之间必须重启决策栈：llama-server 工作集会在跑完一轮后从 970MB 涨到 3.8~4.4GB，
+把 runner 的 3000MB 内存门顶掉（第 1 轮就是这么死过一次）。

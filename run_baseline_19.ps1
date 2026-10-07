@@ -50,8 +50,15 @@ function Set-Env($h) { foreach ($k in $h.Keys) { Set-Item -Path "env:$k" -Value 
 
 function Cdp-Alive { try { Invoke-RestMethod "http://127.0.0.1:9222/json/version" -TimeoutSec 2 | Out-Null; return $true } catch { return $false } }
 function Wait-Cdp($maxSec = 30) { for ($i=0; $i -lt $maxSec; $i++) { if (Cdp-Alive) { return $true }; Start-Sleep 1 }; return $false }
+# Never kill the user's browser: only Chrome processes whose command line carries
+# our own CDP profile. The old bare Get-Process chrome killed everything.
+function Get-CdpChrome {
+    Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" -EA SilentlyContinue |
+        Where-Object { $_.CommandLine -like "*chrome-cdp-test*" }
+}
+function Stop-CdpChrome { Get-CdpChrome | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -EA SilentlyContinue } }
 function Start-Chrome {
-    Get-Process chrome -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
+    Stop-CdpChrome
     Start-Sleep 2
     Remove-Item -Recurse -Force $ChromeProfile -EA SilentlyContinue
     # Chrome must honour the same egress proxy as the rest of the stack. Without
@@ -185,7 +192,8 @@ try {
         try { $cl = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)" -EA Stop).CommandLine
               if (-not $NoService -and $cl -match "decider|run_tasks|serve|uvicorn|jev_service") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
     }
-    Get-Process chrome, msedge, chromium -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
+    Stop-CdpChrome
+    Get-Process msedge, chromium -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
     Start-Sleep 3
     # Reap orphaned browser_harness daemons. One task per process spawns one
     # daemon per task, and nothing exits them: a 19-task run leaked 18 of them
@@ -344,11 +352,11 @@ try {
               if (($cl -match "run_tasks|decider|serve|uvicorn|jev_service|browser_harness") -and
                   -not ($NoService -and $ext)) { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
     }
-    Get-Process chrome -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
+    Stop-CdpChrome
     Start-Sleep 7
-    $chromeLeft = (Get-Process chrome -EA SilentlyContinue | Measure-Object).Count
+    $chromeLeft = @(Get-CdpChrome).Count
     $pyLeft = (Get-Process python -EA SilentlyContinue | Where-Object { $_.Id -ne $PID } | Measure-Object).Count
-    Log "Verify after cleanup: chrome=$chromeLeft (must be 0), stray python=$pyLeft"
+    Log "Verify after cleanup: cdp-chrome=$chromeLeft (must be 0), stray python=$pyLeft"
     if ($chromeLeft -ne 0) { $exitCode = 1 }
 }
 
