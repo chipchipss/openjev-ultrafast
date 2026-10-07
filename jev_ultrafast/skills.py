@@ -397,9 +397,17 @@ def goal_reached(page: dict, goal: str, history: list) -> dict | None:
     # 注意必须带"网站/官网"字样，不能见 "site" 就算：s002 的 goal 是 "Use the site search
     # on docs.python.org …"——这里 site 指"站内搜索功能"，不是"打开该网站"，按 host 判到达
     # 会让 URL 已含 asyncio 的结果页判不出到达（s002 实况）。
+    # “homepage/website” 只有作为**目的地**时才算站点目标。r114 实况：goal 是
+    # "From the Django homepage, open the page titled '…part 1'"，那个 homepage
+    # 是**起点**，却被这条判据当成“打开网站” → 到达判据只认 host →
+    # 文档页标题里明明逐字写着目标短语，goal_reached 永远发不出 DONE，
+    # 于是 explicit_target 接手，在已到达的页面上点侧栏下一条（part 2）跑偏。
+    # r115 同一句式。先把 "from the … homepage/website" 这类起点框架涂掉再判。
+    _dest = re.sub(r"\bfrom\s+the\s+[\w' -]{0,30}?\b(?:homepage|website|site)\b", "",
+                   goal or "", flags=re.I)
     website_goal = bool(re.search(
         r"\b(?:website|web\s*site|homepage|official\s+(?:site|website|page))\b",
-        goal or "", re.I))
+        _dest, re.I))
     host_flat = _flat(_norm_page(_u.netloc))
 
     def hit(phrase: str, where: str) -> bool:
@@ -463,7 +471,10 @@ def goal_reached(page: dict, goal: str, history: list) -> dict | None:
             obj = m.group("t")
             obj_n = " ".join(_tokens(obj))
             title = _norm_page(page.get("title") or "")
-            if obj_n and obj_n in title and obj_n not in start:
+            # obj 必须含**实义词**。_NAV_OBJ_RE 的 "the" 是可选项，"open the page
+            # titled 'X'" 会退化成 obj="the"（实况 r114/r115），而 "the" 几乎出现在
+            # 每个页面标题开头 → C1 在起点首页就判到达，提前 DONE。
+            if obj_n and _content(obj) and obj_n in title and obj_n not in start:
                 return _decision("DONE", None, None, "goal_reached")
             toks = _content(obj)
             head = toks[-1] if toks else ""
@@ -606,7 +617,10 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
                 # 路径类短语（/forms/post）必须"整段出现在 label 里"——
                 # 反向包含会让 "/post" 命中 "/forms/post"（f001 实况：点错到 /post）
                 label_score = 0.0
-            elif len(lab_n) >= 4 and lab_n in pn:
+            elif len(lab_n) >= 4 and pn.startswith(lab_n + " "):
+                # 片段匹配只认**从头对齐**的缩写（"Style Guide" ⊂ "Style Guide for Python Code"）。
+                # 任意位置的包含会把站点名当目标：r113 实况，peps 首页上唯一命中短语的动作是导航链接
+                # "Python"（"python" 只是短语中间的词）→ 0.9 且无对手 → 跳出任务域名，后面全塌。
                 label_score = 0.9
             else:
                 pc = _content(p)

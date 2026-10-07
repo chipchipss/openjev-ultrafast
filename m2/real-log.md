@@ -547,6 +547,291 @@ goal 里只有**唯一一个**引号短语时，就把它当查询词。r113 与
 单跑一次 r113，把结果页的 action 标签抄下来，再决定切点是落在 `_goal_query` 的兜底、
 还是落在 `explicit_target` 的匹配上。宁可多跑一次，也不要凭想象改两个都在用的判据。
 
+### I 类的切点落在 `explicit_target`，不是 `_goal_query`（2026-10-07 深夜，无模型复现）
 
+上一节说"缺一份页面快照"。这份快照不必等模型：**技能层是确定性的**，用
+`Browser` 直接 observe 真实页、把页面临时喂给 `skills.explicit_target / search_type /
+route`，就能零模型调用复现整条误触发链（脚本在 %TEMP%，本轮输出抄录如下）。
 
+`https://peps.python.org/`（r113 的起始页，标题 "PEP 0 – Index of Python enhancement
+proposals"）可见 38 个动作，**没有任何一个标签含 "Style Guide"**：PEP 8 那一行在
+折叠的编号索引里（页面高 49014px，行坐标 y≈1159，视口外的动作被快照裁掉，
+`omitted_actions` 有时给、有时给 0——同一 URL 两次观测 43/27 与 38/0，这本身就是
+E/F 类的老问题）。于是在这一页上：
 
+- `_phrases(goal)` = `['Style Guide for Python Code']`（"PEP 8" 这种"编号式目标名"
+  根本不进 `_phrases` 的四条句式里）；
+- 唯一能命中短语的动作是页头站标链接 **e1 = click "Python" → href
+  `https://www.python.org/`**，走的是 `elif len(lab_n) >= 4 and lab_n in pn: 0.9`
+  这条**片段匹配**分支——"python" 只是短语**中间**的词；
+- 它是这一拍唯一的 ≥0.75 候选，"明显优势"判据成立 → `explicit_target` 发 CLICK。
+
+**这一跳就是整条 doom 链的源头**，b5 的 trace 逐字对得上：step1 点 e1（skill
+explicit_target, conf 1.0）→ 落 `www.python.org` → step2 `search_type` 把**文档标题**
+当检索词打进 python.org 的搜索框 → step3 `search_submit` → step4~10 在结果页反复点
+GO(e12)/结果(e23)、conf 0.23~0.33，预算耗尽。**注意 `_goal_query` 的兜底在这里不是
+过错方**：它到了 python.org 才开火，而那是 `explicit_target` 已经把 agent 带出任务域名的
+结果。同一判据若留在 peps 站内，反而是正解（站内搜索能搜到 PEP 8）。
+
+**所以切点是片段匹配，兜底不动**——这正好回答了上一节"切在哪一侧"的问题，而且不需要
+牺牲 n004（它靠的就是同一条兜底）。改法：片段只认**从头对齐**的缩写
+`pn.startswith(lab_n + " ")`。真实导航标签确实是前缀式截断（"Style Guide" ⊂
+"Style Guide for Python Code"），而"站点名恰好是短语里的中间词"这种碰撞没有理由算命中。
+
+### 复现之后 r113 停在下一格：D2 的机理第一次量到
+
+修复后单跑 r113（`reports/one-r113-1007-220617.json`）：**steps 1、model 4、
+final_url 仍是 `https://peps.python.org/`**——不再跳出任务域名，且 step1 就是
+`search_type` 把查询打进 peps **自己**的搜索框。失败点从"被带出站点"变成"填完交不出去"。
+
+零模型复现填完之后的那一拍（同上脚本），peps 给出的动作表里：
+
+- 搜索框 `e15 fill 'Search'` 的 value 已经是查询词；
+- 与它**同一个 node** 上还挂着 `click 'Open Search'`（`_indexed` 按 node 去重，两者
+  共用编号 e15）；
+- 除此之外全是折叠索引的开关（"Numerical Index" / "Index by Category" / …），
+  **没有任何提交控件**，也没有 role=option 的自动补全建议。
+
+`search_submit` 因此返回 None——它有一条**故意**的守卫 `lab.startswith("open") → continue`
+（"Open quick search" 是开合开关不是提交，此前实测踩过）。于是 `search_type` 不再重填、
+`search_submit` 无控件可点、模型每次 0.317 过不了门 → 1 步就 BLOCKED。这就是排队已久的
+**D2：填完搜索框而页面无带标签提交控件时，用 Enter 交查询**。r103 当年是同一个形状的
+另一侧证据。现在有机理级证据了，动手不用再靠猜。
+
+### 同一判据的反例：r114 正是靠这条被收窄的分支过的（写代码之前先扫了 b5 的全部 trace）
+
+改完先别信"只影响 r113"。把 b5 里 11 次 `explicit_target` 开火逐条按新判据重算分支归属：
+
+| 任务 | 被选中的标签 | 命中的分支 |
+|------|--------------|-----------|
+| r110 / r111 / r112 / r117 / r121 | The Rust Programming Language / Travel / Tipping the Velvet / Photosynthesis / Downloads | EXACT 2.0（不受影响）|
+| r111 / r117 / r120 | Vagabonding… / Photosynthesis (disambiguation) / Open Customer name: | contains 1.0（不受影响）|
+| **r113** | Python | MID-FRAGMENT（本次收窄掉）|
+| **r114** | Django | MID-FRAGMENT（本次收窄掉）|
+
+**r114 在 b5 是 PASS**（trace：step1 `explicit_target` 点 "Django" → `docs.djangoproject.com`
+→ step2 `search_type` → step3 `search_submit`（label 是中文"提交"）→ step4 命中
+"Writing your first Django app…" → `/en/6.1/intro/tutorial01/`）。也就是说：**同一个分支
+在 r113 上是 doom 的起点，在 r114 上是通关的第一步**，两者形状几乎全同——起点页都含该词
+（peps.**python**.org / www.**django**project.com）、跳转目的地的 host 也都含该词。我试过的
+三条切法（前缀对齐 / host 是否含片段 / 标签词数）都分不开它们。
+
+唯一真正分得开的轴在 goal 自己身上：r114 明写 "**From the Django homepage**, open …"
+（goal 亲口把当前页声明为**起点**，允许离页），r113 是 "Open PEP 8, …"（没有 from 框架，
+当前页就是文档的老家）。但这是 **n=2、一正一反**，凭两条实例改一个全量判据不合规矩。
+
+**所以这次的裁决人不放代码，放批次**：冻结集里没有 r113/r114，19 题只证明"没把冻结集
+改坏"（含 n004 这条同兜底）；r114 会不会掉、r113 能不能涨，只有 22 题真实批能判。
+净收益 ≤0（r114 掉、r113 仍卡在 D2）就回退这条规则，只留 `run_one.ps1` 的空白容忍与
+本节的证据；净收益 >0 才谈下一步（把 "from X" 框架做成显式豁免，再用新实例验证）。
+
+### Fix I 验证链
+
+| 环节 | 读数 | 证据 |
+|------|------|------|
+| 单测 | 58/58 | `tests/test_skills.py`，新增 "I 类：导航链接 \"Python\" 不是目标" |
+| 单任务 r113 | FAIL（但已不改域名）| `reports/one-r113-1007-220617.json`，steps 1 / model 4 / api_calls 0 |
+| x001/x002 | 2/2 PASS | `reports/x-check-fixi-1007-220742.json`，fp=0、api_calls=0 |
+| 冻结 19 题 ×3 | 见下一节补写 | 冻结完成后回填，不预留数字 |
+
+复现顺带暴露的一个**基础设施缺陷**（已修）：`run_one.ps1 -TaskId` 抽任务行用的正则写死
+`"task_id":"X"`，而 `m2/tasks_real.jsonl` 是 `json.dumps` 默认分隔符 `"task_id": "X"`——
+22 题真实批**单题根本跑不出来**（报 "no task r113 found"）。改成容忍空白。
+
+### Fix I 的冻结读数回填
+
+| 环节 | 读数 | 证据 |
+|------|------|------|
+| 冻结 19 题 ×3 | 19/19、19/19、19/19（fp=0、error=0，api_calls 逐题 0）| `reports/m1-baseline-1007-2209.json` / `-2214.json` / `-2219.json` |
+| 其中 n004（同一条 `_goal_query` 兜底，最容易被 Fix I 打掉）| PASS，`final_url=https://www.rfc-editor.org/info/rfc9110/`，steps 7 / model 8 / **api_calls 0** | `-2219.json` results 里的 n004 行 |
+
+冻结只证明"没把 19 题改坏"。r113/r114 的净收益仍等 22 题真实批裁决。
+
+### Fix J：到达判据被"起点 homepage"劫持（r114/r115）· 2026-10-07 深夜
+
+r114 修好题面措辞后仍 FAIL，读 trace 得到的因果链（不是我猜的）：
+
+1. goal 是 `"From the Django homepage, open the page titled 'Writing your first Django app,
+   part 1'."`——那个 homepage 是**起点**；
+2. 但 `goal_reached` 的 `website_goal` 判据只看词面有没有 `website|homepage|site`，命中了 →
+   到达判据被强制收窄成**只认 host**（`hit()` 里 `pn.replace(" ","") in host_flat`）；
+3. `docs.djangoproject.com` 的 host 里当然没有 "writing your first django app part 1" →
+   即使 URL/标题逐字写着目标短语，`goal_reached` 也永远发不出 DONE；
+4. 于是同一拍轮到 `explicit_target`：它在一页**已经到达**的文档上点侧栏下一条
+   "…part 2"，agent 沿教程往下走，最后落在断言之外的页面。
+
+改法（`jev_ultrafast/skills.py` 的 `goal_reached`）：算 `website_goal` 之前先把
+`\bfrom the … (homepage|website|site)\b` 这类**起点框架**涂掉，只有当 website/homepage
+是目的地时才触发 host-only 判据。r115 同一句式，属同一条因果链，不是第二次独立归纳。
+
+### Fix J 的反面测试挖出一个更早的缺陷（K 类：标题里的 "the" 就能算到达）
+
+给 Fix J 写反例——"还停在起点首页时绝不能判到达"——结果起点页**直接返回 DONE**。追进去：
+`_NAV_OBJ_RE` 的 `the` 是可选项，`open the page titled 'X'` 会退化捕获成 `obj="the"`，
+路径 C1 于是变成"标题里有 the"——而几乎每个英文站标题都以 *The* 开头。
+
+这条在 Fix J 之前**不可达**：`website_goal=True` 时整条路径 C 被 `not website_goal` 挡着。
+也就是说它是既有缺陷，只是被上一条判据意外盖住；Fix J 一放开就露出来。
+修法：C1 要求 `obj` 含**实义词**（`_content(obj)` 非空）。
+
+一句可复用的教训：改 A 判据会让 B 分支第一次可达，**正面测试（到达页出 DONE）在坏版本上
+同样通过**，只有反面测试能发现 B 分支在起点页就开火。
+
+### 工具事故登记（影响上一节之前那次"离线验证"的可信度）
+
+Edit 写进 `skills.py` 的 `\b` 落成 `0x08` 退格符（5 处），website 判据因此要求字面退格 →
+`website_goal` 恒 False，等于整条判据被杀；单测 s001/s007 立刻 FAIL 才暴露。
+**我此前记录的"离线验证 goal_reached -> DONE"就是在这份坏文件上跑出来的**：DONE 是真的，
+但成因是判据失效而不是修好了，而且那次只测了到达页。往后：改正则要 grep 一遍控制字符，
+离线验证必须正反两例同跑。
+
+### Fix J 在 22 题上的爆炸半径（离线扫的，跑批之前）
+
+`website_goal` 判据一改，题集里只有这一族受影响——**4 题**，全是 `"From the X homepage, open …"`
+句式（goal 亲口把当前页声明为起点）：
+
+| task | goal 摘句 | 短语（路径 A 用）| `_NAV_OBJ_RE` 捕获 obj | 走路径 C 吗 |
+|------|-----------|------------------|------------------------|-------------|
+| r114 | Django homepage → tutorial01 | `Writing your first Django app, part 1` | `'the'`（退化捕获）| 被新加的实义词判据挡住 |
+| r115 | Python homepage → 'Download Python' | `Download Python` | None | 否 |
+| r118 | GNU homepage → 'Bash Reference Manual' | `Bash Reference Manual` | None | 否 |
+| r121 | Selenium homepage → 'Downloads' | `Downloads` | None | 否 |
+
+也就是说：4 题里 3 题的到达判据从 host-only 换回"短语在 URL/标题里"，路径 C 对它们本来就不匹配；
+唯一可能借路径 C 提前 DONE 的 r114 恰好就是 obj="the" 那个坑，已由 K 类判据钉死（单测里带反例）。
+起点页标题里都不含各自短语（`Welcome to Python.org` / `The GNU Operating System` /
+selenium 首页），所以理论上不会在起点收口——但这只是纸面推演，**净收益仍由 22 题批裁决**。
+
+补两条把这段推演钉成证据的东西：
+
+1. **22 题里带 website 族的只有这 4 条**（逐条扫 goal 全文），而且 4 条全是 `from the X homepage`
+   起点框架；s001 那句 "open the official OpenAI website" 不在其中。也就是说这条改动在本
+   题集上**不会让任何一条目的地型目标丢掉 host-only 保护**（单测 J 类用例把 s001 也当反例钉住了）。
+2. **冻结集里有一条同族**：`s003`（`m1/tasks-laya-19.jsonl`）goal 是
+   `"From the W3C homepage, navigate to the Standards page."`，断言 `w3\.org/standards`。
+   旧判据下 `website_goal=True` 把整条路径 C 挡住，`_phrases` 对这条 goal 返回**空**（没有引号串），
+   所以 s003 的到达在 Fix J 之前**不可能**由 `goal_reached` 收口——一直是模型自己发 DONE。
+   Fix J 之后离线复现：`/standards/`（标题 `Standards and Guidelines | W3C`）→ DONE（路径 C2
+   靠头词 standards 命中 URL），起点首页 → None。
+   所以这条改动不再是"两条实例归纳"：它有一个进冻结集的第三实例，而且 19/19 的读数里
+   s003 的**收口来源从模型换成了技能地板**——步数/模型调用数可能会变，pass/fail 不该变。
+   **可核对的预测**（写在这里等冻结打脸）：Fix I 那三轮 s003 是 `PASS steps 2 / model 3`
+   （`reports/m1-baseline-1007-2209/-2214/-2219.json`）；Fix J 之后到达那一拍应由地板接管，
+   model 调用会**少一次**（≈2）。若 s003 掉成 FAIL 或 steps 变多，说明路径 C 在真实 W3C
+   首页/中间页上提前收口了，判据还得再收紧。
+
+**上一批（b5，`reports/real-1007-b5-22-1007-212901.json`）这 4 条的读数**——批后逐条对：
+
+| task | b5 | b5 steps/model | Fix J 之后的期望 |
+|------|----|----------------|------------------|
+| r114 | PASS | 5 / 8 | 仍 PASS，但收口换成 `goal_reached`（不该再点侧栏 part 2）|
+| r115 | FAIL | 4 / 11 | 到达 'Download Python' 后能收口 |
+| r118 | FAIL | 2 / 5 | 到达 'Bash Reference Manual' 后能收口 |
+| r121 | PASS | 2 / 7 | 仍 PASS |
+
+b5 总分 9/22（quadrants：true_success 9 / correct_abandon 13；failure_modes decision 12、
+blocked_by_bot_wall 1；全表 api_calls 0）。这 4 条若按上表全部收口，真实批上限 12/22；
+达不到就是判据还有洞，不许多余解释。
+
+### 单任务实测（冻结之后、批次之前）：4 条里 2 条兑现、2 条预测落空
+
+| task | 结果 | steps/model（b5 → 现在）| 终页 | 判读 |
+|------|------|------------------------|------|------|
+| r114 | **PASS** | 5/8 → **2/3** | `docs.djangoproject.com/en/6.1/intro/tutorial01/` | 预测兑现：到达由 `goal_reached` 收口，不再点侧栏 part 2 |
+| r121 | **PASS** | 2/7 → **1/2** | `www.selenium.dev/downloads/` | 预测兑现，且比 b5 少一步 |
+| r115 | FAIL | 4/11 → 4/11 | `www.python.org/search/?q=Download+Python` | **预测落空**：它根本没到达，卡在 I/D2 类（站搜把目标名当检索词）|
+| r118 | FAIL | 2/5 → 2/5 | `www.gnu.org/`（起点首页）| **预测落空**：停在起点没导航；但终点是首页而**没有提前 DONE**——K 类判据在真实页上守住了 |
+
+`reports/one-r114-1007-225434.json` / `one-r115-1007-225520.json` /
+`one-r118-1007-225546.json` / `one-r121-1007-225606.json`，四条 api_calls 都是 0。
+
+**r115 的 trace 第一次把 I 类的起点钉在第 1 拍**（`logs/one-r115-1007-225520/r115.jsonl`）：
+
+| step | 谁发的 | 动作 | 之后 |
+|------|--------|------|------|
+| 1 | 地板 `search_type` | 在 python.org **首页**的 "Search This Site" 里填 "Download Python" | 目标名被当成检索词（I 类的定义性动作）|
+| 2 | 地板 `search_submit` | 点 "GO" | 到 `/search/?q=Download+Python&submit=` |
+| 3–4 | 模型 | 又点一次 "GO"、再点 "Search" | 结果页原地打转 |
+| 5–11 | 模型 | 连发 **6 次同一 fingerprint 的 DONE**（confidence 0.497）| 全被拒 → correct_abandon |
+
+两处要分开看：拒 DONE 是**对的**（断言要的是 releases 页，落在搜索结果页收口就是 false_positive），
+所以后半段的"类 C 形状"只是第 1 拍跑偏的下游。真正的问题是：`route` 的顺序里 `explicit_target`
+（第 9 位）在 `search_type`（第 15 位）之前，首页那个 "Download Python 3.x" 按钮按打分梯应拿
+`pn in lab_n` → ≥1.0，却返回了 None。要判它为什么让位，只能拿首页的真实 action 表——
+报表里没有快照，所以这条得等批次跑完用零模型探针量（`Browser(url).observe()` 直接喂 `skills.explicit_target`）。
+
+所以 Fix J 的净收益不是"4 条全收"，而是**把已经到达却不收口的那一类**修好（r114/r121 的
+步数下降就是证据：以前要多走一两拍才发现"到不了"，现在到站即收）。r115/r118 的失败在
+**到达之前**，属另一条链，与本条判据无关——它们仍是 #15（站内搜索误触发）在跟的形态。
+
+### Fix J 验证链
+
+| 环节 | 读数 | 证据 |
+|------|------|------|
+| 单测 | 59/59（新增 J 类用例，含起点页反例与 s001 守位）| `tests/test_skills.py` |
+| x001/x002（`goal_reached` 是负面任务的安全判据，必测）| 2/2 PASS，`false_positive` 无、逐题 api_calls 0 | `reports/x-check-fixj-1007-223743.json` |
+| 冻结 19 题 ×3 | 19/19、19/19、19/19（fp=0、error=0、api_calls 合计 0）| `reports/m1-baseline-1007-2239.json` / `-2244.json` / `-2249.json` |
+| 冻结里的 s003（同族第三实例，预测 model 3→2）| PASS，**steps 2→1、model 3→2**（三轮一致）| 同上三份 reports 的 s003 行 |
+| 冻结里的 n004（`_goal_query` 兜底，Fix I 的守位）| PASS，steps 7 / model 8 与 8 / 9，api_calls 0 | 同上 |
+| 单任务 r114/r115/r118/r121 | 2 PASS / 2 FAIL，见上一节 | `reports/one-r11{4,5,8}-*.json`、`one-r121-*.json` |
+| 22 题真实批 b6 | 待回填 | `reports/real-1007-b6-fixj-*.json` |
+## 批次 6 · Fix I + Fix J 的裁决批 · 2026-10-07 深夜（`reports/real-1007-b6-fixj-1007-225630.json`）
+
+总分 **9/22，与 b5 同分**；但同分不是结论，逐条对才看得出是谁在动：
+
+| task | b5 → b6 | steps | model | 归因 |
+|------|---------|-------|-------|------|
+| **r113** | **FAIL → PASS** | 10 → **2** | 11 → 5 | Fix I。四批里第一次 PASS（b3 FAIL/7、b4 FAIL/10、b5 FAIL/10）|
+| **r114** | PASS → PASS | 5 → **2** | 8 → 3 | Fix J：到站即收口，不再点侧栏 part 2 |
+| **r121** | PASS → PASS | 2 → **1** | 7 → **2** | 同上（同族）|
+| r117 | PASS → PASS | 4 → 2 | 13 → 3 | 到达那一拍被地板接走 |
+| r102/r106/r117 | 均 -1 步 | — | — | 少的是"到站了却还在动"的那一拍 |
+| **r101** | **PASS → FAIL** | 10 → 10 | 12 → 12 | **不是回归**，见下 |
+
+全批成本：steps 72 → **56**，model 调用 131 → **103**（-21%），耗时 285s → 234s，**api_calls 两批都是 0**，
+quadrants 只有 true_success / correct_abandon 两档（fp 仍为 0）。
+
+### r101 的 PASS→FAIL 是采样噪声，用 trace 证伪了"Fix 打坏它"的猜测
+
+两批的 r101 trace（`logs/real-1007-b5-22-1007-212901/r101.jsonl` vs
+`logs/real-1007-b6-fixj-1007-225630/r101.jsonl`）**前 9 拍逐字相同**：
+
+```
+step1-2  search_type 填 'flask' → search_submit 点 GO → /search/?q=flask
+step3-7  page_not_ready 连发 5 次 WAIT → BLOCKED（conf 0.49）
+step8-9  模型 CLICK target 3，conf 0.32~0.41
+step10   b5 模型点 target 21（Flask 项目链接）→ PASS
+         b6 模型再点一次 target 3 → FAIL
+```
+
+第 10 拍已经是模型自己掷骰子，而地板在两批里**一模一样地让位**。四批历史 r101 =
+PASS/FAIL/PASS/FAIL，也是翻转而不是台阶。
+
+更准确地说，两批差的是**运气的一次**：`jev_ultrafast/agent.py:723-737` 的无进展判据是
+"连续 3 个非 wait 动作 `page_changed is False` → blocked"。b5 是点 3、点 3、然后点了 21
+（第 3 下换了页，躲过判据）→ PASS；b6 是点 3、点 3、点 3（第 3 下没换页）→ 判据命中，
+status 转 blocked，循环退出——**日志里那一拍之后模型已经给出了 target 21（conf 0.53）却没被
+执行**。所以 b6 的 FAIL 是"同一个候选被多点了一次"造成的收尾，不是判据变了。
+
+真正的缺口在这之前，且两批都有：结果页 `page_not_ready` 烧掉 5 拍换来一个 BLOCKED，
+之后 `explicit_target` 与 `first_result` 谁都没接——`explicit_target` 的门槛
+`top[0] - second < 0.15` 在"整页结果标签都含 flask"的页面上必然弃权（多个同分候选），
+`first_result` 又要求 goal 明写 "first result"（r101 说的是 "the Flask project page"）。
+这是新的一类（暂记 **L 类：结果页候选同分 → 地板弃权交给 2B 掷骰子**），下一批专门量它。
+
+### b6 顺带推翻了我自己上一条 D2 结论的一半
+
+r113 这次 2 步通关的路径是：step1 `search_type` 把整句短语填进 peps 搜索框，
+step2 `search_submit` **点到的是自动补全的 role=option 建议项**（action 标签就是
+"PEP 8 – Style Guide for Python Code…"）→ 直达 `/pep-0008/`。
+而我在"复现之后 r113 停在下一格"一节里写的是"peps 填完之后没有任何提交控件、1 拍就 BLOCKED"。
+两者只能有一个对：**实况优先**——那个读数是零模型探针给的（我手工 insertText 后立刻 observe），
+实时链路里建议下拉确实出现了。所以 D2 的证据基础要降级：`Enter 键提交` 仍然需要，
+但**不能拿 r113 当它的实例**；r118（填完 GNU 首页搜索框后无人提交、原地卡死）才是。
+
+### 批次裁决（对着 pre-registered 的判据打勾）
+
+我在 Fix I 那节写下的回退条件是"净收益 ≤0（r114 掉、r113 仍卡在 D2）就回退这条规则"。
+b6 读的是：r114 **没掉**（还少 3 步），r113 **不再卡 D2**（直接 PASS）→ 净收益 > 0，
+**Fix I 与 Fix J 都留**。总分没动的原因已定位为 r101 的采样翻转 + 13 条与本次判据无关的失败，
+不是这两条规则没收益。

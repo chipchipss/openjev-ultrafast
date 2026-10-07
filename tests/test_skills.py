@@ -1108,6 +1108,65 @@ def t_first_action_floor_gates():
     assert S.first_action_floor(bare, "g", []) is None
 
 
+@case("I 类：导航链接 \"Python\" 不是目标——片段匹配只认从头对齐的缩写（r113）")
+def t_explicit_target_fragment_must_be_prefix():
+    goal = "Open PEP 8, 'Style Guide for Python Code'."
+    # r113 实况：peps 首页可见动作里唯一命中短语的是站标链接 "Python"（"python" 只是
+    # 短语中间的词）。旧判据 len(lab_n)>=4 and lab_n in pn 给它 0.9 且无对手 → 直接跳出
+    # 任务域名，后面 python.org 站搜、6 步空转全是这一跳的下游。
+    peps = page([A(1, "click", "Python", 1, href="https://www.python.org/"),
+                 A(2, "click", "PEP Index", 2),
+                 A(3, "fill", "Search", 3)], url="https://peps.python.org/")
+    d = S.explicit_target(peps, goal, [])
+    assert d is None, "中间词片段仍然被当目标：" + str(d)
+    # 让位之后这一拍应由站内搜索接住（不跳出任务域名）
+    d = S.route(peps, goal, [])
+    assert d and d["skill"] == "search_type", f"这一拍没交给站内搜索：{d}"
+    # 从头对齐的缩写仍然认——真实导航标签就是这么截断的
+    idx = page([A(1, "click", "Style Guide", 1, href="pep-0008")],
+               url="https://peps.python.org/")
+    d = S.explicit_target(idx, goal, [])
+    assert d and d["choice"] == "e1", f"前缀缩写不该认却不让认：{d}"
+
+
+@case("J 类：\"From the Django homepage, open …\" 的 homepage 是起点不是目的地（r114）")
+def t_goal_reached_origin_frame_is_not_site_goal():
+    goal = ("From the Django homepage, open the page titled "
+            "'Writing your first Django app, part 1'.")
+    acts = [A(1, "click", "Writing your first Django app, part 1", 1),
+            A(2, "click", "Writing your first Django app, part 2", 2),
+            A(3, "fill", "Search", 3)]
+    hist = [{"step": 1, "kind": "fill", "action": "Search", "choice": "e3",
+             "text": "Writing your first Django app, part 1",
+             "url": "https://www.djangoproject.com/",
+             "outcome": {"status": "dom_changed", "page_changed": True}},
+            {"step": 2, "kind": "click", "action": "submit", "choice": "e4",
+             "url": "https://www.djangoproject.com/",
+             "outcome": {"status": "url_changed", "url_changed": True, "page_changed": True}}]
+    # 起点首页：标题以 "The" 开头，而 _NAV_OBJ_RE 在 "open the page titled" 上会把
+    # obj 退化捕获成 "the" → C1 在起点就判到达。实义词判据必须挡住这一发。
+    home = dict(page(acts, url="https://www.djangoproject.com/"),
+                title="The Web framework for perfectionists | Django",
+                text="Django is a high-level Python web framework.",
+                start_url="https://www.djangoproject.com/")
+    assert S.goal_reached(home, goal, hist[:1]) is None, "起点页被判为已到达"
+    # 已到达：标题逐字写着目标短语，必须收口 DONE（旧判据把 homepage 当目的地 →
+    # 到达只认 host → 永远不收，explicit_target 接手点侧栏 part 2 跑偏）
+    tut = dict(page(acts, url="https://docs.djangoproject.com/en/6.1/intro/tutorial01/"),
+               title="Writing your first Django app, part 1 | Django documentation | Django",
+               text="Writing your first Django app, part 1",
+               start_url="https://www.djangoproject.com/")
+    d = S.route(tut, goal, hist)
+    assert d and d["skill"] == "goal_reached" and d["operation"] == "DONE", f"到达页没收口：{d}"
+    # 反例必须仍然守住：目的地型的 "open the official X website" 只认 host
+    s1 = "Search for 'OpenAI' and open the official OpenAI website."
+    res = dict(page([A(21, "click", "OpenAI | Research & Deployment", 21)],
+                    url="https://www.google.com/search"),
+               title="OpenAI - Google Search", start_url="https://www.google.com")
+    assert S.goal_reached(res, s1, [{"step": 1, "kind": "click", "action": "openai",
+                                    "choice": "e11"}]) is None, "结果页被判为已到达官网"
+
+
 def main():
     # Windows PowerShell 5.1 的控制台是 GBK，而用例名里有 'ö' 等非 GBK 字符
     # （v1.16 / 源码里的地名）。print 会抛 UnicodeEncodeError 并**中断整个套件**，

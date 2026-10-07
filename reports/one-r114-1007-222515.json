@@ -1,0 +1,55 @@
+{
+  "summary": {
+    "total": 1,
+    "pass": 0,
+    "fail": 1,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "correct_abandon": 1
+    },
+    "failure_modes": {
+      "decision": 1
+    },
+    "agent_modes": {
+      "decision": 1
+    },
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "r114",
+      "result": {
+        "task_id": "r114",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://docs.djangoproject.com/en/6.1/intro/tutorial02/#",
+          "final_title": "Writing your first Django app, part 2 | Django documentation | Django",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.djangoproject\\.com/en/[0-9.]+/intro/tutorial01"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 5,
+          "model_calls": 8,
+          "api_calls": 0,
+          "elapsed_ms": 30601
+        }
+      }
+    }
+  ]
+}
