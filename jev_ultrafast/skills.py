@@ -312,6 +312,11 @@ _NAV_OBJ_RE = re.compile(
     re.I,
 )
 
+# C2b 缩写表：URL 里常见的缩写 ↔ goal 里的全称。键 = URL 缩写,值 = goal 全称
+# ——匹配方向是"goal 的头词全称 → 展开出 URL 缩写形式去 URL 里找"
+#（n001 实况 2026-10-07:goal 要 "documentation",目标站 URL 是 docs.python.org）。
+_ABBREV = {"docs": "documentation", "doc": "documentation"}
+
 
 def goal_reached(page: dict, goal: str, history: list) -> dict | None:
     hist = history or []
@@ -414,7 +419,7 @@ def goal_reached(page: dict, goal: str, history: list) -> dict | None:
         if submit_verb and hit(p, here_full):
             return _decision("DONE", None, None, "goal_reached")
 
-    # 路径 C：无引号导航目标——"navigate to the Standards page" 这类。两条判据：
+    # 路径 C：无引号导航目标——"navigate to the Standards page" 这类。三条判据：
     #   C1 目标短语"整段连续"出现在标题里。必须连续（不是"内容词都出现"）：
     #      n001 实况——goal 要 docs.python.org，中间页 python.org/doc/ 的标题
     #      "Our Documentation | Python.org" 同时含 python+documentation，
@@ -422,6 +427,13 @@ def goal_reached(page: dict, goal: str, history: list) -> dict | None:
     #   C2 目标的头词（末位内容词）出现在当前 URL 里。补 C1 的漏网：
     #      n003 实况——目标页标题是 "Standards and guidelines | W3C"，
     #      不含连续的 "w3c standards"，但 URL 是 /standards/。
+    #   C2b 头词的**常见缩写**出现在 URL 里。n001 实况（2026-10-07 隔夜诊断）：
+    #      goal "Open the Python documentation section"，agent 第 1 步已到
+    #      docs.python.org/3/，但 C1 标题无 "python documentation"、C2 URL 是
+    #      **docs**.python.org 不含 "documentation"——已达成却被漏接，agent 又
+    #      点 logo 跑回 python.org 循环到预算耗尽（correct_abandon）。缩写归一
+    #      是 laya-browser-agent goal-aware 原则的同类应用：目标词已到达就不该
+    #      因排版变体而漏判。
     if nav_verb and not website_goal:
         # website 类目标（"open the official X website"）不走这里：它的到达判据只能是
         # host（见 hit），否则点进任意标题含 X 的新闻页都会判到达（s001 实况）。
@@ -434,8 +446,21 @@ def goal_reached(page: dict, goal: str, history: list) -> dict | None:
                 return _decision("DONE", None, None, "goal_reached")
             toks = _content(obj)
             head = toks[-1] if toks else ""
-            if head and head not in start and re.search(rf"\b{re.escape(head)}\b", here_url):
-                return _decision("DONE", None, None, "goal_reached")
+            # C2b: goal 用全称、URL 用缩写时展开（documentation → docs/doc）。
+            # 缩写只允许命中 **host**，不允许命中路径——n001 实况：起点站 python.org
+            # 自己就有 /doc/（文档入口页），路径级匹配会把中间页误判为到达（C1 注释
+            # 警告过的原始案例，断言要的是 docs.python.org 域）；而目标站是
+            # docs.python.org，'docs' 在 host 里。C2 原判据对全称仍是全 URL 匹配
+            # （n003 /standards/ 依赖它），只有**展开的缩写**收紧到 host。
+            from urllib.parse import urlparse as _urlparse2
+            _host_flat = _flat(_norm_page(_u.netloc))
+            heads = [head] + [k for k, v in _ABBREV.items() if v == head]
+            if head and head not in start:
+                if re.search(rf"\b{re.escape(head)}\b", here_url):
+                    return _decision("DONE", None, None, "goal_reached")
+                for h in heads[1:]:
+                    if re.search(rf"\b{re.escape(h)}\b", _host_flat):
+                        return _decision("DONE", None, None, "goal_reached")
     return None
 
 
