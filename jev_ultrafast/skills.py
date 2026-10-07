@@ -323,6 +323,11 @@ _NAV_OBJ_RE = re.compile(
     re.I,
 )
 
+# "同一句内"的跨词匹配片段：句点只有在**后面不接空格**时才算名字的一部分。
+# 原来的 [^.;]* 把 "llama.cpp" 里的句点当成了句子结尾（r106 实况），凡目标名带
+# 点（文件名、仓库名、版本号）的复合句都会被截断，第二跳因此认不出来。
+_HOP_SPAN = r"(?:[^.;]|\.(?=\S))*"
+
 # C2b 缩写表：URL 里常见的缩写 ↔ goal 里的全称。键 = URL 缩写,值 = goal 全称
 # ——匹配方向是"goal 的头词全称 → 展开出 URL 缩写形式去 URL 里找"
 #（n001 实况 2026-10-07:goal 要 "documentation",目标站 URL 是 docs.python.org）。
@@ -419,8 +424,13 @@ def goal_reached(page: dict, goal: str, history: list) -> dict | None:
         # 但 goal 里还有**第二个 hop**（"…and open the first result link"）时，?q= 又不算了：
         # s011 的断言要的是结果页 articles.html/technology.html，而不是结果列表本身
         # （实况：搜索成功后 goal_reached 连发 5 次 DONE，断言 url_matches 挂）。
-        _second_hop = bool(re.search(r"\bopen\b[^.;]*\b(result|link|article|item|page)\b",
-                                     goal or "", re.I))
+        # 片段用 _HOP_SPAN 而不是 [^.;]*：r106 实况（2026-10-07）的 hop 目标是
+        # "ggml-org/llama.cpp repository page"，名字里的句点把旧正则截断在 "llama"，
+        # 第二跳没认出来 → 搜索结果页（标题也回声 "llama.cpp"）上连发 7 次 DONE，
+        # 每次都被 _done_guard 规则 2 拒掉 —— 类 C 拒绝循环就是这么形成的。
+        _second_hop = bool(re.search(
+            r"\bopen\b" + _HOP_SPAN + r"\b(result|link|article|item|page)\b",
+            goal or "", re.I))
         if (_flat(p) and _flat(p) in query_echo
                 and (website_goal or not submit_verb or _second_hop)):
             continue

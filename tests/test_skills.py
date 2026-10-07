@@ -601,6 +601,101 @@ def t_destructive_goal_rejects_done():
     assert _done_guard({"operation": "DONE"}, ok) is None, "正常导航目标被误伤"
 
 
+@case("第二跳目标名里带句点也要认出'还要再跳一次'：搜索结果页不许发 DONE（r106 实况）")
+def t_second_hop_dotted_target_name():
+    import re as _re
+    goal = ("Search Hugging Face for 'llama.cpp' and open the "
+            "ggml-org/llama.cpp repository page.")
+    hist = [{"step": 1, "kind": "fill", "action": "Search", "choice": "e5",
+             "url": "https://huggingface.co/", "outcome": {"url_changed": True}},
+            {"step": 2, "kind": "click", "action": "Use Full-text search", "choice": "e12",
+             "url": "https://huggingface.co/search/full-text?q=llama.cpp",
+             "outcome": {"url_changed": True}}]
+    results = {"url": "https://huggingface.co/search/full-text?q=llama.cpp",
+               "title": "llama.cpp - Full-text search - Hugging Face",
+               "text": "llama.cpp  ggml-org/llama.cpp  Model repositories",
+               "actions": [{"id": "e1", "node": 1}, {"id": "e2", "node": 2}],
+               "fingerprint": "fp-results", "start_url": "https://huggingface.co/"}
+    # 旧 _second_hop 用 [^.;]*，在 "llama.cpp" 的句点处截断 → 第二跳没认出来 →
+    # 结果页（标题回声搜索词）上连发 7 次 DONE，每次都被 DoneGuard 规则 2 拒掉。
+    assert S.goal_reached(results, goal, hist) is None, "还在搜索结果页就宣布到达"
+    repo = dict(results, url="https://huggingface.co/ggml-org/llama.cpp",
+                title="ggml-org/llama.cpp - Hugging Face", fingerprint="fp-repo")
+    d = S.goal_reached(repo, goal, hist)
+    assert d is not None and d["operation"] == "DONE", "到了仓库页必须能收口"
+    # 句点+空格仍然是句子边界，不能让两句话连成一片
+    assert not _re.search(r"\bopen\b" + S._HOP_SPAN + r"\bpage\b",
+                          "Open the docs. Then close the page.")
+
+
+@case("被 DoneGuard 拒掉的技能来源 DONE 要让位模型两拍，且必须放回来（类 C 的出路）")
+def t_rejected_skill_done_benches_the_skill():
+    from types import SimpleNamespace
+    from jev_ultrafast.agent import Agent
+    from jev_ultrafast.browser import StalePage
+    from jev_ultrafast.step_budget import StepBudget
+    from jev_ultrafast.confidence_gate import ConfidenceGate
+
+    fp = "fp-results"
+    page = {"url": "https://huggingface.co/search/full-text?q=llama.cpp",
+            "title": "llama.cpp - Full-text search", "text": "results",
+            "actions": [{"id": "e1", "node": 1, "kind": "click"}],
+            "fingerprint": fp}
+    goal = ("Search Hugging Face for 'llama.cpp' and open the "
+            "ggml-org/llama.cpp repository page.")
+    done = {"choice": "DONE", "operation": "DONE", "target": None,
+            "skill": "goal_reached", "confidence": 1.0}
+
+    def stub(decision):
+        return SimpleNamespace(
+            state={"page": page, "goal": goal, "decision": decision,
+                   "history": [{"step": 1, "kind": "click", "action": "x",
+                                "choice": "e1", "outcome": {"url_changed": True}}],
+                   "decisions": [decision], "status": "ready", "pre_execute": None},
+            step_budget=StepBudget(20, 40),
+            confidence_gate=ConfidenceGate(ConfidenceGate.MODE_FIXED_HIGH),
+            api_teacher=None, api_budget=None, screenshots=False)
+
+    orig_stuck, orig_skills = dict(S._STUCK), S.SKILLS
+    try:
+        S._STUCK.clear()
+        rejected = False
+        try:
+            Agent._pre_execute(stub(done))
+        except StalePage:
+            rejected = True
+        assert rejected, "结果页 + 导航目标的 DONE 必须照旧被拒（出路不改口径）"
+        assert S._STUCK.get(fp, {}).get("goal_reached"), "被拒的技能来源 DONE 没进停用通道"
+
+        # 出路：停用期内 route() 不再重发同一决策，让模型接手；两拍后技能回来。
+        # 用假技能固定住"这一页必然产 DONE"，验证的是通道本身而非 goal_reached。
+        # 函数名必须就叫 goal_reached —— _STUCK 是按技能名索引的。
+        S._STUCK.clear()
+        S._STUCK[fp] = {"goal_reached": S._STUCK_TICKS}
+
+        def goal_reached(_p, _g, _h):
+            return dict(done, skill="goal_reached")
+
+        S.SKILLS = (goal_reached,)
+        assert S.route(page, goal, []) is None, "第 1 拍应让位模型"
+        assert S.route(page, goal, []) is None, "第 2 拍应让位模型"
+        assert S.route(page, goal, []) is not None, "有界：技能必须放回来"
+
+        # 模型来源的 DONE 被拒不停用任何技能；被放行的技能 DONE 也不停用
+        S._STUCK.clear()
+        model_done = dict(done, skill=None)
+        try:
+            Agent._pre_execute(stub(model_done))
+        except StalePage:
+            pass
+        assert not S._STUCK, "模型决策被拒不该剥夺技能"
+    finally:
+        S._STUCK.clear()
+        S._STUCK.update(orig_stuck)
+        S.SKILLS = orig_skills
+
+
+
 @case("negative 任务的象限：text_not_contains 断言是 guard 语义（x003/x004/x005）")
 def t_negative_behavior_inference():
     from jev_ultrafast.evaluator import _infer_behavior, _quadrant

@@ -33,7 +33,10 @@ from jev_ultrafast.logger import Logger               # noqa: E402
 
 def _load_tasks(path: Path) -> list[dict]:
     tasks = []
-    with path.open(encoding="utf-8") as f:
+    # utf-8-sig：PowerShell 5.1 的 `Set-Content -Encoding UTF8` 必写 BOM，而
+    # run_one.ps1 -TaskId 就是用它落单任务文件的（BOM 让第一行 json.loads 直接崩）。
+    # 无 BOM 的文件这个编码读起来完全一样。
+    with path.open(encoding="utf-8-sig") as f:
         for lineno, line in enumerate(f, 1):
             line = line.strip()
             if not line or line.startswith("#"):

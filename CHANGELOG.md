@@ -6,6 +6,42 @@
 
 ---
 
+## [fix-c-rejected-done-exit] - 2026-10-07
+
+### Status（实测，真实站批次 1 的第三个修复：C 类拒绝循环有了出路）
+
+**C 类的根因是一个句点**。`goal_reached` 早已有"搜索词回声不算到达"的判据
+（缺陷#40），但它的 `_second_hop`（goal 明写"搜完再打开某物"）用 `[^.;]*` 划句子范围，
+而 r106 的第二跳目标名叫 `ggml-org/llama.cpp`：正则走到名字里的句点就断，第二跳没被
+认出来，结果页（标题同样回声 "llama.cpp"）被判已到达 → 连发 7× DONE，全被
+`_done_guard` 拒掉。句子范围改用新增的 `_HOP_SPAN = (?:[^.;]|\.(?=\S))*`
+（句点后不接空格属于名字，接空格仍是句子边界）。
+
+**并且拒绝要产生后果**：DoneGuard 站点原先只 `raise StalePage`，而确定性技能不会换
+主意——下一拍同一指纹上 `route()` 重导出同一个 DONE，循环只能撞满 loop detection 变
+blocked。现在**技能来源**的 DONE 被拒时送进既有的有界停用通道
+（`skills.note_no_effect`，同指纹上让位模型 2 拍后自动放回；有界性是 8 个任务的教训，
+没改成永久），模型来源的 DONE 被拒不剥夺任何技能。判定口径一点没动：该拒的照拒。
+
+验证链全绿：单测 55/55（skills，新增第二跳句点与停用出路两例）+ 8/8（rotation）+
+6/6（settle）；r106 单任务三次同形读数——被拒 DONE 从 7 次归零、模型 9 拍降到 4 拍
+（`real-1007-fixc-r106.json`、`-r106b.json`、`-r106c.json`）；x001/x002 安全复测 2/2 PASS
+（`x-check-fixc-1007-190744.json`）；**冻结三轮 19/19、19/19、19/19，false_positive=0、
+api_calls=0、error=0**（`m1-baseline-1007-1910/1914/1919.json`）。C 类在 19 题测试集上
+从未出现（那里发 DONE 的路径都被放行），所以"出路"没有关掉任何合法收口这件事，
+只有三轮全绿才算证明。
+
+**r106 没因此变 PASS，它换到了新类 F**：三次都在 `CLICK target 8` 上报
+`FRESH_MISMATCH`（`page_key` 相等、`guard` 不等且 `current_guard=None`）——文档身份没变
+但节点句柄在 observe→act 窗口里被 React 结果列表换掉了。E 是初始观测竞态，F 是点击目标
+在两次观察之间失效，处理形状是"新鲜度失败后带同一意图重选"，先等第二个真实站样本再动。
+
+**基建纠偏**：`run_one.ps1 -TaskId` 用 PS 5.1 的 `Set-Content -Encoding UTF8` 落单任务
+文件，必带 BOM，而 `m1`/`m2` 的 `_load_tasks()` 用 `utf-8` 读 → 单任务模式直接
+`invalid JSON: Unexpected UTF-8 BOM`。读取侧改 `utf-8-sig`（无 BOM 文件行为不变）。
+
+---
+
 ## [chrome-kill-scope] - 2026-10-07
 
 ### Status（实测，硬线纠偏）

@@ -252,7 +252,8 @@ def _load_tasks(paths: list[Path]) -> list[dict]:
     tasks = []
     seen_ids = set()
     for path in paths:
-        with path.open(encoding="utf-8") as f:
+        # utf-8-sig：见 m1/run_tasks.py 同处注释——PS 5.1 写出的任务文件带 BOM。
+        with path.open(encoding="utf-8-sig") as f:
             for lineno, line in enumerate(f, 1):
                 line = line.strip()
                 if not line or line.startswith("#"):

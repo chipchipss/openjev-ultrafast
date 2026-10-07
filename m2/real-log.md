@@ -208,7 +208,7 @@ api_calls=0**（批次 1 是 3/10，且当时 r103 是 ERROR）。
 | r103 | stackoverflow | FAIL | /questions，steps=1 | 没墙。`search_type` 填了框，`search_submit` 找不到可点提交控件后让位，模型连发 3× TYPE_TEXT 同一框 → **fill≠submit 缺 Enter 兜底**（新 D2） |
 | r104 | pubmed | FAIL | title "…- reCAPTCHA" | A 反爬墙，决策仍诚实 BLOCK（要独立成 `blocked_by_bot_wall`） |
 | r105 | github.com | FAIL | homepage，1 步后 BLOCK | floor 点了一发就 BLOCK：诚实放弃 |
-| r106 | huggingface.co | FAIL | /search/full-text?q=llama.cpp | 搜索链对，`goal_reached` 技能在**结果页**连发 7× DONE 被 `_done_guard` 规则 6 拒 → **C 类的真身**（见下） |
+| r106 | huggingface.co | FAIL | /search/full-text?q=llama.cpp | 搜索链对，`goal_reached` 技能在**结果页**连发 7× DONE 被 `_done_guard` 规则 2 拒 → **C 类的真身**（见下） |
 | r107 | news.ycombinator.com | PASS | /newest，1 步 | — |
 | r108 | simple.wikipedia | PASS | /wiki/Photosynthesis，2 步 | — |
 | r109 | openstreetmap | **PASS**（原 FAIL） | /search?query=Zurich，2 步 | Fix D 的中文提交按钮，端到端确认 |
@@ -218,12 +218,91 @@ api_calls=0**（批次 1 是 3/10，且当时 r103 是 ERROR）。
 
 批次 1 把 r106/r109 记成"DONE 被拒后不会换路"。复跑证据把因果看清楚了：发 DONE 的
 不是模型，是 **`goal_reached` 技能**（trace 里 `skill=goal_reached`、confidence 1.0，
-连发 7 次同一指纹），而 `_done_guard` 规则 6（goal 点名了目标页而终页没到）每次都正确
-拒绝。两个组件对"到了没到"的判断是**确定性相反**的，于是谁也不让步：技能每拍都重新
-提同一个 DONE。
+连发 7 次同一指纹），而 `_done_guard` 每次都正确拒绝——实测拒绝原因是规则 2
+（`"DONE on search results page with navigation goal"`，用 r106 的 goal+终页直接调
+`_done_guard` 复现）。这里不可能是规则 6：规则 6 把"到了没到"的否决权**交给**
+`goal_reached`，而这一例正是 `goal_reached` 自己说"到了"。两个组件对同一个页面给出
+**确定性相反**的判定，于是谁也不让步：技能每拍都重新提同一个 DONE。
 
 所以 Fix C 的正确形状不是"禁掉 DONE"（那会误伤 f003/t001 这类连发 DONE 最终 PASS 的
 合法路径），而是两件事：被拒的**技能来源** DONE 要进既有的技能停用/回退通道（让位
-模型 2 拍），以及 `goal_reached` 要认 `_done_guard` 同一条点名目标判据——别在搜索结果
-页上宣布到达。
+模型 2 拍），以及 `goal_reached` 自己要不再在搜索结果页上宣布到达——它内部本来就有
+这条判据（缺陷#40 的 query 回声），只是被一个句点截断了（见下一节）。
+
+## 批次 1 的修复 · Fix C（被拒的技能 DONE 每拍重发自己）· 2026-10-07
+
+### 改了什么（`jev_ultrafast/skills.py`、`jev_ultrafast/agent.py`）
+
+**(b) 根因：`_second_hop` 的句点截断。** `goal_reached` 本来就带了缺陷#40 的
+"query 回声不算到达"判据，触发条件里有个 `_second_hop`（goal 明写"搜索之后再打开
+某个东西"）。它用 `[^.;]*` 划句内范围，而 r106 的第二跳目标就叫
+`ggml-org/llama.cpp`：正则走到 "llama" 后面的句点就断了，第二跳没认出来，于是
+结果页（标题同样回声 "llama.cpp"）被当成已到达 → 连发 DONE。现在句子范围换成
+`_HOP_SPAN = (?:[^.;]|\.(?=\S))*`——句点后面不接空格才算名字内部字符，接空格仍是
+句子边界（新增单测把这条边界钉住：`"Open the docs. Then close the page."` 不许连成一片）。
+
+**(a) 通用出路：拒绝要产生后果。** `agent.py::_pre_execute` 的 DoneGuard 站点原先
+只 `raise StalePage`，下一拍同一页态上 `route()` 会重导出同一个技能决策——确定性
+组件不会换主意，循环只能撞满 loop detection 变 blocked。现在**技能来源**的 DONE 被拒
+时送进既有的有界停用通道 `skills.note_no_effect(fp, skill)`：同一指纹上该技能让位模型
+2 拍后自动放回（`_STUCK_TICKS` 的有界性是被 8 个任务的教训教出来的，不许改成永久）。
+模型来源的 DONE 被拒不进这个通道（没有技能可剥夺），判定口径一律不动。
+
+### 验证链（按执行纪律①→③）
+
+| 环节 | 读数 | 落盘 |
+|---|---|---|
+| 单测 | 55/55 skills + 8/8 rotation + 6/6 settle | 本轮新增 2 例（第二跳句点、停用出路） |
+| 单任务 r106 ×3 | 被拒 DONE 从 7 次归零（三次 trace 里再无 `DONE … goal_reached`），模型 9 拍→4 拍；三次同形 | `reports/real-1007-fixc-r106.json`、`-r106b.json`、`-r106c.json`（`logs/real-1007-fixc/` 留 jsonl 与 stdout，logs 在 .gitignore 内） |
+| x001/x002 安全复测 | 2/2 PASS，象限 `true_success`，fp=0、api_calls=0 | `reports/x-check-fixc-1007-190744.json` |
+| 冻结三轮 | **19/19、19/19、19/19**，false_positive=0，api_calls=0，error=0 | `reports/m1-baseline-1007-1910.json`、`-1914.json`、`-1919.json` |
+
+C 类在测试集上从来没有暴露过：19 题里发 DONE 的路径都被 guard 放行，所以"拒绝之后
+技能还会重发"这条只在真实站上成立。三轮全绿说明出路没有将任何合法收口一起关掉。
+
+### r106 没有变 PASS：它换到了新类（F · 动态列表句柄失效）
+
+三次单任务读数完全一致（steps 2 / model 4 / `FAIL correct_abandon`），终页仍是
+`/search/full-text?q=llama.cpp`。trace 形状：`search_type` 填词 → `search_submit`
+点 "Use Full-text search" → 模型提 `CLICK target 8` → act 前 `fresh()` 抛
+`FRESH_MISMATCH` → 重观察后模型 BLOCKED。第 3 次的原始输出留在
+`logs/real-1007-fixc/run3_r106.out`：
+
+```
+FRESH_MISMATCH
+  node: 8
+  page_key_equal: True
+  guard_equal: False
+  current_page_key:  [1791372408917.7, 'https://huggingface.co/search/full-text?q=llama.cpp', 0, 0, 1120, 780]
+  expected_page_key: [1791372408917.7, 'https://huggingface.co/search/full-text?q=llama.cpp', 0, 0, 1120, 780]
+  current_guard: None
+```
+
+`current_guard=None` 而 page_key 逐字段相等，意思是文档身份没变但节点句柄在 observe→act
+窗口里没了——HF 全文检索结果表是 React 重渲染的列表，行会被换掉。这既不是 C（没有
+DONE 循环了）也不是 E（E 是初始观测竞态），记作 **F**：点击目标在两次观察之间失效。
+待办形状是"新鲜度失败后带同一意图重选一次"，而不是直接放弃；F 目前是单站点单点，
+等第二个真实站样本再动（r106 三次同形只证明它在这页上是确定性的，不证明它普遍）。
+
+### 顺带修的基建：PS 5.1 的 BOM 让单任务模式加载不了
+
+`run_one.ps1 -TaskId` 自己抽单行任务时用 `Set-Content -Encoding UTF8`，在 PS 5.1 下
+**必写 BOM**，`m1`/`m2` 的 `_load_tasks()` 用 `encoding="utf-8"` 读，第一行直接
+`invalid JSON: Unexpected UTF-8 BOM`。修在读取侧（`utf-8-sig`，无 BOM 的文件行为完全
+一样），两个 runner 各一处——任何外部编辑器留下的 BOM 也一并免疫。
+
+## A 类落地：墙检测只做归因，不改判定（`jev_ultrafast/evaluator.py`，commit 0693419）
+
+`is_bot_wall(page)`：标记命中（"just a moment" / "client challenge" / "recaptcha" /
+"checking your browser" / "正在检查浏览器" / captcha 字符输入提示）**并且**页面薄
+（≤400 字符、≤12 个 action）才算墙。阈值两侧都按当天实测快照留了 3 倍以上余量：
+墙页 66/3（pubmed）与 82/6（pypi），对照正常内容页 1416/52（"reCAPTCHA - Wikipedia"
+真的是一篇文章的标题）、1351/37、1325/61。词表只收见过的，开发期猜进去的
+（captcha-delivery.com、/_flowds_/、"access denied"）已全部删掉。
+
+命中后只把 `failure_class/failure_mode` 换成 `system/blocked_by_bot_wall`；
+`result` 仍是 FAIL、象限仍是 `correct_abandon`，pass/fail 口径一点没松，
+`false_positive` 被分支条件排除在外——外因永远不能替假阳性开脱。reports 里不落终页
+快照，所以这道归因要到下一次真实批才看得见（`summary.system_modes`）。
+
 

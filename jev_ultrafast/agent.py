@@ -274,6 +274,18 @@ class Agent:
         # 2.5 DoneGuard（R5：rule-based DONE 拦截，与决策 2/3 同构走 StalePage）
         guard_reason = _done_guard(decision, state)
         if guard_reason is not None:
+            # 类 C 的出路（r106 实况 2026-10-07：结果页上 goal_reached 连发 7 次 DONE，
+            # 每次都被规则 2 拒掉，整轮以 correct_abandon 收场）。确定性技能不会换主意：
+            # 下一拍同一页态上 route() 会重导出同一决策，拒绝循环只能撞满 loop detection
+            # 变 blocked。所以把"技能来源的 DONE 被拒"送进**既有的**有界停用通道
+            # （note_no_effect，让位模型 2 拍）——被模型接管后要么换个候选，要么页面变了，
+            # 技能放回来时页态已不同。有界很关键：永久停用会把本来正确的技能剥夺掉
+            # （_STUCK_TICKS 注释里那 8 个任务就是这么掉分的）。
+            rejected_skill = decision.get("skill")
+            if rejected_skill:
+                from . import skills as _skills
+                _skills.note_no_effect(
+                    (state["page"].get("fingerprint") or ""), rejected_skill)
             raise StalePage(f"DONE guard rejected: {guard_reason}")
 
         # 3. M1.5 teacher shadow（A 档，stall-gated）——必须在 Policy/Validator
