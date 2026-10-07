@@ -6,6 +6,34 @@
 
 ---
 
+## [settle-detection] - 2026-10-07
+
+### Status（实测，19 任务集，StartLux-Decision-2B）
+
+**L4 钉死：19/19 × 3 轮全满分，fp=0，`api_calls=0`**（冻结码
+`m1-baseline-1007-1552/1557/1601`，各 3.9–4.1 分钟）。n004 三轮首拍全部落在完整
+页态（指纹 4e60613d），`search_type` 技能 4 步直取。
+
+**n004 根因改判**（比计划书 2.1 的"SPA 结果页早读"更靠前）：病在**初始拍**——冷
+profile（runner 每轮删 profile 重启 Chrome）下 RFC 首页 readyState=complete 时
+异步 bundle 还没挂载头部控件，23 元素残缺页 → 模型 BLOCKED 0.77（合理判断）→
+`first_action_floor` 按 goal 词重叠选 "Subscribe to new RFCs" 走死路。三个冻结轮
+首决策**逐字节同指纹**复现：确定性 bug，不是模型方差。诊断关键：run_one 不清
+profile（热态）单任务 3/3 PASS 与冻结轮 FAIL 并存，差异只剩页态缓存——反常指标
+组合先翻日志（法则①）抓到。
+
+**机制**：`Browser.__init__` readyState 后加归静闸门（floor 1200ms——HTML 静止/JS
+未到之间存在"假静止"，纯归静判据会被骗过；quiet 250ms；cap 5000ms）；动作后新增
+settle detection（`await_action_settle`：DOM 连续归静 + fetch/XHR 在途计数归零 +
+无未完成 CSSTransition，click 1500ms / select·fill 800ms 上限，静止页面只付归静
+窗口）。`tests/test_settle.py` 6/6 新增；skills 50/50、rotation 8/8 不回归。
+
+**基准成本**：+0.3–0.5 分钟/轮（3.3–3.6 → 3.9–4.1 分钟），距 30 分钟闸门很远。
+
+**runner 修复**（同批）：`-NoService` 收尾不再误杀外部 wire（与 Step 2 守卫对齐）。
+
+---
+
 ## [decider-sweep] - 2026-10-04
 
 ### Status（实测，19 任务集 = m1/tasks.jsonl 去掉 s001）

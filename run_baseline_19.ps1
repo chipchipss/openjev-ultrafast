@@ -336,7 +336,13 @@ try {
     if ($svcProc -and -not $svcProc.HasExited) { Stop-Process -Id $svcProc.Id -Force -EA SilentlyContinue }
     Get-Process python -EA SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object {
         try { $cl = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)" -EA Stop).CommandLine
-              if ($cl -match "run_tasks|decider|serve|uvicorn|jev_service|browser_harness") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
+              # "serve" matches the EXTERNAL wire (startlux gguf_server). With
+              # -NoService that wire is user-provided infra and must survive
+              # cleanup (same -NoService guard as Step 2); killing it made every
+              # later round die at agent_init_failed until serve was restarted.
+              $ext = $cl -match "gguf_server|startlux"
+              if (($cl -match "run_tasks|decider|serve|uvicorn|jev_service|browser_harness") -and
+                  -not ($NoService -and $ext)) { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
     }
     Get-Process chrome -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
     Start-Sleep 7

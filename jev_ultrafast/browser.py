@@ -58,6 +58,17 @@ class Browser:
             if self.evaluate("document.readyState") == "complete":
                 break
             time.sleep(0.02)
+        # readyState=complete 不等于渲染完成：冷启动（空 profile）的 rfc-editor.org
+        # 首页在 complete 时头部的 6 个导航+搜索控件还没挂上（实测 n_actions 23，
+        # 晚几百毫秒拍是 30；缺的正是 "Find an RFC" 搜索框）。首拍拿残缺页 → 模型
+        # BLOCKED 0.77 → floor 链走向 Subscribe 死路，n004 三个冻结轮全死在这。
+        # 与动作后 settle 同一判据。初始拍三个专门参数：
+        # floor 1200ms —— readyState 与异步 bundle 挂载（实测 1.0-3.2s）之间 DOM
+        # 本来就静止，"归静"判据会被这段假静止骗过（1540 轮 2.5s 上限仍读空即此因）；
+        # quiet 250ms —— 挂载后常伴随轮询/时钟类小变更，放宽归静窗口；
+        # cap 5000ms —— 冷 profile + 0.7MB/s 代理的渲染尾巴。已静止的页面只付 ~1.45s。
+        self._settle_patch()
+        self._await_settle(cap_ms=5000, floor_ms=1200, quiet_ms=250)
 
     def call(self, method, _response_timeout=30.0, **params):
         # browser_harness 的 cdp() 默认 _response_timeout=5.0s
@@ -196,6 +207,89 @@ class Browser:
         except Exception:
             time.sleep(cap_s)
 
+    # 动作后 settle detection（n004 靶子）：SPA 的结果在动作后数秒才渲染，复观察太早
+    # 读到过渡态（实测"0 results"空页 → agent 放弃）。与 wait 用的"首次变化即返回"
+    # 相反，这里要等页面**归静**：DOM 连续 quiet_ms 无变化、且该动作发起的请求结束、
+    # 且无进行中的元素 transition，才返回；否则最多等 cap。已静止的页面只付一个
+    # quiet_ms 窗口，不吃上限。
+    SETTLE_CAPS_MS = {"click": 1500, "select": 800, "fill": 800}
+    SETTLE_QUIET_MS = 120
+
+    def _settle_patch(self) -> None:
+        """装 fetch/XHR 在途计数（幂等；整页导航后随旧文档一起消失，act 前重装）。"""
+        try:
+            self.call(
+                "Runtime.evaluate",
+                expression=(
+                    "(() => { if (window.__jevSettle) return 1;"
+                    " const st = { inflight: 0, lastEnd: 0 };"
+                    " const dec = () => { st.inflight--; st.lastEnd = performance.now(); };"
+                    " const of = window.fetch;"
+                    " if (of) window.fetch = function (...a) {"
+                    "   st.inflight++; let p;"
+                    "   try { p = of.apply(this, a); }"
+                    "   catch (e) { dec(); throw e; };"
+                    "   p.then(dec, dec); return p; };"
+                    " const os = XMLHttpRequest.prototype.send;"
+                    " XMLHttpRequest.prototype.send = function (...a) {"
+                    "   st.inflight++;"
+                    "   try { this.addEventListener('loadend', dec); }"
+                    "   catch (e) { dec(); };"
+                    "   try { return os.apply(this, a); }"
+                    "   catch (e) { dec(); throw e; }; };"
+                    " window.__jevSettle = st; return 1; })()"
+                ),
+                returnByValue=True,
+            )
+        except Exception:
+            pass
+
+    def await_action_settle(self, kind: str) -> None:
+        cap_ms = self.SETTLE_CAPS_MS.get(kind)
+        if cap_ms:
+            self._await_settle(cap_ms)
+
+    def _await_settle(self, cap_ms: int, floor_ms: int = 0, quiet_ms: int | None = None) -> None:
+        quiet = self.SETTLE_QUIET_MS if quiet_ms is None else quiet_ms
+        try:
+            self.call(
+                "Runtime.evaluate",
+                expression=(
+                    "((capMs, quietMs, floorMs) => new Promise(resolve => {"
+                    " const t0 = performance.now(); let lastMut = t0, done = false;"
+                    " const finish = () => { if (done) return; done = true;"
+                    "   try { obs.disconnect(); } catch (e) {} resolve(1); };"
+                    " let obs;"
+                    " try {"
+                    "   obs = new MutationObserver(() => { lastMut = performance.now(); });"
+                    "   obs.observe(document.documentElement,"
+                    "     { childList: true, subtree: true, attributes: true, characterData: true });"
+                    " } catch (e) {}"
+                    " const check = () => {"
+                    "   const now = performance.now();"
+                    "   if (now - t0 >= capMs) return finish();"
+                    "   if (now - t0 < floorMs) { setTimeout(check, 40); return; };"
+                    "   const s = window.__jevSettle;"
+                    "   const reqBusy = !!s && (s.inflight > 0 || now - s.lastEnd < quietMs);"
+                    "   const domBusy = now - lastMut < quietMs;"
+                    "   let transBusy = false;"
+                    "   try {"
+                    "     transBusy = document.getAnimations().some(a =>"
+                    "       a.playState === 'running' && a instanceof CSSTransition);"
+                    "   } catch (e) {}"
+                    "   if (!domBusy && !reqBusy && !transBusy) return finish();"
+                    "   setTimeout(check, 40);"
+                    " };"
+                    " setTimeout(check, 20);"
+                    f" }}))({int(cap_ms)},{int(quiet)},{int(floor_ms)})"
+                ),
+                awaitPromise=True,
+                returnByValue=True,
+            )
+        except Exception:
+            # 导航会销毁执行上下文 —— 后续 observe 的 StalePage 重试负责接住过渡态。
+            pass
+
     def reload(self):
         """整页重载并等 readyState 落地。
 
@@ -224,8 +318,12 @@ class Browser:
             # 重载会换掉整棵 DOM，agent 随后必然复观察 —— 这里不需要 after_input 结算。
             self.after_input = None
             return self.reload()
+        if action["kind"] in self.SETTLE_CAPS_MS:
+            self._settle_patch()
         result = browser_operation({"operation": "act", "session": self.session, "action": action, "text": text})
         self.after_input = action if action["kind"] != "wait" else None
+        if action["kind"] in self.SETTLE_CAPS_MS:
+            self.await_action_settle(action["kind"])
         return result
 
     def close(self):
