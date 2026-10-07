@@ -357,6 +357,24 @@ def t_search_submit_paths():
     assert d2 is not None and d2["choice"] == "e40", d2
 
 
+@case("中文界面的提交控件（real-1007 r109 实况：OSM 本地化成\"提交\"按钮，英文词集匹配不上）")
+def t_search_submit_chinese_ui():
+    # OSM 按出口 IP 把界面本地化：搜索框 label="搜索"，提交按钮 label="提交"。
+    # 修复前 search_submit 只认 {"search","go","submit","send"} → 填完永远不提交，
+    # 模型接着连发 DONE 被 rule 5 拒 6 次（r109 日志实况）。
+    p = page([A(16, "fill", "搜索", 16, role="textbox"),
+              A(17, "click", "Open 搜索", 17, role="textbox"),
+              A(19, "click", "提交", 19, role="button")],
+             url="https://www.openstreetmap.org/#map=4/38.01/-95.84")
+    h = [{"step": 1, "kind": "fill", "action": "搜索", "text": "Berlin", "choice": "e16"}]
+    d = S.search_submit(p, "Search OpenStreetMap for 'Berlin'.", h)
+    assert d is not None and d["choice"] == "e19", \
+        f"应点中文提交按钮，结果 {d and d['choice']}"
+    # 已提交过且此后未再输入 → 不重复提交
+    h2 = h + [{"step": 2, "kind": "click", "action": "提交", "choice": "e19"}]
+    assert S.search_submit(p, "Search OpenStreetMap for 'Berlin'.", h2) is None
+
+
 @case("提交控件优先按钮：导航栏的同名链接不算提交（自建站点 Search 链接）")
 def t_submit_prefers_button():
     goal = "Fill the contact form with name 'Test User', email 'test@example.com', comment 'hello', and submit."

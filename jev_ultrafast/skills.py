@@ -27,7 +27,11 @@ STOPWORDS = {
     "then", "it", "its", "use", "about", "please", "click", "this", "that", "new",
 }
 SUBMIT_WORDS = {"submit", "send", "go", "search", "continue", "ok", "apply", "confirm",
-                "save", "update"}   # save/update：t003/t005 的保存按钮（旧集合缺 save → 永不点）
+                "save", "update",
+                # 中文提交控件（real-1007 r109 实况：OSM 按出口 IP 本地化成中文，
+                # 提交按钮 label 是"提交"，英文词集永远匹配不上 → 填完不提交）。
+                "提交", "发送", "前往", "搜索", "查找", "查询", "继续", "确定",
+                "确认", "保存", "更新"}   # save/update：t003/t005 的保存按钮（旧集合缺 save → 永不点）
 
 
 def _enabled(name: str) -> bool:
@@ -948,6 +952,11 @@ _SEARCHBOX_RE = re.compile(
     r"search|query|find|lookup|\bq\b|搜索|查找|检索|查询", re.I)
 
 
+_SEARCH_SUBMIT_WORDS = {"search", "go", "submit", "send",
+                        # 中文界面（r109 实况：OSM 本地化成"提交"按钮）
+                        "搜索", "前往", "提交", "发送", "查找", "查询"}
+
+
 def _searchbox(a: dict) -> bool:
     """搜索框判定：只看 label 语义（含中文"搜索/查找"）。
 
@@ -1050,7 +1059,7 @@ def search_submit(page: dict, goal: str, history: list) -> dict | None:
     last_sub = max(
         (i for i, h in enumerate(hist)
          if h.get("kind") == "click"
-         and (set(_tokens(h.get("action") or "")) & {"search", "go", "submit"})),
+         and (set(_tokens(h.get("action") or "")) & _SEARCH_SUBMIT_WORDS)),
         default=-1,
     )
     if last_sub > last_fill:
@@ -1065,10 +1074,10 @@ def search_submit(page: dict, goal: str, history: list) -> dict | None:
         if not lab or lab.startswith("open"):
             continue                       # "Open quick search" 之类是开合开关，不是提交
         toks = set(lab.split())
-        if not (toks & {"search", "go", "submit", "send"}):
+        if not (toks & _SEARCH_SUBMIT_WORDS):
             continue
         key = ("b" if (a.get("role") or "") == "button" else "l") + (
-            "_exact" if lab in {"search", "go", "submit", "send"} else "_loose")
+            "_exact" if lab in _SEARCH_SUBMIT_WORDS else "_loose")
         if cands[key] is None:
             cands[key] = (index, a)
     pick = cands["b_exact"] or cands["b_loose"] or cands["l_exact"] or cands["l_loose"]

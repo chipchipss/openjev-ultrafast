@@ -98,3 +98,55 @@ headless Chrome 当"用户的浏览器"，跑守卫后 CDP 侧 10 个进程全�
 
 每轮之间必须重启决策栈：llama-server 工作集会在跑完一轮后从 970MB 涨到 3.8~4.4GB，
 把 runner 的 3000MB 内存门顶掉（第 1 轮就是这么死过一次）。
+
+---
+
+## 批次 1 的修复 · Fix D（提交词表只认英文）· 2026-10-07
+
+### 改了什么（`jev_ultrafast/skills.py`）
+
+根因仍按法则①从 `logs/` 逐拍流翻出来。r109 的链条本身是对的：`search_type` 把
+"Zurich" 填进了 OSM 的搜索框，接着轮到 `search_submit` 找提交控件——但它的候选
+过滤用的是英文闭集 `{search, go, submit, send}`。**OSM 按出口 IP 本地化界面**，
+这台机器上按钮 label 是"提交"，于是技能认为"页面没有提交控件"，让位给模型，
+模型 6× DONE(0.42) 被 `_done_guard` 拦下（拦得对：确实没提交），然后把预算耗尽。
+表单侧同病：`form_submit` / `confirm_then_done` 共用的 `SUBMIT_WORDS` 也只有英文。
+
+修法是把两处词表补成双语（不是加特例）：`SUBMIT_WORDS` 增列
+提交/发送/前往/搜索/查找/查询/继续/确定/确认/保存/更新；`search_submit` 单独抽出
+`_SEARCH_SUBMIT_WORDS`（它的语义比表单窄，只收搜索类提交词），并把该函数里三处
+英文集合（历史"已提交"扫描、候选 label 过滤、`_exact` 判定）统一换成它。分词器
+`_tokens` 用 `\w`，本来就能切出 CJK 词，所以缺的只是词表项。
+
+### 验证链（按执行纪律①→③）
+
+| 环节 | 结果 | 证据 |
+|---|---|---|
+| 单测 | skills **52/52**、rotation 8/8、settle 6/6 | 新增 `t_search_submit_chinese_ui`（中文"提交"按钮要 CLICK，且点过之后不再重复提交） |
+| 单任务（r109，冷 profile） | 2 步真提交到 `/search?query=Zurich`；`api_calls=0` | 首轮 `reports/real-1007-fixd-r109.json` FAIL → 断言修好后的 `reports/real-1007-fixd-r109b.json` **PASS true_success** |
+| 安全复测（纪律③） | x001/x002 2/2 PASS，fp=0 | `reports/x-check-fixd.json` |
+| 冻结三轮（纪律②） | **19/19、18/19、19/19；false_positive=0；api_calls=0**（model_calls 86/88/84） | `reports/m1-baseline-1007-1809.json` / `-1814` / `-1819` |
+
+**单任务那次的 FAIL 不是代码的错，是我出的题**：断言写了
+`url_matches openstreetmap\.org/search` + `text_contains "Zurich"`，而本地化页面
+渲染的是"蘇黎世, Bezirk Zürich"——同一个本地化陷阱咬了技能又咬了断言。改成锚 URL
+（`search\?query=Zurich`，query 参数是站点自己写的，与界面语言无关）后通过。
+`m2/tasks_real.jsonl` 的 r109 已换成这个口径。
+
+第 2 轮丢的 n004 不归 Fix D：trace 显示 `search_type` → `search_submit`
+（CLICK e15 "Submit search"）全对，落在检索结果页之后模型连点 e10 三次触发循环检测
+→ 诚实 BLOCK，象限 `correct_abandon`、fp=0。这条任务在内存里已记为已知模型方差
+（冷/热两种页面指纹 + 结果页选择抖），三轮 2/3 属 ±1 容差内，判定为绿。
+
+### 分类修正（批次 1 表里两行改判）
+
+- **r103（stackoverflow）从 D+E 改判 A**：今天实测它给的是 Cloudflare 质询页
+  （actions 只有 4 个），而 `Browser()` init 抛的
+  `StalePage: Document is navigating` 正是墙页重定向的签名。所以它不是提交语义缺失，
+  是反爬墙；init 竞态这一类（原 E）依然存在，只是要换一个非墙的站点复现（Fix E 的单）。
+- **r109 的 D 到此清零**；同一行的 C（DONE 被拒后不会换路）仍开着——批次 1 里 r106
+  那 9× DONE 被拒才是 C 的原型，属 #10（Fix C）未完。
+
+真实站记分板（批次 1 的 10 题）：Fix B 清了 B 类（r102/r105），Fix D 清了
+r109 的提交语义，r103 移入 A 类。剩下待买：A 反爬墙（r101/r104/r103）、
+C DONE 出路（r106）、E init 竞态（#12）。

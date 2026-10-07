@@ -1,0 +1,51 @@
+{
+  "summary": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "true_success": 1
+    },
+    "failure_modes": {},
+    "agent_modes": {},
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "r109",
+      "result": {
+        "task_id": "r109",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.openstreetmap.org/search?query=Zurich&zoom=4&minlon=-145.01953125000003&minlat=9.275622176792112&maxlon=-46.58203125000001&maxlat=58.7682001592396#map=4/38.03/-80.42",
+          "final_title": "OpenStreetMap",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "openstreetmap\\.org/search\\?query=Zurich"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 21911
+        }
+      }
+    }
+  ]
+}

@@ -6,6 +6,54 @@
 
 ---
 
+## [fix-d-submit-vocab] - 2026-10-07
+
+### Status（实测，真实站批次 1 的第二个修复）
+
+**提交词表双语化**：`search_submit` 只认英文 label（`{search, go, submit, send}`），
+而 **站点界面语言跟出口 IP 走**——OSM 在这台机器上把提交按钮渲染成"提交"，于是技能
+判定"页面无提交控件"并让位模型，真实站 r109 填完查询后 6× DONE 被拒到耗尽预算。
+`SUBMIT_WORDS`（`form_submit`/`confirm_then_done` 共用）与 `search_submit` 的三处
+英文集合补入中文提交词，`search_submit` 改用独立的 `_SEARCH_SUBMIT_WORDS`（只收搜索类）。
+
+验证链全绿：单测 52/52（skills）+ 8/8（rotation）+ 6/6（settle，新增中文界面提交用例）；
+r109 冷 profile 单任务 2 步真提交（`real-1007-fixd-r109b.json`）；x001/x002 安全复测
+2/2 PASS（`x-check-fixd.json`）；**冻结三轮 19/19、18/19、19/19，false_positive=0、
+api_calls=0**（`m1-baseline-1007-1809/1814/1819.json`；第 2 轮 n004 丢在模型结果页
+选择抖，技能链正确，象限 `correct_abandon`，属 ±1 容差）。
+
+**测试集口径教训**：同一本地化陷阱也咬了断言——`text_contains "Zurich"` 在本地化页面
+渲染成"蘇黎世"，任务在代码修好后仍 FAIL。真实站断言一律锚 URL（`m2/tasks_real.jsonl`
+的 r109 已改为 `search\?query=Zurich`），不锚页面英文字面量。
+
+**分类修正**：批次 1 的 r103（stackoverflow）按实况改判为 A 反爬墙（当日实测是
+Cloudflare 质询页，4 个 action），不是 D；A 类占比在真实站已升到 3/10，墙页检测
+（`blocked_by_bot_wall` 独立失败类）排进下一批。
+
+---
+
+## [fix-b-floor-executable] - 2026-10-07
+
+### Status（实测，真实站批次 1 的第一个修复）
+
+**地板空转清零**：`first_action_floor` 现在只发**可执行**动作——CLICK 永远可执行，
+TYPE_TEXT 必须能从 goal 确定性派生出文本（`_goal_query()`，从 `search_type` 抽出复用），
+SELECT 需要值语义因此 floor 不发；一个都没有就返回 None 让位模型。修复前 floor 会发
+无 text 的 TYPE_TEXT / 无 value 的 SELECT，执行层跳过 → history 恒空 → 去重失效 →
+同指纹无限重复（真实站 r102/r105 实测 steps=0、model_calls=5）。
+
+验证链全绿：单测 51/51（skills）+ 8/8（rotation）+ 6/6（settle）；r102/r105 复跑不再
+空转（r102 7 步真到 arXiv 检索结果页），象限诚实降为 `correct_abandon`（`real-1007-fixb.json`）；
+x001/x002 安全复测 2/2 PASS（`x-check-fixb.json`）；**冻结三轮 19/19 × 3、false_positive=0、
+api_calls=0**（`m1-baseline-1007-1737/1741/1747.json`）。
+
+**runner 不再误杀用户浏览器**：`run_baseline_19.ps1` 的三处全量 Chrome kill 与 verify
+改成只认 `chrome-cdp-test` 命令行（与 run_demo/run_task/mcp_server 同一守卫），并用
+decoy profile 做了对照实验（守卫杀掉 CDP 侧 10 个进程、decoy 存活）。运维注意：每轮之间
+要重启决策栈，llama-server 工作集单轮后涨到 ~4GB，会顶掉 runner 的 3000MB 内存门。
+
+---
+
 ## [l6-one-command] - 2026-10-07
 
 ### Status（实测，Flights 端到端，StartLux-Decision-2B）
@@ -392,25 +440,3 @@ M2 的 Teacher 是"数据采集器"（影子模式），M5 才是"决策替代�
 
 ### Added
 - 初版规划
-
----
-
-## [fix-b-floor-executable] - 2026-10-07
-
-### Status（实测，真实站批次 1 的第一个修复）
-
-**地板空转清零**：`first_action_floor` 现在只发**可执行**动作——CLICK 永远可执行，
-TYPE_TEXT 必须能从 goal 确定性派生出文本（`_goal_query()`，从 `search_type` 抽出复用），
-SELECT 需要值语义因此 floor 不发；一个都没有就返回 None 让位模型。修复前 floor 会发
-无 text 的 TYPE_TEXT / 无 value 的 SELECT，执行层跳过 → history 恒空 → 去重失效 →
-同指纹无限重复（真实站 r102/r105 实测 steps=0、model_calls=5）。
-
-验证链全绿：单测 51/51（skills）+ 8/8（rotation）+ 6/6（settle）；r102/r105 复跑不再
-空转（r102 7 步真到 arXiv 检索结果页），象限诚实降为 `correct_abandon`（`real-1007-fixb.json`）；
-x001/x002 安全复测 2/2 PASS（`x-check-fixb.json`）；**冻结三轮 19/19 × 3、false_positive=0、
-api_calls=0**（`m1-baseline-1007-1737/1741/1747.json`）。
-
-**runner 不再误杀用户浏览器**：`run_baseline_19.ps1` 的三处全量 Chrome kill 与 verify
-改成只认 `chrome-cdp-test` 命令行（与 run_demo/run_task/mcp_server 同一守卫），并用
-decoy profile 做了对照实验（守卫杀掉 CDP 侧 10 个进程、decoy 存活）。运维注意：每轮之间
-要重启决策栈，llama-server 工作集单轮后涨到 ~4GB，会顶掉 runner 的 3000MB 内存门。
