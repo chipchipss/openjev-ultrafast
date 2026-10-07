@@ -555,7 +555,8 @@ def t_first_result():
                      A(9, "click", "Result about data flywheel (article 1)", 9, role="link"),
                      A(10, "click", "Result about data flywheel (article 2)", 10, role="link")]}
     h = [{"step": 1, "kind": "fill", "action": "Search query", "text": "data flywheel", "choice": "e7"},
-         {"step": 2, "kind": "click", "action": "Search", "choice": "e8"}]
+         {"step": 2, "kind": "click", "action": "Search", "choice": "e8",
+          "outcome": {"status": "url_changed", "url_changed": True}}]
     d = S.first_result(p, goal, h)
     assert d is not None and d["choice"] == "e9", f"没点第一个结果：{d}"
     # 点过且跳转过 → 收口（goal 的短语是搜索词，目标页上不含它，goal_reached 帮不上）
@@ -586,7 +587,8 @@ def t_first_result_trigger_vocab():
                     {"id": "e5", "node": 5, "kind": "click", "label": "Second article title"}]}
 
     hist = [{"step": 1, "kind": "fill", "action": "Search terms", "text": "CRISPR off-target"},
-            {"step": 2, "kind": "click", "action": "Search"}]
+            {"step": 2, "kind": "click", "action": "Search",
+             "outcome": {"status": "url_changed", "url_changed": True}}]
 
     d = S.first_result(results_page("https://pubmed.ncbi.nlm.nih.gov/?term=CRISPR"),
                        "Search PubMed for 'CRISPR off-target' and open the first research article page.",
@@ -603,6 +605,33 @@ def t_first_result_trigger_vocab():
                  "Search arXiv for 'Attention Is All You Need' and open its abstract page."):
         d = S.first_result(results_page("https://x.test/results"), goal, hist)
         assert d is None, f"不该触发却触发了：{goal} -> {d}"
+
+
+@case("H 类：填了搜索框但没提交 → first_result 不许开火，把拍让给 search_submit（r103/r104 实况）")
+def t_first_result_needs_submitted_search():
+    """批次 4 的真实形状（`reports/real-1007-b4-22-1007-204322.json` 的 r103 trace）。
+
+    step1 search_type 填完框（URL 仍是 /questions），step2 起 first_result 连点四次页脚
+    "Help Center and other resources"，search_submit 一排都没轮到。闸门是"那次 fill 之后
+    出现过 url_changed"：提交成功才会跳页，跳了页才谈得上"第一个结果"。
+    """
+    goal = "Search Stack Overflow for 'python slice step' and open the first question in the results."
+    p = {"url": "https://stackoverflow.com/questions", "title": "Newest Questions",
+         "start_url": "https://stackoverflow.com/questions", "text": "questions",
+         "actions": [
+             {"id": "e5", "node": 5, "kind": "fill", "label": "Search"},
+             {"id": "e6", "node": 6, "kind": "click", "label": "Help Center and other resources"},
+             {"id": "e7", "node": 7, "kind": "click", "label": "Ask Question"}]}
+    filled_only = [{"step": 1, "kind": "fill", "action": "Search", "text": "python slice step",
+                    "outcome": {"status": "dom_changed", "url_changed": False}}]
+    assert S.first_result(p, goal, filled_only) is None, "没提交就开火了（H 类回归）"
+
+    submitted = filled_only + [{"step": 2, "kind": "click", "action": "Search",
+                                "outcome": {"status": "url_changed", "url_changed": True}}]
+    results = dict(p, url="https://stackoverflow.com/search?q=python+slice+step",
+                   text="results")
+    d = S.first_result(results, goal, submitted)
+    assert d is not None and d["choice"] == "e6", f"提交后该点第一个链接：{d}"
 
 
 @case("'fill all fields' 的占位值：email 字段必须是合法邮箱（f007）")

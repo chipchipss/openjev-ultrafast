@@ -1676,6 +1676,12 @@ def first_result(page: dict, goal: str, history: list) -> dict | None:
     `(first|top)\s+(result|...)` 要求名词**紧挨着**，而真实 goal 会说 "open the
     **first research article**"（r104）或 "open the **first question**"（r103）——中间
     隔了修饰语、名词也不在表里，于是技能根本不触发，页面已经到了结果页却直接 BLOCKED。
+
+    词表补上后，批次 4 教了第二课（H 类）：**光"填过搜索框"不等于在结果页上**。
+    r103 填完框、还没提交，first_result 就抢在 search_submit 前面开火，连点四次页脚
+    "Help Center and other resources"；r104 同理点了自动补全的 chip，再点 Advanced，
+    最后发 DONE 被 guard 否决。所以闸门是"那次 fill **之后**出现过 url_changed"——
+    搜索提交成功才会跳页，跳了页才是结果页。
     """
     if not _FIRST_RESULT_RE.search(goal or ""):
         return None
@@ -1687,9 +1693,13 @@ def first_result(page: dict, goal: str, history: list) -> dict | None:
             if (h.get("outcome") or {}).get("url_changed"):
                 return _decision("DONE", None, None, "first_result")
             break
-    if not any(h.get("kind") == "fill" and _searchbox({"label": h.get("action") or ""})
-               for h in hist):
+    fill_at = next((i for i, h in enumerate(hist)
+                    if h.get("kind") == "fill"
+                    and _searchbox({"label": h.get("action") or ""})), None)
+    if fill_at is None:
         return None                        # 还没搜过 → 不是结果页
+    if not any((h.get("outcome") or {}).get("url_changed") for h in hist[fill_at:]):
+        return None                        # 填了但没提交 → 还不是结果页（H 类）
     seen_input = False
     for index, a in _indexed(page.get("actions") or []):
         if a.get("kind") == "fill" and _searchbox(a):

@@ -1,0 +1,96 @@
+{
+  "summary": {
+    "total": 2,
+    "pass": 0,
+    "fail": 2,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "correct_abandon": 2
+    },
+    "failure_modes": {
+      "decision": 1,
+      "blocked_by_bot_wall": 1
+    },
+    "agent_modes": {
+      "decision": 1
+    },
+    "system_modes": {
+      "blocked_by_bot_wall": 1
+    }
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "r103",
+      "result": {
+        "task_id": "r103",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://stackoverflow.com/questions",
+          "final_title": "Newest Questions - Stack Overflow",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "stackoverflow\\.com/questions/\\d+"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "slice"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 11041
+        }
+      }
+    },
+    {
+      "task_id": "r104",
+      "result": {
+        "task_id": "r104",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "system",
+        "failure_mode": "blocked_by_bot_wall",
+        "evidence": {
+          "final_url": "https://pubmed.ncbi.nlm.nih.gov/?term=CRISPR+off-target",
+          "final_title": "正在检查您的浏览器 - reCAPTCHA",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "pubmed\\.ncbi\\.nlm\\.nih\\.gov/\\d{7,8}"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 10771
+        }
+      }
+    }
+  ]
+}

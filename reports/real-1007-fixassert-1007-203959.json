@@ -1,0 +1,162 @@
+{
+  "summary": {
+    "total": 4,
+    "pass": 3,
+    "fail": 1,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "true_success": 3,
+      "correct_abandon": 1
+    },
+    "failure_modes": {
+      "decision": 1
+    },
+    "agent_modes": {
+      "decision": 1
+    },
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "r108",
+      "result": {
+        "task_id": "r108",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://simple.wikipedia.org/wiki/Photosynthesis",
+          "final_title": "Photosynthesis - Simple English Wikipedia, the free encyclopedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "simple\\.wikipedia\\.org/wiki/Photosynthesis(?![\\w(])"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 6653
+        }
+      }
+    },
+    {
+      "task_id": "r114",
+      "result": {
+        "task_id": "r114",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.djangoproject.com/en/6.1/intro/tutorial01/",
+          "final_title": "Writing your first Django app, part 1 | Django documentation | Django",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.djangoproject\\.com/en/[0-9.]+/intro/tutorial01"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 9,
+          "model_calls": 12,
+          "api_calls": 0,
+          "elapsed_ms": 16300
+        }
+      }
+    },
+    {
+      "task_id": "r117",
+      "result": {
+        "task_id": "r117",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Photosynthesis",
+          "final_title": "Photosynthesis - Wikipedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "en\\.wikipedia\\.org/wiki/Photosynthesis(?![\\w(])"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Photosynthesis"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 6431
+        }
+      }
+    },
+    {
+      "task_id": "r120",
+      "result": {
+        "task_id": "r120",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://httpbin.org/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "httpbin\\.org/post"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "jev"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 5573
+        }
+      }
+    }
+  ]
+}

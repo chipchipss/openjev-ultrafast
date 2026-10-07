@@ -431,6 +431,101 @@ goal 是 `'python slice step'`，终页却是 `questions/tagged/google-search-co
 的结果；trace 里没有动作标签的原文，无法离线判定。要等一次带截图的单任务复现再定性，
 暂不记为缺陷。
 
+## 批次 3 与批次 4：22 题真实批 · 分数没变，变的一半是题集（2026-10-07 深夜）
+
+| 批 | 题集 | 读数 | 落盘 |
+|---|---|---|---|
+| 批次 3 | 22 题（12 题新写） | **7 PASS / 15 FAIL**，fp=0，api_calls=0，`system_modes={}` | `reports/real-1007-b3-22-1007-202102.json` |
+| 断言修复后单独复测 | r108/r114/r117/r120 | 3/4 PASS（r117 那次是我自己新加的文本判据把它判错的） | `reports/real-1007-fixassert-1007-203959.json`、`reports/real-1007-r117-1007-204259.json` |
+| 批次 4 | 同一 22 题，断言已修 | **7 PASS / 15 FAIL**，fp=0，api_calls=0，`system_modes={blocked_by_bot_wall: 1}` ← 墙第一次出现在批内 | `reports/real-1007-b4-22-1007-204322.json` |
+
+两批都是 7/22，但**不是同一批题做成的**：批次 3 的 7 个 PASS 里有一个是假的（r117），
+批次 4 的 7 个 PASS 里 r120 是修好题集才成立的，而 r101 从 PASS 掉回墙、r114 从
+假阴性掉成真的走错页。分数相同纯属两条独立误差正好抵掉——这正是不许拿单次读数下结论的
+理由（纪律②）。
+
+### 三个题集缺陷（agent 没错，是度量错）
+
+| 题 | 形状 | 后果 | 修法 |
+|---|---|---|---|
+| r114 | pattern 写 `[0-9.]+/intro/tutorial01`，真实 URL 是 `/en/6.1/intro/tutorial01/`（多一段 `en/`） | **假阴性**：批次 3 里 agent 九步走到目标页却判 FAIL | pattern 补 `/en/` |
+| r117 | pattern `en\.wikipedia\.org/wiki/Photosynthesis` 会匹配 `Photosynthesis_(disambiguation)` | **假阳性**：消歧义页算成功，分数虚高 | `(?![\w(])` 负向前瞻（r108 同形，一起收紧） |
+| r120 | httpbin 根现在是 Swagger UI（`/#/HTTP_Methods`），根本没有表单 | 任务定义过期，怎么跑都失败 | 起点改 `httpbin.org/forms/post`，断言 `/post` + 文本 `jev` |
+
+**假阳性这一类 `false_positive` 指标看不见**：它数的是"agent 自称完成而断言不过"，
+而这里断言自己就是错的。恒零红线要防的是判据，判据本身错时红线一片绿。
+修 r117 时我顺手加了 `text_contains "Photosynthesis"`，结果真文章页上它判 False
+（`reports/real-1007-fixassert-1007-203959.json`：URL 判据 ok、文本判据 not ok）——
+这是项目里早就写下的规则：**终点证据锚 URL，不锚页面文本**（站点会按出口 IP 本地化，
+长页文本还受观测截断影响）。加文本判据这一步是我自己知法犯法，删掉后单任务复测 PASS
+（`reports/real-1007-r117-1007-204259.json`，终页就是 `/wiki/Photosynthesis`）。
+
+### H 类：G 修好之后暴露的更早的错误——地板在"提交之前"就开火
+
+批次 4 的 trace 证明 G 生效了（`first_result` 终于出现在 r103/r104 的决策里），
+但也证明它开火得太早：
+
+| 任务 | trace 里的动作序列 |
+|---|---|
+| r103 | `search_type` 填框（URL 仍是 `/questions`）→ **`first_result` 连点 4 次页脚 "Help Center and other resources"**，`search_submit` 一拍都没轮到 |
+| r104 | `search_type` 填框 → `first_result` 点自动补全 chip "crispr off-target" → 点 "Advanced" → 发 DONE 被 guard 否决 |
+
+`first_result` 原来的"已经搜过了"判据只是**历史里有过一次搜索框 fill**——填了不等于提交了。
+修法是加一道页面闸门：那次 fill 之后必须出现过 `url_changed`（提交成功才会跳页，
+跳了页才谈得上"第一个结果"）。这就是 Fix H（`jev_ultrafast/skills.py:first_result`）。
+
+### Fix H 的验证链
+
+| 环节 | 读数 | 落盘 |
+|---|---|---|
+| 单测 | **57/57**（新增 H 类：填而未提交→None、提交后→点第一个链接；旧两例的 history 补上 `outcome.url_changed`）+ 8/8 rotation + 6/6 settle | `tests/test_skills.py` |
+| s011 单任务（师源任务不许坏） | PASS，`true_success`，steps 3 / model 4，api_calls=0 | `reports/one-s011-1007-210259.json` |
+| r103/r104 真实站单跑 | 0/2 PASS，但**形状变了**：r104 走通 `search_type → search_submit`、落到 reCAPTCHA 挑战页，判 `system/blocked_by_bot_wall`；r103 不再点页脚（steps 1），剩下的是 D2 的"没有提交控件就不会回车" | `reports/real-1007-fixh-1007-210313.json` |
+| x001/x002 安全复测 | 2/2 PASS，`true_success`，api_calls=0 | `reports/x-check-fixh-1007-210439.json` |
+| 冻结（post-H，纪律②） | 三轮 **19/19、19/19、18/19**，第四轮补跑 **19/19**；四轮 false_positive=0、error=0、api_calls=0（model_calls 88/90/87/94） | `reports/m1-baseline-1007-2106.json`、`-2111.json`、`-2117.json`、`-2122.json` |
+
+第三轮丢的那一题是 **n004**，项目里已知最容易抖的一题（Fix D 的三轮里它也掉过一次：
+`reports/m1-baseline-1007-1814.json`）。它的 goal 是 "Open RFC 9110 from the RFC index."，
+**不含 first/top，`first_result` 结构上不可能为它开火**，所以不是 H 关掉了合法 DONE；
+第四轮它自己回到 PASS（steps 4，终页 `/info/rfc9110/`）。失败那一轮它停在
+`/search/?q=RFC+9110`——同一个站在真实批里也把 r122 判了 FAIL，这条记到"rfc-editor
+导航本身不稳"的账上，不记到改动上。
+
+r104 这一跑是**第一次在批内看到墙归因**之前的单独一击：终页标题 `正在检查您的浏览器 - reCAPTCHA`、
+`system_modes={blocked_by_bot_wall: 1}`，而 `result` 依旧 FAIL——地板把该做的都做对了，
+剩下的不是项目的能力问题。r103 则从"地板抢跑"退回到"D2 缺口"，两个都是已知队列项，
+没有新缺陷被这次修改引进来。
+
+### 批次 5：H 之后的真实批，9/22 · 这次"对"的证据是 `first_result` 一拍都没开火
+
+| 批 | 改动 | 读数 | 落盘 |
+|---|---|---|---|
+| 批次 1 | 只有地板 | 3/10 | `reports/real-1007-a.json` |
+| 批次 2（fixbd） | Fix B + D | **5/10**，fp=0，api_calls=0 | `reports/real-1007-fixbd-1007-183303.json` |
+| 批次 3 | + Fix C + G，断言未修 | 7/22（其中 1 个是假阳性） | `reports/real-1007-b3-22-1007-202102.json` |
+| 批次 4 | 断言修复后同题集 | 7/22，墙第一次进批 | `reports/real-1007-b4-22-1007-204322.json` |
+| **批次 5** | + Fix H | **9 PASS / 13 FAIL**，fp=0，error=0，api_calls=0，`system_modes={blocked_by_bot_wall: 1}` | `reports/real-1007-b5-22-1007-212901.json` |
+
+H 生效的直接证据不是某一题变 PASS，而是**全批 `first_result` 的开火次数为 0**
+（批次 4 里它是 r103 四次 + r104 三次）：地板退回到"只在真的结果页上才伸手"。
+涨的两分来自 r101（这次的墙没来）、r114（断言修好且这一跑真走到 tutorial01）、
+r117（收紧判据后仍然成立）。真实批的方差大半是站点给的，这也是纪律②要求复跑的原因。
+
+13 个 FAIL 按已知类别归位（同一份 report + 同目录 trace）：
+
+| 类别 | 题 | 形状 |
+|---|---|---|
+| A 墙（环境） | r104 | 填框→提交→reCAPTCHA 挑战页，判 `system/blocked_by_bot_wall` |
+| D2 没有提交控件就不会回车 | r103 | `search_type` 填完，SO 的搜索框要按 Enter 才提交，后面三拍全在重填 |
+| E/F 观测与动作之间页面就换掉了 | r116、r119 | **steps=0** 而 model 5/3：五拍 `first_action_floor`、三拍 TYPE_TEXT 全部没落成一步 |
+| 站内搜索误触发（goal 短语被打进本站搜索框） | r102、r113、r115 | 终页分别是 arXiv `/search/advanced`、python.org `/search/?q=Style+Guide…`、`/search/?q=Download+Python` |
+| 点了同类里错的那一个 | r111、r112 | books.toscrape：要 'Travel' 分类却点进一本旅行书；要书详情却停在分类首页 |
+| 首页出不去（导航一步就放弃） | r105、r106、r118、r122 | GitHub / HF / GNU / RFC Editor：steps 1~4，BLOCKED 早于任何有效跳转 |
+
+**站内搜索误触发是这一批最大的新族（3 题）**，形状高度一致：goal 里带引号的短语既是
+目标名也是检索词，`search_type` 一看到 "Search … for 'X'" 就把它打进本站搜索框，
+而这仨的正解其实是**直接导航**（PEP 8、`/downloads`、某个 abs 页）。下一刀从这里切。
+
 
 
 
