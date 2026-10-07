@@ -101,6 +101,49 @@ headless Chrome 当"用户的浏览器"，跑守卫后 CDP 侧 10 个进程全�
 
 ---
 
+## 批次 2 前置 · 基础设施纠偏（Chrome 误杀与画像口径）· 2026-10-07
+
+### 上一节的结论只说对了一半
+
+Fix B 那节写着"runner 不再误杀用户浏览器"，依据是 PowerShell 侧三处 kill 改成了
+`chrome-cdp-test` 画像匹配。**这个结论是错的**：真正每天在杀浏览器的是
+`m1/run_tasks.py::_reset_cdp()` —— 它在每个任务之间执行
+`taskkill /F /IM chrome.exe`，按镜像名无差别收割整台机器的 Chrome，脚本侧的画像守卫
+被这条 Python 完全绕过。发现方式：批次 2 前的守卫复测里，decoy 画像的 Chrome 在
+一轮真实批之后归零。
+
+修法与证明（同一 `Get-CimInstance` 命令行过滤，画像为 `chrome-jev-profile` +
+`chrome-cdp-test`，即工具真正拥有的两个画像）：
+
+| 实验 | 前 | `_reset_cdp()` 后 |
+|---|---|---|
+| decoy 画像 Chrome（`chrome-decoy-sim`） | 8 进程 | **8 进程存活** |
+| 非我方画像（`chrome-fake-user`） | 11 进程 | 同一条 kill 命令后 **11 进程存活** |
+
+第二条是必要的对照：它排除"kill 命令本身泄漏到其他画像"。子进程（renderer/gpu）的
+命令行同样带 `--user-data-dir`，画像匹配能把整棵树清干净，不会留孤儿。
+
+### 读所有既有数字都要知道的画像口径
+
+`_reset_cdp()` 起的是 **headed** Chrome（无 `--headless`）、画像
+`C:\Users\Administrator\chrome-jev-profile`、且**从不删除该画像目录**。也就是说：
+
+1. 一轮里只有第 1 个任务跑在 PS 脚本起的 headless `chrome-cdp-test` 上，第 2 个任务
+   起就换成了 headed `chrome-jev-profile` —— 同轮内两种浏览器，第 1 题和其他题不同底。
+2. `run_baseline_19.ps1` 冷启动删的是 `chrome-cdp-test`，而实际干活的是
+   `chrome-jev-profile`，它跨轮、跨天累积（登录态、Cookie、HTTP 缓存、Service Worker）。
+   所以"冷画像 vs 热画像"那套解释（n004 的两种页面指纹）**对冻结轮其实是热画像 vs
+   热画像**，真正的冷/热开关从来没生效过。
+3. 窗口是可见的：每次跑批桌面上会真的弹一个 Chrome 在翻页。
+
+这三条先记账，不在批次 2 里顺手改（改了等于换测量底座，历史 19/19 全部要重跑）。
+批次 2 的做法是把"哪一轮跑在哪个画像上"写进每份报告的取证段，等 L2 场景稳定后
+再一次性收口：要么 `_reset_cdp` 也 headless + 用同一个画像，要么 PS 侧不再自己起
+Chrome，二选一，然后重跑三轮基线作废旧数字。
+
+
+---
+
 ## 批次 1 的修复 · Fix D（提交词表只认英文）· 2026-10-07
 
 ### 改了什么（`jev_ultrafast/skills.py`）
@@ -150,3 +193,37 @@ headless Chrome 当"用户的浏览器"，跑守卫后 CDP 侧 10 个进程全�
 真实站记分板（批次 1 的 10 题）：Fix B 清了 B 类（r102/r105），Fix D 清了
 r109 的提交语义，r103 移入 A 类。剩下待买：A 反爬墙（r101/r104/r103）、
 C DONE 出路（r106）、E init 竞态（#12）。
+
+---
+
+## 批次 1 复跑 · Fix B+D 之后 · 2026-10-07（`reports/real-1007-fixbd-1007-183303.json`）
+
+同一套 10 题、同一底座重跑：**PASS 5 / FAIL 5 / ERROR 0，false_positive=0，
+api_calls=0**（批次 1 是 3/10，且当时 r103 是 ERROR）。
+
+| 任务 | 站 | 判定 | 终态证据 | 归因 |
+|---|---|---|---|---|
+| r101 | pypi.org | **PASS**（原 FAIL） | /project/Flask/，11 步 | 批次 1 那天的 "Client Challenge" 墙这次没触发：墙是概率性的 |
+| r102 | arxiv.org | FAIL | **/login?next_page=/user/create** | 提交链全对（floor CLICK→search_type→search_submit 三连 1.0），结果页上模型点错进登录页：真·模型选择失败 |
+| r103 | stackoverflow | FAIL | /questions，steps=1 | 没墙。`search_type` 填了框，`search_submit` 找不到可点提交控件后让位，模型连发 3× TYPE_TEXT 同一框 → **fill≠submit 缺 Enter 兜底**（新 D2） |
+| r104 | pubmed | FAIL | title "…- reCAPTCHA" | A 反爬墙，决策仍诚实 BLOCK（要独立成 `blocked_by_bot_wall`） |
+| r105 | github.com | FAIL | homepage，1 步后 BLOCK | floor 点了一发就 BLOCK：诚实放弃 |
+| r106 | huggingface.co | FAIL | /search/full-text?q=llama.cpp | 搜索链对，`goal_reached` 技能在**结果页**连发 7× DONE 被 `_done_guard` 规则 6 拒 → **C 类的真身**（见下） |
+| r107 | news.ycombinator.com | PASS | /newest，1 步 | — |
+| r108 | simple.wikipedia | PASS | /wiki/Photosynthesis，2 步 | — |
+| r109 | openstreetmap | **PASS**（原 FAIL） | /search?query=Zurich，2 步 | Fix D 的中文提交按钮，端到端确认 |
+| r110 | doc.rust-lang.org | PASS | ch04-00-understanding-ownership，3 步 | — |
+
+### C 类从"不会换路"改判成"技能自己跟自己打转"
+
+批次 1 把 r106/r109 记成"DONE 被拒后不会换路"。复跑证据把因果看清楚了：发 DONE 的
+不是模型，是 **`goal_reached` 技能**（trace 里 `skill=goal_reached`、confidence 1.0，
+连发 7 次同一指纹），而 `_done_guard` 规则 6（goal 点名了目标页而终页没到）每次都正确
+拒绝。两个组件对"到了没到"的判断是**确定性相反**的，于是谁也不让步：技能每拍都重新
+提同一个 DONE。
+
+所以 Fix C 的正确形状不是"禁掉 DONE"（那会误伤 f003/t001 这类连发 DONE 最终 PASS 的
+合法路径），而是两件事：被拒的**技能来源** DONE 要进既有的技能停用/回退通道（让位
+模型 2 拍），以及 `goal_reached` 要认 `_done_guard` 同一条点名目标判据——别在搜索结果
+页上宣布到达。
+

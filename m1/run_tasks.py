@@ -59,6 +59,13 @@ def _reset_cdp() -> None:
 
     治 f004 类 `no close frame received or sent`（浏览器会话累积后 WS 断帧）。
     跨平台安全：非 Windows / 找不到 Chrome 时静默跳过（daemon 自修兜底）。
+
+    只许杀我们自己画像起的 Chrome。这里原来是 `taskkill /F /IM chrome.exe`——
+    它按镜像名无差别收割，每个任务之间都会把用户自己的浏览器一起杀掉（脚本侧
+    的 chrome-cdp-test 守卫全被这条 Python 绕过，2026-10-07 实测：起一个
+    chrome-decoy-sim 画像的 Chrome，跑两个任务后它就被 taskkill 收走了）。
+    子进程（renderer/gpu）的命令行里同样带 --user-data-dir，所以画像匹配能连
+    孩子一起清掉，不会留孤儿子进程。
     """
     import subprocess
     import platform
@@ -68,9 +75,16 @@ def _reset_cdp() -> None:
         return
     chrome = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
     profile = r"C:\Users\Administrator\chrome-jev-profile"
+    # 我们拥有的画像：这里起的 + PS runner 起的（谁起的都由这里收口）
+    _kill_ps = (
+        "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+        "Where-Object { $_.CommandLine -like '*chrome-jev-profile*' "
+        "-or $_.CommandLine -like '*chrome-cdp-test*' } | "
+        "ForEach-Object { Stop-Process -Id $_.ProcessId -Force -EA SilentlyContinue }"
+    )
     try:
-        subprocess.run(["taskkill", "/F", "/IM", "chrome.exe"],
-                       capture_output=True, timeout=15)
+        subprocess.run(["powershell", "-NoProfile", "-Command", _kill_ps],
+                       capture_output=True, timeout=30)
         time.sleep(2)
         subprocess.Popen([chrome, f"--remote-debugging-port=9222",
                           f"--user-data-dir={profile}",

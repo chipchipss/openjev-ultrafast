@@ -6,6 +6,30 @@
 
 ---
 
+## [chrome-kill-scope] - 2026-10-07
+
+### Status（实测，硬线纠偏）
+
+**A0 硬线"绝不动用户自己的 Chrome"此前只在脚本层成立**：`m1/run_tasks.py::_reset_cdp()`
+每个任务之间执行 `taskkill /F /IM chrome.exe`，按镜像名收割整台机器的 Chrome，
+`run_baseline_19.ps1`/`run_demo.ps1`/`run_task.py`/`mcp_server.py` 的 `chrome-cdp-test`
+画像守卫全部被这条 Python 绕过。上一节 [fix-b-floor-executable] 里"runner 不再误杀
+用户浏览器"的结论因此只对脚本层成立，实测被证伪（decoy 画像 Chrome 跑完一批后归零）。
+
+改为只杀工具自己拥有的两个画像（`chrome-jev-profile`、`chrome-cdp-test`），两条对照
+实验：decoy 画像（`chrome-decoy-sim`）8 进程在 `_reset_cdp()` 后存活；第三个画像
+（`chrome-fake-user`）11 进程在同一条 kill 命令后存活——排除 kill 语句本身泄漏。
+`scripts/run_one.ps1` 的 2 处全量 Chrome kill 同样收进同一守卫，并加了批量模式
+（`-TasksFile`/`-Tag`）与收尾 verify 行。
+
+**顺带记账的测量口径（未改，改了等于换测量底座）**：`_reset_cdp` 起的是 headed
+Chrome、画像 `chrome-jev-profile`、且从不删目录。因此每轮只有第 1 题跑在 PS 起的
+headless `chrome-cdp-test` 上，第 2 题起就换成 headed `chrome-jev-profile`；而
+`run_baseline_19.ps1` 冷启动删的是后者用不到的 `chrome-cdp-test`——所谓"冷/热画像"
+在冻结轮里其实是热/热。批次 2 收口这一口径后，历史基线数字要重跑作废。
+
+---
+
 ## [fix-d-submit-vocab] - 2026-10-07
 
 ### Status（实测，真实站批次 1 的第二个修复）

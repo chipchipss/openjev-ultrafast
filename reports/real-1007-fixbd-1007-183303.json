@@ -1,0 +1,334 @@
+{
+  "summary": {
+    "total": 10,
+    "pass": 5,
+    "fail": 5,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "true_success": 5,
+      "correct_abandon": 5
+    },
+    "failure_modes": {
+      "decision": 5
+    },
+    "agent_modes": {
+      "decision": 5
+    },
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "r101",
+      "result": {
+        "task_id": "r101",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://pypi.org/project/Flask/",
+          "final_title": "Flask · PyPI",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "pypi\\.org/project/[Ff]lask"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 11,
+          "model_calls": 13,
+          "api_calls": 0,
+          "elapsed_ms": 32240
+        }
+      }
+    },
+    {
+      "task_id": "r102",
+      "result": {
+        "task_id": "r102",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://arxiv.org/login?next_page=/user/create",
+          "final_title": "Log in to arXiv | arXiv e-print repository",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/abs/1706\\.03762"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 7,
+          "model_calls": 12,
+          "api_calls": 0,
+          "elapsed_ms": 23516
+        }
+      }
+    },
+    {
+      "task_id": "r103",
+      "result": {
+        "task_id": "r103",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://stackoverflow.com/questions",
+          "final_title": "Newest Questions - Stack Overflow",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "stackoverflow\\.com/questions/\\d+"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "slice"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 9316
+        }
+      }
+    },
+    {
+      "task_id": "r104",
+      "result": {
+        "task_id": "r104",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://pubmed.ncbi.nlm.nih.gov/?term=CRISPR+off-target",
+          "final_title": "正在检查您的浏览器 - reCAPTCHA",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "pubmed\\.ncbi\\.nlm\\.nih\\.gov/\\d{7,8}"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 5363
+        }
+      }
+    },
+    {
+      "task_id": "r105",
+      "result": {
+        "task_id": "r105",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://github.com/",
+          "final_title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub · GitHub",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "github\\.com/pytorch/pytorch/releases"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 10413
+        }
+      }
+    },
+    {
+      "task_id": "r106",
+      "result": {
+        "task_id": "r106",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://huggingface.co/search/full-text?q=llama.cpp",
+          "final_title": "Full Text Search - Hugging Face",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/ggml-org/llama\\.cpp"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 9,
+          "api_calls": 0,
+          "elapsed_ms": 11817
+        }
+      }
+    },
+    {
+      "task_id": "r107",
+      "result": {
+        "task_id": "r107",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://news.ycombinator.com/newest",
+          "final_title": "New Links | Hacker News",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "news\\.ycombinator\\.com/newest"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4360
+        }
+      }
+    },
+    {
+      "task_id": "r108",
+      "result": {
+        "task_id": "r108",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://simple.wikipedia.org/wiki/Photosynthesis",
+          "final_title": "Photosynthesis - Simple English Wikipedia, the free encyclopedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "simple\\.wikipedia\\.org/wiki/Photosynthesis"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 5963
+        }
+      }
+    },
+    {
+      "task_id": "r109",
+      "result": {
+        "task_id": "r109",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.openstreetmap.org/search?query=Zurich&zoom=4&minlon=-145.01953125000003&minlat=9.275622176792112&maxlon=-46.58203125000001&maxlat=58.7682001592396#map=4/38.03/-80.42",
+          "final_title": "OpenStreetMap",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "openstreetmap\\.org/search\\?query=Zurich"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 5907
+        }
+      }
+    },
+    {
+      "task_id": "r110",
+      "result": {
+        "task_id": "r110",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/stable/book/ch04-00-understanding-ownership.html",
+          "final_title": "Understanding Ownership - The Rust Programming Language",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "ch04-00-understanding-ownership"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 6603
+        }
+      }
+    }
+  ]
+}
