@@ -566,6 +566,45 @@ def t_first_result():
     assert done is not None and done["operation"] == "DONE", f"跳转后没收口：{done}"
 
 
+@case("G 类：first 与名词之间隔修饰语、名词是 question 时也要触发（r103/r104）")
+def t_first_result_trigger_vocab():
+    """真实站批次教出来的词表缺口（`reports/real-1007-fixc-batch-1007-193028.json`）。
+
+    r104 的搜索链全对（search_type→search_submit 都是 1.0），终页是真的 PubMed 结果页，
+    然后直接 BLOCKED —— 因为旧触发写法 `(first|top)\\s+(result|...)` 要求名词**紧挨着**，
+    而 goal 说的是 "first research article"。r103 同理：名词是 "question"，表里没有。
+    负例钉住不能误伤：流程副词 "First, fill…" 有逗号隔断，不该当成结果位置。
+    """
+    def results_page(goal_url):
+        return {"url": goal_url, "title": "Results", "start_url": "https://x.test/",
+                "text": "results",
+                "actions": [
+                    {"id": "e1", "node": 1, "kind": "click", "label": "Home"},
+                    {"id": "e2", "node": 2, "kind": "fill", "label": "Search terms"},
+                    {"id": "e3", "node": 3, "kind": "click", "label": "Search"},
+                    {"id": "e4", "node": 4, "kind": "click", "label": "First research article title"},
+                    {"id": "e5", "node": 5, "kind": "click", "label": "Second article title"}]}
+
+    hist = [{"step": 1, "kind": "fill", "action": "Search terms", "text": "CRISPR off-target"},
+            {"step": 2, "kind": "click", "action": "Search"}]
+
+    d = S.first_result(results_page("https://pubmed.ncbi.nlm.nih.gov/?term=CRISPR"),
+                       "Search PubMed for 'CRISPR off-target' and open the first research article page.",
+                       hist)
+    assert d is not None and d["choice"] == "e4", f"r104 形状没触发：{d}"
+
+    d = S.first_result(results_page("https://stackoverflow.com/results"),
+                       "Search Stack Overflow for 'python slice step' and open the first question in the results.",
+                       hist)
+    assert d is not None and d["choice"] == "e4", f"r103 形状（question）没触发：{d}"
+
+    for goal in ("First, fill the name field and click Submit.",
+                 "Fill in the form: first name, then click the link button.",
+                 "Search arXiv for 'Attention Is All You Need' and open its abstract page."):
+        d = S.first_result(results_page("https://x.test/results"), goal, hist)
+        assert d is None, f"不该触发却触发了：{goal} -> {d}"
+
+
 @case("'fill all fields' 的占位值：email 字段必须是合法邮箱（f007）")
 def t_fill_all_uses_valid_email():
     goal = "Fill all three fields (name, email, comments) with any values and submit."

@@ -1665,14 +1665,19 @@ def confirm_then_done(page: dict, goal: str, history: list) -> dict | None:
 
 
 def first_result(page: dict, goal: str, history: list) -> dict | None:
-    """goal 说"打开第一个结果" → 在结果页上点第一个结果链接，点了且跳转即收口。
+    r"""goal 说"打开第一个结果" → 在结果页上点第一个结果链接，点了且跳转即收口。
 
     s011 实况："Search for 'data flywheel' and open the first result link." ——
     goal 里的短语是**搜索词**（就写在 ?q= 里），explicit_target 只会按短语匹配标签，
     无从下手；而"第一个结果"是**位置**规则，可以确定性执行。
     取"搜索输入框之后"的第一个链接：站点导航总在顶部（在搜索框之前），结果列表在后面。
+
+    触发词表是真实站教的（2026-10-07 批次 1 复跑），见 `_FIRST_RESULT_RE`：原写法
+    `(first|top)\s+(result|...)` 要求名词**紧挨着**，而真实 goal 会说 "open the
+    **first research article**"（r104）或 "open the **first question**"（r103）——中间
+    隔了修饰语、名词也不在表里，于是技能根本不触发，页面已经到了结果页却直接 BLOCKED。
     """
-    if not re.search(r"\b(?:first|top)\s+(?:result|link|article|item)", goal or "", re.I):
+    if not _FIRST_RESULT_RE.search(goal or ""):
         return None
     hist = history or []
     # 已经点过且页面确实跳转过 → 到达，收口（否则 DoneGuard 会一直否决 DONE：
@@ -1710,7 +1715,21 @@ SKILLS = (blocked_dead_page, page_not_ready, goal_reached, stop_when_visible,
           trip_type, search_type, select_first, date_pick, search_submit)
 
 
+#: `first_result` 的触发词表：形状是 "first/top + 至多 3 个修饰词 + 结果名词"。
+#: 每一项都有真实 goal 背书（2026-10-07 批次 1 复跑）：
+#:   s011 "open the first result link"        → 名词紧挨着（旧写法唯一能匹配的形状）
+#:   r104 "open the first research article page" → first 与 article 之间隔了 research
+#:   r103 "open the first question in the results" → 名词是 question，旧词表里没有
+#: 名词只收**见过的**，不许按想象扩充（Fix D 的教训：猜进去的词表后来全删了）。
+#: 标点会挡住 `(?:[\s-]+\w+)` 的延续，所以 "First, fill the form…" 不会误触发；
+#: "first name … click the link" 也不会（first 与 link 之间隔了 4 个词，超过 3 上限）。
+_FIRST_RESULT_RE = re.compile(
+    r"\b(?:first|top)(?:[\s-]+\w+){0,3}?[\s-]+"
+    r"(?:result|link|article|item|question)\b",
+    re.I)
+
 _STUCK: dict[str, dict[str, int]] = {}
+
 
 #: 技能连着没产生效果时，让位给模型的**拍数**。必须是有界的：自建站点的实测显示，
 #: 永久停用会把"技能本来是对的、只是那一次动作没生效"变成"模型乱撞到放弃"

@@ -13,8 +13,11 @@ $Repo = "C:\Users\Administrator\openjev-ultrafast"
 $Stamp = Get-Date -Format "MMdd-HHmmss"
 if ($TaskId) {
     $TaskFile = "$env:TEMP\single_$TaskId.jsonl"
-    $Report   = "$env:TEMP\one_$($TaskId)_$Stamp.json"
-    $LogDir   = "$env:TEMP\one_$($TaskId)_$Stamp"
+    # Single-task readings must be citable from the docs (纪律⑤: 数字要能对到
+    # reports/*.json), but this branch used to drop them in %TEMP%, where they
+    # vanish on the next disk cleanup.
+    $Report   = "$Repo\reports\one-$($TaskId)-$Stamp.json"
+    $LogDir   = "$Repo\logs\one-$($TaskId)-$Stamp"
     $Label    = $TaskId
     # Extract the single line ourselves: the caller had to pre-build this file
     # before, and a stale one silently measures the wrong task.

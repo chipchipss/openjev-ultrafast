@@ -305,4 +305,132 @@ DONE 循环了）也不是 E（E 是初始观测竞态），记作 **F**：点�
 `false_positive` 被分支条件排除在外——外因永远不能替假阳性开脱。reports 里不落终页
 快照，所以这道归因要到下一次真实批才看得见（`summary.system_modes`）。
 
+### 第一次真实批的读数：`system_modes` 是空的，而且是**对的**
+
+`reports/real-1007-fixc-batch-1007-193028.json`：`summary.system_modes = {}`。
+不是检测器失灵——这一轮压根没撞墙。逐条翻 `logs/real-1007-fixc-batch-1007-193028/*.jsonl`
+末行的 `final_page`：
+
+| 任务 | 终页 | text 长度 | actions | `is_bot_wall` |
+|---|---|---|---|---|
+| r103 stackoverflow | `/questions/tagged/google-search-console`（搜对了，没打开问题） | — | — | False |
+| r104 pubmed | `/search-results?term=CRISPR+off-target`，标题是真实的 PubMed 检索结果页 | 3241 | 78 | **False** |
+| r105 github | 首页，1 步后 BLOCK | — | — | False |
+
+批次 1 那天 r104 的标题是 "…- reCAPTCHA"、66 字符/3 action；这一轮同一题同一 URL 拿到
+的是 3241 字符的正文。**A 类墙是概率性的，不是常量**，归因证据只能等多轮真实批自己撞
+上来；检测器这轮的实测贡献是"没有把正常内容页误判成墙"（0 误伤），这也正是把
+`false_positive` 排除在分支之外的原因。
+
+## 批次 1 复跑 · Fix C 之后 · 2026-10-07（`reports/real-1007-fixc-batch-1007-193028.json`）
+
+同一套 10 题、同一底座：**PASS 5 / FAIL 5（可比口径），false_positive=0，api_calls=0**，
+与 Fix B+D 那轮**逐题同形**。Fix C 本来就不改判定，它改的是 r106 的空转形状。
+
+| 任务 | 判定 | steps / model_calls | fixbd 同题 | 读数差 |
+|---|---|---|---|---|
+| r101 pypi | PASS | 11 / 13 | 11 / 13 | 同 |
+| r102 arxiv | FAIL | 5 / 6 | 7 / 12 | 更早放弃 |
+| r103 stackoverflow | FAIL | 2 / 5 | 1 / 4 | 同形 |
+| r104 pubmed | FAIL | 2 / 3 | 2 / 3 | 同形（这次无墙） |
+| r105 github | FAIL | 1 / 2 | 1 / 2 | 同形 |
+| r106 huggingface | FAIL | 3 / **4** | 2 / **9** | **C 类消失**，落到 F 类 |
+| r107 HN | PASS | 1 / 2 | 1 / 2 | 同 |
+| r108 simple.wikipedia | PASS | 2 / 3 | 2 / 3 | 同 |
+| r109 openstreetmap | PASS | 2 / 3 | 2 / 3 | 同 |
+| r110 rust-doc | 作废 → 单测 PASS | 2 / 3 | 3 / 4 | 见下方事故记录 |
+
+### r110 的 ERROR 是我造成的，不是代理的失败
+
+报告落盘 19:37:20，我在它前几秒执行了一次"清理上一轮遗留画像 Chrome"，把还在服役的
+r110 浏览器一起杀了（trace 末行 `runner_exception: no close frame received or sent`，
+栈停在 `m1/run_tasks.py:194 agent.close()`）。这条**不能**记进代理成绩，也不能拿它
+当 C/F 类证据。单独重测 r110：**PASS**，steps 2 / model 3 / api_calls 0，终页
+`doc.rust-lang.org/stable/book/ch04-00-understanding-ownership.html`
+（`%TEMP%\one_r110_1007-194042.json`；单任务模式走 headless `chrome-cdp-test`，
+与批次用的 headed 画像不同底，口径按 [[benchmark-infra-gotchas]] 记账）。
+
+**新立的基建纪律：跑批期间不许碰任何 Chrome 进程**，包括"看着像上一轮遗留"的画像；
+要清理先用 `Get-CimInstance` 确认没有 `m1.run_tasks` 在跑。这次是我自己踩了
+"绝不动浏览器"的精神（虽然动的确实是我们自己的画像，但把在役的实例杀了）。
+**并发同样是禁区**：同一时间只允许一个 run 持有浏览器与 :8090。我把这条踩了两次
+（单任务验证与 22 题批并发 → 两边的 headless Chrome 互杀，那份 9 题读数作废）。
+
+## G 类：搜索成功了，第二跳没人接（`first_result` 触发词表）· 2026-10-07 夜
+
+批次 1 复跑把 r103/r104 从"墙"里摘出来之后，剩下的形状非常干净：**两题的搜索链全对，
+停在结果页，然后一步不做直接放弃**。
+
+| 任务 | 终页（report evidence） | steps / model | trace 里的技能 |
+|---|---|---|---|
+| r104 pubmed | `/search-results?term=CRISPR+off-target`，标题 "CRISPR off-target - Search Results - PubMed" | 2 / 3 | `search_type` 1.0 → `search_submit` 1.0 → **BLOCKED 0.43** |
+| r103 stackoverflow | `/questions/tagged/google-search-console`（与本任务的检索词无关，见下方疑点） | 2 / 5 | 同上三连，然后模型连发 3× TYPE_TEXT 同一框 |
+
+`first_result` 就是负责第二跳的地板技能（s011 "open the first result link" 教的），
+它的触发条件实测为 **False**：
+
+```
+goal = "Search PubMed for 'CRISPR off-target' and open the first research article page."
+旧正则 \b(?:first|top)\s+(?:result|link|article|item)  →  False   # first 与 article 之间隔了 research
+goal = "…open the first question in the results."                →  False   # 名词 question 不在表里
+```
+
+**这不是"模型不行"，是地板漏了这类目标**：位置规则本来可以确定性执行，却因为goal 的
+说法超出词表而整条不触发。改法（`_FIRST_RESULT_RE`）= first/top 与名词之间允许至多
+3 个修饰词，名词补**真实 goal 里见过的** `question`；标点会截断修饰语序列，所以
+"First, fill the form…" 不会误触发，"first name … click the link"（隔 4 个词）也不会。
+
+### 验证链（按执行纪律①→③）
+
+| 环节 | 读数 | 落盘 |
+|---|---|---|
+| 单测 | **56/56**（新增 `t_first_result_trigger_vocab`：r103/r104 两种形状正例 + 三种不该触发的负例）+ 8/8 rotation + 6/6 settle | `tests/test_skills.py` |
+| x001/x002 安全复测 | 2/2 PASS，象限 `true_success`，api_calls=0 | `reports/x-check-fixg-1007-195727.json` |
+| s011 单任务（`first_result` 的师源任务，不能被词表改坏） | PASS，`true_success`，steps 3 / model 4，终页 `articles.html`，api_calls=0 | `reports/one-s011-1007-201948.json` |
+| 冻结三轮（post-G，纪律②） | **19/19、19/19、19/19**，false_positive=0，error=0，api_calls=0（model_calls 84/101/94，象限三轮全是 `true_success: 19`） | `reports/m1-baseline-1007-2000.json`、`-2004.json`、`-2010.json` |
+
+三轮全是 G 之后重跑的（前一份 19/19×3 属于 Fix C，见上文），每轮之间按惯例重启 llama
+栈以排除 RSS 膨胀；判定读数一致，波动只在 model_calls 上——这是本地模型采样噪声，
+不是判定方差。G 没有把任何一题从 FAIL 变成 PASS，也没有把 PASS 变成 FAIL，
+这正是它该有的表现：它只补一块从不触发的地板，19 题冻结集里没有这种形状的 goal。
+
+### 单任务验证被墙挡住了，所以 G 的真实站收口仍然是 pending
+
+headless 单任务重测 r103/r104，**两题都没跑到第二跳**：
+
+| 题 | 终页标题 | steps | 归因 | 落盘 |
+|---|---|---|---|---|
+| r103 | `Just a moment...` | 0 | **`system/blocked_by_bot_wall`** ← 墙检测第一次在真实站上命中 | `reports/real-1007-fixg-r103-wall.json` |
+| r104 | `403` | 0 | 仍是 `agent/decision` ← 词表里没有 403，**检测器的已知缺口** | `reports/real-1007-fixg-r104-403.json` |
+
+r103 这一次是 A 类的第一次真实命中：`summary.system_modes = {blocked_by_bot_wall: 1}`，
+而 `result` 依旧 FAIL、象限依旧 `correct_abandon`——归因只改标签的口径按设计成立。
+r104 的 403 是**冷画像 headless** 才出现的（批次里热画像能拿到真结果页），
+reports/trace 都不落终页快照，所以给它扩词表前必须先量页面形状
+（`m2/probe_wall_403.py`，等没有 run 在跑的时候执行）。
+
+**这两份读数当时没有落进 `reports/`**：`scripts/run_one.ps1` 的 `-TaskId` 分支过去把
+单任务报告写去 `$env:TEMP`（批量分支才写 `reports/`），第一次核对文档时发现"引用的文件
+不在 reports 里"，才把两份原样补拷进来（`summary`/`evidence`/`meta` 未改）。
+脚本已改：单任务现在写 `reports/one-<id>-<stamp>.json`。纪律⑤（文档数字必须能对到
+`reports/*.json`）这一步是我自己先破的——不是数字错，是数字当时无处可查。
+
+### 基础设施缺口：自建站是带外进程，冻结脚本的收尾会杀掉它
+
+s011 第一次单任务复测得到 `chrome-error://chromewebdata/`、steps 0——不是 G Regression，
+是 `m2/test-site/serve.py`（8765/8766）**没有任何脚本负责启动**：它是手工挂上去的长驻
+进程，`run_baseline_19.ps1` 的收尾"stop decider → Chrome → orphan python"会把它当成
+孤儿杀掉。冻结三轮（20:00/20:04/20:10）都在 20:14 那次收尾之前完成，读数不受影响；
+之后任何单任务复测自建站，必须先手工起站，否则量到的是基础设施而不是模型。
+当前 8765/8766 已由本次会话重新拉起（`curl` 双双 200）。
+
+### 疑点登记：r103 终页的 tag 与本任务的检索词无关
+
+goal 是 `'python slice step'`，终页却是 `questions/tagged/google-search-console`。
+热画像 `chrome-jev-profile` 跨轮跨天累积状态，这条很可能是**上一轮残留**而不是本轮搜索
+的结果；trace 里没有动作标签的原文，无法离线判定。要等一次带截图的单任务复现再定性，
+暂不记为缺陷。
+
+
+
 
