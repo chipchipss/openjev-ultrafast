@@ -6,6 +6,36 @@
 
 ---
 
+## [l6-one-command] - 2026-10-07
+
+### Status（实测，Flights 端到端，StartLux-Decision-2B）
+
+**L6 达成：`.\run_demo.ps1` 一条命令冷栈全绿**。四次实测 7/7 校验全过、exit 0：
+热复用 12.37s（`demo-flights-1007-1617`）、冷自启 12.99s（`-1620`，栈从停机到
+wire ready 24s）、`-KeepService` 13.95s（`-1622`）、复用后外部栈存活 12.87s
+（`-1623`，跑完 wire :8090 仍 200）。`text_helper` 全程未触发（11 条 history 全
+`None`），api_calls=0 硬线保持。
+
+**run_demo.ps1 迁底座**：旧版写死 decider-2B uvicorn :8000；现检测 :8090 wire，
+在线复用、停机则 detached 拉起 `scripts\startlux_serve.ps1`（900s 健康闸门，
+覆盖首启下载耗时）；`-KeepService` 控制栈去留；清理只杀自己拉起的 llama/wire，
+python 侧只杀 `run_flights|browser_harness`。
+
+**自动供给**（startlux_serve.ps1，冷机器 bootstrap）：缺 `llama-server.exe` →
+GitHub Releases 拉 b11433 CUDA 12.4 zip 解压；缺 cublas DLL → 拉
+`cudart-llama-bin-win-cuda-12.4-x64.zip`；缺 GGUF → `huggingface_hub.snapshot_download`
+拉 `startlux-models/StartLux-Decision-2B-Q8_0-GGUF`（含 `startlux_decision` 包）。
+代理优先（`-ProxyUrl`，默认 :2080）、直连兜底；`-SkipEnsure` 跳过。实测删掉
+llama-server.exe 后 serve 自愈重装并 healthy 起栈（build 11433 一致）。
+**踩坑记录**：供给段最初排在"清理旧实例"之前，运行中的 llama 锁着 ggml DLL，
+Copy-Item 直接 IOException——顺序改为先杀进程再供给。
+
+**Chrome 误杀修复**（run_demo）：旧版 `Stop-Process` 杀**所有** chrome（含用户
+自己的浏览器，此前已向用户承认的已知缺陷）；现只按命令行 `chrome-cdp-test` 画像
+清理（`Get-CdpChrome`），verify 计数也只数 CDP 进程，用户浏览器永不入靶。
+
+---
+
 ## [settle-detection] - 2026-10-07
 
 ### Status（实测，19 任务集，StartLux-Decision-2B）

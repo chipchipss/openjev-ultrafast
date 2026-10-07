@@ -1,6 +1,13 @@
 # Start one command: llama-server (GGUF backend) + startlux gguf_server (TypeSafe wire).
-# Usage: .\scripts\startlux_serve.ps1   (stops both with Ctrl+C or they exit with the shell)
+# Usage: .\scripts\startlux_serve.ps1 [-ProxyUrl http://127.0.0.1:2080] [-SkipEnsure]
+# Missing artifacts (llama.cpp binaries, CUDA runtime DLLs, StartLux GGUF repo) are
+# downloaded on demand; -SkipEnsure keeps the old behaviour for provisioned boxes.
 # Logs:  logs\startlux-llama.log / logs\startlux-wire.log
+
+param(
+    [string]$ProxyUrl = "http://127.0.0.1:2080",
+    [switch]$SkipEnsure
+)
 
 $ErrorActionPreference = "Stop"
 $Root      = "D:\openjev-models"
@@ -11,12 +18,73 @@ $VenvPy    = "$Root\decider\.venv\Scripts\python.exe"
 $LogDir    = "$PSScriptRoot\..\logs"
 New-Item -ItemType Directory -Force $LogDir | Out-Null
 
-# --- clean previous instances -------------------------------------------------
+# --- clean previous instances (BEFORE provisioning: a running llama-server
+# holds file locks on the DLLs Copy-Item must overwrite) ----------------------
 Get-Process | Where-Object { $_.ProcessName -in "llama-server" } -ErrorAction SilentlyContinue |
     Stop-Process -Force -ErrorAction SilentlyContinue
 Get-CimInstance Win32_Process -Filter "Name = 'python.exe'" |
     Where-Object { $_.CommandLine -like "*gguf_server*" } -ErrorAction SilentlyContinue |
     ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+Start-Sleep -Seconds 2
+
+$GgufName  = "StartLux-Decision-2B-Q8_0.gguf"
+$LlamaZip  = "https://github.com/ggml-org/llama.cpp/releases/download/b11433/llama-b11433-bin-win-cuda-12.4-x64.zip"
+$CudartZip = "https://github.com/ggml-org/llama.cpp/releases/download/b11433/cudart-llama-bin-win-cuda-12.4-x64.zip"
+
+# --- 0) ensure artifacts -------------------------------------------------------
+# Cold-box bootstrap for the one-command entry point (L6). The HF repo ships the
+# .gguf plus the startlux_decision package and tokenizer files, so one snapshot
+# fills $ModelDir. GitHub releases ship the llama.cpp CUDA build and the CUDA
+# runtime DLL bundle that build needs.
+function Download-Url($url, $out) {
+    foreach ($px in @($ProxyUrl, "")) {
+        try {
+            Write-Host "  GET $url (proxy='$px')"
+            if ($px) { Invoke-WebRequest -Uri $url -OutFile $out -Proxy $px -UseBasicParsing }
+            else     { Invoke-WebRequest -Uri $url -OutFile $out -UseBasicParsing }
+            return
+        } catch { Write-Host "  failed via proxy '$px': $($_.Exception.Message)" }
+    }
+    throw "could not download $url (proxy down and direct blocked?)"
+}
+
+if (-not $SkipEnsure) {
+    if (-not (Test-Path "$LlamaDir\llama-server.exe")) {
+        New-Item -ItemType Directory -Force $LlamaDir | Out-Null
+        $tmp = "$env:TEMP\jev-llama.zip"; $ext = "$env:TEMP\jev-llama-ext"
+        Download-Url $LlamaZip $tmp
+        Remove-Item -Recurse -Force $ext -EA SilentlyContinue
+        Expand-Archive $tmp -DestinationPath $ext -Force
+        $src = if (Test-Path "$ext\bin\llama-server.exe") { "$ext\bin" } else { $ext }
+        Copy-Item "$src\*" $LlamaDir -Force
+        Remove-Item -Recurse -Force $ext, $tmp -EA SilentlyContinue
+        Write-Host "llama.cpp installed to $LlamaDir"
+    }
+    if (-not (Test-Path "$LlamaDir\cublas64_12.dll")) {
+        # the CUDA build needs cudart/cublas/cublasLt present next to the exe
+        $tmp = "$env:TEMP\jev-cudart.zip"; $ext = "$env:TEMP\jev-cudart-ext"
+        Download-Url $CudartZip $tmp
+        Remove-Item -Recurse -Force $ext -EA SilentlyContinue
+        Expand-Archive $tmp -DestinationPath $ext -Force
+        Get-ChildItem $ext -Recurse -Filter *.dll | Copy-Item -Destination $LlamaDir -Force
+        Remove-Item -Recurse -Force $ext, $tmp -EA SilentlyContinue
+        Write-Host "CUDA runtime DLLs installed to $LlamaDir"
+    }
+    if (-not (Test-Path "$ModelDir\$GgufName")) {
+        if (-not (Test-Path $VenvPy)) { throw "wire python missing: $VenvPy (model download needs its huggingface_hub)" }
+        New-Item -ItemType Directory -Force $ModelDir | Out-Null
+        $env:HTTP_PROXY = $ProxyUrl; $env:HTTPS_PROXY = $ProxyUrl; $env:HF_HUB_OFFLINE = "0"
+        Write-Host "downloading startlux-models/StartLux-Decision-2B-Q8_0-GGUF (~2.1GB)..."
+        & $VenvPy -c "from huggingface_hub import snapshot_download; snapshot_download('startlux-models/StartLux-Decision-2B-Q8_0-GGUF', local_dir=r'$ModelDir')"
+        if ($LASTEXITCODE -ne 0 -or -not (Test-Path "$ModelDir\$GgufName")) {
+            throw "GGUF download incomplete (exit $LASTEXITCODE); rerun to resume"
+        }
+    }
+    foreach ($p in @("$LlamaDir\llama-server.exe", "$ModelDir\$GgufName",
+                     "$ModelDir\startlux_decision", $VenvPy)) {
+        if (-not (Test-Path $p)) { throw "artifact missing and not provisioned: $p" }
+    }
+}
 
 # --- 1) llama-server: Q8_0 2B, GPU offload, 16k ctx --------------------------
 # -lm none (no mmap): with mmap the whole 2GB file lands in the process working

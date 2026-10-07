@@ -2,15 +2,16 @@
 
 一个跨平台、模型无关、可观测的 Browser Agent 框架。
 
-**Google Flights 端到端任务:10.4s**(2026-10-04 实测,当时底座为 decider-2B;**零云端调用**,7 项独立校验全过)。
+**Google Flights 端到端任务:12.4–14.0s**(2026-10-07 四次实测,StartLux-Decision-2B 底座,`reports/demo-flights-1007-1617/1620/1622/1623.json`;**零云端调用**,7 项独立校验全过;2026-10-04 旧 decider 底座曾测 10.4s)。
 
 ```powershell
-.\run_demo.ps1                      # 一条命令跑通上面这个任务
-.\run_demo.ps1 -Task wikipedia      # 另一个 demo(1.4s)
+.\run_demo.ps1                      # 一条命令跑通上面这个任务(缺权重/二进制自动下载,决策栈不在线自动拉起)
+.\run_demo.ps1 -Task wikipedia      # 另一个 demo(2.1s,2026-10-07 `demo-wikipedia-1007-1632`)
 .\run_demo.ps1 -KeepOpen            # 跑完不关浏览器,自己看
+.\run_demo.ps1 -KeepService         # 跑完不关 llama-server+wire(下次复用,省 ~30s 加载)
 ```
 
-> `run_demo.ps1` 是历史 demo 入口,内部写死旧 decider-2B 服务(:8000)。日常使用走「快速开始」:`startlux_serve.ps1` + `run_task.py`。
+> 2026-10-07 起 `run_demo.ps1` 就是 L6 的一条命令入口:内部走 StartLux 底座(:8090 wire,在线则复用),首启自动供给(llama.cpp CUDA 二进制 + StartLux GGUF 权重经代理下载);只清理自己拉起的进程,绝不动你自己的 Chrome。日常任意任务走「快速开始」:`startlux_serve.ps1` + `run_task.py`。
 
 M1 基准(19 任务集,冻结三轮 2026-10-06):
 
@@ -93,7 +94,8 @@ Logger → Dataset → Benchmark
 ### 用它干你自己的事(任意任务)
 
 ```powershell
-# 1) 一条命令把决策底座拉起来(StartLux-Decision-2B GGUF,llama.cpp + wire server)
+# 1) 一条命令把决策底座拉起来(StartLux-Decision-2B GGUF,llama.cpp + wire server;
+#    二进制/权重缺失自动经代理下载,-SkipEnsure 可跳过供给)
 .\scripts\startlux_serve.ps1        # llama-server :8081 + /v1/systemone :8090
 
 # 2) Chrome(走你的出口代理;不需要代理就去掉最后一个参数)
@@ -146,8 +148,7 @@ source .venv/bin/activate
 pip install httpx[http2] browser-harness==0.1.13
 ```
 
-StartLux-Decision-2B 权重(Q8_0 GGUF,2GB)从 Hugging Face 拉取:
-`startlux-models/StartLux-Decision-2B-Q8_0-GGUF`,放到 `D:\openjev-models\startlux-decision-2b`(或改 `scripts\startlux_serve.ps1` 里的 `$ModelDir`)。llama.cpp 用 CUDA 12.4 预编译版(`$LlamaDir`)。注意启动脚本用 `-lm none` 加载——默认 mmap 会把 2GB 文件计入 RAM 工作集,16GB 机器上会误触内存闸。
+StartLux-Decision-2B 权重(Q8_0 GGUF,2GB)来自 Hugging Face `startlux-models/StartLux-Decision-2B-Q8_0-GGUF`,llama.cpp 用 CUDA 12.4 预编译 b11433(`$LlamaDir`)。**两者都不用手动拿**:`startlux_serve.ps1` 检测到缺失会自动经代理(默认 `http://127.0.0.1:2080`,`-ProxyUrl` 可改;代理不通再试直连)下载——GGUF 用 `huggingface_hub.snapshot_download` 落 `D:\openjev-models\startlux-decision-2b`(含 `startlux_decision` 包),二进制+CUDA 运行库从 GitHub Releases 两个 zip 解到 `D:\openjev-models\llamacpp`。注意启动脚本用 `-lm none` 加载——默认 mmap 会把 2GB 文件计入 RAM 工作集,16GB 机器上会误触内存闸。
 
 ### 配置
 
@@ -306,7 +307,7 @@ openjev-ultrafast/
 ├── docs/                  # 硬约束 + 架构 + 里程碑(03-milestones.md 为阶段权威记录)
 ├── reports/               # 实测报告(逐任务运行产物目录不入库,见 .gitignore)
 ├── run_baseline_19.ps1    # 基线 runner(一任务一进程 + 逐域预检 + 收尾验证)
-├── run_demo.ps1           # 历史 demo 入口(写死旧 decider-2B :8000)
+├── run_demo.ps1           # L6 一条命令 demo 入口(StartLux 底座,自启栈+自动供给+只清自家进程)
 └── scripts/run_task.py    # 跑任意任务 + 完成证据校验
 ```
 
@@ -332,7 +333,7 @@ openjev-ultrafast/
 | M6 Benchmark | ✅ 19 任务集两底座冻结轮完成 |
 | M7 Ultrafast | ⏸ 自用已达标,不做产品 |
 
-下一步(未动):L6 一条命令入口(首启自拉权重);L2-L6(真实站点 50 任务、回归 CI 化、helper 本地化)。
+下一步(未动):L2-L6 剩余(真实站点 50 任务、回归 CI 化、helper 本地化)。L6 一条命令入口已完成(2026-10-07:`run_demo.ps1` 冷启全绿,权重/二进制首启自动下载)。
 
 ## License
 
