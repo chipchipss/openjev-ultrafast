@@ -1483,3 +1483,274 @@ P0 之后把"同一个边界"扩到模型端点与凭据，全部对着 artifact
   settle 6 / fix_o 5 / agent_init_backoff 3）。
 - 纪律⑤核对：README / real-log 里没有别的数字指向作废的 b8；real-log 的 b8 一节已加"读数已作废"抬头。
 
+## Fix P：观测失败被记成"没效果" —— 预登记（写于任何读数之前）· 2026-10-08
+
+**这一刀的落点不是猜的，是 b9 的 trace 一条一条量出来的**（`logs/real-1008-b9-fixo-1008-150222/`，
+52 个 step 事件，判据 = 该步之后**下一个决策的指纹**是否换页）：
+
+| 量到的事实 | 数字 |
+|---|---|
+| `page_changed=False` 的步 | 15 / 52 |
+| 其中"页其实换了"（误记） | **2**（r102 步#1 地板点 arxiv "Search"、r116 步#1 地板点 "Rust API documentation"） |
+| 其中"页真没换"（`Open …` 折叠开关点下去纹丝不动） | 13 |
+| `wait` 步（`page_not_ready`） | 全部批次只有 r101 的 5 拍 / **1,809ms**（每拍 ~362ms），且 **wait 不吃步数预算**（`agent.py:220` 明确排除）——原来挂在 #25 上的"等待吃预算"这条假设不成立，撤掉 |
+
+**读数口径（写下来免得下次再读错）**：`step` 事件里的 `executed_ms` 是
+`round((perf_counter - started_at)*1000)`，即**自任务开始的累计量**，不是单步耗时。
+第一版诊断把它当单步耗时求和，得出"等待 10,957ms / 空点击 36,254ms"——那是累计量之和，
+是错的。按相邻步差分量的正确账：52 步合计 **69,399ms**；其中 `page_not_ready` 5 拍
+1,809ms、非等待的 `pc=False` 11 步 22,768ms（均 2,070ms）、误记那 2 步共 4,629ms。
+所以 Fix P 的价值不在省时间，在**赎回被缴械的探索预算**（r116：1 步 → 4 步）。
+
+r116 的死法是这个 bug 的完整形状：地板那一跳**真的导航了**（`/stable/` → `/stable/std/index.html`），
+历史里写 `False` → `skills.py:228` 的守卫 `if not floor_hist[-1].get("page_changed"): return None`
+当场缴械 → 模型下一拍 BLOCKED(0.693) → 任务 1 步收口。r105 / r122 是同一个"1 步收口"的形状，
+但那两步是**真的没效果**（折叠开关），不由这一刀买单。
+
+**根因在记账，不在浏览器**（`agent.py:702-706`）：act 末尾的复观察撞上导航抛 `StalePage`，
+`except: pass` 之后 `state["page"]` 还是动作前那个对象，于是两个 fingerprint 必然相同 → `False`。
+
+**修法两半都是承重的**：
+1. 观测失败时写 `None`（未知），不是 `False` —— `logger.py:229` 早就定义了三态语义
+   （"page_changed=None 表示 observe 失败"），是 act 这条路没遵守；
+2. 下一拍 `predict` 拿到归静的观测后，用该步自己存的 `page_fp_before` **结算**这个 None。
+   只有 ①：未知会挂着，`evaluator.py:310` 连数 3 个 None 判 `stale_loop`；
+   只有 ②：会把"页面后来自己变了"错记到上一个动作头上（②必须只结算 None，
+   观测**成功**过的 `False` 是可信读数）。
+
+单元测试 `tests/test_page_changed_unknown.py` **6/6**，含两条负例守卫（真没效果仍须 `False`、
+后来变页不许回填）与改前红证据：加 Fix P 之前跑出 **2/6**（①②⑤⑥ 全红）。全量套件
+**9 个文件 116/116**（原 110 + 这 6 条）。
+
+### 预登记判据（先看判据，后看数字）
+
+| 阶段 | 判据 | 上限 / 下限 |
+|---|---|---|
+| 单任务 r116 | **机制断言**：`steps >= 2`（地板不再因为一次看不见的导航而缴械）；r116 的断言是 `doc.rust-lang.org/cargo/`，地板下一跳落在 `/stable/std/`，能不能再跳到 Cargo Book 取决于该页快照里有没有那个链接 —— **不承诺 PASS** | 机制断言必须过；PASS 与否都记录 |
+| 单任务 r102 | 断言 `arxiv.org/abs/1706.03762`。它的主导病是 #15 站内搜索误触发，**预测这一刀不改变结果** | 若反而 PASS，说明我把 #15 归因归重了，要回头改 |
+| x001 / x002 | 纪律③：改的是 `agent.py` 记账层，两条守卫任务必须仍 `2/2 PASS`、`api_calls=0`、`text_helper` 全 `null` | 不许出现 false_positive |
+| 三轮冻结 | 19/19 ×3，`steps` 与技能序列对照 Fix O 那三轮（n004 仍 `search_type, search_submit, explicit_target, goal_reached`，`search_submit` 每轮一次）；这一刀只应动 2/52 那类步，冻结集上没有观测失败就没有行为差 | 方差 ±1（纪律②） |
+| b10 真实批 | **上限 +1**：12/22 → 13/22（只有 r116 有可辩护的翻盘路径）；**下限 12/22**（不许 regress 现有 12 条）；r102/r105/r122 预测仍 FAIL，r116 若 FAIL 则记录它卡在哪一步 | 总 pass <12 视为回归，Fix P 回炉 |
+
+跑之前不写任何读数。fp=0 / api_calls=0 / error=0 每次核对。
+
+### Fix P 单任务读数（判据已在上表先立）· 2026-10-08
+
+| 任务 | 读数 | artifact | 对上判据了吗 |
+|---|---|---|---|
+| r116 | FAIL，但 **steps 1 → 4**、model 5、`api_calls=0`、`text_helper` 全 null；步#1 `pc=True` 且 URL 记成导航后的 `/stable/std/index.html`（b9 里是 `pc=False` + 旧 URL） | `reports/one-r116-1008-161654.json` | 机制断言 **过**（地板不再缴械）；PASS 未承诺，确实没 PASS |
+| r102 | FAIL，steps 7、model 10，终页 `/search/advanced` —— 与 b9 同形 | `reports/one-r102-1008-161847.json` | **过**：预测这一刀救不了它，它的主导病是 #15 站内搜索误触发 |
+| x001 / x002 | 2/2 PASS，`api_calls=0`，无 false_positive | `reports/one-x001-1008-161940.json`、`reports/one-x002-1008-161953.json` | 纪律③ **过** |
+
+**Fix P 顺带照出来的第二个真缺陷**（这次没修，但它第一次可见）：r116 地板拿到探索预算后，
+4 步是 `Rust API documentation → Copy item path → Summary → Copy item path` ——
+**同一个控件被点了两次**。因为 `first_action_floor` 的去重集 `tried`（skills.py:234）存的是
+`h["choice"]`，而 choice 是**每次快照重新编号的 id**，跨页/跨 DOM 变动后同一个元素会换 id，
+去重就失效。b9 里看不到这条，是因为那时候地板第 1 步就被缴械了。
+后果：赎回的预算有一半花在重点击上 → 记为下一刀的一部分（#25 的空点击半边）。
+
+浏览器归属核对：单任务一律 headless `chrome-cdp-test`（9222）。跑前发现 9222 被 b9 遗留的
+**自有** `chrome-jev-profile`（只停在 about:blank）占着，用守卫函数 `Stop-OwnedChrome` 收掉后
+才开单任务窗口——按 marker 归属，`Get-ForeignBrowserCount` 与 `Stop-OwnedChrome` 取的是同一套
+marker 规则、两个集合互斥，所以用户的浏览器按构造不可能被杀；读数 foreign 前后 21，未变。
+
+### 冻结轮次的作废与补跑（纪律②的自纠 · 2026-10-08）
+
+闸门 `free > 3000MB`（`run_baseline_19.ps1:230`）在 16:20/16:21/16:29/16:30/17:02 五次把轮次
+挡在启动步 —— 那几次**没有 reports，只有空 logs 目录**，所以它们不是读数（空目录已删）。
+真正的自纠是这一条：
+
+| 轮 | 文件 | 结果 | 裁决 |
+|---|---|---|---|
+| 1 | `reports/m1-baseline-1008-1625.json` | 19/19，fp=0；n004 = `search_type, search_submit, explicit_target, goal_reached`，`search_submit` 一次 | **有效**（独占栈） |
+| 2′ | `reports/m1-baseline-1008-1656.json` | 18/18（缺 s004） | **作废**：我停掉等待任务时，它已经自己越过闸门并启动了这一轮，被我打断 |
+| 3′ | `reports/m1-baseline-1008-1657.json` | 19/19，但 n004 多一拍 `model`（steps 3→4） | **作废**：与 2′ 同时在跑，违反"一个 run 独占浏览器与 :8090" |
+
+**这是我制造的比赛条件，不是 Fix P 的读数。**根因写死成规矩：等内存的后台循环会自己启动轮次，
+所以**在它还在跑的时候不能再启动第二个 runner 任务**；补跑改成单一任务内部严格串行（轮前查闸门、
+轮间等 75s 回收）。腾内存按用户授权关了 Termius（753MB）与 msedge（565MB），free 3000 → 3302MB。
+
+
+### M6-A 第一份容量算术（用已落盘的干净冻结轮算，不占栈）· 2026-10-08
+
+L3/M6 的判据是"100–300 题回归 ≤30 分钟"。先量清楚时间花在哪，再决定并行几个 worker：
+
+| 量 | 数 | 出处 |
+|---|---|---|
+| 一轮 19 题的编排墙钟 | **233s**（queued 17:05:19 → merge 17:09:12）= 12.3s/题 | `reports/m1-baseline-1008-1704.json` + runner 自身日志 |
+| 其中 agent 循环内（每任务最后一步的累计 `executed_ms` 相加） | **67.4s** / 61 步 | 同上轮的逐任务 trace |
+| 其中推理（每拍 DEC 的 `latency_ms` 相加） | **22.4s** = agent 侧的 33%，墙钟的 10% | 同上 |
+
+三条结论：
+
+1. **约 60% 的墙钟在 agent 循环之外**（任务之间 `_reset_cdp` 重启有头 Chrome、起始导航与首次观测、
+   harness、1s 任务间隔）。所以 M6 的第一杠杆不是并行，是砍这 ~7.5s/题的固定开销；
+2. **GPU 远未饱和**（推理只占墙钟 10%，llama-server 的 `--parallel 4` 现在基本空转），
+   多加 worker 主要抢的是内存与 profile，不是模型；
+3. 按 12.3s/题串行外推：**100 题 ≈ 20.5 分钟（今天就能进 30 分钟线）**，
+   **300 题 ≈ 61.5 分钟**，要进线需要 ~3 个 worker 或把固定开销砍一半再配 2 个。
+
+**顺带照出一个审计缺口**：`.gitignore:72` 把 `reports/baseline-*/` 整个排除，也就是说我在冻结判据里
+引用的逐任务 trace（n004 的技能序列、61 条步事件 `text_helper` 全 null）**只在这块盘上存在，没进 git**；
+进 git 的只有合并后的 `m1-baseline-*.json`，而它不带 events。零云端这条硬线目前在仓库里不可复核 ——
+M6 的 runner 必须把步级 provenance 写进**被跟踪**的产物，否则判据只能靠当场读数。
+
+## Fix P 冻结读数 · 2026-10-08（判据先立在"预登记"一节，这里只落结果）
+
+四轮（三轮是判据要求，第四轮是补跑剩下的那次撞上的）：
+
+| 轮 | 报告 | pass | fp | api | n004 技能序列 | `search_submit` | 步事件 `text_helper` | pc=None 的步 |
+|---|---|---|---|---|---|---|---|---|
+| 16:25 | `reports/m1-baseline-1008-1625.json` | 19/19 | 0 | 0 | `search_type, search_submit, explicit_target, goal_reached` | 1 | 全 null（56 条） | 0 |
+| 17:04 | `reports/m1-baseline-1008-1704.json` | 19/19 | 0 | 0 | 同上 | 1 | 全 null（61 条） | **1**（s002 步#2，s002 仍 PASS） |
+| 17:12 | `reports/m1-baseline-1008-1712.json` | 19/19 | 0 | 0 | 同上 | 1 | 全 null（60 条） | 0 |
+| 17:17 | `reports/m1-baseline-1008-1717.json` | 18/19（f002 FAIL） | 0 | 0 | 同上 | 1 | 全 null（56 条） | 0 |
+
+**裁决：冻结判据过**（19/19×3，方差内），Fix P 可以进真实批。
+
+两处如实记下：
+
+1. **17:17 的 f002 不是这刀带的**。它的 4 步里没有一条 pc=None，死形是：httpbin 这次给的是 SPA 壳
+   `https://httpbin.org/#/Auth`（17:12 那轮是干净的 `https://httpbin.org/`），`goto_path` 连点连滚，
+   最后一拍 DEC `goto_path CLICK e21` **没落成步**，run 就地收口
+   `failure_class=agent / failure_mode=decision / quadrant=correct_abandon`，`final_budget.steps 4/25`
+   —— 不是预算，是 `agent.py:491-520` 那条 StalePage 重试收口（缺陷#15/#25 已开的线）。
+   归到 #25 的"空点击/弃权连续"半边，不在本刀修。
+2. **这刀在冻结集里几乎不可能显形**：整个 19 题四轮只出现 **1 次** pc=None（17:04 的 s002）。
+   Fix P 修的是导航竞态这种稀有事件，冻结只能证明"不带回归"，收益要在真实批与单任务上看
+   （单任务 r116 已经把机制兑现：steps 1→4、步#1 pc=True 且 URL 记成导航后的页）。
+
+冻结能被内存闸门挡，也能被并发污染（见上一节 16:56/16:57 作废）。这轮的处置是：轮与轮之间
+按 [[benchmark-infra-gotchas]] 第 3/9 条重启服务栈 —— 17:12 重启后 free 1605 → 3239MB，
+17:21 之后再次重启 free 到 7016MB，b10 就是在 7GB 空档上起跑的。
+
+## b10 真实批读数 · 2026-10-08 17:38（Fix P，判据在"预登记"一节 1533 行）
+
+`reports/real-1008-b10-fixp-1008-172503.json`：**11/22**，api_calls=0，步事件
+`text_helper` = {null: 112, `startlux-decision-2b`: 3}（无越界项 → 零云端成立），
+`page_changed` 三态 = True 43 / False 70 / **None 2**（r102 一步、r115 一步 —— Fix P
+的"没看见就不许说没效果"在真实批里第一次留下痕迹）。
+
+对 b9 的差集只有一条：**LOST r107**，NEW 无。**下限 12/22 被击穿**，按字面判据 Fix P 回炉。
+
+但 r107 的 60 步里有 59 步是同一个技能在原地等，机制链完整、且**不在 Fix P 改的那条路上**：
+
+1. 步#1：`first_action_floor CLICK e117`（conf 1.0，技能拍、latency 0）——HN 首页上地板随机
+   抓住一条新闻外链，`page_changed=True` 落到 `https://dat-ecosystem.org/`（22 题的 task 文件里
+   没有这个域名，全仓 artifacts 也只有这一条 trace 提到它 → 第一次出现就是这次抽样）；
+2. 步#2–#60：`page_not_ready` 连发 **59 拍 WAIT**，conf 1.0、latency 0、`page_changed=False`
+   各拍都记，22.6s 烧完；
+3. 收口不是判据收的，是 `agent.py:650-651` 的硬上限抛异常：`ValueError: Stopped at the
+   60-action demo budget` 从 `run()` 生成器逃逸 → runner 把该行同时写成
+   `error=agent_loop_raised` **和** `result=FAIL / failure_mode=decision`，
+   于是 summary 报 **error=0**（这条账现在是假的，见下）。
+
+三处代码事实（读出来的，不是推的）：
+
+- `skills.py:181` 的 `page_not_ready` 直接 `return _wait("page_not_ready")`，**没有过
+  `_can_wait`**（`skills.py:127` 那个上限只在 `entity_confirm` 用：1314 / 1323 行）。
+  `agent.py:258` 的注释写着"wait 的上限由技能侧的 `_can_wait` 兜底"——对这个技能不成立。
+- WAIT 被**所有**停滞守卫排除：`agent.py:240`（相同 choice）、`agent.py:260`（stale 决策）、
+  `agent.py:220`（`real_steps` 预算）——所以一个 WAIT 循环对守卫完全隐形，只能撞 60 硬顶。
+- 任务自带的 `budget.steps=12` 从没参与收口（`final_budget` 记的是 `step:1 / steps_budget:12`），
+  硬顶是常量 `MAX_STEPS=60`，且它选择**抛异常**而不是干净 blocked。
+- b9 的 r107 是 2 步 PASS（`news.ycombinator.com/newest`），机制同上但地板那一下抓对了链接：
+  **r107 在两侧都是掷硬币题**，它的 PASS 率不是 Fix P 能影响的量。
+
+**裁决动作（不擅自豁免已登记的判据，改用同型配组读数）**：跑 **b11 = 同一份代码、同一 22 题**
+的配对复跑。判据现在登记，读数为零之后才写结果：
+
+| 判据 | 内容 |
+|---|---|
+| b11 ≥ 12/22，且 b10↔b11 的差集仍只落在 r107 | 下限击穿由 r107 的地板抽样 + `page_not_ready` 无界 WAIT 造成，两者都不在 Fix P 的改路上 → **Fix P 提交**，收益判据回到"三轮冻结 19/19×3 + 单元 6/6（预修 2/6）+ 确定性套件 116/116 + r116 单任务机制兑现"，`page_not_ready` 无界与预算/异常收口另开一刀（#25/#30 的实锤续账） |
+| b11 < 12/22，或出现第二条与 b9 相比的回归且其 trace 里有被结算的 pc=None 参与翻判 | **Fix P 回炉**（原判据字面执行） |
+| 顺带记录 | b11 的 pc=None 次数与每条是否被下一拍结算；`text_helper` 取值集合必须仍是 {null, startlux-decision-2b} |
+
+## M6-A ① 吞吐拆账 · 2026-10-08（纯离线：读 b9 的 trace + 四轮冻结的 progress log，不碰浏览器/不碰 :8090）
+
+L3/M6 的判据是"100–300 题回归 ≤30 分钟"。要定 worker 数，先得知道一分钟花在哪。
+按 trace 的 `timestamp` 与报告里的 `meta.elapsed_ms` 对齐（`start = 末事件 - elapsed`），
+b9（22 题，`logs/real-1008-b9-fixo-1008-150222` + 同名 report）拆出来是：
+
+| 量 | 值 | 占比 |
+|---|---|---|
+| 批墙钟（首事件→末事件） | **763.8s**（34.7s/题） | 100% |
+| agent 侧（Σ `meta.elapsed_ms`，含导航+归静+决策+执行） | 240.9s（10.9s/题） | 31.5% |
+| **题与题之间的间隙** | **523.0s（24.9s/题）** | **68.5%** |
+| 决策 latency（88 拍：技能 51 / 模型 37） | 39.2s | 5.1% |
+| Text Helper  latency | 1.2s | 0.2% |
+
+间隙那一列**不是页面慢**：21 个间隙每个都是 **24.8–25.1s**（极差 0.3s）。常数不是方差，
+常数来自代码。但把 `m1/run_tasks.py:60-100` 的 `_reset_cdp()` 逐项加总只有
+`sleep 2 + sleep 5 = 7s`，再加 `--task-delay 1` = 8s；WMI 枚举不是嫌疑（在批跑中实测
+`Get-CimInstance Win32_Process -Filter "Name='chrome.exe'"` 8 进程 **0.13s**，带
+`CommandLine` 过滤 0.10s）。**剩下 ~17s 未归因**，归因要在没有批跑占用时单独测
+`_reset_cdp()` 的每一段（含 `_ensure_daemon()`），记在 ②③ 之后补。
+
+**同一份产品代码，两条测量路径的每题成本差 2.8 倍**：
+
+| 路径 | 每题墙钟 | 为什么 |
+|---|---|---|
+| 真实批 `scripts/run_one.ps1 -TasksFile`（一个 python 进程跑完 22 题） | 34.7s | `run_tasks.py:337` 的 `if i > 1: _reset_cdp()` 每题付一次 |
+| 冻结轮 `run_baseline_19.ps1`（每题起一个 `python -m m1.run_tasks`，task 文件只有一行 → `i==1`） | **11.5s**（19 题 218s，`logs/baseline-1008-1704-progress.txt` 的相邻 start 差） | `_reset_cdp()` **在冻结路径里从不执行** |
+
+`_reset_cdp` 存在的理由是 f004 类 `no close frame received or sent`（WS 会话累积后断帧，
+`run_tasks.py:61-63` 的 docstring），所以不能一删了之；M6-B 的正确形状是
+**每 worker 一个常驻浏览器 + 每题换 CDP browser context**，而不是每题杀进程。
+
+容量算术（worker 数怎么定，先把不等式写清楚）：
+
+- 现状串行：100 题 = 100×34.7s ≈ **57.8 分钟**，300 题 ≈ 2.9 小时 → 都过不了 30 分钟线。
+- 只把那 24.9s 常数砍到 0：100 题 ≈ 18 分钟（**过线**），300 题 ≈ 55 分钟（还差 1.9 倍）。
+- 常数只能压到 8s（保留 reset 语义、去掉未归因的那 17s）：100 题 ≈ 26 分钟（过线），
+  300 题 ≈ 78 分钟 → 需要 **3 个 worker**（78/3 = 26 分钟）。
+- 所以顺序是**先砍常数、再谈 worker**：用并行去掩盖一个固定开销，等于把 68% 的成本复制 N 份，
+  还额外去撞 3000MB 内存闸门（[[benchmark-infra-gotchas]] 第 16 条）。
+- worker 数的两条硬约束还没读数（② :8090 并发、③ 每 owned profile 的 RSS）。②的先验不乐观：
+  `llama-server` 现在是 `-c 16384 --parallel 4`（实测命令行），4 槽共享 16384 token，
+  而决策 prompt 带 `elements` + `text[:1500]`（`model.py:252`）——一页真站就能吃掉几千 token，
+  4 并发未必塞得下；③的另一条硬条件：新增 worker 画像必须同时进
+  `browser.py:29 OWNED_PROFILE_MARKERS` 和 kill 侧守卫（有测试钉住两者同步，P0 的边界）。
+
+**顺带一条证据账**：`.gitignore:72` 排掉 `reports/baseline-*/`、`:97` 排掉整个 `logs/`，
+所以"步级 `text_helper` 全 null"这类零云端证据**只活在这台机器上**，仓库里被跟踪的只有
+`reports/*.json` 的聚合 `meta`（steps/model_calls/api_calls）。M6 的 runner 必须把步级
+provenance 写进被跟踪的产物，否则判据只能靠当场读数。
+## b11 配对复跑 · 2026-10-08 17:56（与 b10 **同一份代码**，判据写在 1653 行的表里）
+
+`reports/real-1008-b11-fixp-pair-1008-174335.json`：**12/22**，api_calls=0，
+步事件 `text_helper` = {null: 108, `startlux-decision-2b`: 1}（无越界项），
+`page_changed` = True 40 / False 69 / **None 0**，error 行 0。
+
+对 b9 的差集：**NEW r115**（python.org，5 步真到 `www.python.org/downloads/`，标题
+"Download Python | Python.org"，断言 url_matches 命中 —— 不是假 PASS），
+**LOST r107**。对 b10 的差集：r115 FAIL→PASS、r107 两边同形。
+
+r107 在 b11 里**又是同一形状**：`first_action_floor` 那一下仍落在 `e117` →
+`https://dat-ecosystem.org/` → `page_not_ready` 连等 **59 拍** → `MAX_STEPS` 抛异常。
+两批复现同一签名，所以这不是抽样噪声，而是**确定性**的：HN 首页这一天的头条条目没换，
+地板在同一页面上抓同一个元素。b9 的 PASS 是 15:02 那一次首页内容不同所致 ——
+**r107 的结果实际取决于站点当天放了什么**，这是题集的脆弱性（记在 #25），
+而 59 拍无界 WAIT + 撞顶抛异常是 #36 的实锤（两批 2/2）。
+
+对照已登记的判据：
+
+| 判据 | 读数 | 结论 |
+|---|---|---|
+| b11 ≥ 12/22 | 12/22 | 达线（b10 击穿的下限在同等代码上复原） |
+| 差集只落在 r107（回归侧） | 回归仍只有 r107；r115 是**增益**不是回归 | 满足其意图 |
+| 第二条回归且其 trace 有被结算的 pc=None 参与翻判 | b11 的 pc=None **0 条**，无任何结算参与判据 | 未触发 |
+
+**裁决：Fix P 提交。** 收益判据 = 单元 6/6（预修 2/6）+ 确定性套件 116/116 +
+三轮冻结 19/19×3（17:17 的 18/19 在方差内并已归因到 f002 的 SPA 壳）+ r116 单任务机制兑现
+（steps 1→4、步#1 pc=True 且 URL 记成导航后的页）+ b10/b11 无由 Fix P 引起的回归。
+一句话：**这刀买到的是"不再把'没看见'记成'没发生'"，不是分数**。
+
+一处必须说清的读数口径：**trace 里的 pc=None 是写入时的快照**。结算发生在内存里的
+`history[-1]`（`agent.py` predict 分支），**不回写已经落盘的那一行** —— 所以"某批有 N 条 None"
+只证明"N 拍的复观察失败"，不证明"未知一直挂着"。要证结算真的发生，看的是守卫有没有缴械：
+r116 的单任务读数（1→4 步）就是这条。
+
+另开两刀，都是这两批直接给的：#36（`page_not_ready` 无界 + 撞顶抛异常 +
+runner 把崩溃行同时写成 `error` 和 `result=FAIL`，导致 summary 的 error=0 是假的）、
+#25（地板在第一跳把任务带离目标站；r107 的成败取决于 HN 当天首页内容）。

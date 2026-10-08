@@ -548,6 +548,32 @@ class Agent:
                     state["page"] = state["browser"].observe(screenshot=self.screenshots)
                 except StalePage:
                     break
+            # Fix P 的第二半：结算上一拍"观测失败"留下的未知。依据是该步自己存下的
+            # 动作前指纹 page_fp_before —— 现在看到的页和它不同，就说明那一次动作真的
+            # 推进了世界，当时的 False 是观测失败的副产品。
+            # 只结算 None：观测**成功**过的 False 是可信读数，页面后来自己变了
+            # （异步渲染/DOM 抖动）不能记到上一个动作头上，否则"连续三次无效果"守卫
+            # 会被抖动骗过。结算不出来的 None（连续两次观测失败）保持未知，由
+            # evaluator 的 stale_loop 如实归类，不硬猜。
+            if state["history"] and state["history"][-1].get("page_changed") is None:
+                h = state["history"][-1]
+                settled = state["page"]["fingerprint"] != h.get("page_fp_before")
+                h["page_changed"] = settled
+                if settled:
+                    url_now = state["page"]["url"]
+                    moved = url_now != h.get("url")
+                    h["outcome"] = {
+                        "status": "url_changed" if moved else "dom_changed",
+                        "page_changed": True,
+                        "url_changed": moved,
+                    }
+                    h["url"] = url_now
+                elif h.get("kind") == "wait":
+                    h["outcome"] = {"status": "wait_no_change",
+                                    "page_changed": False, "url_changed": False}
+                else:
+                    h["outcome"] = {"status": "no_effect",
+                                    "page_changed": False, "url_changed": False}
             # M1.5 机制②：记录上一轮可见 node 集合——本轮新出现的 node
             # （autocomplete 建议、弹层等"世界刚提供的选项"）在 choose_typesafe
             # 中获得显著性权重。DOM 无变化（fresh）时集合不变，无额外开销。
@@ -698,18 +724,32 @@ class Agent:
             # 缺陷#35：成功复观察 → 标记"页面已是新观测"，下一 tick 的 predict 可跳过
             # 那次几乎恒真的 fresh()（见 predict 分支）。抛 StalePage 时不置位，
             # 下一 tick 照旧校验。
+            reobserved = True
             try:
                 state["page"] = state["browser"].observe(screenshot=self.screenshots)
                 state["page_observed"] = True
             except StalePage:
-                pass
+                reobserved = False
             page_changed = state["page"]["fingerprint"] != page["fingerprint"]
             url_changed = state["page"]["url"] != page["url"]
+            # Fix P（b9 的 r116/r102 真形）：观测撞上导航时 state["page"] 还是**动作前**
+            # 那个对象，于是 page_changed 必然 False —— 把"没看见"记成了"没发生"。
+            # r116 地板点 "Rust API documentation" 真的从 /stable/ 导航到了
+            # /stable/std/index.html（下一拍决策的指纹已换），历史里却是 False，
+            # skills.py:228 的地板守卫 `if not floor_hist[-1].get("page_changed")`
+            # 就此缴械 → 模型下一拍 BLOCKED → 整条任务 1 步收口。
+            # 未知就写未知（logger.py:229 早已定义 page_changed=None 表示 observe 失败，
+            # 是这条路没遵守），由下一拍归静的观测结算，见 predict 里的 Fix P 分支。
+            if not reobserved:
+                page_changed = None
+                url_changed = False
             # M1.5 机制③：维护已访问页指纹集合（observe 产出的每个新页态入集）。
             # SPA toggle：点击后落回已见过的页态 = 环边，choose_typesafe 据此剔除。
             state.setdefault("visited_fps", set()).add(state["page"]["fingerprint"])
 
-            if url_changed:
+            if not reobserved:
+                outcome_status = "observe_failed"
+            elif url_changed:
                 outcome_status = "url_changed"
             elif state["history"][-1]["kind"] == "wait":
                 outcome_status = "wait_no_change"
