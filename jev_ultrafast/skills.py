@@ -579,6 +579,15 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
     if not phrases:
         return None
     recent = {h.get("choice") for h in (history or [])[-4:]}
+
+    # 单/复数折叠：只在**这一层**做，绝不进 `_phrases` / `_goal_query`（它们喂搜索词，
+    # 折叠会把 "Downloads" 变成 "Download" 去搜）。证据面：r115 实况，python.org 上
+    # goal 写 'Download Python'，导航 label 是 "Downloads"，一个 s 之差 → 全部档位
+    # 不认 → 回落 2B → 第 1 拍点了搜索框。别的任务还没有复数标签 witness，
+    # 名词只收见过的，不许按想象扩充。
+    def _fold_s(t: str) -> str:
+        return t[:-1] if len(t) > 5 and t.endswith("s") else t
+
     scored = []
     for index, a in _indexed(page.get("actions") or []):
         if a.get("kind") != "click" or a.get("id") in recent:
@@ -592,7 +601,7 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
         if not lab:
             continue
         lab_n = " ".join(_tokens(lab))
-        lab_c, lab_t = _content(lab), set(_tokens(lab))
+        lab_c, lab_t, lt = _content(lab), set(_tokens(lab)), _tokens(lab)
         # 链接地址的 host（快照新增 href / site 字段）：结果页里目标词会出现在**多条**
         # 标题里，只有域名能区分"官方站点"——"Search for 'OpenAI' and open the official
         # OpenAI website" 只看 label 会点到任意一条新闻结果（s001 实况）。
@@ -624,6 +633,7 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
             pn = " ".join(_tokens(p))
             if not pn:
                 continue
+            pt = _tokens(p)
             # 域名命中 = "这是对的站点"；label 命中 = "这是站点里对的那一页"。两者必须
             # **叠加**：同一站点会有多条链接（主结果 + 该站点的子链接共用同一个 cite），
             # 只按域名打分会全部同分 → "明显优势"判据不成立 → 直接回落模型
@@ -652,6 +662,14 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
                 # 任意位置的包含会把站点名当目标：r113 实况，peps 首页上唯一命中短语的动作是导航链接
                 # "Python"（"python" 只是短语中间的词）→ 0.9 且无对手 → 跳出任务域名，后面全塌。
                 label_score = 0.9
+            elif (pt[0] not in STOPWORDS and len(lt) <= len(pt)
+                  and all(_fold_s(x) == _fold_s(y) for x, y in zip(lt, pt))
+                  and any(x != y for x, y in zip(lt, pt))):
+                # 复数折叠档（r115 唯一 witness）：标签是短语的**逐词前缀**，唯一差别
+                # 是单/复数。0.95 稳在 0.9（片段）之上、1.0（包含）之下；与 0.9 并存的
+                # 页面（"Downloads" + "Download" 同时挂链接）差 0.05 < 0.15 → 照旧弃权，
+                # 不赌位置。
+                label_score = 0.95 + min(len(pn), 40) / 1000.0
             else:
                 pc = _content(p)
                 if pc:

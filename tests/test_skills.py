@@ -1191,6 +1191,53 @@ def t_explicit_target_prefix_row_beats_contains_rows():
     assert S.explicit_target(both, goal, []) is None, "真同分仍在赌位置"
 
 
+@case("Q 类：goal 的短语是单数、导航标签是复数时也要认得（r115 'Download Python' → 'Downloads'）")
+def t_explicit_target_folds_plural_nav_label():
+    goal = "From the Python homepage, open the 'Download Python' releases page."
+
+    def nav(i, label, href):
+        return A(i, "click", label, i, href=href)
+
+    home = page([nav(1, "Python", "/"), nav(2, "Docs", "https://docs.python.org"),
+                 nav(3, "PyPI", "https://pypi.org/"), nav(4, "Community", "/community/"),
+                 nav(5, "News", "/news/"), nav(6, "Events", "/events/"),
+                 nav(7, "Success Stories", "/success-stories/"),
+                 nav(8, "Downloads", "/downloads/"),
+                 A(9, "fill", "Search This Site", 90, role="searchbox"),
+                 nav(10, "GO", None)], url="https://www.python.org/")
+    # 1) 折叠档要赢：目标链接在首屏可见（零模型探针 m2/probe_second_hop.py 实测 [14]），
+    #    改前 explicit_target 在这页上**一个候选都打不出分** → 地板退去填搜索框
+    #    （python.org 搜 "Download Python" 第一条结果是 Python 2.1 发布说明，死路）。
+    d = S.explicit_target(home, goal, [])
+    assert d and d["choice"] == "e8", f"复数标签 'Downloads' 没被认出来：{d}"
+    # 2) 路由层面：第一拍必须是 CLICK，不是 fill —— 这正是 r115 预登记判据 #3 的形状
+    r = S.route(home, goal, [])
+    assert r and r["skill"] == "explicit_target" and r["operation"] == "CLICK", \
+        f"route 仍然把第一拍让给搜索框：{r}"
+    # 3) 折叠只许折**真复数**：'news'/'News' 去 s 会得到 'new'，与短语 'New York Times'
+    #    的首词相等 —— 那不是形态学而是巧合。这条反例把长度门槛钉住。
+    times = "From the front page, open the 'New York Times' page."
+    n = page([nav(1, "News", "/news/"), nav(2, "New York Times", "/nytimes")],
+             url="https://example.com/")
+    d = S.explicit_target(n, times, [])
+    assert d and d["choice"] == "e2", f"'News' 越过了折叠门槛，抢掉了真目标：{d}"
+    n2 = page([nav(1, "News", "/news/")], url="https://example.com/")
+    assert S.explicit_target(n2, times, []) is None, "'News' 不该与 'New York Times' 折叠相等"
+    # 4) 折叠后同分 = 真同分 → 仍然弃权（沿用 Fix L 的"不赌位置"口径）
+    both = page([nav(1, "Downloads", "/downloads/"), nav(2, "Download", "/download/")],
+                url="https://example.com/")
+    assert S.explicit_target(both, goal, []) is None, "折叠同分仍在赌位置"
+    # 5) 放宽不许吃掉更强的信号：精确 2.0 那一行仍然优先
+    exact = page([nav(1, "Downloads", "/downloads/"),
+                  nav(2, "Download Python", "/downloads/")], url="https://example.com/")
+    d = S.explicit_target(exact, goal, [])
+    assert d and d["choice"] == "e2", f"折叠档盖过了精确匹配：{d}"
+    # 6) 泄漏闸门：折叠只活在 explicit_target 的打分里。要填进搜索框的值、到达判据用的
+    #    短语集合都必须还是 goal 的字面量原样。
+    assert S._goal_query(goal) == "Download Python", "折叠漏进了搜索词"
+    assert S._phrases(goal) == ["Download Python"], "折叠漏进了短语集合"
+
+
 @case("M 类：goal 里的名词 \"book\" 不该关掉到达判据（r111/r112），守卫本身不许松动")
 def t_transaction_guard_noun_book_keeps_arrival_detection():
     det = dict(page([A(1, "click", "Books", 1)],
