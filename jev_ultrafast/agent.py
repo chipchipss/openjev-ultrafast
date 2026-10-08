@@ -139,11 +139,23 @@ class Agent:
         self.api_teacher = api_teacher
         self.api_budget = api_budget
 
-        try:
-            page = self.browser.observe(screenshot=self.screenshots)
-        except Exception:
-            self.browser.close()
-            raise
+        # E1（b7 的 r103 实况）：初始观测撞上"文档正在导航"就把整条任务吃掉。
+        # observe 内部只有 10×20ms=200ms 的重试，而一次真实导航是 1s 量级；tick 循环
+        # 早有有界退避（见下方 StalePage 分支的 5 次重试），init 这条路没有 ——
+        # 于是 StalePage 逃出整个 run：报告只剩 result="ERROR"，连 jsonl 都没落，
+        # 这条任务**连判据都没被跑过**。加退避而不是加词表：失败形状与页面内容无关。
+        for attempt in range(6):
+            try:
+                page = self.browser.observe(screenshot=self.screenshots)
+                break
+            except StalePage:
+                if attempt == 5:
+                    self.browser.close()
+                    raise
+                time.sleep(0.4 * (attempt + 1))
+            except Exception:
+                self.browser.close()
+                raise
         self.state = dict(
             browser=self.browser,
             goal="\n".join(plan),

@@ -366,9 +366,21 @@ def browser_operation(request):
               if (!e?.isConnected || e.matches(':disabled') || e.closest('[aria-disabled="true"],[inert]') ||
                   !e.checkVisibility({checkOpacity:true,checkVisibilityCSS:true})) return null;
               if (action.kind==='fill' && (e.readOnly || e.getAttribute('aria-readonly')==='true')) return null;
-              const r=e.getBoundingClientRect(), x=r.x+r.width/2, y=r.y+r.height/2;
-              if (!r.width || !r.height || x<0 || y<0 || x>=innerWidth || y>=innerHeight) return null;
-              if (!e.contains(document.elementFromPoint(x,y))) return null;
+              // 点击点取自**行片段**（getClientRects），不是并集盒（getBoundingClientRect）。
+              // inline <a> 的文字绕浮动块断行时，并集盒把两段之间的空白也算进来：
+              // doc.rust-lang.org/stable/ 实况（b7 的 r116），'Rust API documentation'
+              // 行片段 [[805,307],[245,333]] 都能命中，并集盒 [177,294,665x52] 的中心
+              // (510,320) 却打在别的元素上 → 这里判"被覆盖" → StalePage 连抛 5 次 →
+              // agent 以 steps=0 收口，看起来像竞态，其实是每条多行链接都点不动。
+              // 块级元素只有一段，与该段等于其 border box —— 常见路径行为不变。
+              let pt=null;
+              for (const q of e.getClientRects()) {
+                const x=q.x+q.width/2, y=q.y+q.height/2;
+                if (!q.width || !q.height || x<0 || y<0 || x>=innerWidth || y>=innerHeight) continue;
+                const top=document.elementFromPoint(x,y);
+                if (top && e.contains(top)) { pt={x,y}; break; }
+              }
+              if (!pt) return null;
               if (action.kind==='select') {
                 if (e.tagName!=='SELECT' || ![...e.options].some(o=>o.value===action.value &&
                     !o.disabled && !o.closest('optgroup[disabled]'))) return null;
@@ -376,7 +388,7 @@ def browser_operation(request):
                 e.dispatchEvent(new Event('input',{bubbles:true}));
                 e.dispatchEvent(new Event('change',{bubbles:true}));
               }
-              return {x,y};
+              return pt;
             })(""" + json.dumps(action) + ")")
             if target is None:
                 if kind == "select":
