@@ -2,6 +2,8 @@
 
 import hashlib
 import json
+import re
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -16,9 +18,78 @@ import os
 # （实测：M1 长跑卡在 ensure_daemon 30+ 分钟，只能人工 kill）。
 DAEMON_WAIT = float(os.environ.get("JEV_DAEMON_WAIT", "30"))
 
+#: 浏览器归属（P0 · 2026-10-08）。browser_harness 的 get_ws_url() 找浏览器的顺序是：
+#: BU_CDP_WS → BU_CDP_URL → **扫 Chrome 默认画像的 DevToolsActivePort** → 最后才探 9222。
+#: 我们自己的 Chrome 是用 `--user-data-dir`（不在扫描名单里）起的，所以只要用户本人的
+#: Chrome 允许过远程调试（Local State 里 remote_debugging.user-enabled=true），守护进程
+#: 就会连到**他的**浏览器：任务在他的真实窗口里跑（撞"绝不动用户自己的 Chrome"这条硬线），
+#: 而弹窗不在时又变成 403 permission-blocked（实测：冻结 round 1 两个 pilot 全废在这）。
+#: 所以连接之前把端点钉死，并且验一次"这个端口上的进程确实是我们起的画像"。
+CDP_PORT = int(os.environ.get("JEV_CDP_PORT", "9222"))
+OWNED_PROFILE_MARKERS = ("chrome-cdp-test", "chrome-jev-profile")
+
+
+def _pin_cdp_endpoint() -> None:
+    """没显式指定就把守护进程锁到我们的 CDP 端口；显式指定的尊重它，但仍要过归属校验。"""
+    if not (os.environ.get("BU_CDP_WS") or os.environ.get("BU_CDP_URL")):
+        os.environ["BU_CDP_URL"] = f"http://127.0.0.1:{CDP_PORT}"
+
+
+def _endpoint_port() -> int:
+    for var in ("BU_CDP_WS", "BU_CDP_URL"):
+        m = re.search(r"://[^/:]+:(\d+)", os.environ.get(var) or "")
+        if m:
+            return int(m.group(1))
+    return CDP_PORT
+
+
+def _run_text(cmd: list[str], timeout: int) -> str:
+    """Console tools here answer in the OEM codepage; decode leniently instead of
+    letting a UnicodeDecodeError look like "no browser on that port"."""
+    r = subprocess.run(cmd, capture_output=True, timeout=timeout)
+    return r.stdout.decode("utf-8", "replace") + "\n" + r.stderr.decode("utf-8", "replace")
+
+
+def _listener_cmdline(port: int):
+    """命令行里带 --user-data-dir 的那个进程；查不到返回 None（fail closed 由调用方决定）。"""
+    try:
+        out = _run_text(["netstat", "-ano", "-p", "TCP"], 5)
+    except Exception:
+        return None
+    pids = {l.split()[-1] for l in out.splitlines()
+            if f":{port}" in l and "LISTENING" in l and l.split()[-1].isdigit()}
+    if not pids:
+        return None
+    probes = ";".join(
+        f"(Get-CimInstance Win32_Process -Filter 'ProcessId={p}').CommandLine" for p in pids)
+    try:
+        out = _run_text(["powershell", "-NoProfile", "-Command", probes], 10)
+    except Exception:
+        return None
+    lines = [x for x in out.splitlines() if x.strip() and "Get-CimInstance" not in x]
+    return "\n".join(lines) or None
+
+
+def _assert_owned_browser() -> None:
+    port = _endpoint_port()
+    cmd = _listener_cmdline(port)
+    if cmd is None:
+        raise RuntimeError(
+            f"no-browser: nothing listens on :{port} -- the owned CDP Chrome was started "
+            f"by the runner (--user-data-dir=chrome-cdp-test); refusing to let the harness "
+            f"fall back to whatever browser it can find")
+    if not any(marker in cmd for marker in OWNED_PROFILE_MARKERS):
+        raise RuntimeError(
+            f"foreign-browser: :{port} is served by a Chrome we did not start "
+            f"({cmd[:160]}) -- refusing to drive it")
+
+
+_pin_cdp_endpoint()
+
 
 def _ensure_daemon() -> None:
     """有界 ensure_daemon：显式 wait 把无限等待变成有界失败；失败则复位重试一次。"""
+    _assert_owned_browser()
     try:
         ensure_daemon(wait=DAEMON_WAIT)
         return
@@ -40,9 +111,32 @@ MARKER = f"(() => {{ const state={READ_STATE}; return state?.marker ?? null; }})
 #: （n001/f002 实况：同一 CLICK 决策连发 5 次、一次都没执行，最终被循环检测判 blocked）。
 MARKER_STABLE = f"(() => {{ const state={READ_STATE}; return state?.marker_stable ?? null; }})()"
 
+#: 在途请求计数器。同一份脚本既装进当前 document，也注册成 new-document 脚本
+#: （见 Browser._settle_patch）——它必须在页面自己的脚本之前跑起来，才可能看见
+#: 页面一加载就发出的那个异步请求。
+SETTLE_INIT_JS = (
+    "(() => { if (window.__jevSettle) return 1;"
+    " const st = { inflight: 0, lastEnd: 0 };"
+    " const dec = () => { st.inflight--; st.lastEnd = performance.now(); };"
+    " const of = window.fetch;"
+    " if (of) window.fetch = function (...a) {"
+    "   st.inflight++; let p;"
+    "   try { p = of.apply(this, a); }"
+    "   catch (e) { dec(); throw e; };"
+    "   p.then(dec, dec); return p; };"
+    " const os = XMLHttpRequest.prototype.send;"
+    " XMLHttpRequest.prototype.send = function (...a) {"
+    "   st.inflight++;"
+    "   try { this.addEventListener('loadend', dec); }"
+    "   catch (e) { dec(); };"
+    "   try { return os.apply(this, a); }"
+    "   catch (e) { dec(); throw e; }; };"
+    " window.__jevSettle = st; return 1; })()"
+)
+
+
 class StalePage(ValueError):
     """A decision no longer refers to the observed page."""
-
 
 class Browser:
     def __init__(self, url):
@@ -134,6 +228,15 @@ class Browser:
                 )
             except RuntimeError:
                 pass
+            # Fix O（n004 三轮冻结 + 单任务复跑）：act() 之后那次 settle 会在**整页导航**时
+            # 撞上"执行上下文被销毁"，而那条路是 `except Exception: pass`（注释写明交给
+            # observe 的 StalePage 重试）。可 StalePage 只会重试"读"，不会等"渲染" ——
+            # 于是提交搜索后的第一拍观测仍可能没有结果行（实测第 3 拍弃权、第 4 拍才点上）。
+            # 这里在**要读的那个 document 上**再等一次：在途计数现在由 new-document 脚本带着，
+            # 导航后照样有效，所以等的是"这一页自己的请求跑完了没"。
+            cap_ms = self.SETTLE_CAPS_MS.get(action["kind"])
+            if cap_ms:
+                self._await_settle(cap_ms)
         for attempt in range(10):
             try:
                 return browser_operation(
@@ -216,33 +319,27 @@ class Browser:
     SETTLE_QUIET_MS = 120
 
     def _settle_patch(self) -> None:
-        """装 fetch/XHR 在途计数（幂等；整页导航后随旧文档一起消失，act 前重装）。"""
+        """装 fetch/XHR 在途计数（幂等）。
+
+        除了装进当前 document，还要用 `Page.addScriptToEvaluateOnNewDocument` 注册一份：
+        提交搜索是**整页导航**，只装在当前 document 的补丁会随旧文档一起消失，新 document
+        里 `window.__jevSettle` 是 undefined → `_await_settle` 的 `reqBusy` 恒假 → 只剩
+        "DOM 静默 120ms" 一条判据，于是在结果行还没异步渲染出来时就放行观测。
+        n004 三轮冻结里 round 1331/1336 就是这么丢的（零模型探针：提交后 t=0 页面 27 个动作、
+        命中 0 行；+1.0s 才 32 个动作、1 行）。注册一次即可，之后每个新 document 都自带计数器。
+        """
         try:
-            self.call(
-                "Runtime.evaluate",
-                expression=(
-                    "(() => { if (window.__jevSettle) return 1;"
-                    " const st = { inflight: 0, lastEnd: 0 };"
-                    " const dec = () => { st.inflight--; st.lastEnd = performance.now(); };"
-                    " const of = window.fetch;"
-                    " if (of) window.fetch = function (...a) {"
-                    "   st.inflight++; let p;"
-                    "   try { p = of.apply(this, a); }"
-                    "   catch (e) { dec(); throw e; };"
-                    "   p.then(dec, dec); return p; };"
-                    " const os = XMLHttpRequest.prototype.send;"
-                    " XMLHttpRequest.prototype.send = function (...a) {"
-                    "   st.inflight++;"
-                    "   try { this.addEventListener('loadend', dec); }"
-                    "   catch (e) { dec(); };"
-                    "   try { return os.apply(this, a); }"
-                    "   catch (e) { dec(); throw e; }; };"
-                    " window.__jevSettle = st; return 1; })()"
-                ),
-                returnByValue=True,
-            )
+            self.call("Runtime.evaluate", expression=SETTLE_INIT_JS, returnByValue=True)
         except Exception:
             pass
+        if not getattr(self, "_settle_registered", False):
+            try:
+                self.call("Page.enable")
+                self.call("Page.addScriptToEvaluateOnNewDocument", source=SETTLE_INIT_JS)
+                self._settle_registered = True
+            except Exception:
+                # 不支持就该照旧工作：少一份跨导航计数器，等价于改前行为，不能让动作失败。
+                pass
 
     def await_action_settle(self, kind: str) -> None:
         cap_ms = self.SETTLE_CAPS_MS.get(kind)

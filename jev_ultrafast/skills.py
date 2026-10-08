@@ -17,7 +17,7 @@ env：M16_SKILLS=0 全关；M16_SKILL_<NAME>=0 单关（NAME 大写）。
 from __future__ import annotations
 import os
 import re
-from urllib.parse import urlparse as _urlparse
+from urllib.parse import parse_qsl, unquote, urlparse as _urlparse
 
 KIND_TO_OP = {"click": "CLICK", "fill": "TYPE_TEXT", "select": "SELECT"}
 
@@ -1104,6 +1104,22 @@ def search_submit(page: dict, goal: str, history: list) -> dict | None:
     )
     if last_sub > last_fill:
         return None                        # 已提交且此后未再输入 → 不再提交
+    # 页态判据（n004 三轮冻结 round 1331 的第 5 拍）：上面那条按历史的去重会被
+    # "模型在结果页把同一句 query 重填一次"重置，而结果页上同一个提交按钮换了编号
+    # （e15→e10），"这个 id 点过没有"也认不出来。于是地板又交一次 —— 实测这一交把
+    # URL 打回 /search/、query 直接丢失，已经拿到手的结果页被毁掉，任务在预算耗尽时收场。
+    # 所以再问一次**页面本身**：URL 的查询参数里已经带着这句 query，就说明这次搜索早跑过了，
+    # 该由结果页的技能接管。换了查询词照旧放行（改法只拦"同一句已经提交过的"）。
+    typed_toks = set(_tokens(_norm_label(hist[last_fill].get("text") or "")))
+    if typed_toks:
+        in_url: set = set()
+        try:
+            for _, _v in parse_qsl(_urlparse(page.get("url") or "").query):
+                in_url |= set(_tokens(_norm_label(unquote(_v))))
+        except Exception:
+            in_url = set()
+        if typed_toks <= in_url:
+            return None
     # 与 form_submit 同理：提交控件是 button，导航项是 link。自建站点的导航栏就有
     # <a href="search.html">Search</a>，先撞上它会直接离开当前页（实况）。
     cands = {"b_exact": None, "b_loose": None, "l_exact": None, "l_loose": None}
