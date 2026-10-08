@@ -16,9 +16,9 @@ $Repo = "C:\Users\Administrator\openjev-ultrafast"
 $Stamp = Get-Date -Format "MMdd-HHmmss"
 if ($TaskId) {
     $TaskFile = "$env:TEMP\single_$TaskId.jsonl"
-    # Single-task readings must be citable from the docs (纪律⑤: 数字要能对到
-    # reports/*.json), but this branch used to drop them in %TEMP%, where they
-    # vanish on the next disk cleanup.
+    # Single-task readings must be citable from the docs (rule 5: every number in
+    # a doc has to map to a reports/*.json), but this branch used to drop them in
+    # %TEMP%, where they vanish on the next disk cleanup.
     $Report   = "$Repo\reports\one-$($TaskId)-$Stamp.json"
     $LogDir   = "$Repo\logs\one-$($TaskId)-$Stamp"
     $Label    = $TaskId
@@ -79,14 +79,20 @@ $env:PYTHONUTF8 = "1"
 # single). The StartLux llama-server on :8081 serves it from the GGUF that is
 # already resident -- the same one model the wire uses, so nothing new starts
 # and nothing leaves the box (hard rule: exactly one resident model, zero cloud).
-# A dead :8081 stops the run instead of measuring a silently crippled agent.
-try { Invoke-RestMethod "http://127.0.0.1:$LlamaPort/health" -TimeoutSec 3 | Out-Null }
-catch { Write-Host "local text helper (llama-server :$LlamaPort) is not up -- run scripts/startlux_serve.ps1 first"; exit 1 }
-$env:TEXT_HELPER_BASE_URL = "http://127.0.0.1:$LlamaPort/v1"
-$env:TEXT_HELPER_MODEL = "startlux-decision-2b"
-$env:TEXT_HELPER_API_KEY = "local"
+# A dead helper stops the run instead of measuring a silently crippled agent;
+# the endpoint itself comes from scripts/text_helper.ps1, so no runner picks one.
+. "$Repo\scripts\text_helper.ps1"
+$helper = Resolve-TextHelper -Choice "startlux" -LlamaPort $LlamaPort
+Assert-TextHelper $helper
+$env:TEXT_HELPER_BASE_URL = $helper.Url
+$env:TEXT_HELPER_MODEL = $helper.Model
+$env:TEXT_HELPER_API_KEY = $helper.Key
 $env:TEXT_HELPER_MAX_TOKENS = "128"
 $env:TEXT_HELPER_MAX_RETRIES = "2"
+# Pin the harness to the chrome-cdp-test instance this script just started; unset,
+# browser_harness scans Chrome's default profile first and can drive the user's own
+# browser (jev_ultrafast/browser.py owns the check).
+$env:BU_CDP_URL = "http://127.0.0.1:9222"
 Write-Host "text helper: llama-server :$LlamaPort (local)"
 
 & "C:\Users\Administrator\miniconda3\envs\jev\python.exe" -m m1.run_tasks `

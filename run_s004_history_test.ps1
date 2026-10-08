@@ -8,6 +8,8 @@
 #  CONFIG
 # ═══════════════════════════════════════════════════════════════════
 $Repo         = "C:\Users\Administrator\openjev-ultrafast"
+. "$Repo\scripts\chrome_guard.ps1"
+. "$Repo\scripts\text_helper.ps1"
 $DeciderDir   = "D:\openjev-models\decider"
 $ChromeExe    = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 $ChromeProfile= "C:\chrome-cdp-test"
@@ -24,14 +26,21 @@ $DeciderEnv = @{
 }
 
 # Benchmark env
+# Zero-cloud hard line (2026-10-08): this runner used to reach for Groq by
+# default, so a bare invocation sent every TYPE_TEXT value to a cloud model
+# while the reports kept api_calls=0 -- that counter only counts the teacher
+# path. The endpoint has to be named; startlux and local are on-box, groq and
+# deepseek are CLOUD and break the rule (see scripts/text_helper.ps1).
+$helper = Resolve-TextHelper -Choice $env:JEV_TEXT_HELPER
+Assert-TextHelper $helper
 $BenchEnv = @{
     "DECIDER_MODE"          = "typesafe"
     "PYTHONUTF8"            = "1"
     "TYPESAFE_BASE_URL"     = "http://127.0.0.1:8000/v1/systemone"
     "TYPESAFE_API_KEY"      = "local"
-    "TEXT_HELPER_BASE_URL"  = "https://api.groq.com/openai/v1"
-    "TEXT_HELPER_MODEL"     = "openai/gpt-oss-120b"
-    "TEXT_HELPER_API_KEY"   = $env:GROQ_API_KEY
+    "TEXT_HELPER_BASE_URL"  = $helper.Url
+    "TEXT_HELPER_MODEL"     = $helper.Model
+    "TEXT_HELPER_API_KEY"   = $helper.Key
     "HTTPX_PROXY"           = "http://127.0.0.1:2080"
 }
 
@@ -82,7 +91,7 @@ try {
                 }
             } catch {}
         }
-        Get-Process chrome, msedge, chromium -EA SilentlyContinue | Stop-Process -Force
+        Stop-OwnedChrome
         Start-Sleep 3
         Ok "old processes killed"
     }
@@ -159,7 +168,7 @@ try {
         Stop-Process -Id $deciderProc.Id -Force -EA SilentlyContinue
     }
     Log "Cleanup: stopping Chrome"
-    Get-Process chrome -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
+    Stop-OwnedChrome
 }
 
 exit $exitCode

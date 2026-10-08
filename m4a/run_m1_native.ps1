@@ -8,14 +8,23 @@ param(
 )
 $ErrorActionPreference = 'Continue'
 Set-Location C:\Users\Administrator\openjev-ultrafast
+$Repo = "C:\Users\Administrator\openjev-ultrafast"
+. "$Repo\scripts\text_helper.ps1"
 
 $env:DECIDER_MODE        = "typesafe"
 $env:TYPESAFE_BASE_URL   = "http://127.0.0.1:8000/v1/systemone"
 $env:TYPESAFE_API_KEY    = "local"
 
-$env:TEXT_HELPER_BASE_URL = "https://api.groq.com/openai/v1"
-$env:TEXT_HELPER_MODEL    = "openai/gpt-oss-120b"
-$env:TEXT_HELPER_API_KEY  = $env:GROQ_API_KEY
+# Zero-cloud hard line (2026-10-08): this runner used to reach for Groq by
+# default, so a bare invocation sent every TYPE_TEXT value to a cloud model
+# while the reports kept api_calls=0 -- that counter only counts the teacher
+# path. The endpoint has to be named; startlux and local are on-box, groq and
+# deepseek are CLOUD and break the rule (see scripts/text_helper.ps1).
+$helper = Resolve-TextHelper -Choice $env:JEV_TEXT_HELPER
+Assert-TextHelper $helper
+$env:TEXT_HELPER_BASE_URL = $helper.Url
+$env:TEXT_HELPER_MODEL    = $helper.Model
+$env:TEXT_HELPER_API_KEY  = $helper.Key
 
 $env:HF_HUB_OFFLINE       = "1"
 $env:TRANSFORMERS_OFFLINE = "1"

@@ -2,7 +2,8 @@
 # 设计：
 #   - 决策 = 本地 decider-2B（:8000）
 #   - Teacher shadow = buddy 网关 glm-5.3-flash（TEACHER_SHADOW=1, stall-gated）
-#   - 文本 helper = Groq（走 Swell 代理）
+#   - 文本 helper = 必须显式指定（$env:JEV_TEXT_HELPER=startlux 走本地 :8081；
+#     groq/deepseek 属云端，违反"云端调用恒为 0"，只在显式点名时才允许）
 #   - 任务集 = m2/tasks_extra_8766.jsonl（localhost:8766 测试站，30 任务 × N 轮，
 #     非 benchmark 域 → C1 合规可进训练集；benchmark 域 20 任务不采集）
 #   - 采集目标：Logger v2 样本（page/history 快照齐全）
@@ -14,6 +15,8 @@ param(
  $ErrorActionPreference = "Continue"
 $py = "C:\Users\Administrator\miniconda3\envs\jev\python.exe"
 $root = "C:\Users\Administrator\openjev-ultrafast"
+. "$root\scripts\chrome_guard.ps1"
+. "$root\scripts\text_helper.ps1"
 Set-Location $root
 
 # ---- 环境统一（与 run_s004_history_test.ps1 同源）----
@@ -23,20 +26,35 @@ $env:HF_HUB_OFFLINE  = "1"
 $env:USE_TF          = "0"
 $env:DECIDER_COMPILE = "0"
 $env:DECIDER_FP8     = "0"
+$helper = Resolve-TextHelper -Choice $env:JEV_TEXT_HELPER
+Assert-TextHelper $helper
 $env:DECIDER_MODE    = "typesafe"
 $env:TYPESAFE_BASE_URL = "http://127.0.0.1:8000/v1/systemone"
 $env:TYPESAFE_API_KEY  = "local"
-$env:TEACHER_BASE_URL  = "https://buddy.chips.us.ci/v1"
 $env:TEACHER_MODEL     = "glm-5.3-flash"
-$env:TEACHER_API_KEY   = "wbg-6c6280e2b0413e5e70bb5b20d06fdf1804a4"
-$env:TEACHER_SHADOW    = "1"
+# A teacher-shadow call is a cloud call by design: the endpoint and the key both
+# come from the environment (this file used to carry the key as a literal, in a
+# tracked path), and without a key the shadow stays off, so a bare run never
+# leaves the box.
+if ($env:TEACHER_API_KEY) {
+    if (-not $env:TEACHER_BASE_URL) { throw "TEACHER_API_KEY is set but TEACHER_BASE_URL is not -- a shadow run needs an explicit endpoint" }
+    $env:TEACHER_SHADOW = "1"
+} else {
+    Write-Host "TEACHER_API_KEY unset -> TEACHER_SHADOW=0 (no cloud calls)"
+    $env:TEACHER_SHADOW = "0"
+}
 $env:TEACHER_SHADOW_EVERY = "1"   # M4b 采集：每决策都 shadow（stall-gated 只在
                                   # 失败点采样，正常 PASS 任务零样本 → a_positive
                                   # 桶空）。M2 实测 shadow ~3.4s/次，30 任务可接受。
 $env:TEACHER_LIMIT     = "24"      # 每任务 shadow 上限
-$env:TEXT_HELPER_BASE_URL = "https://api.groq.com/openai/v1"
-$env:TEXT_HELPER_MODEL    = "openai/gpt-oss-120b"
-$env:TEXT_HELPER_API_KEY  = $env:GROQ_API_KEY
+# Zero-cloud hard line (2026-10-08): this runner used to reach for Groq by
+# default, so a bare invocation sent every TYPE_TEXT value to a cloud model
+# while the reports kept api_calls=0 -- that counter only counts the teacher
+# path. The endpoint has to be named; startlux and local are on-box, groq and
+# deepseek are CLOUD and break the rule (see scripts/text_helper.ps1).
+$env:TEXT_HELPER_BASE_URL = $helper.Url
+$env:TEXT_HELPER_MODEL    = $helper.Model
+$env:TEXT_HELPER_API_KEY  = $helper.Key
 $env:HTTPX_PROXY          = "http://127.0.0.1:2080"
 $env:PYTHONUTF8           = "1"
 $env:M15_ALL_KIND_STALE   = "1"
@@ -74,7 +92,7 @@ for ($r = 1; $r -le $Rounds; $r++) {
     & $py -m m1.run_tasks --tasks m2/tasks_extra_8766.jsonl --log-dir $logDir `
         --report "reports/$Tag-round$r.json" 2>&1 | Select-Object -Last 6
     # CDP 健康复位（每轮之间杀 chrome 重启，防会话累积劣化）
-    Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -EA SilentlyContinue }
+    Stop-OwnedChrome
     Start-Sleep $TaskDelaySec
 }
 
@@ -86,5 +104,5 @@ Log "=== DONE. samples/$Tag/manifest.json is the morning report ==="
 # ---- 清理 ----
 if ($decider) { Stop-Process -Id $decider.Id -Force -EA SilentlyContinue }
 if ($site)    { Stop-Process -Id $site.Id -Force -EA SilentlyContinue }
-Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -EA SilentlyContinue }
+Stop-OwnedChrome
 Log "cleanup done"

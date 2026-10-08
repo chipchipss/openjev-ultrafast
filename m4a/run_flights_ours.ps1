@@ -8,22 +8,23 @@ param(
 )
 $ErrorActionPreference = 'Continue'
 Set-Location C:\Users\Administrator\openjev-ultrafast
+$Repo = "C:\Users\Administrator\openjev-ultrafast"
+. "$Repo\scripts\text_helper.ps1"
 
 # 默认 typesafe(decider)，但尊重外部传入的 DECIDER_MODE（对比实验用，如 laya_decider）
 if (-not $env:DECIDER_MODE) { $env:DECIDER_MODE = "typesafe" }
 $env:TYPESAFE_BASE_URL   = "http://127.0.0.1:8000/v1/systemone"
-$env:TEXT_HELPER_BASE_URL   = "https://api.groq.com/openai/v1"
-$env:TEXT_HELPER_MODEL      = "openai/gpt-oss-120b"
-$env:TEXT_HELPER_API_KEY    = $env:GROQ_API_KEY
+# Zero-cloud hard line (2026-10-08): this runner used to reach for Groq by
+# default, so a bare invocation sent every TYPE_TEXT value to a cloud model
+# while the reports kept api_calls=0 -- that counter only counts the teacher
+# path. The endpoint has to be named; startlux and local are on-box, groq and
+# deepseek are CLOUD and break the rule (see scripts/text_helper.ps1).
+$helper = Resolve-TextHelper -Choice $env:JEV_TEXT_HELPER
+Assert-TextHelper $helper
+$env:TEXT_HELPER_BASE_URL = $helper.Url
+$env:TEXT_HELPER_MODEL    = $helper.Model
+$env:TEXT_HELPER_API_KEY  = $helper.Key
 $env:TEXT_HELPER_MAX_TOKENS = "256"
-# 兜底：本地端点（Groq 限额/抖动时自动落这里，无需改代码）。
-# 该端点模型默认开思考：256 tokens 会被 reasoning 吃光 → content 为空，
-# 故 max_tokens 留余量 + reasoning_effort=none（实测 1.4~2.3s）。
-$env:TEXT_HELPER_FALLBACK_BASE_URL   = "http://127.0.0.1:7863/v1"
-$env:TEXT_HELPER_FALLBACK_MODEL      = "cn:glm-5.3-flash"
-$env:TEXT_HELPER_FALLBACK_API_KEY    = "81e322066d9fee75e0d283447dc86e27e72b786e7585b501"
-$env:TEXT_HELPER_FALLBACK_MAX_TOKENS = "1024"
-$env:TEXT_HELPER_FALLBACK_EXTRA_BODY = '{"reasoning_effort":"none"}'
 # Proxy autodetect: if :2080 is down, do NOT set HTTPX_PROXY -- an explicit
 # proxy also routes the local services (decider :8000 / helper :7863) and
 # everything fails. Without it the helper falls back to the local endpoint.

@@ -4,7 +4,7 @@
     [switch]$SkipClean,
     [string]$DeciderModel = "Mapika/decider-2b",
     [string]$Fp8 = "0",
-    [string]$TextHelper = "groq",
+    [string]$TextHelper = "",
     # ExternalDecider: 决策服务已在 8000 上跑着（如 decider.serve_4bit），本脚本不再加载模型。
     # 不加这个开关而 8000 已被占用时，第二个 uvicorn 会把同一份权重再加载一份进显存/内存。
     [switch]$ExternalDecider
@@ -14,6 +14,8 @@
 #  CONFIG
 # ═══════════════════════════════════════════════════════════════════
 $Repo         = "C:\Users\Administrator\openjev-ultrafast"
+. "$Repo\scripts\chrome_guard.ps1"
+. "$Repo\scripts\text_helper.ps1"
 $DeciderDir   = "D:\openjev-models\decider"
 $ChromeExe    = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 $ChromeProfile= "C:\chrome-cdp-test"
@@ -30,10 +32,14 @@ $DeciderEnv = @{
 }
 
 # Benchmark env
-$helperUrl = "https://api.groq.com/openai/v1"; $helperModel = "openai/gpt-oss-120b"; $helperKey = $env:GROQ_API_KEY
-if ($TextHelper -eq "deepseek") {
-    $helperUrl = "https://api.deepseek.com/v1"; $helperModel = "deepseek-chat"; $helperKey = $env:DEEPSEEK_API_KEY
-}
+# Zero-cloud hard line (2026-10-08): this runner used to reach for Groq by
+# default, so a bare invocation sent every TYPE_TEXT value to a cloud model
+# while the reports kept api_calls=0 -- that counter only counts the teacher
+# path. The endpoint has to be named; startlux and local are on-box, groq and
+# deepseek are CLOUD and break the rule (see scripts/text_helper.ps1).
+$helper = Resolve-TextHelper -Choice $TextHelper
+Assert-TextHelper $helper
+$helperUrl = $helper.Url; $helperModel = $helper.Model; $helperKey = $helper.Key
 $BenchEnv = @{
     "DECIDER_MODE"          = "typesafe"
     "PYTHONUTF8"            = "1"
@@ -92,7 +98,7 @@ try {
                 }
             } catch {}
         }
-        Get-Process chrome, msedge, chromium -EA SilentlyContinue | Stop-Process -Force
+        Stop-OwnedChrome
         Start-Sleep 3
         Ok "old processes killed"
     }
@@ -175,7 +181,7 @@ try {
         Stop-Process -Id $deciderProc.Id -Force -EA SilentlyContinue
     }
     Log "Cleanup: stopping Chrome"
-    Get-Process chrome -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
+    Stop-OwnedChrome
 }
 
 exit $exitCode

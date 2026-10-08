@@ -154,8 +154,10 @@ def _runners_pin_the_browser():
         assert line, f"{rel} does not pin BU_CDP_URL to the owned Chrome"
 
 
-@case("负例：HEAD 的 browser.py 与 runner 会被上面抓住")
+@case("负例：改前的 browser.py 与 runner 会被上面抓住")
 def _pre_fix_code_fails():
+    """这条只在**改动未提交**时成立：提交之后 HEAD 就是钉死后的那份，
+    对照对象消失，按 Skip 处理（同 test_runner_zero_cloud 的规矩）。"""
     try:
         old = head_text("jev_ultrafast/browser.py")
         old_base = head_text("run_baseline_19.ps1")
@@ -168,6 +170,8 @@ def _pre_fix_code_fails():
         caught.append("no pinned endpoint")
     if "BU_CDP_URL" not in old_base:
         caught.append("runner does not pin")
+    if len(caught) < 3:
+        raise Skip("HEAD already carries the pin and the guard (commit landed) -- nothing to compare")
     assert len(caught) == 3, f"pre-fix code slipped through: {caught}"
 
 

@@ -5,7 +5,7 @@ param(
     # Decision layer runs in-process (laya_provider SDK), so NO :8000 service is
     # started here -- avoids loading a second copy of the weights into VRAM.
     [string]$LayaModel = "D:\openjev-models\repo\laya-browser\v17s",
-    [string]$TextHelper = "groq"
+    [string]$TextHelper = ""
 )
 
 # NOTE: keep this file pure ASCII. Windows PowerShell 5.1 reads .ps1 as ANSI
@@ -15,6 +15,8 @@ param(
 #  CONFIG
 # ==================================================================
 $Repo         = "C:\Users\Administrator\openjev-ultrafast"
+. "$Repo\scripts\chrome_guard.ps1"
+. "$Repo\scripts\text_helper.ps1"
 $ChromeExe    = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 $ChromeProfile= "C:\chrome-cdp-test"
 $PythonJev    = "C:\Users\Administrator\miniconda3\envs\jev\python.exe"
@@ -30,13 +32,14 @@ $LayaEnv = @{
 }
 
 # Text helper (supplies TYPE_TEXT values). localhost endpoints need no key.
-$helperUrl = "https://api.groq.com/openai/v1"; $helperModel = "openai/gpt-oss-120b"; $helperKey = $env:GROQ_API_KEY
-if ($TextHelper -eq "deepseek") {
-    $helperUrl = "https://api.deepseek.com/v1"; $helperModel = "deepseek-chat"; $helperKey = $env:DEEPSEEK_API_KEY
-}
-if ($TextHelper -eq "local") {
-    $helperUrl = "http://127.0.0.1:11434/v1"; $helperModel = "gemma4:latest"; $helperKey = "local"
-}
+# Zero-cloud hard line (2026-10-08): this runner used to reach for Groq by
+# default, so a bare invocation sent every TYPE_TEXT value to a cloud model
+# while the reports kept api_calls=0 -- that counter only counts the teacher
+# path. The endpoint has to be named; startlux and local are on-box, groq and
+# deepseek are CLOUD and break the rule (see scripts/text_helper.ps1).
+$helper = Resolve-TextHelper -Choice $TextHelper
+Assert-TextHelper $helper
+$helperUrl = $helper.Url; $helperModel = $helper.Model; $helperKey = $helper.Key
 
 # ==================================================================
 #  HELPERS
@@ -76,7 +79,7 @@ try {
             $p = $_.Split('=', 2)
             Set-Item -Path "env:$($p[0].Trim())" -Value $p[1].Trim()
         }
-    if ($env:GROQ_API_KEY) { Ok "env loaded (GROQ key present)" } else { Log "  WARN: no GROQ_API_KEY -- TYPE_TEXT will fail" }
+    if ($env:GROQ_API_KEY) { Ok "env loaded (GROQ key present; only used if -TextHelper names a cloud endpoint)" } else { Log "  no GROQ_API_KEY (fine unless -TextHelper names a cloud endpoint)" }
 
     # -- 1. GPU precheck (hard rule: must be < 500MB before a benchmark) --
     $gpuUsed = [int]((nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits) -replace '\s','')
@@ -91,7 +94,7 @@ try {
             if ($cl -match "decider|run_tasks|serve\.py") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue }
         } catch {}
     }
-    Get-Process chrome, msedge, chromium -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
+    Stop-OwnedChrome
     Start-Sleep 3
     Remove-Item -Recurse -Force $ChromeProfile -EA SilentlyContinue
     Remove-Item -Recurse -Force "$env:USERPROFILE\.config\browser-harness" -EA SilentlyContinue
@@ -156,10 +159,10 @@ for r in d["results"]:
     $exitCode = 1
 } finally {
     Log "Cleanup: stopping Chrome"
-    Get-Process chrome -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
+    Stop-OwnedChrome
     Start-Sleep 10
-    $left = (Get-Process chrome -EA SilentlyContinue | Measure-Object).Count
-    Log "Verify 10s later: chrome processes = $left  (must be 0)"
+    $left = @(Get-OwnedChrome).Count; $foreignLeft = Get-ForeignBrowserCount
+    Log "Verify 10s later: own-cdp-chrome = $left (must be 0), foreign browsers left = $foreignLeft (never targeted)"
     if ($left -ne 0) { $exitCode = 1 }
 }
 

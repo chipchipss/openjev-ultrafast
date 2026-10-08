@@ -335,7 +335,11 @@ def field_text_typesafe(context):
     key = os.environ.get("TEXT_MODEL_API_KEY")
     if not key:
         raise ValueError("TYPE_TEXT needs TEXT_MODEL_API_KEY; no text is hardcoded or guessed by the executor.")
-    base = os.environ.get("TEXT_MODEL_BASE_URL", "https://api.deepseek.com/v1").rstrip("/")
+    base = os.environ.get("TEXT_MODEL_BASE_URL", "").rstrip("/")
+    if not base:
+        raise ValueError("TEXT_MODEL_BASE_URL is not set -- this path used to fall back to "
+                         "https://api.deepseek.com/v1, and a cloud default is exactly what the "
+                         "zero-cloud rule forbids.")
     model = os.environ.get("TEXT_MODEL", "deepseek-chat")
     reasoning = {"thinking": {"type": "disabled"}} if "api.deepseek.com/" in base else {"reasoning": {"effort": "low"}}
     if os.environ.get("TEXT_MODEL_REASONING") == "none":

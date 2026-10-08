@@ -62,7 +62,7 @@ Skills (M16/M18)  ← 字面可判的决策直接短路,不进模型
     ↓ (未命中回落)
 Decision Provider  ← 可插拔
     ├── StartLux-Decision-2B (TypeSafe wire,默认)
-    ├── OpenAI-compatible (Groq / DeepSeek / GLM / Qwen / ...)
+    ├── OpenAI-compatible (Groq / DeepSeek / GLM / Qwen / ...;须显式命名,从不默认)
     └── 自定义
     ↓
 DecisionValidator (D8 三级一致性)
@@ -160,17 +160,20 @@ DECIDER_MODE=typesafe
 TYPESAFE_BASE_URL=http://127.0.0.1:8090/v1/systemone
 TYPESAFE_API_KEY=local
 
-# Text Helper(TYPE_TEXT 时取字段值):任意 OpenAI 兼容端点
-TEXT_HELPER_BASE_URL=https://api.groq.com/openai/v1
-TEXT_HELPER_MODEL=openai/gpt-oss-120b
-TEXT_HELPER_API_KEY=<your key>
+# Text Helper(TYPE_TEXT 时取字段值):默认必须是本机 llama-server(:8081)
+TEXT_HELPER_BASE_URL=http://127.0.0.1:8081/v1
+TEXT_HELPER_MODEL=startlux-decision-2b
+TEXT_HELPER_API_KEY=local
+# 云端 helper 只能显式指定(runner 的 -TextHelper groq|deepseek),从不作为默认值:
+# TEXT_HELPER_BASE_URL=https://api.groq.com/openai/v1
+# TEXT_HELPER_API_KEY=<your key>
 # 可选:出口代理(部分网络直连 Groq 会 403)
 HTTPX_PROXY=http://127.0.0.1:2080
 ```
 
 本地服务端点请用 `http://127.0.0.1:PORT`,不要用 `localhost`(Windows 下会先试 IPv6 加约 2 秒延迟)。
 
-helper 选型实测(单字段值抽取,中位延迟):Groq `gpt-oss-120b` **~1.6s**(免费 1,000 次/天)> DeepSeek v4.1-flash ~3.5s > GLM-5.3-flash ~5.6s。Groq 拒收 `reasoning` 字段,本框架已自动处理。基线实测中 helper 几乎不触发——大部分任务 skills 层直接从 goal 取字面值(三轮 60 任务仅 x002 用了 1 次)。
+helper 延迟实测(单字段值抽取,中位延迟;这份对比是**零云端硬线之前**做的,只作历史记录):Groq `gpt-oss-120b` **~1.6s**(免费 1,000 次/天)> DeepSeek v4.1-flash ~3.5s > GLM-5.3-flash ~5.6s。Groq 拒收 `reasoning` 字段,本框架已自动处理。**现在默认只用本机 :8081 的 StartLux-Decision-2B**——helper 填的是页面里的字段值,云端默认等于把页面内容送给云模型,而报表的 `api_calls` 看不见它(那个计数器只统计 teacher 路径);逐 artifact 审计因此实测到 56 次云端供值,见上文「云端口径更正」。基线实测中 helper 几乎不触发——大部分任务 skills 层直接从 goal 取字面值(三轮 60 任务仅 x002 用了 1 次)。
 
 ### 跑上游对照
 

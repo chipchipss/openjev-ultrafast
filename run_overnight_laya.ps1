@@ -7,7 +7,7 @@ param(
     [int]$TaskTimeoutSec = 420,
     [string]$Tasks = "m1\tasks-laya-19.jsonl",
     [string]$LayaModel = "D:\openjev-models\repo\laya-browser\v17s",
-    [string]$TextHelper = "groq",
+    [string]$TextHelper = "",
     [int]$PilotCount = 2
 )
 
@@ -18,6 +18,8 @@ param(
 #  CONFIG
 # ==================================================================
 $Repo         = "C:\Users\Administrator\openjev-ultrafast"
+. "$Repo\scripts\chrome_guard.ps1"
+. "$Repo\scripts\text_helper.ps1"
 $ChromeExe    = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 $ChromeProfile= "C:\chrome-cdp-test"
 $PythonJev    = "C:\Users\Administrator\miniconda3\envs\jev\python.exe"
@@ -62,7 +64,7 @@ function Wait-Cdp($maxSec = 30) {
 }
 
 function Start-Chrome {
-    Get-Process chrome -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
+    Stop-OwnedChrome
     Start-Sleep 2
     Remove-Item -Recurse -Force $ChromeProfile -EA SilentlyContinue
     Start-Process $ChromeExe "--headless=new --remote-debugging-port=9222 --user-data-dir=$ChromeProfile --no-first-run --no-default-browser-check"
@@ -114,11 +116,14 @@ try {
         Where-Object { $_ -match '^\s*[A-Za-z_][A-Za-z0-9_]*\s*=' } |
         ForEach-Object { $p = $_.Split('=', 2); Set-Item -Path "env:$($p[0].Trim())" -Value $p[1].Trim() }
 
-    $helperUrl = "https://api.groq.com/openai/v1"; $helperModel = "openai/gpt-oss-120b"; $helperKey = $env:GROQ_API_KEY
-    if ($TextHelper -eq "deepseek") { $helperUrl = "https://api.deepseek.com/v1"; $helperModel = "deepseek-chat"; $helperKey = $env:DEEPSEEK_API_KEY }
-    if ($TextHelper -eq "local")   { $helperUrl = "http://127.0.0.1:11434/v1"; $helperModel = "gemma4:latest"; $helperKey = "local" }
-
-    if ($helperKey) { Ok "GROQ key present" } else { Warn "no GROQ_API_KEY -- TYPE_TEXT may fail" }
+    # Zero-cloud hard line (2026-10-08): this runner used to reach for Groq by
+    # default, so a bare invocation sent every TYPE_TEXT value to a cloud model
+    # while the reports kept api_calls=0 -- that counter only counts the teacher
+    # path. The endpoint has to be named; startlux and local are on-box, groq and
+    # deepseek are CLOUD and break the rule (see scripts/text_helper.ps1).
+    $helper = Resolve-TextHelper -Choice $TextHelper
+    Assert-TextHelper $helper
+    $helperUrl = $helper.Url; $helperModel = $helper.Model; $helperKey = $helper.Key
 
     # -- 1. GPU precheck: never run two model services at once (hard rule 3.4) --
     $gpu = [int]((nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits) -replace '\s','')
@@ -133,7 +138,7 @@ try {
             if ($cl -match "decider|run_tasks|serve\.py|uvicorn") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue }
         } catch {}
     }
-    Get-Process chrome, msedge, chromium -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
+    Stop-OwnedChrome
     Start-Sleep 3
     Remove-Item -Recurse -Force "$env:USERPROFILE\.config\browser-harness" -EA SilentlyContinue
     Ok "clean"
@@ -242,7 +247,7 @@ try {
     $exitCode = 1
 } finally {
     Log "Cleanup: stopping Chrome, then orphan python"
-    Get-Process chrome -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
+    Stop-OwnedChrome
     Start-Sleep 3
     # Kill orphaned benchmark/daemon processes, then verify AFTER killing.
     Get-Process python -EA SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object {
@@ -254,9 +259,9 @@ try {
         } catch {}
     }
     Start-Sleep 7
-    $left = (Get-Process chrome -EA SilentlyContinue | Measure-Object).Count
+    $left = @(Get-OwnedChrome).Count; $foreignLeft = Get-ForeignBrowserCount
     $pyLeft = (Get-Process python -EA SilentlyContinue | Where-Object { $_.Id -ne $PID } | Measure-Object).Count
-    Log "Verify after cleanup: chrome=$left (must be 0), stray python=$pyLeft"
+    Log "Verify after cleanup: own-cdp-chrome=$left (must be 0), foreign browsers left=$foreignLeft (never targeted), stray python=$pyLeft"
     if ($left -ne 0) { $exitCode = 1 }
 }
 

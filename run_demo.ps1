@@ -97,17 +97,21 @@ try {
 
     # Text Helper: the value a TYPE_TEXT decision types. Default is the local
     # llama-server that already fronts the wire (:8081) -- one resident model,
-    # zero cloud calls. groq/ollama stay behind an explicit -TextHelper.
-    $helperUrl = "http://127.0.0.1:$LlamaPort/v1"; $helperModel = "startlux-decision-2b"; $helperKey = "local"
-    if ($TextHelper -eq "groq") { $helperUrl = "https://api.groq.com/openai/v1"; $helperModel = "openai/gpt-oss-120b"; $helperKey = $env:GROQ_API_KEY }
-    if ($TextHelper -eq "local") { $helperUrl = "http://127.0.0.1:11434/v1"; $helperModel = "gemma4:latest"; $helperKey = "local" }
-    if ($TextHelper -eq "none") { $helperUrl = ""; $helperModel = ""; $helperKey = "" }
-    if ($TextHelper -eq "groq") { Warn "-TextHelper groq is a CLOUD endpoint -- violates the zero-cloud rule" }
-    if ($TextHelper -eq "startlux") {
-        try { Invoke-RestMethod "http://127.0.0.1:$LlamaPort/health" -TimeoutSec 3 | Out-Null }
-        catch { Die "text helper (llama-server :$LlamaPort) not reachable" }
-    }
+    # zero cloud calls. groq/ollama stay behind an explicit -TextHelper, and
+    # scripts/text_helper.ps1 is the only file that spells a cloud URL out.
+    # The reachability gate is NOT here: a cold box brings :8081 up in Step 1,
+    # so asserting before that would break the one-command cold start. It runs
+    # right after the stack is answering instead.
+    . "$Repo\scripts\text_helper.ps1"
+    $helper = Resolve-TextHelper -Choice $TextHelper -LlamaPort $LlamaPort
+    $env:TEXT_HELPER_BASE_URL = $helper.Url
+    $env:TEXT_HELPER_MODEL    = $helper.Model
+    $env:TEXT_HELPER_API_KEY  = $helper.Key
     $env:TEXT_HELPER_MAX_TOKENS = "128"; $env:TEXT_HELPER_MAX_RETRIES = "2"
+    # Never let the harness go looking for a browser: pin it to the owned
+    # chrome-cdp-test instance on 9222 (it would otherwise prefer whatever Chrome
+    # has a default-profile DevToolsActivePort, i.e. the user's own browser).
+    $env:BU_CDP_URL = "http://127.0.0.1:9222"
 
     # -- 1. proxy (warn only: the demo should still try) --------------------
     if ($ProxyUrl) {
@@ -144,6 +148,9 @@ try {
     }
 
     # -- 3. Chrome --------------------------------------------------------
+    # The stack is up, so the helper endpoint named in Step 0 must answer now;
+    # a dead helper would show up as steps=0 + status=blocked in the demo output.
+    Assert-TextHelper $helper
     Log "Step 2: start Chrome"
     if (-not (Start-Chrome)) { Die "CDP 9222 not ready" }
     Ok "CDP ready"

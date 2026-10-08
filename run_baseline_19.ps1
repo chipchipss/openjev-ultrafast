@@ -42,6 +42,10 @@ $ProgressLog   = "$Repo\logs\baseline-$Stamp-progress.txt"
 $SvcOut        = "$Repo\logs\baseline-$Stamp-svc_out.log"
 $SvcErr        = "$Repo\logs\baseline-$Stamp-svc_err.log"
 
+# Ownership + zero-cloud guards (shared with the other runners).
+. "$Repo\scripts\chrome_guard.ps1"
+. "$Repo\scripts\text_helper.ps1"
+
 # ==================================================================
 #  HELPERS
 # ==================================================================
@@ -182,22 +186,12 @@ try {
     # that filled a field made cloud calls (n004 typed "RFC 9110" through
     # openai/gpt-oss-120b in the 1008 freeze rounds) while the reports'
     # api_calls stayed 0, because that counter only counts the teacher path.
-    # groq/deepseek remain reachable only by explicit -TextHelper, never as a default.
-    $helperUrl = "http://127.0.0.1:$LlamaPort/v1"; $helperModel = "startlux-decision-2b"; $helperKey = "local"
-    if ($TextHelper -eq "groq")     { $helperUrl = "https://api.groq.com/openai/v1"; $helperModel = "openai/gpt-oss-120b"; $helperKey = $env:GROQ_API_KEY }
-    if ($TextHelper -eq "deepseek") { $helperUrl = "https://api.deepseek.com/v1"; $helperModel="deepseek-chat"; $helperKey=$env:DEEPSEEK_API_KEY }
-    if ($TextHelper -eq "local")   { $helperUrl = "http://127.0.0.1:11434/v1"; $helperModel="gemma4:latest"; $helperKey="local" }
-    if ($TextHelper -eq "none")    { $helperUrl = ""; $helperModel = ""; $helperKey = "" }
-    if ($TextHelper -eq "groq" -or $TextHelper -eq "deepseek") { Warn "-TextHelper $TextHelper is a CLOUD endpoint -- violates the zero-cloud rule" }
-    # An unreachable helper means every TYPE_TEXT dies after 3 decisions with
-    # steps=0; measuring that is worse than not measuring, so stop here.
-    $helperHealth = ""
-    if ($TextHelper -eq "startlux") { $helperHealth = "http://127.0.0.1:$LlamaPort/health" }
-    if ($TextHelper -eq "local")    { $helperHealth = "http://127.0.0.1:11434/api/tags" }
-    if ($helperHealth) {
-        try { Invoke-RestMethod $helperHealth -TimeoutSec 3 | Out-Null }
-        catch { Die "text helper not reachable ($helperHealth) -- run scripts/startlux_serve.ps1, or pass -TextHelper none" }
-    }
+    # groq/deepseek remain reachable only by explicit -TextHelper, never as a
+    # default, and scripts/text_helper.ps1 is the only tracked file that spells
+    # a cloud URL out.
+    $helper = Resolve-TextHelper -Choice $TextHelper -LlamaPort $LlamaPort
+    Assert-TextHelper $helper
+    $helperUrl = $helper.Url; $helperModel = $helper.Model; $helperKey = $helper.Key
     if ($helperKey) { Ok "text helper: $TextHelper -> $helperUrl" } elseif ($TextHelper -eq "none") { Warn "text helper disabled -- TYPE_TEXT decisions will fail" } else { Warn "no key for -TextHelper $TextHelper -- TYPE_TEXT will fail" }
 
     # -- 1. GPU gate: exactly one model resident, never two --
@@ -215,7 +209,9 @@ try {
               if (-not $NoService -and $cl -match "decider|run_tasks|serve|uvicorn|jev_service") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
     }
     Stop-CdpChrome
-    Get-Process msedge, chromium -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
+    # msedge/chromium are in the guarded set; the bare kill here used to take the
+    # user's own browser with it.
+    Stop-OwnedChrome
     Start-Sleep 3
     # Reap orphaned browser_harness daemons. One task per process spawns one
     # daemon per task, and nothing exits them: a 19-task run leaked 18 of them
@@ -303,6 +299,10 @@ try {
         "TEXT_HELPER_API_KEY"   = $helperKey
         "TEXT_HELPER_MAX_TOKENS" = "128"
         "TEXT_HELPER_MAX_RETRIES" = "2"
+        # Pin the harness to OUR Chrome: without this it scans Chrome's default
+        # profile first and will drive the user's own browser if that one has
+        # remote debugging allowed (see jev_ultrafast/browser.py).
+        "BU_CDP_URL"           = "http://127.0.0.1:9222"
         "HTTPX_PROXY"           = "http://127.0.0.1:2080"
         "PYTHONUTF8"            = "1"
     }
@@ -379,6 +379,8 @@ try {
     Stop-CdpChrome
     Start-Sleep 7
     $chromeLeft = @(Get-CdpChrome).Count
+    $foreignLeft = Get-ForeignBrowserCount
+    Log "own-cdp-chrome=$chromeLeft (must be 0), foreign browsers left=$foreignLeft (never targeted)"
     $pyLeft = (Get-Process python -EA SilentlyContinue | Where-Object { $_.Id -ne $PID } | Measure-Object).Count
     Log "Verify after cleanup: cdp-chrome=$chromeLeft (must be 0), stray python=$pyLeft"
     if ($chromeLeft -ne 0) { $exitCode = 1 }
