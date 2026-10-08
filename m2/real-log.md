@@ -1754,3 +1754,139 @@ r116 的单任务读数（1→4 步）就是这条。
 另开两刀，都是这两批直接给的：#36（`page_not_ready` 无界 + 撞顶抛异常 +
 runner 把崩溃行同时写成 `error` 和 `result=FAIL`，导致 summary 的 error=0 是假的）、
 #25（地板在第一跳把任务带离目标站；r107 的成败取决于 HN 当天首页内容）。
+
+
+## #36 落地 · 2026-10-08 18:2x · 判据**先登记后跑**
+
+三处改动（本轮唯一的产品代码改动，`git diff --stat` = 3 files / +20 / -1）：
+
+1. `skills.py`：新增 `PAGE_NOT_READY_MAX_WAITS = 5`，`page_not_ready` 的等待过
+   `_can_wait(history, PAGE_NOT_READY_MAX_WAITS)`；到上限返回 None（让位给后续技能与模型）。
+2. `agent.py`：`act` 里撞 `MAX_STEPS` 从 `raise ValueError(...)` 改为**干净收口**
+   （`status="blocked"` + 记 `elapsed_ms` + 返回 snapshot），不再让异常逃逸出 `run()`。
+3. `m1/run_tasks.py::_summarize`：带 `error` 字段的行计进 `summary["error"]`
+   （旧口径只数"没有 TaskResult 的行"，于是 b10/b11 报 error=0 而 r107 那行明明写着
+   `error=agent_loop_raised`）。
+
+### 上限为什么是 5（从已落盘 trace 量出来的，不是拍的）
+
+`page_not_ready` 的等待拍数按任务统计（只读 logs，不碰浏览器/不碰 :8090）：
+
+| 读数集 | 曾按 `page_not_ready` 连等的任务（最长连等） |
+|---|---|
+| 冻结 17:04 / 17:12 / 17:17（各 19 题） | **无**（0 次触发；全冻结只有 f004 有 3 拍 wait，来自别的技能） |
+| b9（22 题） | r101 = 5 |
+| b10 | r101 = 6、**r107 = 59** |
+| b11 | r101 = 3、**r107 = 59** |
+
+- r101 的三批连等**全部**是 `page_not_ready`（decision 序列里 skill 逐条同名），等完之后
+  **模型确实接手了**（最后一拍 skill=None）—— 所以"到上限让位给模型"这条路在同一页面上已有实证；
+- r101 三批全 FAIL（#15 的第二跳题，不是等待题），r107 两批全 FAIL；
+- 结论：**按现有证据，这刀唯一改变行为的任务是 r107**；上限取 5 是"不截断任何已观测到的
+  自然收敛"（最大自然值 6 出现在一道本来就 FAIL 的题上，且只少它一拍）与"59 拍必须封顶"之间
+  的位置。风险如实写：若某天真页面需要 6 拍渲染，第 6 拍起由模型决策 —— 这是**有意的**取舍，
+  因为无界的那一半永远等不到任何页面。
+
+### 判据（写在此刻，读数为零）
+
+| # | 读数 | 判据 | 不满足怎么处置 |
+|---|---|---|---|
+| 1 | `tests/test_wait_bound.py` | 改前 **5/10**（已实测：两条缺常量 + 两条循环 ValueError + 一条 error 账），改后 **10/10** | —— |
+| 2 | 12 个离线确定性套件 | 全绿 | 任一 FAIL → 停，先归因 |
+| 3 | r107 单任务 `reports/one-r107-*.json` | 总步数 **≤ 8**；`page_not_ready` 连等 **≤ 5**；行内**无 `error` 字段**；收口状态 `blocked`（不再是异常逃逸）；`meta.elapsed_ms` 由 22.6s 量级降到 **≤ 12s**；结果仍 **FAIL** 且 `final_url` 仍是 `dat-ecosystem.org` | 仍 >5 拍 → 上限没生效，回炉；若 PASS → 是当天 HN 首页变了（#25 的抽样），**不算这刀收益**，也不推翻这刀 |
+| 4 | x001/x002 安全复测（纪律③，改了共享技能层） | **2/2 PASS**、无 error 行 | 任一 FAIL → 停下归因（negative 题与等待无关，回归只可能来自 MAX_STEPS 收口路径） |
+| 5 | 冻结三轮 | 每轮 **≥ 18/19**（±1 方差）、三轮 `page_not_ready` 拍数仍为 **0**、`error` 行数 **0**、步事件 `text_helper` ⊆ {null, `startlux-decision-2b`} | 任一轮 <18 或 error>0 → 不进真实批 |
+| 6 | 真实批 b12（同 22 题） | 全批最大连等 **≤ 5**；r107 **≤ 8 步**且**无 error 行**；`summary.error` 若 >0 必须能点名 task_id；`false_positive=0`；pass **≥ 11/22**（这刀**不买分**：b11=12 且 r107 仍 FAIL，理论上界仍是 12，11 是方差下限） | 出现与 r107/r101 无关的新回归 → 逐条读 trace 归因，不许用"方差"含糊带过 |
+
+判据 5/6 起跑前先看内存闸门（free physical ≥ 3000MB）与 owned chrome=0；本轮服务栈已在
+18:2x 重启（free 6880MB、llama RSS 969MB、:8090/:8081 healthy）。
+
+
+### 判据修正（写在 cap=8 构建的三轮冻结之前）· 2026-10-08 18:2x
+
+上面那张"上限为什么是 5"的表**读错了**，错在归属口径，不是数字：trace 里同一个 tick 是
+**step 事件先落、decision 事件后落**（r107/n004 两条都是 `S#k` 紧跟 `D:发该拍的技能`），
+我第一版脚本把每一拍 wait 归属到**前面**那条 decision，于是系统性错开一拍，把
+"冻结集 0 次触发"读成了事实、把 r101 的自然连等读成了 5。
+
+用修正后的口径重读同一批已落盘 trace（最长连等 / 总拍数）：
+
+| 读数集 | 触发过 `page_not_ready` 的任务 |
+|---|---|
+| 冻结 17:04 / 17:12 / 17:17 | 无（这三条结论没变） |
+| **冻结 18:16（cap=5 构建，见下）** | **n004 = 5 拍**（正好被上限截停） |
+| b9 | r101 = 5 |
+| b10 | **r101 = 6**、r107 = 59 |
+| b11 | r101 = 3、r107 = 59 |
+
+两条事实逼出两处修改：
+
+1. **上限从 5 改到 8**。b10 的 r101 自然连等是 **6 拍**，且第 6 拍之后页面真的渲染出来了
+   （步#8 `page_changed=True`）—— 上限 5 会把一次**真实存在**的渲染等待砍掉，把空白页提前
+   交给 2B。取 8 = 观测到的自然最大值 6 加余量，同时对 59 拍那种永远不渲染的页面照样封顶。
+   代码注释里钉住这个理由（`skills.py` 的 `PAGE_NOT_READY_MAX_WAITS`）。
+2. **判据 #5 里"三轮 `page_not_ready` 拍数仍为 0"作废**，换成可判读的形式：
+   *任何任务的连等 ≤ 8，且连等 >8 的段数 = 0*（18:16 那轮已经证明这句话在冻结集上不是空的：
+   n004 会触发）。其余判据（≥18/19、error 行 0、`text_helper` 取值集合）不变。
+
+因此 **18:16 那轮不算三轮冻结闸门的一轮**（它是 cap=5 构建的读数，与 cap=8 构建不同型）；
+cap=8 构建重跑：单元 10/10 与 `test_skills` 62/62 已过，接下来 r107 单任务 → x001/x002 →
+冻结三轮 → b12。18:16 的读数如实留档：
+
+- **18/19**（error 行 0，方差内），唯一 FAIL 是 **n004**；
+- n004 的死形是 `first_action_floor` 在第 1 拍就把 rfc-editor.org 首页的那一下抓错
+  （17:12 那轮同一题走的是 `search_type → search_submit → explicit_target → goal_reached`，
+  PASS），落到 `account.ietf.org/app/verify-em…` 那张永远空白的页；
+- 这刀的三个效果在同一道题上全部兑现：**连等被截在 5 拍**（改前会等到 60）、
+  **收口干净**（模型 BLOCKED，步数 7，无 `error` 字段，`summary.error=0` 这次是真话）、
+  墙钟 4.1 min/19 题。
+- 归属：n004 的**分数**损失来自地板的第一跳（#25 那条线，与 r107 的失分同一个机制），
+  不是这刀带的；这刀只决定它崩得多快、账记不记对。
+
+
+## b12 真实批读数 · 2026-10-08 18:45（cap=8 构建，即判据修正后的那一版）
+
+`reports/real-1008-b12-wb36-1008-184457.json`：**11/22**，`false_positive=0`
+（quadrants 只有 `true_success 11 / correct_abandon 11`），`summary.error=0`
+**这次是真话**（逐行查过：没有任何一行带 `error` 字段，也没有一行缺 TaskResult），
+api_calls=0，步事件 `text_helper` = {null: 60, `startlux-decision-2b`: 2}（无越界项），
+`page_changed` = True 39 / False 22 / **None 1**。
+
+对判据逐条（修正后的形式）：
+
+| 判据 | 读数 | 结论 |
+|---|---|---|
+| 全批最大连等 ≤ 8、>8 段数 = 0 | `page_not_ready` 只出现在 **r101 = 8、r107 = 8**（改前 r107 = 59） | **过** |
+| r107 ≤ 上限+1 步、无 error 行、干净收口 | **9 步**（1 拍地板 + 8 拍等待）+ 模型 BLOCKED，`failure_mode=decision`、无 `error` 字段、9.1s | **过** |
+| `false_positive = 0` | 0 | **过** |
+| pass ≥ 11/22 | 11/22 | **过（在下限上）** |
+| 不出现与 r107/r101 无关的新回归 | 有 **1 条：r115**（b11 PASS → b12 FAIL），已逐拍读过，见下 | **归因完成，不是这刀** |
+
+**r115 的账（必须写清，否则 11/22 像是被这刀砍掉的）**：b11 与 b12 的前 4 拍**逐字相同**
+（`search_type → search_submit → model CLICK 11 (pc=False) → model CLICK 21`，都停在
+`https://www.python.org/search/?q=Download Python`）；差别只在第 5 拍 ——
+b11 是 `model CLICK 14` 落到 `/downloads/` 后 `goal_reached` DONE（PASS），
+b12 是 `model DONE` conf **0.496** 连发 6 次，第 5 次同指纹同 choice 触发
+`agent.py:261` 的停滞守卫 → blocked（FAIL）。这条 trace 里**一个 `page_not_ready` 都没有**，
+也没撞 `MAX_STEPS`（4 步），`_summarize` 更是无关 —— 所以它是 **#25 的形状**
+（低置信 DONE 被拒 → 守卫收口），落在 r115 这个 python.org 搜索结果页的老问题上（#15 的残账：
+搜索结果页的 URL/title 里没有 "Download Python" 这个目标名，`goal_reached` 结构性点不着）。
+
+**批尺度收益 = 0，如实记**：r107 单题省了 13.3s（22.4→9.1s），但整批
+Σ`meta.elapsed_ms` 是 b11 226.4s → b12 **226.8s**（r101 在新上限下等满 8 拍把它省下的抵掉了），
+批墙钟 736.1s → **740.5s**。这印证了 M6-A ① 的拆账：**题内省几秒在 68% 的题间常数面前不成立**。
+所以这刀买的不是速度，是三件确定性的事：
+① 一个永远不渲染的页面不再能占满整题预算（59→8 拍，且有上限可证伪）；
+② 撞硬顶不再是抛出 `run()` 的 `ValueError`（b10/b11 的 r107 状态永远停在 `predicted`）；
+③ `summary.error=0` 从假话变成真话（旧口径下这两批明明是 2 次崩溃却报 0）。
+
+**#36 裁决：提交。** 证据 = 单元 10/10（改前 5/10，含两条缺常量、两条 ValueError 逃逸、
+一条 error 账）+ 12 个确定性套件全绿（skills 62、page_changed 未知 6、Fix O 5、settle 6、
+init backoff 3、rotation 8、runner zero-cloud 8、runner safety 9、CDP 归属 9…）+
+x001/x002 2/2（cap=5 与 cap=8 两个构建各跑一次）+ **cap=8 构建三轮冻结 19/19 ×3**
+（`reports/m1-baseline-1008-1829/1834/1839.json`，error 行 0，`text_helper` 全 null）+
+b12 在下限上且唯一新回归已归因到他刀。上限值 8 的理由写在代码注释里（自然收敛最大值 6 + 余量）。
+
+顺带一条留给 #25 的实锤：b12 里 r107 的地板第一拍仍抓 `dat-ecosystem.org`（b10/b11 同签名，
+**3/3 批**），而 r101 现在等满 8 拍后落到 `blocked_by_bot_wall`。地板的第一跳把一个 PASS
+过的题变成掷硬币，这条线现在有三批证据。

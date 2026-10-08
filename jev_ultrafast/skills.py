@@ -145,6 +145,17 @@ def _last_real(history: list) -> dict:
 # 1. 死页 → BLOCKED
 # ---------------------------------------------------------------------------
 
+#: `page_not_ready` 连续等待的上限。循环侧的停滞守卫**全部排除 wait**
+#: （agent.py:220/240/260 —— "wait 不是动作"），所以这里不设限就等于"一路等到
+#: 硬顶"：b10/b11 的 r107 点进一张永远空白的外链页后连等 59 拍撞 MAX_STEPS=60，
+#: 收口还是靠 agent.py 那个抛异常的硬顶。
+#:
+#: 值取 8 而不是更小：已落盘 trace 里**自然收敛**的最长连等是 6 拍
+#: （b10 的 r101，pypi 搜索结果页第 6 拍之后 `page_changed=True` 真的渲染出来了）。
+#: 上限必须留在"真实页面还在渲染"这一侧，同时对 59 拍那种永远不渲染的页面封顶。
+PAGE_NOT_READY_MAX_WAITS = 8
+
+
 def blocked_dead_page(page: dict, goal: str, history: list) -> dict | None:
     url = (page.get("url") or "")
     if url.startswith("chrome-error://") or url.startswith("about:neterror"):
@@ -154,6 +165,7 @@ def blocked_dead_page(page: dict, goal: str, history: list) -> dict | None:
 
 def page_not_ready(page: dict, goal: str, history: list) -> dict | None:
     """页面还在导航/渲染（观察里没有任何可操作元素）→ 等一拍，别让模型在空白页上决策。
+    等是有上限的（PAGE_NOT_READY_MAX_WAITS），到上限让位给后续技能与模型。
 
     Flights v114/v117 实况：点完票种下拉后页面瞬时空白，全部技能落空 → 模型在空白页上
     选了 BLOCKED，整轮 3.3s 收口（0/7，两轮同签名）。空白页不是"决策点"，是"还没渲染"。
@@ -177,6 +189,8 @@ def page_not_ready(page: dict, goal: str, history: list) -> dict | None:
         # f002 实况——httpbin /post 的 JSON 响应零控件 → 连等 57 拍撞上 60 步上限，
         # 尽管断言（页面含 "hello world"）早已满足，goal_reached 根本没机会跑。
         if (page.get("text") or "").strip():
+            return None
+        if not _can_wait(history, PAGE_NOT_READY_MAX_WAITS):
             return None
         return _wait("page_not_ready")
     return None

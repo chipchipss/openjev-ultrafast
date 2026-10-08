@@ -647,8 +647,12 @@ class Agent:
                 return self.snapshot()
             action = next(a for a in page["actions"] if a["id"] == selected)
             if len(state["history"]) >= MAX_STEPS:
+                # 撞硬顶是一次**收口**，不是一次崩溃：抛 ValueError 会逃逸出 run()
+                # （b10 的 r107 实况），runner 只能把同一行既写成 error=agent_loop_raised
+                # 又写成 result=FAIL，而这一轮的状态永远停在 predicted。
                 state["status"] = "blocked"
-                raise ValueError(f"Stopped at the {MAX_STEPS}-action demo budget")
+                state["elapsed_ms"] = round((time.perf_counter() - state["started_at"]) * 1000)
+                return self.snapshot()
             text, helper = None, None
             if action["kind"] == "fill":
                 if not state["browser"].fresh(page):

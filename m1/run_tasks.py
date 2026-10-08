@@ -225,6 +225,11 @@ def _summarize(results: list[dict]) -> dict:
             # init 失败（result="ERROR" 字符串）或 runner 异常（无 result）都计入 error
             summary["error"] += 1
             continue
+        if r.get("error"):
+            # 循环抛异常/评估抛异常的行**照样**会被评估出一个 result（b10 的 r107：
+            # error=agent_loop_raised 与 result=FAIL 并存）。只数"没有 TaskResult 的行"
+            # 会让 summary.error=0 成为假话——error=0 必须意味着"这一批没有任何崩溃"。
+            summary["error"] += 1
         tr = raw
         res = tr.get("result")
         if res == "PASS":     summary["pass"] += 1
