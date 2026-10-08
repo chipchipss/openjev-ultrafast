@@ -25,11 +25,23 @@ START = "https://www.rfc-editor.org/"
 QUERY = "RFC 9110"
 
 
-def shape(page, tag):
+COUNTER_JS = """(() => { const s = window.__jevSettle;
+  return s ? 'installed inflight=' + s.inflight +
+             ' lastEnd=' + Math.round(s.lastEnd) +
+             ' now=' + Math.round(performance.now())
+           : 'NOT INSTALLED'; })()"""
+
+
+def shape(page, tag, b=None):
     labels = [a.get("label") or "" for a in page["actions"]]
     rows = [l for l in labels if "9110" in l]
     print(f"{tag:<10} url={page['url'][:52]:<52} actions={len(page['actions']):>3} "
           f"rows_with_9110={len(rows)} {rows[:1]!r}")
+    if b is not None:
+        try:
+            print(f"{'':<10}   __jevSettle: {b.evaluate(COUNTER_JS)}")
+        except Exception as e:
+            print(f"{'':<10}   __jevSettle: evaluate failed {type(e).__name__}")
     return bool(rows)
 
 
@@ -66,11 +78,11 @@ def main() -> int:
         b.act(submit, page)
 
         page = observe(b, "t=0")
-        found = shape(page, "t=0")
+        found = shape(page, "t=0", b)
         for wait in (1.0, 2.0, 3.0):
             time.sleep(wait)
             page = observe(b, f"t+{wait}")
-            found = shape(page, f"after +{wait}s") or found
+            found = shape(page, f"after +{wait}s", b) or found
         print("\nrow ever present:", found)
 
         # The round did not stop here: the model kept clicking 'Submit search'
@@ -89,7 +101,7 @@ def main() -> int:
                 break
             b.act(again, page)
             page = observe(b, f"press{k}")
-            shape(page, f"press {k}")
+            shape(page, f"press {k}", b)
         print("=> if a re-submit drops the row, the round's abstention is the "
               "page shape, not a floor guard.")
     finally:

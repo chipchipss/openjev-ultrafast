@@ -1,0 +1,24 @@
+{
+ "summary": {
+  "total": 2,
+  "pass": 0,
+  "fail": 0,
+  "error": 2,
+  "quadrants": {},
+  "false_positive": 0
+ },
+ "results": [
+  {
+   "task_id": "s002",
+   "result": "ERROR",
+   "error": "agent_init_failed: RuntimeError: permission-blocked: Chrome's Allow popup is still open and the pending daemon was left running. Approve that exact popup; browser-harness did not retry or create another connection.",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 136, in _run_one\n    agent = Agent(url=start_url, goals=spec[\"goal\"], task_spec=spec,\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 123, in __init__\n    self.browser = Browser(url)\n                   ^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 72, in __init__\n    _ensure_daemon()\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 31, in _ensure_daemon\n    ensure_daemon(wait=DAEMON_WAIT)\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\admin.py\", line 654, in ensure_daemon\n    raise RuntimeError(\nRuntimeError: permission-blocked: Chrome's Allow popup is still open and the pending daemon was left running. Approve that exact popup; browser-harness did not retry or create another connection.\n"
+  },
+  {
+   "task_id": "s003",
+   "result": "ERROR",
+   "error": "agent_init_failed: RuntimeError: permission-blocked: Chrome's Allow popup is still open and the pending daemon was left running. Approve that exact popup; browser-harness did not retry or create another connection.",
+   "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 136, in _run_one\n    agent = Agent(url=start_url, goals=spec[\"goal\"], task_spec=spec,\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 123, in __init__\n    self.browser = Browser(url)\n                   ^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 72, in __init__\n    _ensure_daemon()\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\browser.py\", line 31, in _ensure_daemon\n    ensure_daemon(wait=DAEMON_WAIT)\n  File \"C:\\Users\\Administrator\\miniconda3\\envs\\jev\\Lib\\site-packages\\browser_harness\\admin.py\", line 654, in ensure_daemon\n    raise RuntimeError(\nRuntimeError: permission-blocked: Chrome's Allow popup is still open and the pending daemon was left running. Approve that exact popup; browser-harness did not retry or create another connection.\n"
+  }
+ ]
+}

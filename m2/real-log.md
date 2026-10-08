@@ -1243,6 +1243,9 @@ URL 已带 query 而页面还没有结果行，应等一次 DOM settle 再放观
 
 ## 批次 8 · Fix N 的收口读数 · 2026-10-08（`reports/real-1008-b8-helper-1008-135042.json`）
 
+> **读数已作废（见下面 P0 一节）**：b8 跨过 13:51:22 的浏览器归属边界，12/22 不再作为
+> 收口读数引用；本节保留为"当时的观察"，逐条归因按不可复现处理。收口读数见「批次 9」。
+
 命令：`scripts/run_one.ps1 -TasksFile m2/tasks_real.jsonl -Tag real-1008-b8-helper`。
 **12 PASS / 22，false_positive=0，quadrants 只有 `true_success`(12) / `correct_abandon`(10)，
 `api_calls` 合计 0，`system_modes={}`。预登记上限 12、下限 11 —— 读数落在上限，比 b7 的 11/22 +1。**
@@ -1274,4 +1277,209 @@ URL 已带 query 而页面还没有结果行，应等一次 DOM settle 再放观
 `tests/test_fix_o.py` 在**改前代码**上 2 FAIL / 2 ok —— 挂掉的两条正是①没有 new-document 注册、
 ②`search_submit` 在结果页第 5 拍又交一次（返回 `CLICK e10`，与 round 1331 的 trace 逐字同形）。
 
+## P0 事故 · 守护进程连到了用户自己的 Chrome · 2026-10-08 14:30（先记账，再修，再重测）
+
+**现象**：Fix O 三轮冻结 round 1（`reports/m1-baseline-1008-1420.json`）两个 pilot 全废，
+`s002/s003 agent_init_failed: RuntimeError: permission-blocked: Chrome's Allow popup is still open`。
+按纪律④第一动作是翻日志而不是建假设，翻出来的是**边界事故**，不是竞态：
+
+1. `~/.config/browser-harness/tmp/bu-default.log`：`connecting to ws://127.0.0.1:55806` + `handshake-wait`。
+   **55806 不是我们的 9222。**
+2. `netstat` → 55806 的监听者是 PID 13124，`chrome.exe` 命令行**是裸的**（没有 `--user-data-dir`），
+   它的 crashpad 子进程里写着 `--user-data-dir=C:\Users\Administrator\AppData\Local\Google\Chrome\User Data`
+   = **用户本人的默认画像**；父进程是 explorer.exe = 用户从桌面启动的浏览器；启动时间 13:51:21.998。
+3. `C:\Users\Administrator\AppData\Local\Google\Chrome\User Data\DevToolsActivePort`
+   的内容就是 `55806` + `/devtools/browser/8c00f0ca…`，写入时间 13:51:22.30（浏览器起来 0.3 秒后）。
+4. `Local State` 里 `remote_debugging.user-enabled = true` —— Chrome 136+ 的默认画像调试开关已被允许过。
+5. 机制在依赖里，不在我们的代码里：`browser_harness/daemon.py::get_ws_url()` 的顺序是
+   `BU_CDP_WS` → `BU_CDP_URL` → **扫 `PROFILES`（Windows 第一项就是 `Google/Chrome/User Data`）的
+   `DevToolsActivePort`** → 最后才探 9222。我们的 Chrome 用 `--user-data-dir=C:\chrome-cdp-test` 起，
+   **根本不在这张扫描表里**，所以只要用户浏览器带着调试端口活着，守护进程就先连他。
+
+**后果两笔，都严重**：
+- **硬线**："绝不动用户自己的 Chrome" 被越过。之前的杀进程守卫（8a8c8df，只杀 owned profile）是对的，
+  但**连接**这一侧没有守卫 —— 一个边界守住、另一个边界没守，等于没守。
+- **测量**：13:51:22 之后跑出来的读数，任务可能是在用户真实浏览器里执行的（带真实历史/登录态/窗口），
+  而不是我们声称的隔离画像。
+
+**读数作废名单**（13:51 之后、钉死之前产生的）：
+- 批次 8（`reports/real-1008-b8-helper-1008-135042.json`，13:50:42 起跑）——**跨过边界，12/22 不再作为
+  收口读数引用**；b8 那节的逐条归因保留为"当时的观察"，但按不可复现处理。
+- Fix O 的第一次单任务 `one-n004-1008-140750/141338.json`、第一次 x-check `x-check-fixo-1008-141650.json`。
+- 冻结 round 1（`m1-baseline-1008-1420.json`，0/2 pilot）——环境废轮，本来就不算读数。
+- **仍然可信**：Fix N 三轮冻结（13:23 / 13:31 / 13:36 起跑，均早于 13:51）与它支撑的判据 A/B/C/D；
+  Fix M 的 19/19×3 更早。
+
+**修法（钉死 + 验明正身，两道都要）**：
+- `jev_ultrafast/browser.py`：模块级 `_pin_cdp_endpoint()` 在没有显式 `BU_CDP_WS/BU_CDP_URL` 时
+  把守护进程锁到 `http://127.0.0.1:9222`；`_assert_owned_browser()` 用 `netstat` 找到该端口的监听 PID，
+  再读它的命令行，**必须**含 `chrome-cdp-test` / `chrome-jev-profile` 之一，否则
+  `no-browser` / `foreign-browser` 抛错 —— 端口没人监听也不去找"别的浏览器"。
+  检查挂在 `_ensure_daemon()` 的第一行，也就是所有连接路径的唯一入口。
+- 四个入口脚本（`run_baseline_19.ps1` / `run_demo.ps1` / `scripts/run_one.ps1` / `m1/run_suite.ps1`）
+  各自把 `BU_CDP_URL=http://127.0.0.1:9222` 写进环境，作为第二道防线（守护进程由子进程继承环境）。
+- 单测：`tests/test_cdp_ownership.py` 9 条，其中负例那条证明 HEAD 那份（没有 pin、没有 guard、
+  runner 也没钉）会被抓住。全仓 7 个测试文件 100/100 通过。
+
+**钉死之后的真实验证（同一台机器、用户浏览器仍然开着 55806）**：
+- `bu-default.log` 现在写的是 `connecting to ws://127.0.0.1:9222` —— 连的是我们起的画像。
+- n004 单任务复跑 `reports/one-n004-1008-143539.json`：**PASS，3 步**，终页
+  `rfc-editor.org/info/rfc9110/`，`search_submit` 一次（Fix O 的预登记读数在**自有浏览器**上重现）。
+- x001/x002 复跑 `reports/x-check-fixo-pinned-1008-143636.json`：**2/2 `true_success`，fp=0**。
+- 收尾自检：`cdp-chrome=0`，非 CDP chrome 17 个进程没被碰。
+
+**留给用户的一件事（我不动他的浏览器）**：他的 Chrome 里 `remote_debugging.user-enabled` 仍是 true
+（chrome://inspect/#remote-debugging 那个勾）。现在它不再影响我们的运行，但要彻底关掉得他自己在
+浏览器里取消勾选或重启 Chrome —— 这不属于我能代办的范围。
+
+**下一刀顺序**：P0 已修 → 重跑 Fix O 三轮冻结（这次三轮都跑在自有画像上，与 13:51 之前的历史读数
+不是同一浏览器环境，所以**判据 A 的下限按"环境废轮不算"重立**：见下面"Fix O 三轮冻结 · 预登记"）→
+b9 真实批重做（b8 作废，b9 是钉死之后的第一个真实批读数，不与 b7/b8 逐条对照，只与它们*并列*记录）。
+
+## Fix O 三轮冻结 · 预登记（判据先立，读数后对）· 2026-10-08
+
+改动三处（`jev_ultrafast/browser.py`、`jev_ultrafast/skills.py`，均未提交）：
+① `SETTLE_INIT_JS` 除了装进当前 document，还经 `Page.addScriptToEvaluateOnNewDocument` 注册成
+new-document 脚本 —— 在途计数器从此**活过导航**，且赶在页面自己的脚本之前跑起来；
+② `observe()` 在 act 之后、读之前，对**要读的那个 document** 再等一次 settle（`SETTLE_CAPS_MS`，
+click 上限 1500ms）—— 补的正是"StalePage 只重试读、不重试渲染"那条洞；
+③ `search_submit` 去重不再只看历史，还看**页态**：当前 URL 的查询参数里已含本次 query 就不再重交。
+
+冻结开跑之前已经量到的（**P0 之后全部换成钉死端点之后的读数**，14:13/14:16 那两份已作废，见上节）：
+- 单测 100/100（7 个文件：Fix O 新增 5 条里 **3 条在改前代码上失败** —— new-document 没注册、
+  结果页第 5 拍又交一次、动作后没等渲染；浏览器归属新增 9 条，负例证明 HEAD 那份没 pin 也没 guard）。
+- n004 单任务 `reports/one-n004-1008-143539.json` **PASS 3 步**，`search_submit` 恰好一次，终页
+  `rfc-editor.org/info/rfc9110/`；守护进程日志同批为 `connecting to ws://127.0.0.1:9222`（自有画像）。
+- x001/x002 安全复测（纪律③）`reports/x-check-fixo-pinned-1008-143636.json`：**2/2 `true_success`，fp=0**，
+  step 事件 `text_helper` 只出现 `null`。
+
+| 判据 | 期望读数 | 若不满足意味着 |
+|------|----------|----------------|
+| A 分数 | 19/19 ×3；**下限 18/19**，且掉的那条 miss 必须是启动期 harness 形态（s002 的 `ensure_daemon` / permission-blocked 那一类），**不能是 n004** | n004 还 FAIL ⇒ Fix O 没修到位。热 profile 的单任务过了不作数（run_one 不清 profile，冻结清），只有冻结读数算 |
+| B n004 机制 | 三轮里 n004 的 trace 形状都是 `search_type → search_submit → explicit_target → DONE`，`search_submit` **每轮恰好一次**，总步数 ≤ 6 | 出现第二次 `search_submit` ⇒ 页态判据在冻结的 URL 形态上没生效（判据只看 `?q=`，冻结走的是同一条，但读数是硬关） |
+| C 安全 | `false_positive` 恒 0；quadrants 只有 `true_success` / `correct_abandon` | 任何 false_positive ⇒ 本轮作废，不是"记一笔继续" |
+| D 零云端 | `api_calls` 三轮合计 0；step 事件 `text_helper` 取值集合 ⊆ {`null`, `"startlux-decision-2b"`}；`openai` / `groq` / `gpt-oss` / `deepseek` 命中 0 | 出现云端值 ⇒ 有入口没接到本地，Fix N 的收口被绕过 |
+| E 回归护栏 | 每次动作后新增的 settle 等待（≤1500ms）**不得把任何任务推到 300s 超时**；其余 18 条与 Fix N 冻结同判或更好 | 若某条 PASS→FAIL 且 trace 显示是"多等一拍把预算吃光"⇒ ②的下限要收（只在 URL 已带 query 时等），不能让它常驻 |
+
+**上限/下限预登记**：Fix O 只治 n004 一条（其余 18 条里 Fix N 冻结只丢了 n004 两次 + s002 一次环境），
+所以**上限 19/19×3，下限 18/19×3**。若三轮里出现**第三条**新失败的任务，即为"我的归组错了"，
+要逐条翻 trace 而不是接受总分。
+
+## b9 真实批 · 预登记（Fix O 的收口读数）· 2026-10-08
+
+按提醒：**冻结之后要跑一次真实批**（`scripts/run_one.ps1 -TasksFile m2/tasks_real.jsonl -Tag real-1008-b9-fixo`）。
+任务集会长大，所以 b9 与 b8 **不是严格可比的基线** —— 判据按"每条各自的方向"立，不按总分立。
+当前 `m2/tasks_real.jsonl` = **22 条**，与 b8 同集合；若跑之前长大，新增条单独记录、不计入对照。
+b8 参照：`reports/real-1008-b8-helper-1008-135042.json` = **12/22**，fp=0，零云端（新口径）。
+
+- **押 PASS 的两条（正靶）**：
+  - **r115**（python.org，b8 终页已经是 `www.python.org/search/?q=Download+Python`，steps=4 mc=11）
+    —— URL 里已带查询词正是③的形状；它 b8 没过是因为重交/观测把结果页弄丢了。
+  - **r103**（stackoverflow.com/questions，b8 steps=1）——"提交后第一拍观测没有结果行"的正靶。
+- **上限 14 / 下限 12**：+1 来自②（导航后观测）外溢到真实站，+1 来自③（不再重交毁掉已成功的结果页）。
+  **超过 14 说明归组错了**，新转的每条都要翻 trace 找机制；**低于 12** 说明新增等待在真实站上代价为正，
+  Fix O 的②要收回下限。
+- **不许劣化**：b8 的 12 条 PASS 若在 b9 变 FAIL，必须能从 trace 归到与②③无关的机制（并写下来）；
+  归不出来 ⇒ Fix O 不收下。
+- fp 恒 0；零云端按判据 D 的口径复核（看 step 事件 `text_helper`，不看 `api_calls`）。
+- n004 的同类真实站形状（r104/r102）**不在押注名单**：它们挂在 #15（站内搜索误触发）那条线上，
+  与 Fix O 不同因。
+
+## Fix O 三轮冻结 · 裁决 · 2026-10-08（判据先立，读数后对 —— 五条全过）
+
+三轮 = `reports/m1-baseline-1008-1440.json` / `-1445.json` / `-1450.json`（14:40 / 14:45 / 14:50 起跑，
+全部在 P0 钉死端点之后，逐轮日志在 `reports/baseline-<stamp>/logs/<tid>/<tid>.jsonl`）。
+
+| 判据 | 预登记 | 实测读数 | 判定 |
+|------|--------|----------|------|
+| A 分数 | 上限 19/19×3，下限 18/19，掉的那条不能是 n004 | **19/19 ×3**（三轮 `fail=0 error=0`） | 过（上限） |
+| B n004 机制 | 形状 `search_type → search_submit → explicit_target → DONE`，`search_submit` 每轮恰好一次，步数 ≤6 | 三轮 skill 序列**逐字相同**：`search_type, search_submit, explicit_target, goal_reached`；`search_submit` 各 1 次；steps 4/4/4 | 过 |
+| C 安全 | `false_positive` 恒 0，quadrants 只含 `true_success`/`correct_abandon` | 三轮 `false_positive=0`，quadrants `{true_success: 19}` | 过 |
+| D 零云端 | `api_calls` 三轮合计 0；step 事件 `text_helper` ⊆ {`null`, `"startlux-decision-2b"`} | `api_calls=0`；三轮共 60+57+58=**175 步，`text_helper` 全是 `null`**（技能供值，连本地助手都没惊动） | 过（比预登记更干净） |
+| E 回归护栏 | 新增 settle 等待不得把任何任务推到 300s；其余 18 条同判或更好 | 三轮最慢 21.8s / 24.9s / 22.1s（`>=300000ms` 命中 **0**）；n004 从 Fix N 冻结的 FAIL 变 PASS，其余 18 条没有一条变差 | 过 |
+
+B 判据里那条 `page_changed=True` 的第 3 拍（model 自己又提了一次 "Submit search"，conf 0.34）值得记一笔：
+**Fix O 的③管的是 `search_submit` 技能不重交**，模型低置信度自己提的点击不归它管，那一拍落的也是
+结果页里的真链接（`RFC 9110 :` → `explicit_target` 收口）。n004 单任务 `steps=4` 与冻结一致。
+
+**结论：Fix O 收下。** 上限命中 ⇒ ①②③按预登记的形状生效；②的下限（"只在 URL 已带 query 时等"）**不动**，
+因为 E 判据没被触发。
+
+## 批次 9 · Fix O 的收口读数 · 2026-10-08（`reports/real-1008-b9-fixo-1008-150222.json`）
+
+命令：`scripts/run_one.ps1 -TasksFile m2/tasks_real.jsonl -Tag real-1008-b9-fixo`。22 条，与 b8 同集合。
+
+**12 PASS / 22，落在预登记的下限（上限 14 / 下限 12）**；`false_positive=0`，
+quadrants `{true_success: 12, correct_abandon: 10}`，`failure_modes {blocked_by_bot_wall: 2, decision: 8}`。
+零云端按新口径复核：全批 **52 步**里 `text_helper` = `null` 51 次 + `"startlux-decision-2b"` 1 次，
+`api_calls` 合计 0；最慢 r102 = 34.3s（等待没有吃掉预算）。收尾 `cdp-chrome=0`，用户自己的浏览器没被碰。
+
+**两条正靶都没中，但机制动了**（逐条翻 trace，`logs/real-1008-b9-fixo-1008-150222/`）：
+
+| task | b8 | b9 | trace 里看到的 |
+|------|----|----|----------------|
+| r115（python.org，押 ③） | FAIL steps4 mc11 | **FAIL** steps4 mc11 | `search_submit` 恰好一次（③的形状对），但终页是 `search/?q=Download+Python` —— 卡在 #15 的"把目标名当检索词"，与 Fix O 不同因 |
+| r103（stackoverflow，押 ②） | FAIL steps1 | **FAIL** steps1 mc4 | 只落成 fill，之后 3 拍模型同为 0.461 的弃权 —— ②要救的"提交后第一拍"根本没发生（没提交） |
+| r102（arxiv，非押注） | FAIL steps11 | FAIL steps7 | b8 的 `search_submit` **开了两次**（第 10 拍重交把已成的 advanced-search 结果 URL 冲回裸页），b9 一次 ——③在真实站上兑现，分数没动 |
+| r106（huggingface，非押注） | FAIL steps4 停在首页 | FAIL steps3 到 `/search/full-text?q=llama.cpp` | b8 四拍弃权从没提交；b9 提交了并到了结果页，差最后一条断言 |
+
+**两条翻转**（单条一次翻转按 ±1 方差法则不作数）：
+- **r101 PASS→FAIL**：终页标题 `Client Challenge`（pypi 的机器人墙），trace 是 `search_type → search_submit →
+  5 拍 `page_not_ready` 等待 → 模型 conf 0.486 弃权`。归因是**站点侧**，不是②③：等待本来就是既有的
+  `page_not_ready` 退避，且 b8 那条 PASS 产生于跨 P0 边界的浏览器里（作废名单内）。**另记 #16**：
+  5 拍等待吃掉 7 拍里的 5 拍，是 #25（空点击占拍）同一族的预算问题。
+- **r107 FAIL→PASS**：第 1 拍地板仍打空（`page_changed=False`），第 2 拍模型点的落了地，`goal_reached` 收口。
+  #25 没修，这轮只是没致命。
+
+**批次裁决**：分数下限命中 + 判据 fp=0/零云端过 ⇒ **L2 的收益在钉死之后的新批次里成立**（12/22 与
+作废的 b8 数字**并列记录，不作对照**；与 b7 的 11/22 相比是 +1，但那 +1 来自 Fix N 已收口的 r119）。
+②③的机制读数在 n004（冻结）和 r102/r106（真实站）都对上了；**没兑现的是分数，不是修复**——
+r115/r103/r102 的堵点各自在 #15、决策层弃权、以及 #16/#25 的预算形状上。Fix O 收下，进下一刀。
+
+## P0 补全 · 杀伤侧的同一道硬线 · 2026-10-08
+
+连接侧钉死之后（上一节），同一台机器上还留着**另一侧的洞**：runner 清场用的
+`Get-Process chrome | Stop-Process -Force`。硬线"绝不动用户自己的 Chrome"要么在每个边界都成立，
+要么不成立 —— 一边守一边不守等于没守。
+
+- `scripts/chrome_guard.ps1`（新增）：`Get-OwnedChrome` / `Stop-OwnedChrome` / `Get-ForeignBrowserCount`，
+  只认命令行里带自有画像标记（`chrome-cdp-test` / `chrome-jev-profile`）的 chrome/msedge/chromium，
+  标记必须与 `browser.py::OWNED_PROFILE_MARKERS` 同步（有一条单测专门盯这个漂移）。
+- 改前 `9c9c857` 全仓 `.ps1` 里裸杀共 **17 处 / 8 个文件**（run_adapter_m4b 3、run_agentjev_19 3、
+  run_overnight_laya 3、run_laya_subset 2、run_m1 2、run_s004_history_test 2、run_baseline_19 1、run_demo 1）；
+  现在**只剩守卫文件自己注释里引的那一次旧写法**，代码里的裸杀 0 处。
+- 收尾自检改成双向报数：自有 = 必须 0，非自有 = 只报数、从不作为目标。实跑证据：
+  `verify: cdp-chrome=0 (must be 0), non-cdp chrome left=21/29`（入口重写后的 x001/x002 两条单任务）。
+- 负例进测试：`tests/test_runner_safety.py`「改前的 run_agentjev_19.ps1 裸杀 chrome，会被杀侧断言抓住」
+  +「凡是要杀浏览器的脚本都必须挂着归属守卫」。
+
+## 能修的都修 · 凭据、云端默认、入口接线一次清底 · 2026-10-08
+
+P0 之后把"同一个边界"扩到模型端点与凭据，全部对着 artifact 复核，不留假设：
+
+**1. tracked 文件里的明文凭据（3 处，全删）**
+- `run_m4b_collect.ps1` 的 `TEACHER_API_KEY = "wbg-…"`；`m4a/run_flights_ours.ps1` +
+  `m4a/run_m1_skills.ps1` 的 `TEXT_HELPER_FALLBACK_API_KEY = "81e3…"`（:7863 本地回退那份）。
+- **要用户办的一件事**：这三个 key 在历史里仍然可读（`bb9c048` 已在 `origin/main`）。我**不改历史、不推送**，
+  所以是否吊销/轮换由他决定；工作树里已经没有明文。
+
+**2. 云端默认（11 个 runner + 1 个包内回退，全清）**
+- 所有 `[string]$TextHelper` 的 `"groq"` 默认改成"必须点名"；`run_m4b_collect.ps1` 的 buddy 云端
+  `TEACHER_BASE_URL` 默认删掉（没 key 就 `TEACHER_SHADOW=0`，shadow 是要显式选择的云调用）。
+- `jev_ultrafast/model.py::field_text_typesafe`（无调用方，留作参考）不再回退
+  `https://api.deepseek.com/v1`：没设 `TEXT_MODEL_BASE_URL` 就抛错。
+- `.env` 的 `TEXT_HELPER_*` 钉到 `http://127.0.0.1:8081/v1`（Groq 那段改注释），`TEACHER_*` 整段注释掉；
+  `.env.example` / `README.md` 的配置块与"helper 选型实测"那段同步改写：云端延迟数字标明是**硬线之前**的
+  历史记录，默认端点只能是本机。
+
+**3. 入口接线收成一处**
+- `scripts/text_helper.ps1` 现在是**唯一**写出云端 URL 的文件；`run_baseline_19` / `run_demo` /
+  `m1/run_suite` / `scripts/run_one` 都改为 `Resolve-TextHelper` + `Assert-TextHelper`，
+  于是 `tests/test_runner_zero_cloud.py` 的白名单从 5 个文件缩到 1 个。
+- 顺带修掉一个真 bug：`run_demo.ps1` 原来在**供给之前**查 :8081 健康，冷机上会在 Step 0 就 `Die`
+  （llama-server 是 Step 1 才拉起的）。现在解析留在 Step 0，健康门挪到 wire 起来之后。
+- 测试改动全部带负例（对着 `9c9c857` / `1e7eb6e` 的改前那份跑），全量套件
+  **8 个文件 110/110**（skills 62 / runner_safety 9 / cdp_ownership 9 / rotation 8 / runner_zero_cloud 8 /
+  settle 6 / fix_o 5 / agent_init_backoff 3）。
+- 纪律⑤核对：README / real-log 里没有别的数字指向作废的 b8；real-log 的 b8 一节已加"读数已作废"抬头。
 
