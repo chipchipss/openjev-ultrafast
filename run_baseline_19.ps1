@@ -5,7 +5,10 @@ param(
     [string]$Tasks = "m1\tasks-laya-19.jsonl",
     [string]$DeciderModel = "Mapika/decider-2b",
     [string]$Fp8 = "0",
-    [string]$TextHelper = "groq",
+    [string]$TextHelper = "startlux",
+    # llama-server that fronts the StartLux wire (:8090); it is also the Text
+    # Helper endpoint, so the run keeps exactly one resident model and zero cloud.
+    [int]$LlamaPort = 8081,
     [int]$PilotCount = 2,
     [switch]$NoService,     # decider already listening on $SvcPort
     # TypeSafe wire endpoint to point tasks at. Must match where the service
@@ -173,10 +176,29 @@ try {
         Where-Object { $_ -match '^\s*[A-Za-z_][A-Za-z0-9_]*\s*=' } |
         ForEach-Object { $p = $_.Split('=',2); Set-Item -Path "env:$($p[0].Trim())" -Value $p[1].Trim() }
 
-    $helperUrl = "https://api.groq.com/openai/v1"; $helperModel = "openai/gpt-oss-120b"; $helperKey = $env:GROQ_API_KEY
+    # Text Helper (the value a TYPE_TEXT decision types). Default is the local
+    # llama-server that already serves the wire -- hard rule: zero cloud calls.
+    # Until now .env pointed TEXT_HELPER at a cloud endpoint, so every round
+    # that filled a field made cloud calls (n004 typed "RFC 9110" through
+    # openai/gpt-oss-120b in the 1008 freeze rounds) while the reports'
+    # api_calls stayed 0, because that counter only counts the teacher path.
+    # groq/deepseek remain reachable only by explicit -TextHelper, never as a default.
+    $helperUrl = "http://127.0.0.1:$LlamaPort/v1"; $helperModel = "startlux-decision-2b"; $helperKey = "local"
+    if ($TextHelper -eq "groq")     { $helperUrl = "https://api.groq.com/openai/v1"; $helperModel = "openai/gpt-oss-120b"; $helperKey = $env:GROQ_API_KEY }
     if ($TextHelper -eq "deepseek") { $helperUrl = "https://api.deepseek.com/v1"; $helperModel="deepseek-chat"; $helperKey=$env:DEEPSEEK_API_KEY }
     if ($TextHelper -eq "local")   { $helperUrl = "http://127.0.0.1:11434/v1"; $helperModel="gemma4:latest"; $helperKey="local" }
-    if ($helperKey) { Ok "GROQ key present" } else { Warn "no GROQ_API_KEY -- TYPE_TEXT will fail" }
+    if ($TextHelper -eq "none")    { $helperUrl = ""; $helperModel = ""; $helperKey = "" }
+    if ($TextHelper -eq "groq" -or $TextHelper -eq "deepseek") { Warn "-TextHelper $TextHelper is a CLOUD endpoint -- violates the zero-cloud rule" }
+    # An unreachable helper means every TYPE_TEXT dies after 3 decisions with
+    # steps=0; measuring that is worse than not measuring, so stop here.
+    $helperHealth = ""
+    if ($TextHelper -eq "startlux") { $helperHealth = "http://127.0.0.1:$LlamaPort/health" }
+    if ($TextHelper -eq "local")    { $helperHealth = "http://127.0.0.1:11434/api/tags" }
+    if ($helperHealth) {
+        try { Invoke-RestMethod $helperHealth -TimeoutSec 3 | Out-Null }
+        catch { Die "text helper not reachable ($helperHealth) -- run scripts/startlux_serve.ps1, or pass -TextHelper none" }
+    }
+    if ($helperKey) { Ok "text helper: $TextHelper -> $helperUrl" } elseif ($TextHelper -eq "none") { Warn "text helper disabled -- TYPE_TEXT decisions will fail" } else { Warn "no key for -TextHelper $TextHelper -- TYPE_TEXT will fail" }
 
     # -- 1. GPU gate: exactly one model resident, never two --
     $gpu = [int]((nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits) -replace '\s','')
@@ -279,6 +301,8 @@ try {
         "TEXT_HELPER_BASE_URL"  = $helperUrl
         "TEXT_HELPER_MODEL"     = $helperModel
         "TEXT_HELPER_API_KEY"   = $helperKey
+        "TEXT_HELPER_MAX_TOKENS" = "128"
+        "TEXT_HELPER_MAX_RETRIES" = "2"
         "HTTPX_PROXY"           = "http://127.0.0.1:2080"
         "PYTHONUTF8"            = "1"
     }

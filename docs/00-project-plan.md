@@ -26,9 +26,9 @@
 | Runtime | 闭源决策绑定 | fork 自上游（MIT），加治理四件套 | ✅ 完成 |
 | Decision | TypeSafe 云 API | **自托管开源模型**（decider-2b，Apache-2.0） | ✅ 完成 |
 | 协议 | TypeSafe wire | 我们自己实现服务端 + 修了一个上游 bug | ✅ 完成 |
-| 文本 helper | 小 LLM | Groq 免费档 / DeepSeek 网关（可换） | ✅ 完成 |
+| 文本 helper | 小 LLM | **本地 llama-server :8081**（StartLux GGUF，wire 后面那个已驻留的同一个模型）。10-08 Fix N 之前默认是 Groq 免费档 / DeepSeek 网关——**那确实是云端调用**，见下 | ✅ 完成 |
 | 技能层 | 无 | 确定性技能短路（1416 行） | ✅ 完成（我们的原创） |
-| 云依赖 | 付费 API | **零付费调用**（`api_calls=0`）；文本 helper 仍走 Groq 免费档 | ✅ 完成 |
+| 云依赖 | 付费 API | **零付费调用**（`api_calls=0`）；helper 也已在 10-08 Fix N 落回本地。注意 `api_calls` **只统计 teacher 升级路径**，helper 不在计数器里 —— 10-08 之前"api_calls=0 ⇒ 零云端"是错的（实测 `reports/baseline-*/` 的 step 事件：56 次 `text_helper="openai/gpt-oss-120b"`，分布在 43 个基线目录） | ✅ 完成 |
 
 **上游的 7.1s 航班演示从未在本机复现过** —— 我们没有 TypeSafe API key，从未调用过。上游官方数字来自其 README 自述。
 
@@ -97,9 +97,11 @@ m1/ m2/ m4a/                    基准、数据飞轮、LoRA 实验
 
 > **在消费级笔记本上，跑出一个不需要任何付费云 API、任务成功率和速度都不输商业方案的浏览器 Agent。**
 >
-> 口径说明：`api_calls=0` 指的是**零付费**调用（实测 `m1-final3.json` 每任务均为 0）。
-> 文本 helper 仍走 Groq 云端免费档（`openai/gpt-oss-120b`，1,000 次/天），
-> 因此这是「零付费 + 本地为主」而非「完全离线」。完全离线属L5 未完成项。
+> 口径说明：`api_calls=0` 指的是**零付费**调用（实测 `m1-final3.json` 每任务均为 0），
+> 它**不**等于零云端——文本 helper 不在这个计数器里。10-08 Fix N 之前 helper 默认走 Groq 云端免费档
+> （`openai/gpt-oss-120b`，实测 56 次 step 级调用）；现在三个入口脚本默认指向本地 llama-server :8081
+> （wire 后面那个已驻留的同一个 GGUF，不新起进程），不可达时直接退出而不是静默降级。
+> "完全离线"这一项自 Fix N 起在实测读数上成立（10-08 三轮冻结 `text_helper` 只有 `null` / 本地模型名）。
 
 ### 2.2 三个支柱
 
@@ -230,7 +232,7 @@ DeepSeek Flash（商业前沿）12/20、glm-5.3-flash（商业前沿）12/20，
 | 决策模型对照（同一 19 任务集） | decider-2b **18/19** 胜出；adapter_m4b 8/15、Laya 6/18、agent-jev 3/18 | 维持 decider-2b |
 | Flights 端到端 | **12.4–14.0s / 7 项独立校验全过**（2026-10-07 一条命令四次实测 `demo-flights-1007-1617/1620/1622/1623`；10-04 旧 decider 底座曾 10.4s） | < 5s |
 | 假阳性 / 崩溃 | **0 / 0**（四轮对照，含 6/18、3/18 弱模型均为 0） | 恒为 0（硬线，永不妥协） |
-| **云端调用** | **0**（18 任务 `api_calls = 0`，103 次本地模型调用） | 恒为 0 |
+| **云端调用** | **0**（18 任务 `api_calls = 0`，103 次本地模型调用）—— 口径更正 10-08：`api_calls` 只数 teacher 升级路径。逐 artifact 审计 step 事件的 `text_helper` 字段后确认：这批 19 任务基线里有 **56 次**填充值出自云端 Groq（`openai/gpt-oss-120b`）。自 Fix N 起入口默认把 helper 指向本地 llama-server，10-08 三轮冻结该计数为 **0** | 恒为 0；复核口径 = `grep -r '"text_helper"' reports/baseline-*/` 只允许 `null` / `startlux-decision-2b` |
 | 真实站点任务 | 未开始 | ≥ 45/50 |
 | 基准运行耗时 | **3.9–4.1 分钟 / 19 任务**（settle detection 后；此前无 settle 为 3.3–3.6 分钟） | ≤ 30 分钟 |
 | 基准可信性 | 预检 9/9 域通过后才允许开跑；已测得 **±1** 抖动，单次读数不作数 | 硬性前置条件 |

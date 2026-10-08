@@ -3,7 +3,9 @@ param(
     [string]$Date = "auto",             # flights only: YYYY-MM-DD or auto
     [int]$SvcPort = 8090,               # StartLux wire port (llama :8081 is internal)
     [string]$ProxyUrl = "http://127.0.0.1:2080",
-    [string]$TextHelper = "groq",
+    [string]$TextHelper = "startlux",
+    # llama-server behind the wire; also serves as the Text Helper (local, zero cloud).
+    [int]$LlamaPort = 8081,
     # Keep the browser open at the end so you can look at the result yourself.
     [switch]$KeepOpen,
     # Leave the decision stack running after the demo (it is slow to reload).
@@ -93,9 +95,19 @@ try {
         Where-Object { $_ -match '^\s*[A-Za-z_][A-Za-z0-9_]*\s*=' } |
         ForEach-Object { $q = $_.Split('=',2); Set-Item -Path "env:$($q[0].Trim())" -Value $q[1].Trim() }
 
-    $helperUrl = "https://api.groq.com/openai/v1"; $helperModel = "openai/gpt-oss-120b"; $helperKey = $env:GROQ_API_KEY
+    # Text Helper: the value a TYPE_TEXT decision types. Default is the local
+    # llama-server that already fronts the wire (:8081) -- one resident model,
+    # zero cloud calls. groq/ollama stay behind an explicit -TextHelper.
+    $helperUrl = "http://127.0.0.1:$LlamaPort/v1"; $helperModel = "startlux-decision-2b"; $helperKey = "local"
+    if ($TextHelper -eq "groq") { $helperUrl = "https://api.groq.com/openai/v1"; $helperModel = "openai/gpt-oss-120b"; $helperKey = $env:GROQ_API_KEY }
     if ($TextHelper -eq "local") { $helperUrl = "http://127.0.0.1:11434/v1"; $helperModel = "gemma4:latest"; $helperKey = "local" }
     if ($TextHelper -eq "none") { $helperUrl = ""; $helperModel = ""; $helperKey = "" }
+    if ($TextHelper -eq "groq") { Warn "-TextHelper groq is a CLOUD endpoint -- violates the zero-cloud rule" }
+    if ($TextHelper -eq "startlux") {
+        try { Invoke-RestMethod "http://127.0.0.1:$LlamaPort/health" -TimeoutSec 3 | Out-Null }
+        catch { Die "text helper (llama-server :$LlamaPort) not reachable" }
+    }
+    $env:TEXT_HELPER_MAX_TOKENS = "128"; $env:TEXT_HELPER_MAX_RETRIES = "2"
 
     # -- 1. proxy (warn only: the demo should still try) --------------------
     if ($ProxyUrl) {

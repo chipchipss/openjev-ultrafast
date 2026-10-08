@@ -5,7 +5,10 @@ param(
     [string]$TaskId,
     [string]$TasksFile,
     [string]$Tag = "adhoc",
-    [int]$SvcPort = 8090
+    [int]$SvcPort = 8090,
+    # llama-server behind the StartLux wire. Same stack, same GGUF: it is the
+    # Text Helper (see below), so nothing leaves the box.
+    [int]$LlamaPort = 8081
 )
 $ErrorActionPreference = "Stop"
 if (-not $TaskId -and -not $TasksFile) { Write-Host "need -TaskId or -TasksFile"; exit 2 }
@@ -68,6 +71,23 @@ $env:TYPESAFE_BASE_URL = "http://127.0.0.1:$SvcPort/v1/systemone"
 $env:TYPESAFE_API_KEY = "local"
 $env:HTTPX_PROXY = "http://127.0.0.1:2080"
 $env:PYTHONUTF8 = "1"
+
+# Text Helper -- the value a model-proposed TYPE_TEXT asks to type. This script
+# used to set none of the TEXT_HELPER_* vars, so every such decision died inside
+# field_text() and agent.py blocked the run after 3 in a row (helper_fail_run):
+# r119 lost 3 model calls and 0 steps, twice in a row (b7 and the post-Fix-E
+# single). The StartLux llama-server on :8081 serves it from the GGUF that is
+# already resident -- the same one model the wire uses, so nothing new starts
+# and nothing leaves the box (hard rule: exactly one resident model, zero cloud).
+# A dead :8081 stops the run instead of measuring a silently crippled agent.
+try { Invoke-RestMethod "http://127.0.0.1:$LlamaPort/health" -TimeoutSec 3 | Out-Null }
+catch { Write-Host "local text helper (llama-server :$LlamaPort) is not up -- run scripts/startlux_serve.ps1 first"; exit 1 }
+$env:TEXT_HELPER_BASE_URL = "http://127.0.0.1:$LlamaPort/v1"
+$env:TEXT_HELPER_MODEL = "startlux-decision-2b"
+$env:TEXT_HELPER_API_KEY = "local"
+$env:TEXT_HELPER_MAX_TOKENS = "128"
+$env:TEXT_HELPER_MAX_RETRIES = "2"
+Write-Host "text helper: llama-server :$LlamaPort (local)"
 
 & "C:\Users\Administrator\miniconda3\envs\jev\python.exe" -m m1.run_tasks `
     --tasks $TaskFile --log-dir $LogDir --report $Report --task-delay 1

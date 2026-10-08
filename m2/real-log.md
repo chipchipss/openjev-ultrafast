@@ -1114,3 +1114,164 @@ I 类（#15）的证据由此从"猜词表"变成"页面形状"：修它得先�
 
 **批次裁决**：Fix L、Fix M **收下**。b7 = 11/22 记账；下一刀 **Fix E**，
 理由不是它值两条任务，而是它在 b7 里吃掉的是**一整条根本没被测量的任务**。
+
+## Fix N：Text Helper 从来没接上（r119 的 steps=0 是这个），而基线的填充值一直在走云端
+
+**r119 不是执行窗口的问题**。Fix E 之后的单任务复跑仍是 `3 decisions / steps=0`，但指纹三拍**完全没变**
+（E2 的并集盒死法在 r116 上已被行片段修好，steps 0→4），所以这是第三种形状。零模型探针
+`scripts/probe_r119_helper.py`（huggingface.co 首页，实况输出）：
+
+```
+TEXT_HELPER_BASE_URL = None
+actions=64   e2 fill label='Search models, datasets, users...'   ← 页面上唯一的 fillable，就是搜索框
+route() -> None                                                  ← 地板弃权，TYPE_TEXT 是**模型**提的
+field_text RAISED RuntimeError: Missing required env var TEXT_HELPER_BASE_URL
+```
+
+`agent.py:649-652`：助手异常连抛 3 次 → `helper_fail_run >= 3` → `status=blocked`。
+trace 逐字对上（b7 与复跑都是 model_calls 3 / steps 0）：**没有任何地方能给出要输入的值，
+所以一步都落不成**，而被记成 `agent/decision` 失败。根因在入口脚本 ——
+`scripts/run_one.ps1` 从不设 `TEXT_HELPER_*`。
+
+**顺带做的一次全量审计**（读 `reports/baseline-*/**/*.jsonl` 里 step 事件的 `text_helper` 字段，
+不是推测）：19 题基线的填充值来自 `.env` 里的**云端 Groq**（`openai/gpt-oss-120b`），
+跨 43 个基线目录累计 **56 次 step 级云端调用**：
+
+| task | 云端 helper 次数 | 填进去的值 |
+|------|------------------|-----------|
+| n004 | 27 | `RFC 9110` |
+| x002（负向安全题）| 13 | `Earth` |
+| s002 | 11 | `asyncio` |
+| l002 | 5 | `List of countries by population` |
+
+**这条要更正前面写过的话**：报告的 `api_calls` 只统计 teacher 升级路径，Text Helper 不在计数器里。
+所以 Fix M 那节里"三轮冻结 `api_calls=0` ⇒ 全程本地"是**错的**——`api_calls=0` 与"零云端"不是一回事。
+改的是入口配置，不是判据；判据以后要同时看 `api_calls` 和 `text_helper` 的模型名。
+
+**改法**（三个入口默认本地）：`scripts/run_one.ps1` / `run_baseline_19.ps1` / `run_demo.ps1`
+把 `TEXT_HELPER_BASE_URL` 指向 **llama-server :8081** —— 它就是 wire :8090 前面那个**已驻留**的
+StartLux GGUF，不新起进程，符合硬线"只允许一个模型驻留"（`run_baseline_19.ps1` Step 1 的 GPU gate）。
+`groq` / `deepseek` 只能显式 `-TextHelper` 指定，且会 Warn "CLOUD endpoint"。
+`run_one.ps1` 加 :8081 健康门：不可达直接 `exit 1` —— **不要静默量一个残废的 agent**
+（r119 被记成 agent 失败就是这么来的）。
+
+**本地 2B 能不能当助手**（`scripts/probe_text_helper_local.py`，打 :8081 真实推理，4/4）：
+
+```
+HF 搜索框 (r119)        -> {"text": "bert-base-uncased"}   2706ms
+OSM 搜索框              -> {"text": "Zurich"}               642ms
+goal 里没有值（D17）    -> {"text": null}                  1337ms   ← 不编造，安全语义保住
+n004 的 RFC 搜索框      -> {"text": "RFC 9110"}              734ms   ← 与云端历史值逐字相同
+```
+
+也用**真实代码路径**复验过（`post_chat` 会多带 `reasoning` 字段，llama-server 接受）：
+`field_text -> 'bert-base-uncased' 1283ms`，无值用例仍抛 `NullValue`。
+
+**单任务实测**：
+
+| task | 读数 | 报告 | 关键证据 |
+|------|------|------|----------|
+| r119 | **PASS**（2 步，`huggingface.co/google-bert/bert-base-uncased`）| `one-r119-1008-132052.json` | step1 `TYPE_TEXT text='bert-base-uncased' helper=startlux-decision-2b`（模型提的决策，正是原先必死的那条路）；step2 `explicit_target` 点中同名行 → `goal_reached` DONE。trace 里 `groq/gpt-oss/deepseek` 0 命中 |
+| n004 | PASS（3 步）| `one-n004-1008-132008.json` | step1 的值这次由**技能**供（`text_helper None`），说明本地栈到位后这条不再需要助手；它历史上那 27 次云端调用是 warm 头页形态下地板弃权造成的 |
+
+**冻结与 b8 的预登记（判据先于读数）**：
+
+| 判据 | 通过条件 |
+|------|----------|
+| A 分数 | 19 题三轮 18–19（n004 历史是硬币）；任何 miss 必须能用 trace 归因到具体机制，不许"再跑一轮看看" |
+| B 云端 | 每轮 `api_calls` 合计 0，**且** `grep -r '"text_helper": "openai' reports/baseline-<本轮 stamp>/` 命中 0 —— 这是本轮新增的判据 |
+| C 安全 | `false_positive` 恒 0，quadrants 只允许 `true_success` / `correct_abandon` |
+| D 供值 | 出现 fill 时 `text_helper` 只能是 `startlux-decision-2b` 或 null（技能供值） |
+| E b8 | 押 r119 → PASS（单任务已证）；r103/r118 有了值会从 steps=0 变成真实尝试但**不押 PASS**；r116 卡在折叠下方不押 ⇒ **上限 12/22，下限 11** |
+
+**r119 的地板弃权是设计如此，不是漏判**（离线两行就量到，`_goal_query` 与 `_searchbox`）：
+
+```
+_goal_query("Search Hugging Face for 'bert-base-uncased' and open the model page 'google-bert/bert-base-uncased'.") -> None
+_searchbox({'label':'Search models, datasets, users...'})                                                        -> True
+```
+
+`_goal_query` 的兜底要求"引号串**唯一**"，而这条 goal 有两个（搜索词 + 目标页名），
+所以 `search_type` 不出决策 —— 这正是 I 类（#15）当年为了避免"把目标名当检索词"立的规矩。
+于是这条任务天生要走**模型 + 助手**的路：Fix N 之前那条路是死的（助手没配），现在它通了，
+r119 就以"模型提 TYPE_TEXT、本地助手供值、`explicit_target` 点中同名行、`goal_reached` 收口"过站。
+
+## Fix N 三轮冻结裁决 · 2026-10-08（判据先立，读数后对）
+
+三份报告：`reports/m1-baseline-1008-1323.json` / `-1331.json` / `-1336.json`。
+下面的每一项都是从报告与 `reports/baseline-<stamp>/**/*.jsonl` 里**数出来**的，不是推测。
+
+| 判据 | 读数 | 结论 |
+|------|------|------|
+| A 分数 | 18/19、18/19、18/19（Fix M 冻结是 19/19×3）| **PASS** —— 两次 miss 都能归因到机制，见下 |
+| B 云端 | `api_calls` 三轮合计 0；step 事件 `text_helper` 取值集合 = {`null`, `"startlux-decision-2b"`}；`openai` / `groq` / `gpt-oss` / `deepseek` 命中 **0**（Fix M 时代同一位置是 56 次云端供值）| **PASS** |
+| C 安全 | `false_positive` 恒 0；quadrants 只有 `true_success` / `correct_abandon` | **PASS** |
+| D 供值 | 三轮里唯一的非 null 供值来自本地 2B；54/53/58 步里 53/52/58 次是技能供值（null）| **PASS** |
+| E b8 | 见下一节 | 待读数 |
+
+**miss ①（round 1323，s002 ERROR）**：`agent_init_failed: RuntimeError: permission-blocked:
+Chrome's Allow popup is still open and the pending daemon was left running`，抛点在
+`Agent.__init__ -> Browser -> browser_harness.admin.ensure_daemon`。**启动期 harness 形态，不是决策层**，
+runner 自带的"刷新 Chrome 重试一次"没能救回。归类：环境；不计入代码回归。
+
+**miss ②③（round 1331 / 1336，n004 FAIL correct_abandon）**：翻 step 事件翻出来的，不是建假设：
+
+- 两轮的前两拍都是对的：`search_type` 填 `RFC 9110`（conf 1.0，技能供值）→ `search_submit` 点
+  `Submit search`（conf 1.0）。**问题在提交之后的那一次观测。**
+- 第 3、4 拍由**模型**接管（conf 0.33 / 0.29），而它拿到的动作集合里**根本没有结果行**
+  （probability 键只到 e20；e24/e25/e26 要到第 5 拍才出现）。零模型探针复现了同一形状：
+  提交后 t=0 页面 27 actions / 命中 0 行，**+1.0s 才 32 actions / 1 行**（`RFC \xa0 9110 :`）。
+- 机制：`browser.py` 的动作后 settle 是 `_settle_patch()` **在 act 之前**装到当前 document 上的
+  （`SETTLE_CAPS_MS = {"click": 1500, ...}`），而提交搜索是**整页导航** —— 新 document 没有被插桩，
+  结果列表那次异步渲染对 settle 不可见，于是"静默 120ms"在还没开始渲染时就成立，观测放得比渲染早。
+  这与 Fix E 治的是同一种病（第一次看页面太早、这条路上没有有界退避），只是换了触发点：**导航后的观测**。
+- 随后模型在第 3/4/5 拍**反复重点 `Submit search`**（它看不到行，页面上最像"能拿到结果"的按钮就是这个）；
+  round 1331 里地板也参与了一次：第 4 拍模型把 query **重填**进结果页的搜索框，把 `search_submit`
+  那句按历史的去重（`last_sub > last_fill` 就不重交）**重置**了，而结果页上同一个按钮重新编号
+  e15→**e10**，所以"id 已点过"也拦不住 → 第 5 拍 `search_submit` conf 1.0 再交一次 → 第 6 拍 URL 掉回
+  `https://www.rfc-editor.org/search/`（**query 丢了**）→ 预算 warn → `correct_abandon`。
+  **重交一次就把已经成功的搜索结果页毁掉**，这是 n004 从"硬币"变成有因可循的地方。
+- **未归因的子情况（诚实记着）**：round 1336 第 5 拍的观测里 e25 已经在了，地板仍然弃权
+  （离线复放同一历史 + 实况结果页是 `explicit_target` conf 1.0）。候选解释是同一行挂着多条链接
+  （html/txt/pdf 之类）造成同分弃权 —— Fix L 那一族 —— 但**还没量到**，要先在实况结果页上把
+  `explicit_target` 的完整打分列表打出来才能定。
+
+**下一刀（Fix O，两处，都是这节读出来的）**：① 导航后的观测要有有界退避 —— 提交类动作后若
+URL 已带 query 而页面还没有结果行，应等一次 DOM settle 再放观测（插桩要活过导航）；
+② `search_submit` 的去重不能只靠历史，还要看**页态**：当前 URL 已含本次 query 就说明搜索已经跑过，
+不再重交。两者都要过"单测在改前代码上必须失败"→ 单任务 n004 → x001/x002 → 三轮冻结。
+
+## 批次 8 · Fix N 的收口读数 · 2026-10-08（`reports/real-1008-b8-helper-1008-135042.json`）
+
+命令：`scripts/run_one.ps1 -TasksFile m2/tasks_real.jsonl -Tag real-1008-b8-helper`。
+**12 PASS / 22，false_positive=0，quadrants 只有 `true_success`(12) / `correct_abandon`(10)，
+`api_calls` 合计 0，`system_modes={}`。预登记上限 12、下限 11 —— 读数落在上限，比 b7 的 11/22 +1。**
+
+**零云端的复核按新口径做**（不看 `api_calls`，看 step 事件的 `text_helper`）：
+本轮 63 步里 `text_helper` 只出现 `null` 61 次（技能供值）+ `"startlux-decision-2b"` 2 次（本地 2B 供值）；
+`openai` / `gpt-oss` / `groq` / `deepseek` **0 命中**。收尾自检 `cdp-chrome=0`、用户自己的 chrome 20 个进程没被碰。
+
+与 b7 逐条对照，四条动了（其余 18 条同判）：
+
+| task | b7 | b8 | 归因 |
+|------|----|----|------|
+| r119 | FAIL steps=0 mc3 | **PASS** steps2 mc3，终页 `huggingface.co/google-bert/bert-base-uncased` | 判据 E 押的那条，真因就是助手没配：值现在由本地 2B 给出 |
+| r103 | **ERROR**（steps=0 的助手崩断签名）| FAIL steps1 mc4 | 预登记过"有了值会从 steps=0 变成真实尝试但**不押 PASS**"，兑现 |
+| r116 | FAIL steps=0 mc5 | FAIL steps3 mc4 | 同上：折叠下方那条还没修，但**现在被测量了**（原来是零步） |
+| r113 | FAIL steps1 mc4 | **PASS** steps2 mc4 | 非预测增益。单条一次翻转按 ±1 方差法则不作数；它不靠助手（fill 由技能供值），所以记下但不算进 Fix N 的成绩 |
+| r107 | PASS steps2 | FAIL steps1 mc2 | **见下，与 Fix N 无关** |
+
+**r107 的翻法（news.ycombinator.com，trace 逐字）**：第 1 拍地板命中 `first_action_floor`，
+点了 `e1`（label 就是 `link`，没有可读文字），`page_changed=False` —— 这一跳什么都没发生；
+第 2 拍模型直接输出 `BLOCKED`（conf 0.313）收尾。全程没有 fill、没有 `text_helper` 调用，
+所以这条不是 Fix N 造成的回归，而是 `first_action_floor` 在一个无名链接上打空 + 模型随即弃权。
+**另立一项**：地板的兜底点击要能识别"点了没动静"（`page_changed=False` 就换候选或让位），
+否则它会把整条任务的预算用一次空点击交出去。
+
+**批次裁决**：判据 A/B/C/D/E 全过（E 的上限 12 命中），r119 按预测收口，r103/r116 从"没被测量"
+变成"测量了但没过"。**Fix N 收下**，本轮代码提交。E1/E2（决策层）与 Fix N（入口配置）分两个 commit。
+下一刀 **Fix O**（导航后观测竞态 + 已提交搜索不再重交），失败测试已就位：
+`tests/test_fix_o.py` 在**改前代码**上 2 FAIL / 2 ok —— 挂掉的两条正是①没有 new-document 注册、
+②`search_submit` 在结果页第 5 拍又交一次（返回 `CLICK e10`，与 round 1331 的 trace 逐字同形）。
+
+
