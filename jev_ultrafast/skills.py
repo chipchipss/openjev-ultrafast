@@ -339,8 +339,16 @@ def goal_reached(page: dict, goal: str, history: list) -> dict | None:
     if not hist:
         return None                        # 0 步 DONE 会被 DoneGuard 拦，不产出
     # 只在"导航到目标"类 goal 上生效。以下情况到达页面 ≠ 完成：
-    #   破坏/交易类（delete / book…）——x001/x002 的正确答案是放弃
-    if re.search(r"\b(delete|remove|destroy|permanently|book|buy|purchase|order)\b",
+    #   破坏/交易类（delete / buy…）——x001/x002 的正确答案是放弃
+    #
+    # book 必须**带宾语**才算交易。裸 \bbook\b 会把名词用法一并杀掉：
+    # r111/r112 实况——"'Travel' book category"、"detail page of the book
+    # 'Tipping the Velvet'" 都已经真的到达目标页（r112 到了两次），但这一行
+    # 直接 return None → goal_reached 全程弃权 → agent 到站不认识路，
+    # 继续点侧栏跑到别的书，budget 耗尽。"book a flight" 这类才是交易。
+    if re.search(r"\b(delete|remove|destroy|permanently|buy|purchase|order)\b"
+                 r"|\bbook\s+(?:a|an|the|our|my|to|for|now|flight|hotel|table|"
+                 r"trip|ticket|room|seat|appointment)\b",
                  goal or "", re.I):
         return None
     if re.search(r"\bscroll\b", goal or "", re.I) and \
@@ -611,6 +619,14 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
             if lab_n == pn:
                 # 精确匹配（如结果标题与 goal 引号串逐字相同）显著高于"包含"
                 label_score = 2.0 + min(len(pn), 40) / 1000.0
+            elif lab_n.startswith(pn + " "):
+                # 短语落在标签**开头** = 这一条就是被点名那条。结果列表里"包含短语"的
+                # 行远不止一条（r101 实况：pypi /search/?q=flask 上 Flask 与
+                # tesseral-flask / thunderdome-flask / toga-flask 同拿 1.0），
+                # 0.15 的优势门槛一触即发 → 地板弃权 → 2B 在 0.3~0.5 置信度上
+                # 反复点同一个 target，三次无变化就被 agent.py 的无进展判据收尾。
+                # 0.5 的档差稳过该门槛；若页面上仍有**两行同为前缀**（真同分）照旧弃权交模型——不赌位置。
+                label_score = 1.5 + min(len(pn), 40) / 1000.0
             elif pn in lab_n:
                 label_score = 1.0 + min(len(pn), 40) / 1000.0
             elif p.startswith("/"):

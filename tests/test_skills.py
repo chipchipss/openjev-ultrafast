@@ -1167,6 +1167,108 @@ def t_goal_reached_origin_frame_is_not_site_goal():
                                     "choice": "e11"}]) is None, "结果页被判为已到达官网"
 
 
+@case("L 类：结果页里只有“从头对齐”那一行是被点名那条（r101 pypi 'flask'）")
+def t_explicit_target_prefix_row_beats_contains_rows():
+    goal = "Use the PyPI search box to search for 'flask' and open the Flask project page."
+    # r101 实况（零模型直读 pypi /search/?q=flask 的真实动作表）：结果行从 e21 才开始，
+    # 旧判据给 e21 与 e22~e26 **同一个 1.0**（"flask" 既在 "flask …" 也在 "tesseral-flask …"），
+    # top-second < 0.15 一触即发 → 地板弃权 → 模型在 0.3~0.5 置信度上连点同一个 target，
+    # 三拍 page_changed=False 被 agent.py:723 的无进展判据收尾（b5/b6 都是这个形状）。
+    def row(i, name):
+        return A(i, "click", f"{name} \n 2026-02-19 13:00:56 A simple framework", i,
+                 href=f"/project/{name.lower()}/")
+    pypi = page([row(21, "Flask"), row(22, "tesseral-flask"), row(23, "thunderdome-flask"),
+                 row(24, "toga-flask")], url="https://pypi.org/search/?q=flask")
+    d = S.explicit_target(pypi, goal, [])
+    assert d and d["choice"] == "e21", f"前缀行没赢：{d}"
+    # 反例①：前缀行排在包含行**后面**也必须赢 —— 证明这一档不是"取列表第一条"
+    shuffled = page([row(21, "tesseral-flask"), row(22, "Flask"), row(23, "toga-flask")],
+                    url="https://pypi.org/search/?q=flask")
+    d = S.explicit_target(shuffled, goal, [])
+    assert d and d["choice"] == "e22", f"仍按位置而非按从头对齐取的：{d}"
+    # 反例②（边界，钉住"不赌位置"）：两行同为前缀 = 真同分 → 仍然弃权交模型
+    both = page([row(21, "Flask"), row(22, "Flask")], url="https://pypi.org/search/?q=flask")
+    assert S.explicit_target(both, goal, []) is None, "真同分仍在赌位置"
+
+
+@case("M 类：goal 里的名词 \"book\" 不该关掉到达判据（r111/r112），守卫本身不许松动")
+def t_transaction_guard_noun_book_keeps_arrival_detection():
+    det = dict(page([A(1, "click", "Books", 1)],
+                    url="https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html"),
+               title="Tipping the Velvet | Books to Scrape - Sandbox",
+               start_url="https://books.toscrape.com/catalogue/page-1.html")
+    g112 = ("On the books.toscrape.com catalogue, open the detail page of "
+            "the book 'Tipping the Velvet'.")
+    hist = [{"step": 1, "kind": "click", "action": "Tipping the Velvet", "choice": "e1",
+             "url": det["url"],
+             "outcome": {"status": "url_changed", "page_changed": True, "url_changed": True}}]
+    d = S.goal_reached(det, g112, hist)
+    assert d and d["operation"] == "DONE" and d["skill"] == "goal_reached", \
+        "名词 book 仍被当成交易动词 → 到达页发不出 DONE：" + str(d)
+    trav = dict(page([A(1, "click", "Books", 1)],
+                     url="https://books.toscrape.com/catalogue/category/books/travel_2/index.html"),
+                title="Travel | Books to Scrape - Sandbox",
+                start_url="https://books.toscrape.com/catalogue/page-1.html")
+    g111 = "On the books.toscrape.com catalogue, open the 'Travel' book category."
+    d = S.goal_reached(trav, g111, [{"step": 1, "kind": "click", "action": "Travel",
+                                     "choice": "e1", "url": trav["url"],
+                                     "outcome": {"status": "url_changed",
+                                                 "page_changed": True, "url_changed": True}}])
+    assert d and d["operation"] == "DONE", "r111 的到达页同样发不出 DONE：" + str(d)
+    # 守卫必须仍然守住**交易动词**：两条反例，任何一条放开都是 false_positive 风险
+    book_verb = dict(page([A(1, "click", "Mars", 1)], url="https://air.example.com/mars"),
+                     title="Mars", start_url="https://air.example.com/")
+    assert S.goal_reached(book_verb, "Book a flight to 'Mars'.",
+                          [{"step": 1, "kind": "click", "action": "search", "choice": "e1",
+                            "url": "https://air.example.com/mars",
+                            "outcome": {"page_changed": True}}]) is None, \
+        "\"Book a …\" 仍必须被守卫挡住"
+    del_goal = dict(page([A(1, "click", "Earth", 1)],
+                         url="https://en.wikipedia.org/wiki/Earth"),
+                    title="Earth - Wikipedia", start_url="https://en.wikipedia.org/wiki/Main_Page")
+    assert S.goal_reached(del_goal, "Delete the article 'Earth' permanently.",
+                          [{"step": 1, "kind": "click", "action": "Earth", "choice": "e1",
+                            "url": "https://en.wikipedia.org/wiki/Earth",
+                            "outcome": {"page_changed": True}}]) is None, \
+        "delete/permanently 守卫不许松动（x002 的语义）"
+
+
+@case("N 类：守卫放开 book 之后，r110 不能因此提前 DONE（回归防线）")
+def t_guard_release_does_not_create_early_done_for_scope_frame():
+    # r110 现在就是 PASS（b6 三步到 ch04）。Fix M 放开守卫后它必须**保持原样**：
+    # goal "In 'The Rust Programming Language' book, go forward to Chapter 4,
+    # 'Understanding Ownership'." 里的引号串是**容器名**（我们已经在书里），不是目的地。
+    # 保护来自既有的 nav_verb 判据——"go forward to" 不在 (open|navigate|go to|visit|
+    # reach|use) 里，path A/C 全程不触发，所以 book 落地页不会提前收口。
+    # 这条用例是回归防线：谁将来给 nav_verb 加 "go to" 的近义变体，必须先过这一关。
+    g110 = ("In 'The Rust Programming Language' book, go forward to Chapter 4, "
+            "'Understanding Ownership'.")
+    hist = [{"step": 1, "kind": "click", "action": "Chapter 4", "choice": "e1",
+             "url": "https://doc.rust-lang.org/stable/book/index.html",
+             "outcome": {"status": "url_changed", "page_changed": True,
+                         "url_changed": True}}]
+    landing = dict(page([A(1, "click", "Chapter 4", 1)],
+                        url="https://doc.rust-lang.org/stable/book/index.html"),
+                   title="The Rust Programming Language",
+                   start_url="https://doc.rust-lang.org/stable/")
+    assert S.goal_reached(landing, g110, hist) is None, \
+        "book 落地页被提前判到达 → r110 从 PASS 变 FAIL"
+    # 目的地页标题里容器名和章节名**同时**出现（b6 实况：'Understanding Ownership -
+    # The Rust Programming Language'）。这一发也不该由 goal_reached 收——它现在
+    # 由模型 DONE + 断言把关，改动前行为必须一致。
+    chap = dict(page([A(1, "click", "Next", 1)],
+                     url="https://doc.rust-lang.org/stable/book/ch04-00-understanding-ownership.html"),
+                title="Understanding Ownership - The Rust Programming Language",
+                start_url="https://doc.rust-lang.org/stable/")
+    assert S.goal_reached(chap, g110, hist) is None, \
+        "章节页的到达判据本就不该由 goal_reached 产出（行为漂移）"
+    # 对照：同一页面、同样历史，把 goal 换成显式导航动词 + 引号目的地名，才该收口
+    explicit = ("Open 'Understanding Ownership', Chapter 4 of "
+                "The Rust Programming Language book.")
+    d = S.goal_reached(chap, explicit, hist)
+    assert d and d["operation"] == "DONE", f"该收口的导航句没收：{d}"
+
+
 def main():
     # Windows PowerShell 5.1 的控制台是 GBK，而用例名里有 'ö' 等非 GBK 字符
     # （v1.16 / 源码里的地名）。print 会抛 UnicodeEncodeError 并**中断整个套件**，

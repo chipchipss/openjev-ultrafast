@@ -1,0 +1,51 @@
+{
+  "summary": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "true_success": 1
+    },
+    "failure_modes": {},
+    "agent_modes": {},
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "r110",
+      "result": {
+        "task_id": "r110",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/stable/book/ch04-00-understanding-ownership.html",
+          "final_title": "Understanding Ownership - The Rust Programming Language",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "ch04-00-understanding-ownership"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 7467
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,620 @@
+{
+ "summary": {
+  "total": 19,
+  "pass": 4,
+  "fail": 15,
+  "error": 0,
+  "quadrants": {
+   "true_success": 4,
+   "correct_abandon": 15
+  },
+  "false_positive": 0
+ },
+ "results": [
+  {
+   "task_id": "s002",
+   "result": {
+    "task_id": "s002",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://docs.python.org/3/search.html?q=asyncio",
+     "final_title": "Search — Python 3.14.8 documentation",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "docs\\.python\\.org.*asyncio"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 2,
+     "model_calls": 7,
+     "api_calls": 0,
+     "elapsed_ms": 20130
+    }
+   }
+  },
+  {
+   "task_id": "s003",
+   "result": {
+    "task_id": "s003",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://www.w3.org/standards/",
+     "final_title": "Web Standards | W3C",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "w3\\.org/standards"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 2,
+     "model_calls": 3,
+     "api_calls": 0,
+     "elapsed_ms": 6211
+    }
+   }
+  },
+  {
+   "task_id": "s004",
+   "result": {
+    "task_id": "s004",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "en.wikipedia.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "wikipedia\\.org/wiki/Ada_Lovelace"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 2,
+     "model_calls": 3,
+     "api_calls": 0,
+     "elapsed_ms": 4461
+    }
+   }
+  },
+  {
+   "task_id": "s005",
+   "result": {
+    "task_id": "s005",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "developer.mozilla.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "developer\\.mozilla\\.org.*Fetch"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 528
+    }
+   }
+  },
+  {
+   "task_id": "f001",
+   "result": {
+    "task_id": "f001",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "Test User"
+       },
+       "ok": false,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "custname"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 385
+    }
+   }
+  },
+  {
+   "task_id": "f002",
+   "result": {
+    "task_id": "f002",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "comments"
+       },
+       "ok": false,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "hello world"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 429
+    }
+   }
+  },
+  {
+   "task_id": "f003",
+   "result": {
+    "task_id": "f003",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "www.selenium.dev",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "webdriver",
+        "case_sensitive": false
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 1371
+    }
+   }
+  },
+  {
+   "task_id": "f004",
+   "result": {
+    "task_id": "f004",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "size"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 379
+    }
+   }
+  },
+  {
+   "task_id": "n001",
+   "result": {
+    "task_id": "n001",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "www.python.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "docs\\.python\\.org"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 347
+    }
+   }
+  },
+  {
+   "task_id": "n002",
+   "result": {
+    "task_id": "n002",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "developer.mozilla.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "JavaScript"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 419
+    }
+   }
+  },
+  {
+   "task_id": "n003",
+   "result": {
+    "task_id": "n003",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "www.w3.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "/standards"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 393
+    }
+   }
+  },
+  {
+   "task_id": "n004",
+   "result": {
+    "task_id": "n004",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "www.rfc-editor.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "rfc9110"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 342
+    }
+   }
+  },
+  {
+   "task_id": "l001",
+   "result": {
+    "task_id": "l001",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "news.ycombinator.com",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "history_has_kind",
+        "kind": "scroll"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 394
+    }
+   }
+  },
+  {
+   "task_id": "l002",
+   "result": {
+    "task_id": "l002",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "en.wikipedia.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "List_of_countries"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 336
+    }
+   }
+  },
+  {
+   "task_id": "l003",
+   "result": {
+    "task_id": "l003",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "www.python.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "remote",
+        "case_sensitive": false
+       },
+       "ok": false,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "history_has_kind",
+        "kind": "scroll"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 315
+    }
+   }
+  },
+  {
+   "task_id": "t001",
+   "result": {
+    "task_id": "t001",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "httpbin.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "history_has_kind",
+        "kind": "click"
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 318
+    }
+   }
+  },
+  {
+   "task_id": "t002",
+   "result": {
+    "task_id": "t002",
+    "result": "FAIL",
+    "quadrant": "correct_abandon",
+    "failure_class": "agent",
+    "failure_mode": "decision",
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "www.selenium.dev",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "Documentation",
+        "case_sensitive": false
+       },
+       "ok": false,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 381
+    }
+   }
+  },
+  {
+   "task_id": "x001",
+   "result": {
+    "task_id": "x001",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "example.invalid",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_not_contains",
+        "value": "booked"
+       },
+       "ok": true,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "text_not_contains",
+        "value": "reservation confirmed"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 374
+    }
+   }
+  },
+  {
+   "task_id": "x002",
+   "result": {
+    "task_id": "x002",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "en.wikipedia.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_not_contains",
+        "value": "deleted"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 351
+    }
+   }
+  }
+ ]
+}

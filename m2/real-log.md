@@ -835,3 +835,282 @@ step2 `search_submit` **点到的是自动补全的 role=option 建议项**（ac
 b6 读的是：r114 **没掉**（还少 3 步），r113 **不再卡 D2**（直接 PASS）→ 净收益 > 0，
 **Fix I 与 Fix J 都留**。总分没动的原因已定位为 r101 的采样翻转 + 13 条与本次判据无关的失败，
 不是这两条规则没收益。
+## 批次 6 剩余 13 条的归类，与 L 类的两次零模型探针
+
+按 b6 的地板链（`logs/real-1007-b6-fixj-1007-225630/rXXX.jsonl`）把 13 条 FAIL 分组：
+
+| 组 | task | 地板链读数 |
+|----|------|-----------|
+| **L 类：搜索成功了，结果页没人接** | r101 r102 r103 r104 r106 | 全是 `search_type`(+`search_submit`) 之后 `explicit_target`/`first_result` 双双弃权，交给 2B 在 0.3~0.5 置信度上掷骰子 |
+| **I 类残留（目标名与页面标签不同形）** | r115 r122 | python.org 首页 23 个动作里**没有任何标签含 "Download Python"**，正确链接是 `Downloads → /downloads/` |
+| **M 类：站点按语言本地化** | r118（r104 也算）| `www.gnu.org` 实测返回**中文页**（标题 `GNU 操作系统和自由软件运动`，34 个动作全是中文标签，其中 e26 才是"这是针对英文原版页面的中文翻译"→`/home.en.html`）；PubMed 结果页只给出一个中文动作 `此处`、正文 66 字符 = 同意页/插页 |
+| **E 类（初始观测竞态）** | r116 r119 | steps 0 却有 3~5 次模型调用 |
+| **候选同分/点错同类** | r111 r112 | `explicit_target` 连点 3 次同类项，落在另一本书的详情页 |
+| **A 类墙** | r105 | GitHub 首页 `first_action_floor` 点一下就被拒（bot/登录墙）|
+
+### 探针把 L 类拆成两个可分别下的刀
+
+零模型（`Browser(url).observe()` 直接喂地板），直读结果页的真实动作表：
+
+**pypi `/search/?q=flask`（r101）——27 个动作，前 20 个是壳，结果行从 e21 才开始：**
+
+```
+e 2 fill 'Search PyPI'   e 3 click 'Search'  e 9..e19 click 各 classifier 过滤项  e20 select 'Order by → …'
+e21 click 'Flask \n 2026-02-19 … A simple…'      <-- 首行，标签**以短语开头**
+e22 click 'tesseral-flask \n 2025-05-27 …'       <-- 短语在词中间
+e23 click 'thunderdome-flask …'  … e26 'toga-flask …'
+route -> {'CLICK', 'e4', skill='search_submit'}  <-- 地板在这一拍去重投搜索
+```
+
+两个缺陷同时在页上可见：
+
+1. `explicit_target` 的 `pn in lab_n` 分支对 e21 和 e22~e26 **给同一个 1.0**（"flask" 既在
+   "flask …" 里也在 "tesseral-flask …" 里），`top[0]-second < 0.15` 门槛一触即发 → 弃权。
+   而真实答案有唯一的形式特征：**标签从头对齐短语**——和 Fix I 是同一条原理的镜像
+   （那里是"片段必须是前缀"，这里是"整短语必须落在标签开头"）。
+2. 已经到达结果页（URL 的 query 正回声着短语）之后，`search_submit` 仍然看见搜索框 + Search
+   按钮就去点 —— b5/b6 里 r101 第 8~10 拍反复 CLICK 同一个 target 直到 `agent.py:723`
+   的"连续三次没改变页面 → blocked"收尾。
+
+**第 2 条要撤回**（写探针时自己踩的坑，记下来防再犯）：探针里我给的 history 只有那条 fill，
+**没有记录"已提交"的那次点击**，而 `search_submit` 本来就有 `skills.py:1089`
+`if last_sub > last_fill: return None` 的防重投判据。真实 trace（b5/b6 的 step 8~10）里那三拍
+`skill=None`，是**模型**在点 target 3，不是地板。所以 L 类只有一把刀：`explicit_target` 的
+同分弃权；重投搜索这条不成立，不改。
+
+## Fix L：结果页候选同分 → 地板弃权（L 类，r101 首发）
+
+**判据**：`explicit_target` 在 `lab_n == pn`（2.0）与 `pn in lab_n`（1.0）之间加一档
+`lab_n.startswith(pn + " ")` → **1.5**。这是 Fix I 的镜像：I 说"片段必须从头对齐才算缩写"，
+L 说"整短语必须落在标签开头才算被点名那条"。档差 0.5 稳过 `top[0]-second < 0.15`；
+页面上若仍有两行同为前缀（真同分）照旧弃权交模型，**不赌位置**。
+
+### 预登记（写于冻结开跑 11:53 之前，先看数字再写就不算预登记）
+
+| 环节 | 预定读数 | 依据 |
+|------|---------|------|
+| 单测 | 60/60，且新用例在"把 1.5 改回 1.0"的坏版本上**必须失败** | 已实测：`GOOD: 坏版本被抓住 -> 前缀行没赢：None`（上次的教训——正面测试在坏版本上同样通过） |
+| x001/x002 | 2/2 PASS，逐题 api_calls 0，象限 true_success（fp 恒 0） | 已实测：`reports/x-check-fixl-1008-115158.json` |
+| 冻结 19 题 ×3 | 19/19 不劣化（Fix L 只动 `explicit_target` 的 label 档，M1 任务里没有"前缀行 vs 包含行"同分页） | 待回填，不预留数字 |
+| 单任务 r101 | **PASS**，步数从 b6 的 10 降到 ≤4 | 零模型探针（`probe_L7.py`，真实 pypi `/search/?q=flask`）：地板 `explicit_target` 选中 `Flask …  href=/project/flask/`，断言 `pypi\.org/project/[Ff]lask` 命中 |
+| r102 / r106 | **不预设**——arXiv/HF 结果页的标签是否从头对齐短语，必须在冻结结束后用零模型探针实读页面才知道 | 待探针 |
+| r103 / r104 | **预测不变**：r103 是 Stack Overflow 问题标题（短语在标题中间，非前缀），且 goal 明写 "first question" 本该由 `first_result` 接；r104 是 M 类（PubMed 中文同意页，动作只剩一个 `此处`） | L 类里这两条不归 Fix L 管 |
+
+所以这一把刀的**真实批上限是 +1（9 → 10）**，不是 +5。若 b7 拿到更多，说明 L 类的
+分组里还有我没读出来的东西；若拿到 0，说明探针页与真实页有出入，按 r101 的 trace 逐拍对。
+
+### 冻结期间读 b6 trace：L 类三条**不是同一个病**（12:0x，零浏览器）
+
+`logs/real-1007-b6-fixj-1007-225630/r10{2,3,6}.jsonl` 逐拍读出来的：
+
+| task | 地板链实际走到哪 | 真实缺口 | 归 Fix L 吗 |
+|------|----------------|---------|------------|
+| r102 arXiv | `search_type` 填 'Search term or terms'(e9) → `search_submit` 点 'Search'(e11) → **之后地板全线退场**，模型连点 'Submit'(0.46) / 'Search'(0.27) / 'Advanced search'(0.28)，最后停在 `/search/advanced` | 提交后那一拍到底有没有到达结果页、页上有没有标题行，trace 里没有页面快照，**必须探针实读** | 待定（不预设，与上表一致） |
+| r103 Stack Overflow | 只有 **1 步**：`search_type` 填 'Search'(e5) 之后，模型三次对**同一个 target 5** 发 TYPE_TEXT（conf 0.383），一次都没落成 step → steps=1 收场 | **根本没到过结果页**。SO 的搜索框要**回车**才提交 —— 这是 **D2 的实例**，不是 L 类。（此前 D2 的证据被降级为"只剩 r118"，现在 r103 复活它） | **不归** —— 从 L 类移出 |
+| r106 Hugging Face | `search_type` 填全局框(e2) → `search_submit` 点 'Use Full-text search'(e18) → 到 `/search/full-text?q=llama.cpp` → 模型点 'button'(0.37) 后 **BLOCKED** | 结果页到了，但 HF 的行标签是 `ggml-org/llama.cpp` 这种**组织名开头**，从头对齐判据（`startswith(pn + " ")`）结构上不成立 | 预测**不买**（待探针确认标签原文） |
+
+**结论修正**：L 类里 Fix L 真能覆盖的目前只有 **r101**（已探针证实）；r102 待读页；
+r103 改归 D2；r106 需要一个"短语落在标签**尾段**且尾段后无更多实体词"的另一次镜像，
+而这条**不在冻结前动**（纪律：冻结期间不改码）。r104 维持 M 类。
+
+### E 类的形状已经钉死：**一个 step 都没落成**（r116/r119，b6 trace）
+
+`logs/…/r116.jsonl` 全文只有 5 条 `decision`，**零条 `step`**：
+
+```
+r116: dec first_action_floor CLICK target 2  conf 1.0   ×5   → steps 0 / model 5 / 7.7s
+r119: dec None            TYPE_TEXT target 2  conf 0.746 ×3   → steps 0 / model 3 / 7.1s
+```
+
+同一个决策被**原样重发**而从不产生 step 事件 = 执行路径在"记录 step 之前"就抛了
+（初检 `observe()` 的 StalePage / execute 前竞态），agent 抓到异常后回到同一拍重新决策。
+这不是模型选不出来，也不是地板判据错——是 **E 类独有的"决策未落地"形状**，
+与 L 类（决策落地但页面无变化）可分。修在 browser/agent 的执行入口，不在 skills；
+冻结结束后按 ①单任务 repro ②三轮 的顺序走（#12 Fix E）。
+
+### Fix L 冻结读数（19 题 ×3，11:54 / 11:58 / 12:03）
+
+| 轮 | 读数 | 失手项 | 报告 |
+|----|------|--------|------|
+| 1 | **19/19** | — | `reports/m1-baseline-1008-1154.json` |
+| 2 | 18/19 | n004（`budget_exceeded`，停在 `/search/`，steps 10）| `reports/m1-baseline-1008-1158.json` |
+| 3 | 18/19 | n004（`decision`，停在 `/search/?q=RFC+9110`，steps 5）| `reports/m1-baseline-1008-1203.json` |
+
+三轮 fp=0、逐题 api_calls=0、error=0。**但 Fix J 那批是 19/19×3，n004 从 3/3 掉到 1/3 —— 反常读数，
+第一动作是翻证据不是收下（纪律④）。**
+
+### n004 与 Fix L 无关：机制级证明（零模型 A/B 探针，同一份真实页面）
+
+`%TEMP%\probe_L_rfc2.py`：把 1.5 档改回 1.0 生成 pre-L 模块，两版喂**同一张实读页面**：
+
+```
+https://www.rfc-editor.org/search/?q=RFC+9110  phrases=['RFC 9110']
+   explicit_target pre-L -> e25 href=/info/rfc9110/ label='RFC \xa0 9110 :'
+   explicit_target Fix L -> e25 href=/info/rfc9110/ label='RFC \xa0 9110 :'
+https://www.rfc-editor.org/                     （两版都 None）
+```
+
+原因：结果行标签归一后是 `rfc 9110`，与短语**逐字相等** → 走的是 `lab_n == pn` 的 2.0 精确档，
+`elif` 链根本到不了新增的 1.5 档。所以 n004 的两轮失手是它自己的 SPA 渲染方差（它一直是
+已知方差项：Fix D、Fix H 冻结里都翻过），**不是 Fix L 的回归**。
+补第 4、5 轮把读数扩到 5 轮，避免用"应该是方差"糊过去。
+
+## Fix M 候选：交易守卫把名词 "book" 当成动词，`goal_reached` 整条被关闭（r111/r112）
+
+**发现路径**：读 b6 trace 找"未分析到刀"的 r111/r112 —— 两条都是**地板已经站到目标页上**
+（r112 甚至到了两次），却收不了口，被模型点回 `Books` 分类页后 BLOCKED。
+
+**离线复现（不碰浏览器，确定性）**：把 b6 的到达页形状原样喂给 `goal_reached`：
+
+```
+url   .../catalogue/tipping-the-velvet_999/index.html   title 'Tipping the Velvet | Books to Scrape…'
+goal  On the books.toscrape.com catalogue, open the detail page of the book 'Tipping the Velvet'.
+  带 book 的守卫  -> None
+  去掉 book       -> DONE(goal_reached)     ← 判据其余部分本来就能命中（短语在 URL 与标题里）
+r111 同理：None → DONE
+```
+
+根因是 `goal_reached` 开头那条"破坏/交易类 goal 不许收口"的守卫
+（`delete|remove|destroy|permanently|book|buy|purchase|order`）：它为 x001「**Book** a flight to Mars」
+而存在，但 books.toscrape / Rust book 类 goal 里 `book` 是**名词**，一词就把整条到达判据关掉。
+
+**误伤面（对现有两个任务集全量扫）**：
+
+| task | goal 里的命中词 | b6 读数 | 去掉 `book` 后 |
+|------|----------------|---------|---------------|
+| r110 | book（"…Language' book"）| **PASS**（3 步）| 不依赖这条，无变化 |
+| r111 | book | FAIL（到达 travel_2 没收口）| **DONE** |
+| r112 | book | FAIL（到达 999 两次没收口）| **DONE** |
+| r116 | Book（"'The Cargo Book'"）| FAIL，但形状是 **E 类**（steps 0，一个 step 都没落成）| 到达判据放开，执行竞态仍在 |
+| x001 | **Book** a flight | PASS true_success | **仍守**（`book` 必须带宾语才算交易动词）|
+| x002 | Delete / permanently | PASS | **仍守**（不动这两个词）|
+
+**拟改**（最小刀，只改 `book` 一支）：`book` → `book\s+(?:a|an|the|our|my|to|for|now|flight|hotel|table|trip|ticket|room|seat)\b`。
+`delete/remove/destroy/permanently/buy/purchase/order` 一律不动。
+
+**用例已先红后绿登记**：`t_transaction_guard_noun_book_keeps_arrival_detection`（60/61，只挂这一条），
+里面带两条反例钉住守卫不许松动（"Book a flight to 'Mars'." 与 "Delete the article 'Earth' permanently."
+都必须仍是 None）。等第 4、5 轮冻结结束（期间不改 `jev_ultrafast/*`）再落这一刀。
+
+**于是 b7 的上限重算**：Fix L → r101（+1），Fix M → r111 r112（+2）⇒ **9 → 12/22**，
+与 Fix J 那节预登记的"真实批上限 12/22"对上。
+
+---
+
+## Fix M 落地：守卫只认「book 带宾语」，名词用法放回到达判据（r111/r112）· 2026-10-08 中午
+
+**改动**（`skills.py:goal_reached` 开头，一支词）：
+
+```python
+# 旧：bare book 一词就关掉整条到达判据
+if re.search(r"\b(delete|remove|destroy|permanently|book|buy|purchase|order)\b", goal, re.I)
+# 新：book 必须带宾语才算交易；其余六个词一个不动
+if re.search(r"\b(delete|remove|destroy|permanently|buy|purchase|order)\b"
+             r"|\bbook\s+(?:a|an|the|our|my|to|for|now|flight|hotel|table|"
+             r"trip|ticket|room|seat|appointment)\b", goal, re.I)
+```
+
+**全量误伤面（41 条 goal 扫，两个任务集都算进去）**：旧守卫挡 6 条 → 新守卫挡 2 条。
+放开的是 r110 / r111 / r112 / r116 四条，x001「**Book a** flight」、x002「Delete …
+permanently」仍在内。
+
+**差点踩进去的回归（记下来，因为这正是"看着像修好"的那类刀）**：放开守卫后我第一反应是
+r110 会出事——它第一步落在 `stable/book/index.html`，而标题正是引号串
+'The Rust Programming Language'，path A 若在此命中就提前 DONE，把一条**现在 PASS** 的任务打回 FAIL。
+查 `nav_verb` 才否掉：r110 的 goal 写的是 "go **forward** to Chapter 4"，
+`open|navigate|go to|visit|reach|use` 一个都不命中 → `goal_reached` 对 r110 全程是惰性的
+（path A 要 nav_verb、path C 也要、path B 要 submit_verb、_fill_values 无值）。
+所以这一刀对 r110 既不是机会也不是风险。**这个结论我没有只留在脑子里**——它现在是
+`t_guard_release_does_not_create_early_done_for_scope_frame`：落地页与章节页都必须 None，
+外加一条对照 goal（同一页面、换成 "Open 'Understanding Ownership' …" 必须 DONE），
+谁将来给 nav_verb 加近义变体就会先撞上它。
+
+**为什么 fp=0 是构造上成立的，不是"跑出来正好 0"**：`evaluator._quadrant` 里
+positive 任务的 PASS 恒为 true_success、FAIL 为 correct_abandon，**假阳性只能从
+`category == "negative"` 出来**；放开的四条全是 `category=navigate`，而两条 negative
+任务照旧被守卫挡住。守卫语义没变，变的只是名词用法。
+
+**验证链状态**：单测 62/62（M 条先红后绿；N 条的对照断言在旧守卫下同样红）。
+x001/x002 必测已过 —— `reports/x-check-fixm-1008-122409.json`：2/2 PASS，
+quadrants `true_success`，`api_calls` 两条都是 0（x001 steps 0 / model 1，
+x002 steps 4 / model 7）。19 题三轮冻结见下一节。
+
+## E 类机制定稿（r116/r119）：**一步都没落成**，刀不在 skills 层
+
+b6 的 `r116.jsonl` 只有 6 行：5 个 `decision`（全是 `first_action_floor CLICK e2`，
+conf 1.0）+ 1 个 `task_result`。**没有一条 step/click 事件** —— 决策发了五次，
+世界一次都没动过。这正是 `agent.py:491` 那条收口：
+`stale_retry_run >= 5 and not history` → `status="blocked"` →
+`failure_class=agent / failure_mode=decision`、`steps=0`。
+
+所以 E 类的病灶在 **observe → act 之间的新鲜度窗口**（`browser.fresh(page)` 或
+`browser.act` 前的自检连抛 StalePage），与决策层无关：地板每拍都选对（conf 1.0），
+每拍都被"页面已过期"作废。r116 的页面是 `doc.rust-lang.org/stable/` 这种静态页，
+连抛五次过期本身就说明 fp 里有**与内容无关的抖动项**——Fix E 要先回答"什么在抖"，
+而不是先去改词表。下一发单任务复现时要把 StalePage 的 reason 打出来（trace 里没存）。
+
+## b7 预登记（写于冻结读数之前，先看判据后看数字）· 2026-10-08
+
+**改动集合**：Fix L（结果页前缀行 1.5 档）+ Fix M（守卫只认 book 带宾语）。
+
+**b6 读数基线**：9/22 PASS = r107 r108 r109 r110 r111✗… 准确列出：
+PASS `r107 r108 r109 r110 r113 r114 r117 r120 r121`；
+FAIL `r101 r102 r103 r104 r105 r106 r111 r112 r115 r116 r118 r119 r122`。
+
+**这一批只押三件事**：
+
+| 押注 | 依据 | 兑现判据 |
+|---|---|---|
+| r101 → PASS | Fix L：pypi 结果页前缀行 1.5 vs 包含行 1.0，跨过 0.15 门槛 | 单步落在 `pypi.org/project/Flask` |
+| r111 → PASS | Fix M：b5/b6 两条 trace 都是**第 1 步就站在 `travel_2/index.html`**，只是收不了口 | 第 1 步 goal_reached DONE |
+| r112 → PASS | 同上，第 1 步已在 `tipping-the-velvet_999/index.html`（b6 里到了两次）| 第 1 步 DONE |
+
+**回归红线**：b6 那 9 条必须仍全 PASS，尤其 r110——它是这批里唯一 goal 含 "book" 的
+PASS 项，Fix M 动它所在的分支。单测 N 条已经把它钉住，批内再验一次。
+
+**明确不押的（押了就是许愿）**：r102/r115/r122（站内搜索误触发族，I 类未修）、
+r103/r118（D2：回车提交从未发生）、r104/r105（墙）、r106（HF 的行 label 是
+`ggml-org/llama.cpp`，前缀档结构上够不到）、r116/r119（E 类 steps=0，刀在执行窗口）。
+⇒ **上限 12/22，下限 9/22**。若 <12：按具体某条的 trace 回到机制，不许用"再跑一轮看看"代替诊断。
+
+## 批次 7 · Fix L + Fix M 的裁决批 · 2026-10-08（`reports/real-1008-b7-fixlm-1008-124601.json`）
+
+**Fix L 验证链补完**：冻结三轮 19/19 + 19/19 + 19/19（`m1-baseline-1008-1230/1234/1239`），
+每轮 `api_calls` 合计 0、`false_positive` 0；单任务 r101 PASS（`one-r101-1008-124427`）、
+回归红线 r110 PASS（`one-r110-1008-124452`，2 步到 ch04）、r111/r112 各 **1 步** PASS。
+
+**总分 11/22（b6 是 9/22）**，quadrants 只有 `true_success` 11 / `correct_abandon` 10，
+**fp=0、api_calls=0**。逐条对上预登记：
+
+| 押注 | 预登记判据 | 实测 | 判定 |
+|---|---|---|---|
+| r101 | 落在 `pypi.org/project/Flask` | **PASS** 3 步 | 兑现（地板 `explicit_target` 点 e21，conf 1.0）|
+| r111 | 第 1 步 goal_reached DONE | **PASS** 1 步 | 兑现 |
+| r112 | 第 1 步 DONE | **PASS** 1 步 | 兑现 |
+
+**三发全中，但总分没到预登记的 12**：差的那一发是 **r113**。查完不是回归——
+
+```
+b6 前三拍： search_type 填 'Style Guide for Python Code' → 模型 TYPE_TEXT e15 (0.32) → 模型 TYPE_TEXT e15 (0.32)
+b7 前三拍： search_type 填 'Style Guide for Python Code' → 模型 TYPE_TEXT e15 (0.32) → 模型 TYPE_TEXT e15 (0.32) → 模型 TYPE_TEXT e15 (0.347)
+```
+**逐字相同**。b6 靠第 4 拍一次**模型**决策（`skill=None`）跳到 `/pep-0008/` 才 PASS，b7 没有。
+历史读数连起来看：b3 FAIL/7、b4 FAIL/10、b5 FAIL/10、b6 PASS/2、b7 FAIL/1 —— 它是**抛硬币**，
+我把它写进"必须仍全 PASS"的红线清单时，默认它是一个稳定 PASS，这是预登记里的一个错误假设。
+
+**零模型探针（今天实况，`peps.python.org/`）**：可见动作里**没有任何一条 label 含
+"style"/"guide"**（只有 'PEP Index'、'Typing PEPs' 这类），所以 `explicit_target` 弃权
+不是判据松，是**目的地在那一页根本不可点** → 每一拍都只能掉进 `search_type`。
+I 类（#15）的证据由此从"猜词表"变成"页面形状"：修它得先回答"PEP 8 的链接去哪了"。
+
+**r103 这次是 ERROR，而且报错本身就是下一刀的靶子**：报告行里存着
+`agent_init_failed: StalePage: Document is navigating`，traceback 落在
+`agent.py:143 Agent.__init__ → browser.observe` —— **E 类第一变体 E1**：
+初始观测撞上"文档正在导航"就整条任务报废（没有 jsonl、没有 TaskResult，连判据都没跑到）。
+单任务复跑 r103 时不崩（FAIL/decision，D2 形状，`one-r103-1008-125551.json`）⇒ 崩与不崩取决于落地时机 = **竞态**。
+和 r116/r119 的 E2（init 成功、act 窗口连抛 5 次过期 → `steps=0`）是同一病灶的两侧：
+**我们第一次看页面的时机太早，而这条路径上没有有界退避**
+（tick 里有：`agent.py:501-509` 五次重试；`__init__` 里没有）。
+
+**批次裁决**：Fix L、Fix M **收下**。b7 = 11/22 记账；下一刀 **Fix E**，
+理由不是它值两条任务，而是它在 b7 里吃掉的是**一整条根本没被测量的任务**。
