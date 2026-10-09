@@ -2710,3 +2710,54 @@ L2（真实站 50 题 ≥45）还差的是**题量扩张**（21→50）与上表
 2. **E 类 r103 的提交链**：连两拍 `fill` 而无 `submit`，`search_submit` 没接住（Fix D 的形态在
    stackoverflow 的表单上未覆盖）。买 r103 一题。
 3. **O 类（r102/r104/r122）**：结果行不在首屏或标题不是链接——先量形状再决定，不猜。
+
+
+## 两发零模型探针：r103 的 Enter 提交**被站点自己的 bot 墙吃掉**（证伪），github 那族有一个越域劫持（新账）· 2026-10-09 19:0x
+
+### `m2/probe_r103_submit.py` + `m2/probe_r103_enter.py`：r103 不是地板的病，是站点的墙
+
+先量 b16 里 r103 的形状（`stackoverflow.com/questions`，goal 里带引号串 `'python slice step'`）：
+
+| 拍 | 实测 |
+|---|---|
+| 起点页 | `search_type` 会发 `TYPE_TEXT` 到 header 的 combobox（`e5 'Search'`，raw label `Open Search`），`_goal_query='python slice step'` |
+| 执行那一拍之后 | **值真的进去了**：`window value = 'python slice step'`，`document.activeElement` 就是那个框，`options=0` |
+| 之后地板 | `search_submit`/`entity_fill`/`form_submit`/`first_result`/`explicit_target`/`first_action_floor` **全部 None**，`route -> None` → 交回模型 → b16 实况就是连两拍重发 `fill` |
+
+也就是说 r103 缺的机制只有一个名字：**没有提交控件、没有下拉建议时的 Enter 键**（`KIND_TO_OP` 里根本没有这个动作，`act()` 的 fill 只发 click → selectAll → `Input.insertText`）。
+这是一个**执行层新动作 kinds** 的刀。所以先证伪它值不值一题——手工按 Enter（`Input.dispatchKeyEvent` keyDown/keyup，`text=''`）：
+
+```
+after-fill   {'url': 'https://stackoverflow.com/questions', 'active': 'Search', 'value': 'python slice step', 'options': 0, 'title': 'Newest Questions - Stack Overflow'}
+after-enter  {'url': 'https://stackoverflow.com/nocaptcha?s=69d8abb6-…', 'active': None, 'value': None, 'options': 0, 'title': ''}
+```
+
+Enter **确实提交了**（页面导航走了），落点是 `nocaptcha` —— 直连 `/search?q=` 也一样（第一发探针的 D 段就是 `/nocaptcha?s=27c5e508-…`）。
+落地页上长 label 的链接行只有 1 条（页脚的 "Help Center and other resources"），`first_result` 无事可做。
+
+**结论（这条改变排期）**：Enter 机制在**本机的出口 IP 上买不到 r103**——站点自己把搜索结果页换成了人机验证。
+r103 归 **A 类（墙）**，与 r101 pypi 同型；按既有规矩，墙是**间歇的、要重探的**，不作为站点属性长期携带，
+也**不为它动执行层**。所以 #25 里"r103 提交链"这一半按探针证伪收掉，`first_action_floor` 的空点击占拍只剩 r105 一个 witness。
+
+### `m2/probe_r105_shape.py`：github 首页出不去是真形状，但顺带量到一个**越域点击**
+
+| 段 | 实测 |
+|---|---|
+| A 首页 | `indexed kinds={'click':14,'fill':1}`，唯一的 fill 是页脚 `e12 'Enter your email'`；header 的搜索是 **button** `e9 'Search or jump to, type / to search'`（不是输入框）。`route -> None`，`first_action_floor -> CLICK target=12 'Open Enter your email'` = b16 那一拍空点击的复现 |
+| B 滚一拍 | 集合一模一样（营销页，滚不出仓库链接）；`_phrases=['/pytorch']` |
+| C 点 `e9` 之后 | 搜索框出现了：`indexed fills=[('e1','Search or jump to','combobox'), …]`，但 `_goal_query=None` → `search_type`/`entity_fill`/`select_first` 全 None → **地板有框可填却没词可填** |
+| D `/search?q=pytorch%2Fpytorch` | `explicit_target -> CLICK 'pytorch'`（组织名单元格），不是仓库行 |
+| E `/pytorch/pytorch` 仓库页 | `explicit_target -> CLICK 'pytorch.org'` —— **这是跳到外部域名**，而 goal 要的是站内 `/releases` |
+
+三条账，按"名词只收见过的"：
+1. **`_phrases` 把不带引号的 `org/repo` 读成路径 `/pytorch`**（正则 `(/[\w\-/.]{2,40})` 从中间的斜杠开始吃）。
+   后果实测两条：D 段只认组织名、E 段认到 **站外** `pytorch.org`。这是 `explicit_target` 的**越域劫持**，
+   与 #46（r113 的近似行劫持）同族但更严重：它会把任务带出任务域名。
+2. r105 想通过地板，需要**四跳链**：开框（点 `e9`）→ 有框可填但 `_goal_query` 派生不出 `pytorch/pytorch`
+   → 结果页要认**整条仓库行** → 仓库页要认 `Releases`。这不是"一格判据"，是三个机制 + 一个短语档，
+   预登记上限只能写 **+1**，代价是动 `_phrases`/`_goal_query` 这两个最承重的函数（21 题全过回归）。
+3. `first_action_floor` 在"goal 派生不出查询、页面上只有页脚订阅框"时仍发点击（A 段），
+   这一拍既不改页也没进展——它把模型的预算占掉了一格，b16 里模型第 2 拍就 BLOCKED(0.596)。
+
+**排期决定（写在探针之后）**：先打 **①（`org/repo` 读法 + 越域守卫）**——它有 witness、只动判据不动执行层、
+且是 r105 四跳链的前置；②r105 的完整链子在①之后单独评估；③A 段的空点击守卫与 ① 同一处代码，合并打。
