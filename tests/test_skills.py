@@ -1191,6 +1191,51 @@ def t_explicit_target_prefix_row_beats_contains_rows():
     assert S.explicit_target(both, goal, []) is None, "真同分仍在赌位置"
 
 
+@case("R 类：目标词在 href 路径段里而不在标签里（r107 HN 首页 label 'new' / href 'newest'）")
+def t_explicit_target_matches_on_domain_href_segment():
+    goal = "Open the 'newest' stories page from the top navigation."
+
+    def nav(i, label, href):
+        return A(i, "click", label, i, href=href)
+
+    # 形如 HN 实测首页：导航链是**无前导斜杠的相对路径**（new -> newest），故事链站外
+    hn = page([nav(1, "link", "https://news.ycombinator.com"),
+               nav(2, "Hacker News", "news"),
+               nav(3, "new", "newest"),
+               nav(4, "past", "front"),
+               nav(5, "comments", "newcomments"),
+               nav(6, "ask", "ask"),
+               A(7, "fill", "Search", 70, role="searchbox"),
+               nav(8, "Dat-ecosystem: high level applications built on top of P2P protocols",
+                   "https://github.com/dat-ecosystem"),
+               nav(9, "Some story title", "item?id=41000000")],
+              url="https://news.ycombinator.com/")
+    d = S.explicit_target(hn, goal, [])
+    assert d and d["choice"] == "e3", f"href 段 'newest' 没被认出来：{d}"
+    r = S.route(hn, goal, [])
+    assert r and r["skill"] == "explicit_target" and r["operation"] == "CLICK" \
+        and r["choice"] == "e3", f"route 没把这一拍交给 explicit_target：{r}"
+
+    # 反例①：站外同名片段不与站内同权（goal 说 'newest' 不等于要去别家的 /newest）
+    off = page([nav(1, "Sister site", "https://elsewhere.example/newest"),
+                nav(2, "new", "newest")], url="https://news.ycombinator.com/")
+    assert S.explicit_target(off, goal, [])["choice"] == "e2", "站外同名片段不该与站内同权"
+
+    # 反例②：页面上已有 label 信号时不赌位置——包含档 1.0 与本档差 <0.15 → 弃权
+    rival = page([nav(1, "The newest items", "/items"),
+                  nav(2, "new", "newest")], url="https://news.ycombinator.com/")
+    assert S.explicit_target(rival, goal, []) is None, "有 label 竞争者时本档必须弃权"
+
+    # 反例③：必须**整段相等**，'newcomments' 不是 'newest'
+    seg = page([nav(1, "comments", "newcomments"), nav(2, "past", "front")],
+               url="https://news.ycombinator.com/")
+    assert S.explicit_target(seg, goal, []) is None, "子串匹配会把 'newcomments' 当成目标"
+
+    # 折叠只属于打分，不许漏进短语集合/搜索词（否则 r107 会去搜 'newest'）
+    assert S._phrases(goal) == ["newest"], "href 档漏进了短语集合"
+    assert S._goal_query(goal) == "newest", "href 档漏进了搜索词"
+
+
 @case("Q 类：goal 的短语是单数、导航标签是复数时也要认得（r115 'Download Python' → 'Downloads'）")
 def t_explicit_target_folds_plural_nav_label():
     goal = "From the Python homepage, open the 'Download Python' releases page."

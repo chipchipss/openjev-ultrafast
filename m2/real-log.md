@@ -2010,3 +2010,134 @@ FAIL，其中 2 条是墙（r101/r104）、1 条 O 类（r102）、1 条 #25 空
 其余 5 条是"首页出不去/形态学"族）。下一刀的候选按便宜程度排：
 **#25 的 r107**（同形三次，买 1 条且顺带压掉 59 拍等待）> **r116/r118/r122/r105 的"起点页只有极少动作"**
 （要先量形状）> **O 类**（要滚动 + 行文本匹配，风险最高）。
+
+## #25 的真形与 R 类（href 路径段）· 2026-10-08 夜 · 赛前登记
+
+**先说仪器的坑（免得下一轮照抄我的错读数）**：探针第一版把"站内链接"判成
+`href.startswith("/") or host in href`，而 HN 的导航链是**无前导斜杠的相对路径**
+（`new -> newest`、`past -> front`），于是它报"161 个动作里只有 1 个站内链"。
+按这个假读数任何"点站内链"的方案都会被否掉。改成"无 scheme 即相对 = 站内"之后真相是
+**157 个 click 里 156 个是站内相对链**。结论一律以改过之后的这次跑为准。
+
+**r107 的账（goal：`Open the 'newest' stories page from the top navigation.`，断言 `news\.ycombinator\.com/newest`，预算 12 步）**
+三批同形，逐拍读过：`first_action_floor` 第 1 拍点了**站外故事链**
+（"Dat-ecosystem: high level applications built on top of P2P protocols"）→ 落到
+`dat-ecosystem.org` → `page_not_ready` 连等（b10/b11 是 59 拍，#36 有界之后是 8 拍）→ 模型 BLOCKED。
+零模型探针在真页上量到地板为什么必须开火：`explicit_target` / `goto_path` / `first_result`
+**全部返回 None** —— 目标词 `newest` 只出现在 **href 的路径段**里，label 是 `new`，
+而 `goto_path` 只认 goal 明写的 `/path`。
+
+**改法（R 类档）**：`explicit_target` 在 label 五档都没给分时，允许"**站内链接的路径段整段相等**"
+给 0.88。三处收窄：① 只认相对 href 或与当前页同 host 的绝对 href（站外的 `/newest` 不算）；
+② 必须**整段**相等（`newcomments` 不等于 `newest`）；③ 0.88 压在 0.9 片段档之下、词重叠档（≤0.825）
+之上，页面上只要还有别的 label 信号差值就 <0.15 → 照旧弃权；明写路径的短语仍归 `goto_path` 管。
+`_phrases` / `_goal_query` 不动（单元测试钉住）。
+
+**b14 赛前判据（登记在先，跑在后）**
+
+| # | 判据 | 通过线 | 不达标怎么办 |
+|---|---|---|---|
+| 1 | 失败测试先行 | 新 R 类 case 在**改前**必须 FAIL（已量：`63/64`，`href 段 'newest' 没被认出来：None`），改后全绿 | 改前也过 → 用例没打到要害，重写 |
+| 2 | 确定性套件 | 10 个文件全绿（基线从 127 抬到 128） | 任一 FAIL → 停，先归因 |
+| 3 | r107 单任务 | **PASS**，第 1 拍 = `explicit_target` 的 CLICK（不是地板、不是站外链），**步数 ≤ 3**，终页 `news.ycombinator.com/newest` | 仍走地板 → 档位优先级/同分判据没生效 |
+| 4 | x001/x002 安全复测（纪律③） | 2/2 PASS、无 error 行 | 任一 FAIL → 停下归因 |
+| 5 | 冻结三轮 | 每轮 **19/19**、同一次构建、`fp=0`、步事件 `text_helper` ⊆ {null, `startlux-decision-2b`} | 任一轮不满 → 不进真实批 |
+| 6 | 真实批 b14（22 题） | **ceiling 14/22**（b13=13，+r107）、**floor 13/22**；`error=0`；`false_positive=0` | 总 pass **< 13 → Fix R 回炉** |
+| 7 | 回归观察面 | **r101 / r113 / r121 / r111 / r112 / r119 / r106 / r115 任一 PASS→FAIL 都算这刀的回归**（href 档最容易碰的就是"站内链变多了"） | 出现即逐拍读 trace 归因，回炉收窄条件 |
+
+## 冻结第 2 轮的 f003 异常 + 自查到的探针仪器错误 · 2026-10-09
+**读数（纪律⑤，每条都可落到已提交工件）**：
+- 轮 1 `reports/m1-baseline-fixr-1008-231624.json` = **19/19**，54 条步事件 `text_helper` 全为 null，error 行 0。
+- 轮 2 `reports/m1-baseline-fixr-1008-232756.json` = **18/19**，非 PASS 的只有 `f003`（`failure_mode=decision`，final `chrome-error://chromewebdata/`）。
+
+**先读 trace 再下结论（纪律④）**：轮 2 的 f003 trace 里**没有任何步事件**，只有 1 条决策
+`blocked_dead_page BLOCKED conf=1.0`；轮 1 的同一题走了 3 步落到
+`https://www.selenium.dev/documentation/webdriver/` 并 PASS。同一份构建、同一个地板，
+差别只在**首屏有没有加载出来**——所以这不是 Fix R 回归，是页面加载/环境抖动。
+现场核对（不是推测）：`https://www.selenium.dev/documentation/webdriver/` 经
+`http://127.0.0.1:2080` 代理 `Invoke-WebRequest` 返回 **200 / 77640 bytes**，
+`duckduckgo.com` 同一代理 200 —— 站点和代理当时都是通的，抖动在浏览器那一次冷启动。
+**处置**：按预登记判据"任一轮不满 → 不进真实批"，轮 2 作废、重跑，三轮 19/19 必须**连续**且同一次构建。
+
+## 自查到的仪器错误（记下来，因为它给的假阳性差点被当成结论）
+`Temp/env_check.ps1` 顶部写了 `$ErrorActionPreference = "SilentlyContinue"`。在这个设置下
+`Invoke-RestMethod` 连不上端口时**不抛异常**（变成静默 $null），于是 `try/catch` 的 catch 永不触发，
+脚本把**没人监听的 8081/8090/9222 全报成 "responsive"**。同一脚本还报了 `llamaProcs=1 rssMB=970`，
+而修好错误处理后的复查是 `llamaProcs=0` + 三个端口 `NOT listening`（`Temp/env_check2.ps1`）。
+**规则**：探针里凡是"连接是否成功"的判断，必须显式 `-ErrorAction Stop`，否则脚本级静默会把
+**拒绝连接读成服务在线**。这一条适用于所有 runner 的健康检查——
+`scripts/text_helper.ps1::Assert-TextHelper` 用的是 cmdlet 默认错误行为（未设 SilentlyContinue），
+所以它的 fail-closed 是真 fail-closed，不需要改。
+
+## 冻结 streak 重跑第 1 轮作废：出口代理 :2080 在轮内挂掉 · 2026-10-09
+`reports/m1-baseline-fixr2a-1009-124938.json` = **14/19**，5 个 FAIL 里 **4 个**是
+`final_url=chrome-error://chromewebdata/` + `steps=0` + `model_calls=1` +
+`skill=blocked_dead_page`（s002 / s004 / l001 / l002）。这正是记账本里
+`benchmark-infra-gotchas` 第 1 条的**环境故障签名**，不是代码回归。
+
+**时间线（从 trace 的 task_result.timestamp 重排，基准 +0s = 本轮第一个任务）**：
+
+| +s | task | 结果 | final_url |
+|---|---|---|---|
+| 0 | s002 | FAIL | chrome-error（docs.python.org） |
+| 30 | s003 | PASS | w3.org/standards |
+| 78 | s004 | FAIL | chrome-error（wikipedia） |
+| 109–275 | s005 f001 f002 f003 f004 n001 | PASS | httpbin / selenium.dev / **docs.python.org** |
+| 311–340 | n002 n003 | PASS | mdn / w3.org |
+| 386 | n004 | FAIL | rfc-editor 搜索页（决策类，见 watch-list） |
+| 434 | l001 | FAIL | chrome-error |
+| 482 | l002 | FAIL | chrome-error（wikipedia） |
+| 512–663 | l003 t001 t002 x001 x002 | PASS | python.org / httpbin / selenium.dev |
+
+**为什么这必须是代理、而不是"某些站点不行了"**：`docs.python.org` 在同一轮里
++0s 失败、+275s 成功；`wikipedia` 在 +78s 和 +482s 都失败而其余站点照常。**同一轮内
+同域名的两种结局**只有链路（代理）能解释，代码在同一轮里不会变。
+
+**轮后实测（不是推测）**：`Get-NetTCPConnection -LocalPort 2080 -State Listen` → **没有人监听**；
+经代理逐站探测 7 个域名（docs.python.org / wikipedia / rfc-editor / HN / reddit / selenium.dev）
+→ **全部 "无法连接到远程服务器"，各 ~2.0s 连接拒绝**；本机代理客户端进程只剩
+`FlClashHelperService`（1MB 的辅助服务，主客户端未运行）。
+`HKCU\...\Internet Settings: ProxyEnable=0, ProxyServer=127.0.0.1:2080`。
+
+**处置**：本轮**作废**（既不记为 pass 也不记为 fail，按 `benchmark-infra-gotchas` 第 16 条的
+"blocked ≠ 读数"原则处理）；工件保留以证可归因。需要用户重启桌面代理客户端；
+代理是用户自己的进程，我不启停它。恢复后三轮 streak 从头计。
+
+## 批次 14 · Fix R（href 路径段档）的裁决批 · 2026-10-09
+
+**读数**：`reports/real-1009-b14-fixr-1009-143434.json` = **14/22**，`error=0`，
+四象限 `{true_success: 14, correct_abandon: 8}`。`false_positive` 象限为 0
+（词表见 `jev_ultrafast/evaluator.py:31-33`，`m1/run_tasks.py:274` 会把非零 fp 直接判 FAIL，
+本轮没触发）。差集：**NEW = {r107}，LOST = ∅**。
+
+| # | 赛前判据 | 实际读数 | 结论 |
+|---|---|---|---|
+| 1 | 失败测试先行（改前必须红） | 改前 `63/64`、`href 段 'newest' 没被认出来：None`；改后 **64/64** | **过** |
+| 2 | 确定性套件全绿 | 10 文件 **128/128**（skills 64、wait_bound 10、cdp_ownership 9、runner_safety 9、runner_zero_cloud 8、rotation 8、page_changed_unknown 6、settle 6、fix_o 5、agent_init_backoff 3） | **过** |
+| 3 | r107 单任务 | `reports/one-r107-1008-231352.json` **PASS，1 步**，终页 `news.ycombinator.com/newest` | **过** |
+| 4 | x001/x002 安全复测 | `one-x001-1008-231445` 1/1、`one-x002-1008-231457` 1/1，无 error 行 | **过** |
+| 5 | 冻结三轮同构建 19/19 | `m1-baseline-fixr3r1-1009-135852` / `r2-1009-141135` / `r3-1009-142226` = **19/19、19/19、19/19**，`error=0`，步事件 `text_helper` 三轮**全 null**（55/54/52 步）。`skills.py` 自 10-08 23:02:56 未改动 → 与判据 3/4 同一次构建 | **过** |
+| 6 | b14 ≥ floor 13、目标 ceiling 14 | **14/22 = 上限**，未触发 "<13 回炉" | **过** |
+| 7 | 回归观察面 8 条 | r113 r121 r111 r112 r119 r106 r115 全 PASS，r101 两批同为墙 FAIL → **无一 PASS→FAIL** | **过** |
+
+**零云端（不看 `api_calls`）**：`logs/real-1009-b14-fixr-1009-143434/` 50 条步事件
+`text_helper` = {null: 47, `startlux-decision-2b`: 3} ⊆ 允许集。
+
+**r107 的收益是地板给的，不是模型掷出来的**：`logs/.../r107.jsonl` 第 1 拍
+`DECISION e3 CLICK skill=explicit_target conf=1.0` → 一步落 `news.ycombinator.com/newest`
+→ `goal_reached` 收口。**b13 的同一题形状是"地板点站外故事链 → dat-ecosystem.org 连等 8 拍 → BLOCKED"**，
+这一刀同时买回了 r107 的等待预算占拍（#25 的前半）。
+
+**冻结链自己的仪器 bug（记下来，因为它差点让 19/19 变成"没有读数"）**：我写的三轮脚本
+用 `"...fixr3r{0}-*.json"` 做 `Get-ChildItem -Filter`，串没走 `-f` 格式化 → 匹配的是字面量
+`{0}`，于是**已经写出报告的轮 1 被判成 "NO REPORT" 并中断了链**。修正后按 `$tag + "-*.json"`
+匹配，轮 2/3 补跑。另：轮 1 前我发现 `run_one.ps1` 在 `scripts/` 下而不是仓库根，
+两次 `-File` 指错路径 **exit 0、无 report、无 log 目录**（见 `benchmark-infra-gotchas` 第 25 条）。
+
+**裁决：Fix R 提交。** 累计 L2 = **14/22**。剩余 8 条 FAIL 按类记账：
+墙 2（r101 pypi / r104 PubMed，本轮 `blocked_by_bot_wall`）、O 类 1（r102，终页又飘到
+`/search/advanced`）、决策类 5（r103 stackoverflow 填了没交、r105 github 起点页、
+r116 rust std、r118 gnu.org、r122 rfc-editor 首页）。
+下一刀按"最便宜优先"：先量 **r105/r116/r118/r122 的起点页形状**（这 4 题同一族：
+首屏动作太少、地板够不到站内链，量之前不许动手——快照只索引首屏可见动作），
+再打 r103 的提交链，墙与 O 类继续记账。

@@ -588,6 +588,10 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
     def _fold_s(t: str) -> str:
         return t[:-1] if len(t) > 5 and t.endswith("s") else t
 
+    try:
+        _page_host = _urlparse(page.get("url") or "").netloc.lower()
+    except Exception:
+        _page_host = ""
     scored = []
     for index, a in _indexed(page.get("actions") or []):
         if a.get("kind") != "click" or a.get("id") in recent:
@@ -628,6 +632,19 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
         except Exception:
             host = ""
         host_flat = host.replace("-", "").replace(".", "").removeprefix("www")
+        # R 类（r107 唯一 witness）：HN 的导航链是**无前导斜杠的相对路径**，目标写成
+        # label "new" / href "newest"，而 goal 引号里是 'newest' —— 五个 label 档结构上
+        # 够不到，goto_path 又只认 goal 明写的路径。这里补一档"站内路径段整段相等"。
+        href_segs: list[str] = []
+        if _href and not _site:
+            try:
+                _hp = _urlparse(_href)
+                _rel = (not _hp.netloc
+                        and not re.match(r"^[A-Za-z][A-Za-z0-9+.\-]*:", _href))
+                if _rel or (_page_host and _hp.netloc.lower() == _page_host):
+                    href_segs = [s for s in _hp.path.split("/") if s]
+            except Exception:
+                href_segs = []
         best = 0.0
         for p in phrases:
             pn = " ".join(_tokens(p))
@@ -676,6 +693,14 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
                     ratio = sum(1 for t in pc if t in lab_t) / len(pc)
                     if ratio >= 0.75:
                         label_score = 0.75 + ratio / 10
+            if not label_score and href_segs and not p.startswith("/"):
+                # 0.88 故意压在 0.9（从头对齐片段）之下、词重叠档（≤0.825）之上：页面上
+                # 只要还有别的 label 信号，差值就 <0.15 → 照旧弃权，这一档**只在 href 是
+                # 唯一线索时**开火。明写路径的短语（"/forms/post"）仍归 goto_path 管。
+                for _seg in href_segs:
+                    if " ".join(_tokens(_seg)) == pn:
+                        label_score = 0.88 + min(len(pn), 40) / 1000.0
+                        break
             if host_hit:
                 best = max(best, 3.0 + label_score)
             elif label_score:
