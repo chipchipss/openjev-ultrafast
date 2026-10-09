@@ -1119,9 +1119,17 @@ def t_explicit_target_fragment_must_be_prefix():
                  A(3, "fill", "Search", 3)], url="https://peps.python.org/")
     d = S.explicit_target(peps, goal, [])
     assert d is None, "中间词片段仍然被当目标：" + str(d)
-    # 让位之后这一拍应由站内搜索接住（不跳出任务域名）
+    # 2026-10-09 反向对照实测（`m2/probe_scroll_reach.py`）：peps 首页文档高 **49432px**，
+    # 引号里的 'Style Guide for Python Code' 在**第 3 拍滚动**后进了索引（'8' → pep-0008/），
+    # 那一刻 `explicit_target` 自己以 conf 1.0 命中。所以首屏这一拍归有界滚动，不是搜索。
     d = S.route(peps, goal, [])
-    assert d and d["skill"] == "search_type", f"这一拍没交给站内搜索：{d}"
+    assert d and d["skill"] == "scroll_to_named_target", f"首屏这一拍该滚：{d}"
+    # 滚不动的页面（快照没有滚动控件）仍然必须由站内搜索接住——这才是原来那条锁的实质：
+    # 不许把站标链接 "Python" 当目标跳去 python.org。
+    flat = dict(peps)
+    flat["actions"] = [a for a in peps["actions"] if a.get("kind") != "scroll"]
+    d = S.route(flat, goal, [])
+    assert d and d["skill"] == "search_type", f"滚不动时没交给站内搜索：{d}"
     # 从头对齐的缩写仍然认——真实导航标签就是这么截断的
     idx = page([A(1, "click", "Style Guide", 1, href="pep-0008")],
                url="https://peps.python.org/")
@@ -1359,6 +1367,93 @@ def t_guard_release_does_not_create_early_done_for_scope_frame():
                 "The Rust Programming Language book.")
     d = S.goal_reached(chap, explicit, hist)
     assert d and d["operation"] == "DONE", f"该收口的导航句没收：{d}"
+
+
+@case("S 类：goal 引号目标在页面里但不在首屏动作集 → 发一次有界 SCROLL_DOWN（Fix S / r116）")
+def t_scroll_to_named_target():
+    """实测依据（m2/probe_scroll_reach.py，2026-10-09）：doc.rust-lang.org/stable/ 首屏只索引
+    4 个动作（**全是 click**，没有搜索框），'The Cargo Book' 这条链在 +1812px；滚 3 步
+    （560px/步）后它进入动作集，`explicit_target` 随即自己命中（conf 1.0）。
+    所以这一族的病是**视口覆盖**，不是打分。fixture 的动作形状按探针读数造，不添没有见证的控件。"""
+    goal = "From the Rust documentation home, open 'The Cargo Book'."
+    below = page([A(1, "click", "The Rust Programming Language", 1,
+                    href="book/index.html"),
+                  A(2, "click", "Rust API Documentation", 2, href="std/index.html"),
+                  A(3, "click", "Get cargo", 3, href="https://other.example/cargo-guide"),
+                  A(4, "click", "Other Rust sites", 4, href="otherites.html")],
+                 url="https://doc.rust-lang.org/stable/")
+    below["text"] = "The Rust Programming Language\nTools and Libraries"
+    below["scroll"] = {"y": 0, "height": 3318}
+    # 前置事实：这条页面上地板本来什么都做不了（这正是 b14 里模型乱点的原因）
+    assert S.explicit_target(below, goal, []) is None, "目标不在首屏时 explicit_target 必须弃权"
+
+    d = S.scroll_to_named_target(below, goal, [])
+    assert d is not None and d["operation"] == "SCROLL_DOWN", f"目标在屏下却没滚：{d}"
+    assert d["choice"] == "scroll_down" and d["target"] is None, d
+    assert d["skill"] == "scroll_to_named_target"
+    assert V(d, below).valid, V(d, below).reason
+
+    # 已经在首屏 → 不许抢 explicit_target 的活
+    seen = page([A(1, "click", "The Cargo Book", 1, href="cargo/index.html"),
+                 A(2, "click", "Rust API Documentation", 2, href="std/index.html")],
+                url="https://doc.rust-lang.org/stable/")
+    seen["scroll"] = {"y": 1680, "height": 3318}
+    assert S.scroll_to_named_target(seen, goal, []) is None, "目标已可见还滚"
+    assert S.explicit_target(seen, goal, []) is not None, "首屏命中链没被 explicit_target 认出来"
+
+    # 有界：滚过 _PATH_SCROLL_MAX 次就交回模型（r105/r122 的页面上滚多少步都不可能出现）
+    scrolled = [{"step": i, "kind": "scroll", "action": "Scroll down",
+                 "choice": "scroll_down"} for i in range(1, S._PATH_SCROLL_MAX + 1)]
+    assert S.scroll_to_named_target(below, goal, scrolled) is None, "滚动没有上限"
+
+    # 底部没有 scroll_down 可发（页面已在底）→ 不是本技能的事
+    at_bottom = dict(below, actions=[a for a in below["actions"]
+                                     if a.get("id") != "scroll_down"])
+    assert S.scroll_to_named_target(at_bottom, goal, []) is None
+
+    # goal 没有引号目标 / 只有搜索词形状时不接管
+    assert S.scroll_to_named_target(below, "Search for flask and open the project page.",
+                                    []) is None
+    # 路径类短语归 goto_path（它自带同样的有界滚动），不许两个技能都认领
+    assert S.scroll_to_named_target(below, "Go to /forms/post on the site.", []) is None
+    # 复合 goal（l002 形状）由别人负责，滚动不许抢
+    assert S.scroll_to_named_target(
+        below, "Open the Rust book and scroll to the table.", []) is None
+    # 表单类 goal 里引号是**字段名/值**，不是导航目标（f005/r120 实况：为 'Test User'
+    # 去滚页面会把 fill/submit 整条链拆掉）
+    formish = page([A(1, "fill", "Customer name", 1, role="textbox"),
+                    A(2, "fill", "Email", 2, role="textbox"),
+                    A(3, "click", "Submit", 3, role="button")],
+                   url="http://localhost:8765/forms/post")
+    formish["scroll"] = {"y": 0, "height": 1400}
+    for g in ("Fill the contact form with name 'Test User', email 'test@example.com', "
+              "comment 'hello', and submit.",
+              "On the httpbin form page, fill the 'Customer name' field with 'jev', "
+              "then submit the form."):
+        assert S.scroll_to_named_target(formish, g, []) is None, f"表单 goal 被拐去滚：{g}"
+
+    # 产品级接线：这一拍地板**真的**会发滚动（否则技能写得再好也没人调用它）。
+    r = S.route(below, goal, [])
+    assert r is not None and r["skill"] == "scroll_to_named_target", \
+        f"地板链上没有把这一拍交给滚动：{r}"
+    # 目标进了首屏后，同一页必须由 explicit_target 接手（不许再滚）
+    r2 = S.route(seen, goal, [])
+    assert r2 is not None and r2["skill"] == "explicit_target", f"滚到了还滚：{r2}"
+    # r116 第一次单任务实测（one-r116-1009-152837）：第 1 拍滚了，第 2 拍滚出来的是
+    # 站内搜索框，search_type 把'导航目标名'当查询词打了进去 →
+    # doc.rust-lang.org/stable/std/index.html?search=The%20Cargo%20Book（FAIL）。
+    # 所以 goal 没要求搜索时，"滚到那条被点名的链"必须排在 fill/search 族之前。
+    with_box = page([A(1, "click", "Rust API Documentation", 1, href="std/index.html"),
+                     A(2, "fill", "Search through the standard library", 2,
+                       role="searchbox")],
+                    url="https://doc.rust-lang.org/stable/")
+    with_box["scroll"] = {"y": 560, "height": 3318}
+    r3 = S.route(with_box, goal, [])
+    assert r3 is not None and r3["skill"] == "scroll_to_named_target", \
+        f"导航 goal 被站内搜索框拐走：{r3}"
+    # 但 goal 自己要求搜索时，搜索族优先（s002 形状不许被本刀动过）
+    r4 = S.route(with_box, "Use the site search to find the page about 'asyncio'.", [])
+    assert r4 is not None and r4["skill"] != "scroll_to_named_target", r4
 
 
 def main():

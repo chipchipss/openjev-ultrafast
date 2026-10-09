@@ -1733,6 +1733,57 @@ def scroll_to_target(page: dict, goal: str, history: list) -> dict | None:
             return _decision("SCROLL_BOTTOM", None, a, "scroll_to_target")
 
 
+#: "这一拍该由别的技能做"的 goal 动词面：搜索/表单/滚动三类。**词表只收任务文件里
+#: 真实出现过的说法**（2026-10-09 对 m1/tasks-laya-19.jsonl + m2/tasks_real.jsonl 的
+#: 逐条分类：search/fill/type/write/check/select/choose/submit/press/scroll），
+#: 不按要求"所有可能的英文动词"。
+_AWAY_VERB_RE = re.compile(
+    r"\b(?:search|scroll|fill|type|enter|write|check|select|choose|submit|press)\b", re.I)
+
+
+def scroll_to_named_target(page: dict, goal: str, history: list) -> dict | None:
+    """goal 用引号点名的目标**不在这张首屏**，但页面下方还有内容 → 发一步有界 SCROLL_DOWN。
+
+    与 `scroll_to_target` 的区别：那一支接管"滚到 X 可见"的 goal（字面写了 scroll）；
+    这一支接管**没写 scroll 的导航 goal**——r116 实况（2026-10-09，`m2/probe_scroll_reach.py`）：
+    doc.rust-lang.org/stable/ 首屏只索引 4 个动作，'The Cargo Book' 那条链在 +1812px
+    （文档高 3318px），滚进视口后 `explicit_target` 自己就以 conf 1.0 命中。
+    快照只收录视口内动作（snapshot.js:124），所以**给这条链加分数的任何档位都买不到它**
+    ——病是视口覆盖，唯一的出路是让页面动。
+
+    为什么排在 `explicit_target` 之后、fill/search 族之前（r116 第一次单任务实测）：
+    地板滚动本身生效了（第 1 拍 `skill=scroll_to_named_target`），但第 2 拍滚出的是站内
+    搜索框，`search_type` 把导航目标名当成查询词打了进去 →
+    `doc.rust-lang.org/stable/std/index.html?search=The%20Cargo%20Book`（FAIL）。
+    goal 没要求搜索时，"滚到那条被点名的链"比"把它搜出去"更有据。
+
+    安全性：
+      - 只在 `explicit_target` 自己都弃权时才动页面（首屏能看见就不该滚）；
+      - goal 含搜索/表单/滚动动词 → 让位（f001/f005/t003/l002/l003 的形状归原来的技能）；
+      - `scroll_down` 是快照在**下方确有内容**时才合成的（snapshot.js:157），拿不到控件
+        就等于滚不动，这条守卫是免费的（与 goto_path 同一依据）；
+      - 有界 `_PATH_SCROLL_MAX`：r105/r122 那样"目标根本不在这一页"的站点最多浪费几拍，
+        之后照常交回模型（两页实测滚到 2800px / 滚到底仍不出现目标）。
+    """
+    if _is_scroll_visible_goal(goal) or _AWAY_VERB_RE.search(goal or ""):
+        return None
+    # 只接管 goal 里**用引号点名**的目标（r116 的形状）。`_phrases` 还会返回介词尾巴
+    # （"… on the site" → "the site"），那种短语在页面上到处都是，为它滚是纯噪声；
+    # 路径类短语（/forms/post）已由 goto_path 自带同样的有界滚动，也不重复接管。
+    quoted = {m.group(1) for m in re.finditer(r"['\"]([^'\"]{2,60})['\"]", goal or "")}
+    phrases = [p for p in _phrases(goal) if not p.startswith("/") and p in quoted]
+    if not phrases:
+        return None
+    if explicit_target(page, goal, history) is not None:
+        return None                        # 目标已在首屏，那一档的活
+    if sum(1 for h in (history or []) if h.get("kind") == "scroll") >= _PATH_SCROLL_MAX:
+        return None
+    ctl = _scroll_ctl(page, "down")
+    if ctl is None:
+        return None
+    return _decision("SCROLL_DOWN", None, ctl, "scroll_to_named_target")
+
+
 #: 提交成功的可见确认字样（与 DoneGuard 规则 3 同表）。
 _CONFIRM_WORDS = ("thank", "success", "confirm", "received", "submitted", "saved",
                   "已提交", "谢谢", "完成", "已保存")
@@ -1820,9 +1871,11 @@ def first_result(page: dict, goal: str, history: list) -> dict | None:
 
 
 # 顺序即优先级。search_submit 放最后：机票页要先填完 from/to/日期/票种再提交。
+# scroll_to_named_target 紧跟 explicit_target：目标在首屏就点它，不在首屏就先让页面动，
+# 再往下才轮到 fill/search 族（r116 第一次单任务实测：晚一步就被站内搜索框拐走）。
 SKILLS = (blocked_dead_page, page_not_ready, goal_reached, stop_when_visible,
           confirm_then_done, scroll_to_target, first_result,
-          goto_path, explicit_target,
+          goto_path, explicit_target, scroll_to_named_target,
           select_option,
           form_fill, form_submit, entity_fill, entity_confirm,
           trip_type, search_type, select_first, date_pick, search_submit)

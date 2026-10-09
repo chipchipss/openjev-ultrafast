@@ -242,12 +242,26 @@ class Agent:
             recent_choices = [h.get("choice") for h in history[-3:]]
             if (recent_choices[0] is not None
                     and all(c == recent_choices[0] for c in recent_choices)):
-                state["status"] = "blocked"
-                pre["loop_detection"] = {
-                    "blocked_on": recent_choices[0],
-                    "reason": "same_choice_3_times",
-                }
-                return False
+                # Fix S2（r116 实测 2026-10-09）：三连相同 choice 里只要**滚动真的换了页面**，
+                # 这条就不是"死点重试"。快照只收录视口内的动作（snapshot.js:124），滚到 goal
+                # 点名的那条链本来就要连滚几拍：`logs/one-r116-1009-153431` 里第 4 拍的
+                # `explicit_target` CLICK 决策已经产出（target 就是 /cargo/），却被本互锁在
+                # 执行之前杀掉，整轮停在起点页。同族的 1.5b 早就要求"同一指纹连 5 次"才算
+                # 死循环，1.5 缺的正是"有没有进展"这一维。
+                # 例外只给 scroll，且必须 page_changed is True（False/None 都不算进展）：
+                # 见过的"相同 choice 连点还活着"的病家（s001 连点翻译链接、n004 连填空搜索框）
+                # 全是无效果重复，给 click/fill 放宽没有证据支撑。
+                last3 = history[-3:]
+                progressed_scroll = (
+                    all(h.get("kind") == "scroll" for h in last3)
+                    and any(h.get("page_changed") is True for h in last3))
+                if not progressed_scroll:
+                    state["status"] = "blocked"
+                    pre["loop_detection"] = {
+                        "blocked_on": recent_choices[0],
+                        "reason": "same_choice_3_times",
+                    }
+                    return False
         # 1.5b Loop Detection (缺陷#10: decisions 死循环，执行失败不写 history)
         # 阈值 3 → 5（缺陷#25）：SPA 建议列表/弹层持续重排时，act 前的 fresh()
         # 会反复失败（Flights v23 实况：10 决策只执行 5 步，同一决策被拒 3 次即
