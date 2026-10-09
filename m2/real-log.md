@@ -2761,3 +2761,82 @@ r103 归 **A 类（墙）**，与 r101 pypi 同型；按既有规矩，墙是**�
 
 **排期决定（写在探针之后）**：先打 **①（`org/repo` 读法 + 越域守卫）**——它有 witness、只动判据不动执行层、
 且是 r105 四跳链的前置；②r105 的完整链子在①之后单独评估；③A 段的空点击守卫与 ① 同一处代码，合并打。
+
+## Fix V：`org/repo` 读法 + 三格守卫 · 判据预登记（写在冻结三轮与 b17 之前）· 2026-10-09 19:5x
+
+### 这一刀改了什么（四格，全部由同一个语境门驱动）
+
+`_REPO_CTX_RE = \brepositor(?:y|ies)\b`：goal 自己把这个斜杠词称作 repository 时才算标识。
+全场 121 条 goal 里只有 **r105** 带这个词（逐条 diff 见下），所以这一刀的射程由构造保证是一题。
+纯词法不认（`and/or`、`24/7`、`n/a` 形状完全相同），裸 `repo` 不收——名词只收见过的。
+
+| 格 | 改动 | 治的是哪一发实测 |
+|---|---|---|
+| ① | `_phrases` 加标识档，并**抑制落在标识跨度内**的路径读法 | `['/pytorch']` → `['pytorch/pytorch']`（探针 B 段） |
+| ② | `explicit_target`：标识档只认**站内**候选（相对 href 或同 host） | 探针 E 段：仓库页点上站外 `pytorch.org`（`host_hit` 抬到 3.0+） |
+| ③ | `goal_reached`：标识档**不作到达证据** | 只做①时仓库根（URL 含 `pytorch/pytorch`）直接 DONE = false positive |
+| ④ | `_goal_query`：标识档**不派生成搜索词** | 只做①时 `_goal_query='pytorch/pytorch'`，而探针 A 段实测首页唯一可 fill 的是页脚邮箱框 → floor 会把仓库标识打进邮箱框（`first_action_floor` 的 fill 分支只要 `query` 非空就发 TYPE_TEXT，这是代码路径不是猜测） |
+
+②③④ 各自都有一条"只做①仍然失败"的实测，见下表第三列。**"该填哪个框"是下一刀**，不在读法这格里夹带。
+
+### 冻结与批次之前已经量到的
+
+| 环节 | 读数 |
+|---|---|
+| 失败测试先行 | `tests/test_phrases_ident.py` 12 条：HEAD 工作树（`git worktree add` 到 `0048810`，跑完即删）**8/12**，挂的 4 条 = ①phrases + ②三发落点；修后 **12/12** |
+| 只做①（把 `_repo_ident_phrases` 打成 `lambda g: []`） | 也是 8/12，但挂的是**另外 4 条**：②只有站外候选时不弃权、③仓库根发 DONE、④派生出搜索词、④floor 打进邮箱框 → ②③④ 各自的必要性各有各的失败 |
+| 确定性套件全量（第一发） | 13 个文件 **154/154**（原 143 + 新 11 条） |
+| 确定性套件全量（终构建复跑） | 同一命令口径 13 文件 **155/155**：agent_init_backoff 3、cdp_ownership 9、fix_o 5、page_changed_unknown 6、**phrases_ident 12（新）**、rotation 8、runner_safety 9、runner_zero_cloud 8、scroll_loop 7、scroll_settle 7、settle 6、skills 65、wait_bound 10。发车时间 19:39，落在冻结第 2 轮期间；`jev_ultrafast/*` 自构建钟 19:17:53 起未再改动，且这 13 个文件全是离线断言（不碰 `:9222`、不碰 `:8090`），与在跑的批次不构成同一承重的两个读数 |
+| 短语面回归 | 121 条 goal（tasks_real + laya-19 + tasks_extra×2 + m1/tasks）新旧 `_phrases` 逐条 diff → **changed=1**（只有 r105：`['/pytorch']` → `['pytorch/pytorch']`） |
+| 活页探针（零模型，同脚本复跑） | D 段 `explicit_target -> CLICK e33 'pytorch / pytorch'`（修复前是组织名单元格 `pytorch`）；E 段 `explicit_target` **不再返回任何决策**（修复前 CLICK `pytorch.org`）；A 段 floor 仍点 `Open Enter your email` = #25 的空点击照旧在账上 |
+| 单任务 | r105 **FAIL / correct_abandon / steps 1**（`reports/one-r105-1009-192002.json`，与 b16 同形）；r106 **PASS 2 步**；r119 **PASS 2 步**；x001 **PASS**；x002 **PASS 5 步**（`reports/one-r10{6}-*.json`、`one-r119-*.json`、`one-x00{1,2}-*.json`） |
+
+口径说明：第一发的 154/154 是在加第 12 条测试**之前**跑的，当时不拿旧数字冒充新构建；终构建复跑已经补上（上表第二行，13 文件 155/155）。
+
+### 冻结三轮（终构建，19:25–19:59）
+
+构建钟 `skills.py=2026-10-09 19:17:53`、`agent.py=15:55:35`、`browser.py=17:37:44`——早于三轮里每一次发车；期间 `jev_ultrafast/*` 一字未动。
+
+| 轮 | 发车 | RAM 门 | 读数 | 报告 |
+|---|---|---|---|---|
+| 1 | 19:25:27 | free=4563MB | **PASS=19 FAIL=0 UNKNOWN=0 ERROR=0**，quadrants `{'true_success': 19}`，fp None | `reports/m1-baseline-fixv1-1009-192527.json` |
+| 2 | 19:37:06 | free=5308MB | **19/19，error=0**，同一形状 | `reports/m1-baseline-fixv2-1009-193706.json` |
+| 3 | 19:48:36 | free=5192MB | **19/19，error=0**，同一形状 | `reports/m1-baseline-fixv3-1009-194836.json` |
+
+轮间只重置我自己的栈（owned chrome + wire + llama-server，脚本按名字作用域杀，日志里每轮都打了 `user processes untouched`）。
+x001 三轮都停在 `chrome-error://chromewebdata/` 记 PASS——那是它的既有形状（拒绝进入），不是本刀改的路径。
+
+### 预登记判据（b17 到达之前不许改）
+
+前置：同一构建连跑**冻结三轮 19/19×3**（RAM 门 3800MB，轮间重置我自己的栈）；`skills.py` 的 mtime 必须早于三轮里每一次发车。
+
+1. **b17 主读数 = 与 b16 配对的 21 题**（`m2/tasks_real.jsonl` 去掉 r118）。发车前先 curl `https://www.gnu.org/` 走 `:2080`：仍不通就照旧排除 r118（保持 error=0 可验）；若通了，r118 单独报一行，**不进** GAIN/LOST（b16 没有它的基线）。
+2. 上限：**15/21，与 b16 持平；GAIN 预期 = ∅**（①②③④ 都不买题，r105 缺的是四跳链不是这一格）。**LOST 必须 = ∅**——这一刀的全部风险在回归面。
+3. `false_positive=0`、`error=0`；零云端用 step 事件的 `text_helper` 集合证（⊆ {null, `startlux-decision-2b`}），不看 `api_calls`。
+4. 现场证据（这一刀真正的收口，不看分数看 trace）：b17 的 r105 trace 里**不许出现跳出 `github.com` 的 CLICK**，也不许出现把组织名 `pytorch` 当目标的点击；b16 的 r105 那一拍空点击（`first_action_floor`）允许照旧存在，那是 #25。
+5. 反例自查：如果 r105 **反而 PASS**，先按③失效处理——查它是不是在仓库根就发了 DONE。那是 false positive，属硬约束，立刻回滚这一刀并记仪器错误，不记成收益。
+6. 六题失败面（b16：r101 墙 / r102 O / r103 墙 / r104 O / r105 链 / r122 O）的**分类不许因为这一刀而改写**；若某题换了死法，按 纪律④ 先读 trace 再归因。
+7. 批次墙钟与 b16 比（b16 summary 无 wall 字段，用 `logs/` 里批次首尾时间戳算）；这一刀不加任何等待，预期落在跨批方差内。
+
+## Fix V 裁决 · b17 与 b16 配对 · 2026-10-09 20:2x
+
+`reports/real-1009-b17-fixv-1009-200643.json`（发车 20:06:43，报告 20:18:57；发车前把栈冷启动：reset 后 free 5296MB、llama RSS 970MB，与冻结三轮同形）
+
+| # | 预登记判据 | 实测 | 判定 |
+|---|---|---|---|
+| 1 | 发车前 curl `gnu.org` 走 `:2080`，不通就排除 r118 保持配对 | `000 45.01s`（两次实测都是 45s 超时）→ 排除 r118，21 题与 b16 同集 | 过 |
+| 2 | 上限 15/21、GAIN=∅、**LOST 必须 =∅** | b16 `15/21 fail 6 error 0` ↔ b17 **逐字相同**；`GAIN=∅ LOST=∅`，15 个 PASS 的**步数一题不差**（r106 2/2、r107 1/1、r113 3/3、r114 7/7…） | 过（上限兑现，回归面零伤害） |
+| 3 | `false_positive=0`、`error=0`，零云端看 step 事件的 `text_helper` 集合 | quadrants 只有 `{correct_abandon: 6, true_success: 15}`；`error=0`；`text_helper` 集合 = `{None: 58, startlux-decision-2b: 1}` ⊆ 允许集合。**不看 `api_calls`**（它只记教师升级路径，这里报的 0 不构成证明） | 过 |
+| 4 | r105 trace 里不许有跳出 `github.com` 的 CLICK，也不许把组织名 `pytorch` 当目标 | r105 全程只有一拍：`click e13 @ https://github.com/`（`first_action_floor`），该题出现过的 URL 集合 = {github.com}；没有任何以 `pytorch` 为目标的点击 | 过（这一刀真正的收口） |
+| 5 | 反例自查：r105 若反而 PASS，按③失效=假阳，立刻回滚 | r105 **FAIL**，与 b16 同形（连模型弃权那一拍的置信度都是同一个 `0.5964858531951904`） | 未触发 |
+| 6 | 六题失败面分类不许因这一刀改写 | 六个 FAIL 全部 `correct_abandon->correct_abandon`，failure_mode 分布逐字相同（`blocked_by_bot_wall: 1`、`decision: 5`）。r113 仍是 `scroll -> click e48 -> /pep-0007/ -> click e6 -> /pep-0008/`，近似行劫持**照旧在账上**（#46） | 过 |
+| 7 | 墙钟与 b16 比 | b16 11.4 min ↔ b17 12.0 min（`logs/` 首尾时间戳）；任务自身耗时 3.3 ↔ 3.8 min | 过（跨批方差内） |
+
+失败题的步数抖动记在账上但不改分类：r101 5→10、r102 7→5、r103 2→1——三题都停在同一死法（墙 / O 类），
+说明这一刀没把任何一题推上新路径，只是模型侧抽样方差。逐条读过 trace 之后才这样记（纪律④）。
+
+**裁决：Fix V 提交。** 这一刀的收益不是分数，是把两条**已经量到的错路**封掉：
+搜索结果页不再点组织名单元格（探针 D 段），仓库页不再被 `host_hit` 抬到站外 `pytorch.org`（探针 E 段）；
+③④ 另外把"仓库根提前 DONE（= false positive）"和"把仓库标识打进页脚邮箱框"两个更糟的后果按在测试里。
+r105 本身仍差四跳链（开框 → 选框 → 整行 → Releases），那是下一刀；#25 的空点击占拍照旧在账上（b17 里它就是 r105 唯一那一拍）。
+

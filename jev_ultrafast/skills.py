@@ -443,8 +443,15 @@ def goal_reached(page: dict, goal: str, history: list) -> dict | None:
         return pn in where or pn.replace(" ", "") in where.replace(" ", "")
 
     # 路径 A：显式短语（引号串 / RFC 号）出现在 URL 或标题 → 已到达目标页
+    _idents = set(_repo_ident_phrases(goal))
     for p in _phrases(goal):
         if p.startswith("/") or len(p.strip()) < 3:
+            continue
+        # 标识档不作到达证据（③）：goal 说 "the Releases page of the pytorch/pytorch
+        # repository"，`/pytorch/pytorch` 只是**仓库根**，URL 里含它就 DONE 会把一个还没
+        # 到 Releases 的页面判成成功（false positive，硬约束直接破）。r105 的到达判据
+        # 留给下一刀的 "Releases" 档；带引号的 id（r106/r119）不走这一格，照旧。
+        if p in _idents:
             continue
         # 短语就是搜索词（出现在 ?q= 里）时不算"已到达"—— 但两类例外：
         #   1) 目标是"打开某个网站"：那种目标只认 host（见 hit），query 永远不算证据；
@@ -539,15 +546,43 @@ def _fill_values(goal: str) -> list[str]:
     return out
 
 
+#: goal 把 `org/repo` 型标识**明写成仓库**时才算标识（r105 是全场 101 题里唯一 witness：
+#: "Open the Releases page of the pytorch/pytorch repository."）。
+#: 为什么要语境门：`and/or`、`24/7`、`n/a` 这些英文斜杠词形状完全相同，纯词法认会把
+#: 噪声灌进 `_phrases`/`explicit_target`/`goal_reached` 三条链；按"名词只收见过的"，
+#: 只收 goal 自己把它称作 repository 的那种。语境词只有 repository/ies 一个见证，
+#: 裸 repo 没见过，不收。
+_REPO_CTX_RE = re.compile(r"\brepositor(?:y|ies)\b", re.I)
+#: 左边界排除 `:` `/`，所以 `https://host/path` 这种已经带前导斜杠的写法仍归路径档管。
+_IDENT_RE = re.compile(r"(?<![\w.\-/])([A-Za-z0-9_.\-]+(?:/[A-Za-z0-9_.\-]+)+)")
+
+
+def _repo_ident_spans(goal: str) -> list[tuple[str, int, int]]:
+    """(短语, 起, 止)：goal 里明写作仓库的 `org/repo` 标识及其跨度。"""
+    if not _REPO_CTX_RE.search(goal or ""):
+        return []
+    return [(m.group(1), m.start(1), m.end(1)) for m in _IDENT_RE.finditer(goal or "")]
+
+
+def _repo_ident_phrases(goal: str) -> list[str]:
+    return [p for p, _s, _e in _repo_ident_spans(goal)]
+
+
 def _phrases(goal: str) -> list[str]:
-    """goal 里字面写明的目标短语：引号串 / 路径 / RFC 号 / 介词后的名词短语。"""
+    """goal 里字面写明的目标短语：引号串 / org-repo 标识 / 路径 / RFC 号 / 介词后的名词短语。"""
     out = []
     for m in re.finditer(r"['\"]([^'\"]{2,60})['\"]", goal):
         pre = goal[max(0, m.start() - 8):m.start()].lower()
         if re.search(r"\bwith\s*$", pre):     # 'Test User' 这类是"值"，不是目标
             continue
         out.append(m.group(1))
-    out += [m.group(0) for m in re.finditer(r"(/[\w\-/\.]{2,40})", goal)]
+    idents = _repo_ident_spans(goal)
+    out += [p for p, _s, _e in idents]
+    # 路径档必须跳过**落在标识跨度内**的斜杠：r105 实测 `pytorch/pytorch` 被旧读法从
+    # 词中间的斜杠吃成 `/pytorch` → 结果页认组织名单元格、仓库页被 `host_hit` 抬到
+    # 3.0+ 点上站外 `pytorch.org`（两发都在 `m2/probe_r105_shape.py` 的 D/E 段）。
+    out += [m.group(0) for m in re.finditer(r"(/[\w\-/\.]{2,40})", goal)
+            if not any(s <= m.start() < e for _p, s, e in idents)]
     out += [m.group(0) for m in re.finditer(r"\bRFC[\s-]?\d{3,5}\b", goal, re.I)]
     # 介词后的名词短语："Open the Wikipedia article on Gödel's incompleteness theorems."
     # 三类都不命中（无引号、无路径、无 RFC）→ _phrases 曾返回 []，于是 goal_reached
@@ -579,6 +614,7 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
     if not phrases:
         return None
     recent = {h.get("choice") for h in (history or [])[-4:]}
+    idents = set(_repo_ident_phrases(goal))
 
     # 单/复数折叠：只在**这一层**做，绝不进 `_phrases` / `_goal_query`（它们喂搜索词，
     # 折叠会把 "Downloads" 变成 "Download" 去搜）。证据面：r115 实况，python.org 上
@@ -632,6 +668,11 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
         except Exception:
             host = ""
         host_flat = host.replace("-", "").replace(".", "").removeprefix("www")
+        # 越域守卫（探针 E 段）：`org/repo` 标识指的是**某个站点里面的位置**，不是站外的
+        # 同名品牌。旧读法把它吃成 `/pytorch` 之后，`host_hit` 会把仓库页 About 栏里的
+        # `pytorch.org` 抬到 3.0+ —— 地板就这样把任务带出任务域名。标识档只认站内候选
+        # （相对 href，或与当前页同 host）；站外一律不给分，宁可弃权也不跳域。
+        off_site = bool(host and _page_host and host != _page_host)
         # R 类（r107 唯一 witness）：HN 的导航链是**无前导斜杠的相对路径**，目标写成
         # label "new" / href "newest"，而 goal 引号里是 'newest' —— 五个 label 档结构上
         # 够不到，goto_path 又只认 goal 明写的路径。这里补一档"站内路径段整段相等"。
@@ -647,6 +688,8 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
                 href_segs = []
         best = 0.0
         for p in phrases:
+            if p in idents and off_site:
+                continue
             pn = " ".join(_tokens(p))
             if not pn:
                 continue
@@ -1081,7 +1124,13 @@ def _goal_query(goal: str) -> str | None:
         if (re.search(r"\bscroll\b", goal or "", re.I)
                 and not re.search(r"\bopen\b", goal or "", re.I)):
             return None
-        cand = [p for p in _phrases(goal or "") if not p.startswith("/")]
+        # 标识档不派生成搜索词（④）：实测一派生，`first_action_floor` 就把
+        # `pytorch/pytorch` 打进 github 页脚的订阅邮箱框（`m2/probe_r105_shape.py` A 段
+        # 唯一可 fill 的就是它）——比 b16 那一拍空点击更糟。"该填哪个框"是另一刀，
+        # 不在读法这一格里夹带。
+        _idents = set(_repo_ident_phrases(goal or ""))
+        cand = [p for p in _phrases(goal or "")
+                if not p.startswith("/") and p not in _idents]
         if len(cand) == 1:
             query = cand[0]
     return query

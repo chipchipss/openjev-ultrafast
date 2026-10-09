@@ -1,0 +1,51 @@
+{
+  "summary": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "true_success": 1
+    },
+    "failure_modes": {},
+    "agent_modes": {},
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "r106",
+      "result": {
+        "task_id": "r106",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://huggingface.co/ggml-org/Llama-2-7B-GGUF",
+          "final_title": "ggml-org/Llama-2-7B-GGUF · Hugging Face",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/ggml-org/Llama-2-7B-GGUF/?$"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 10762
+        }
+      }
+    }
+  ]
+}
