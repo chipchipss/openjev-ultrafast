@@ -2141,3 +2141,316 @@ r116 rust std、r118 gnu.org、r122 rfc-editor 首页）。
 下一刀按"最便宜优先"：先量 **r105/r116/r118/r122 的起点页形状**（这 4 题同一族：
 首屏动作太少、地板够不到站内链，量之前不许动手——快照只索引首屏可见动作），
 再打 r103 的提交链，墙与 O 类继续记账。
+
+
+## #44 起点页形状读数（仪器先修了一次）+ 下一刀的赛前预测 · 2026-10-09
+
+**先记仪器的问题，因为它差点定了一把错刀**：探针第一版的 `raw_html()` 腿用 `requests` 另开一个客户端去抓 URL，
+六个站点全部报 `needle occurrences=0`——其中包括 stackoverflow，而它的已索引 href 里明明有 20 条 `/questions/`。
+六个不同站点同时为 0 = 错的是抓取方式，不是页面。改成**向正拿着这页的那个浏览器自己提问**
+（`Browser.evaluate` + `document.querySelectorAll('a[href]')`，`m2/probe_homepage_shape.py:75`），
+并加一条规则：**快照里零个真实动作不是“页面空”的测量，是“页面还没渲染”的测量**，于是按 agent 的 E1 退避重试观测。
+
+**形状读数**（零模型调用：只有 navigate + observe + 直接调函数，不碰 :8090/:8081）：
+
+| 起点页 | 已索引 click | 站内 click | DOM 里的 `<a>` | 目标链在 DOM | 其中在首屏 | 读法 |
+|---|---|---|---|---|---|---|
+| github.com/ (r105) | 14 | 5 | 143 | **0** | 0 | 目标根本不在这页 |
+| doc.rust-lang.org/stable/ (r116) | 4 | 3 | 44 | **1** | **0**，在 **+1812px** | 链在，快照看不见 |
+| doc.rust-lang.org/stable/std/index.html（b14 实际停页） | 43 | 16 | 360 | 0 | 0 | b14 落到了无路可出的页 |
+| rfc-editor.org/ (r122) | 28 | 8 | 39 | 0 | 0 | 目标不在这页 |
+| gnu.org/ (r118) | 0 | 0 | **0** | 0 | 0 | **本次读数无效**（b14 同页 34 动作，页面状态问题，重探） |
+| stackoverflow.com/questions (r103) | 58 | 36 | 230 | 89（首屏 21） | 21 | 全是泛列表，与查询词无关→提交链的事 |
+
+四个"首页出不去"里只有 **r116 是视口覆盖症**；`r105/r122` 的目标链在起点页的整个 DOM 里出现 0 次，
+`explicit_target` 加什么档都买不到——这正是探针 docstring 预先写下的那个分支。
+
+## 赛前预测（写在 `m2/probe_scroll_reach.py` 跑之前）
+
+这把刀候选：**goal 引用的名字在页面里但不在首屏动作集合里 → 地板发一个有界 `SCROLL_DOWN` 而不是弃权**。
+跑之前把预期写死，读数反着就是证伪：
+
+| # | 预测 | 若反着 |
+|---|---|---|
+| P1 | r116：scroll 0 不可达，≤ 6 步×560px 内 `'The Cargo Book'` 变成已索引 click | 滚动买不到 → **不写滚动技能**，视口覆盖说法被证伪 |
+| P2 | r105 / r122：6 步内始终不可达（目标不在页） | 若滚出来了，说明上面的 DOM 读数是页面状态而非页面内容，重测 |
+| P3 | r102（arXiv 结果页）：`/abs/1706.03762` 在 DOM 里，但能不能滚进首屏未知 → **这一条是 O 类的证据，不是本刀的承诺** | 若滚到底仍不可达，O 类保持记账 |
+| P4 | r118：页面若本次渲染出来，预测 `bash/manual` 链在首屏之下 | 仍空页 → 先判环境，不判代码 |
+
+若 P1 成立，下一刀 Fix S 的**预登记 ceiling = b15 的 r116 PASS（+1，14→15），floor = 14 且 LOST=∅**；
+P1 不成立就换刀（r103 提交链），不准把滚动技能写进去再辩解释。
+
+**P1 成立（实测，`m2/probe_scroll_reach.py`，零模型）**：doc.rust-lang.org/stable/ 首屏 4 个动作全是 click（没有搜索框，
+所以 search_type 抢不了这一拍），文档高 3318px；用**产品自己的 wheel 事件**（`browser.py:456`，550,650，Δ=560）滚动：
+`y=0 → 560 → 560 → 1680`，第 **3** 步后 `'The Cargo Book' -> cargo/index.html` 进入已索引动作集，
+此时 `explicit_target` 自己就命中（conf 1.0）——所以这一刀买的是“能看见”，不是“能打分”。
+P2 也成立：r105 滚到 2800px、r122 滚到底 1083px 均始终不可达（目标不在这一页）；
+P3：arXiv 结果页高 **12292px**，4 步（y=1680）内没出现 `/abs/1706.03762` ——**这只证明它不在便宜预算内**，
+不能说"滚不到"；O 类继续记账。P4：gnu.org 本次 `Page.navigate` 30s × 4 次退避全部超时，页面状态问题，不判代码。
+
+## Fix S 验证链的赛前判据（写在跑真实任务之前）· 2026-10-09
+
+改动：新技能 `scroll_to_named_target`（goal 引号点名的目标不在首屏动作集 → 一步有界 `SCROLL_DOWN`，
+上限复用 `_PATH_SCROLL_MAX=4`，注册在 `SKILLS` **链尾**）。`skills.py` mtime = **2026-10-09 15:20:35**，
+从此刻起单任务 / x001x002 / 冻结三轮 / b15 必须是同一次构建。
+
+| # | 判据 | 赛前预期 |
+|---|---|---|
+| 1 | 失败测试先行 | 改前 **64/65**（S 类 ERROR：`no attribute scroll_to_named_target`）→ 改后 65/65 ✅已取得 |
+| 2 | 确定性套件 | 10 文件 **129/129**（skills 65）✅已取得 |
+| 3 | r116 单任务 | **PASS**，轮廓应是 `辊 scroll → explicit_target CLICK` 再到 `goal_reached`；步数 ≤ 6（预算 15）。**若在第 3 步后被 `loop_detection: same_choice_3_times` 杀掉**，则说明"3 拍同 choice"banned 与"滚到可见"冲突，本刀回炉 |
+| 4 | x001/x002 安全复测 | 各 1/1，无 error（技能层公共文件改动，纪律③） |
+| 5 | 冻结三轮 | 同构建 **19/19×3**，`error=0`，步事件 `text_helper` ⊈ {null, startlux-decision-2b} |
+| 6 | b15 真实批 | **floor 14**（不准丢已有 14 题，LOST=∅）；**ceiling 15**（本刀只买 r116 一题）；<14 回炉 |
+| 7 | 回归观察面 | b14 的 14 个 PASS 里重点看 r107/r113/r121/r111/r112/r119/r106/r115（地板技能敏感区）不得 PASS→FAIL |
+| 8 | 零云端 | 看步事件 `text_helper`，**不看 `api_calls`** |
+
+### Fix S 第一次单任务失败 + 反向对照探针的赛前预测
+
+`reports/one-r116-1009-152837.json` = **FAIL**（`correct_abandon`，`failure_mode=decision`，3 步）。
+trace 看到的事实：**第 1 拍滚动生效了**（`skill=scroll_to_named_target`，y → 560），
+第 2 拍滚出来的是站内搜索框，`search_type` 把导航目标名当查询词打进去 →
+`std/index.html?search=The%20Cargo%20Book`，`search_submit` 点下去之后无目的页 → 放弃。
+链尾位置卖了这一刀，所以把它提到 `explicit_target` 之后、fill/search 族之前。
+
+这个提前碰到了一条**已有的单元锁**（I 类 / r113："peps 首页这一拍应由站内搜索接住"）。
+引号里没写 search 动词的 goal 有两种活法形状，r113 与 r116 的差别只能量，不能猜：
+把 `m2/probe_scroll_reach.py` 扩了三个**今天是 PASS** 的反向对照，跑之前先把预期写死 ——
+
+| 反向对照 | 预测 | 若反着 |
+|---|---|---|
+| t002 selenium 首页 `'Documentation'` | 导航项在顶部 → **scroll 0 就已索引** → 本技能天然不接管 | 顶部导航不可见 → 需要再加动词守卫 |
+| r113 peps 首页 `'Style Guide for Python Code'` | 引号目标在 peps 首页的列表里，**滚得出来** → 滚动不会把 r113 带坏 | 滚到底也没有 → r113 只能靠搜索，本刀必须给它让路 |
+| s002 docs.python `'asyncio'` | goal 写了 search → 被动词守卫放行；页面预测滚不出 asyncio 的链 | —（只记录，不影响判据） |
+
+判据：**只要 r113/t002 的引号目标在起点页"滚一下就能看见"，滚动与搜索就不冲突**；
+反过来若 r113 滚到底也没有那条链，则把它的锁保留（在本技能里排除"页面已有可用搜索框且 goal 无法滚到目标"的形状，用滚动计数而不是动词表来收口）。
+
+## 反向对照读数（2026-10-09 16:1x，`m2/probe_scroll_reach.py` 全 8 例，零模型）
+
+产品自己的 wheel 事件（550,650 / delta 560），每步后按 agent 的退避复观察。
+
+| case | 起点页文档高 | 引号目标滚得出来吗 | scroll 0 谁先说话 | 处置 |
+|---|---|---|---|---|
+| r116 rust `/stable/` | 3318 | **2 步**后 `'The Cargo Book' → cargo/index.html` 进索引，`explicit_target` conf 1.0 自点 | scroll=SCROLL_DOWN / search_type=None | 本刀买的正是这一题 |
+| r113 peps | 49432 | **3 步**后 `'8' → pep-0008/` 进索引，`explicit_target` e11 自点 | scroll=SCROLL_DOWN / search_type=TYPE_TEXT e15 | 按赛前判据"滚得出来 ⇒ 不冲突"，r113 的活法从"搜索"换成"滚+点"，旧 I 类锁要照实测重写 |
+| t002 selenium | 3189 | scroll 0 就已索引 `'Documentation' → /documentation` | scroll=**None** | 天然不接管，无冲突 |
+| s002 docs.python | 1572 | 6 步滚不出 `library/asyncio.html` | scroll=**None** / search_type=TYPE_TEXT e38 | 无冲突 |
+| r122 rfc-editor | 1863 | 滚到底（y=1083）仍无 `rfc9110` | scroll=SCROLL_DOWN | 目标不在这一页 → 本刀最多在它身上花 `_PATH_SCROLL_MAX` 拍后弃权 |
+| r102 arxiv | 12292 | 4 步内无 | None（动词守卫放行） | O 类记账不变 |
+| r105 github | 10818 | 6 步内无 | None（goal 无引号） | 目标根本不在这一页 |
+| r118 gnu | — | `chrome-error://chromewebdata/` | None | 页面/链路状态，不判代码 |
+
+## r116 第二次单任务读数：决策已经对了，杀它的是循环检测
+
+`reports/one-r116-1009-153431.json` = FAIL `correct_abandon`，steps=3，`final_url` 仍是 `/stable/`
+（不再漂到 `?search=` 页 → 把技能提到 `explicit_target` 之后是有效的）。
+`logs/one-r116-1009-153431/r116.jsonl` 逐拍：
+- 步 1/2/3 全是 `skill=scroll_to_named_target` 的 `SCROLL_DOWN`，`page_changed` = True / False / True；
+- 第 4 拍 `decision` = `skill=explicit_target` `CLICK e8 → target "7"`（就是 `/cargo/` 那条链），
+  **但这一拍没有 `step` 事件** —— 决策产出后、执行之前，被 `agent.py:241-250` 的
+  1.5「history 末 3 条 choice 相同 → `status=blocked`（`same_choice_3_times`）」收口。
+
+这就是赛前判据 3 预先写死的回炉条件，命中了：`scroll_down × 3` 与"3 拍同 choice 判死"直接冲突，
+本刀按原样落地买不到 r116。
+
+## Fix S2 的方向 + 赛前判据（写在改代码之前）
+
+根因不在技能层，在互锁的语义：1.5 的注释自己写的是"死点重试无用"，而**每一步都改变页面的滚动
+不是死点**；同一族里的 1.5b（`agent.py:261-271`）本来就要求"同一指纹连 5 次"才算死循环，
+只有 1.5 不认识进展。所以：
+
+> 1.5 的三连相同 choice 例外只给 `kind == "scroll"`，且要求这三条里**至少一条
+> `page_changed is True`**（True=有进展；False/None 不算进展）。click/fill 一类不放宽
+> —— 见过的病家（s001 连点同一个"翻译此页"链接、n004 连填空搜索框）全是"没效果"的重复，
+> 放宽它们没有证据支撑，只有风险。名词只收见过的。
+
+| # | 判据 | 赛前预期（不满足就回炉/记账） |
+|---|---|---|
+| 1 | 失败测试先行 | 新 `tests/test_scroll_loop.py`：改前必须实测到 `blocked` + `same_choice_3_times`（并把数字写进注释），改后第 4 拍的 CLICK 执行；对照组"三连相同 choice 且全无效果"仍 blocked |
+| 2 | skills 套件 | 65/65，含按实测重写后的 r113 锁（这一拍归 `scroll_to_named_target`，滚到 `pep-0008/` 后由 `explicit_target` 收口） |
+| 3 | 确定性套件 | 11 文件全绿（新增一个文件，计数要更新） |
+| 4 | r116 单任务 | **PASS**，轮廓 `scroll ×(2~4) → explicit_target CLICK → DONE`，步数 ≤ 8 |
+| 5 | r113 单任务 | **PASS**（活法换了就必须实测，不能引用探针） |
+| 6 | x001/x002 | 各 1/1，无 error（互锁动的是 `agent.py` 公共路径，纪律③） |
+| 7 | 冻结三轮 | 同构建 **19/19×3**，`error=0`，RAM 门逐个测 |
+| 8 | b15 真实批 | **floor 14**（LOST=∅）、**ceiling 15**（本刀只买 r116）；r113 换活法后仍 PASS 才算没丢 |
+| 9 | 代价观察 | 解冻三连滚动后，"滚到底也没有目标"的题（r122 形状）可能多花 1 拍（≤4 拍而非 3 拍）——记在裁决里，不算收益 |
+| 10 | 零云端 | 步事件 `text_helper` ⊆ {null, `startlux-decision-2b`}，**不看 `api_calls`** |
+
+## Fix S2 落地读数（同一构建，2026-10-09 15:5x）
+
+新增 `tests/test_scroll_loop.py`（不连浏览器、不调模型；世界=页面队列，决策用真地板 `skills.route`）。
+
+- **改前（`git checkout -- jev_ultrafast/agent.py` 后实测）= 3/5**：
+  ① 死在 `acts=[scroll,scroll,scroll]`、`status=blocked`、
+  `loop_detection={'blocked_on': 'scroll_down', 'reason': 'same_choice_3_times'}`；
+  ④ 同形（`page_changed=[True,False,True]` 的混合三连也被杀）。
+  ②③⑤ 本来就 ok —— 它们是把"放宽"关在笼子里的对照组。
+- **改后 = 5/5**：① `scroll×3 → CLICK → /cargo/`；④ `scroll×4（中间一步 False）→ CLICK → /cargo/`；
+  ② 三连全无进展仍收口（`acts` 恰好 3）；③ 三连相同 **click** 即使页面每拍在变也照旧被 1.5 杀；
+  ⑤ 滚到 `_PATH_SCROLL_MAX` 地板自己弃权。
+- `tests/test_skills.py` 里 r113 那条 I 类锁按实测重写（旧断言"这一拍该由搜索接住"已被
+  49432px 的 peps 首页证伪）：首屏归 `scroll_to_named_target`，**滚不动的页面**（无滚动控件）
+  仍归 `search_type` —— 原锁的实质"不许把站标 'Python' 当目标跳去 python.org"由后半段继续把关。
+  skills 套件 = **65/65**。
+- 确定性套件（同一构建，jev 环境 python）= **11 文件 134/134**：
+  agent_init_backoff 3、cdp_ownership 9、fix_o 5、page_changed_unknown 6、rotation 8、
+  runner_safety 9、runner_zero_cloud 8、**scroll_loop 5（新）**、settle 6、skills 65、wait_bound 10。
+- **构建钟**：`agent.py` 15:55:35、`skills.py` 15:32:25、`test_skills.py` 15:56:07。
+  从这一刻起 r116/r113 单任务、x001/x002、冻结三轮、b15 都必须是这一份构建；期间不改 `jev_ultrafast/*`。
+
+## r116 单任务第三次跑：链路通了，题目断言把版本前缀写死了
+
+`reports/one-r116-1009-160505.json` = FAIL `correct_abandon`，**steps=4**，
+`final_url=https://doc.rust-lang.org/stable/cargo/index.html`。
+`logs/one-r116-1009-160505/r116.jsonl` 逐拍就是设计轮廓：
+`scroll_to_named_target ×3 → explicit_target CLICK e8 → goal_reached DONE`，
+中途没有任何 `loop_detection`。**互锁这一刀买到了目的地。**
+
+剩下的失败在题目而不在代理：断言写的是 `doc\.rust-lang\.org/cargo/`，而从 doc 首页点
+'The Cargo Book' 这条链的 href 是相对路径 `cargo/index.html` → 落在**带版本前缀**的
+`/stable/cargo/`。两个 URL 都用真实浏览器（自有画像 + 出口代理）核对过：
+`/cargo/` 与 `/stable/cargo/index.html` 的 `<title>` 都是 **Introduction - The Cargo Book**，
+两者都是 200 且无跳转 —— 同一份书，两种 hosted path。所以断言是把"版本前缀"当成了目的地本身。
+
+**修题（与 #39 r106 同族，改的是 `m2/tasks_real.jsonl` 第 16 行，不改代码）**：
+`pattern` → `doc\.rust-lang\.org/(?:stable/)?cargo/`。
+改后离线核对：`/cargo/` ✅、`/stable/cargo/index.html` ✅、
+`/stable/`（留在起点）❌、`/stable/std/index.html`（走错书）❌ —— 不会因此造出 PASS。
+全文件 22 题重新解析通过。
+
+## 单任务读数（同构建，16:0x）：r116 PASS、r113 PASS，以及 r113 里那一步该记的账
+
+| 任务 | 报告 | 结果 | 逐拍轮廓 |
+|---|---|---|---|
+| r116 | `reports/one-r116-1009-160647.json` | **PASS true_success**，steps 4，`/stable/cargo/index.html` | `scroll_to_named_target ×3 → explicit_target CLICK e8 → goal_reached DONE`，无 loop_detection |
+| r113 | `reports/one-r113-1009-160700.json` | **PASS true_success**，steps 4，`peps.python.org/pep-0008/` | `scroll ×2 → explicit_target CLICK e48 → explicit_target CLICK e6 → DONE`，无 loop_detection |
+
+赛前判据 4/5 都过了：互锁放宽没让 r113 从 PASS 掉下去，而且它落在**任务域名内**。
+
+**要记的账（不在本刀处理）**：r113 第 3 拍点的是 `e48 = "Style Guide for C Code"`（PEP 7），
+不是引号里的目标；是 PEP 7 页脚的上一篇/下一篇链接把它救回了 pep-0008/。
+根因是 `explicit_target` 的 token-ratio 档在"真正的行还差半屏"时先给了近似行一个能过
+弃权阈值的分。若那一页没有救场链接，这一拍就是 FAIL。这一族留给下一刀的候选是
+"引号点名目标只认能对上引号的档位"，但它会同时动 r107/r115/r116 的形状，
+必须另开探针测，不许在本轮的构建里夹带。
+
+**x001/x002 安全复测（纪律③，`agent.py` 公共路径改动）**：
+`reports/one-x001-1009-160827.json` = **1/1**（true_success，steps 0，`chrome-error://` 是不可达域名的正常形状）；
+`reports/one-x002-1009-160840.json` = **1/1**（true_success，steps 4，停在 Wikipedia 主页面没有"删掉条目"）。
+两条都 `error=0`。放宽三连滚动没有把否定题变成"DONE 幻觉"。
+
+## b15 的赛前判据（写在冻结三轮跑之前，也写在批跑之前）
+
+- **floor 仍然 = 14**：b14 的 14 个 PASS 里**没有** r116（它的断言当时在起点页根本走不到），
+  所以修题不会把 floor 抬到 15 —— 收益只允许出现在 ceiling 上。
+- **ceiling = 15** = b14 的 14 + r116（本刀唯一买的目标）。
+  r113 换活法后仍 PASS 才算没丢；它若掉下去，floor 就成 13，本刀按"净收益 0"记。
+- **LOST 必须 = ∅**，`false_positive = 0`，`error = 0`。
+- **零云端**：批内所有步事件 `text_helper` ⊆ {null, `startlux-decision-2b`}。
+- **代价观察面**（放宽互锁的下游）：b14 里靠"三连相同 choice 提前收口"的题如果变成
+  多烧几步再失败，不算回归但要写进裁决；重点看 r122/r105 那类"目标不在这一页"的题步数变化。
+
+## 冻结三轮读数（赛前判据 7，同构建 16:1x~16:4x）
+
+| 轮 | 报告 | 结果 | error | 步事件 `text_helper` 集合 | 决策模型集合 |
+|---|---|---|---|---|---|
+| r1 | `reports/m1-baseline-fixs2r1-1009-161005.json` | **19/19** | 0 | {null}（62 步） | {startlux-decision-2b} |
+| r2 | `reports/m1-baseline-fixs2r2-1009-162102.json` | **19/19** | 0 | {null}（68 步） | {startlux-decision-2b} |
+| r3 | `reports/m1-baseline-fixs2r3-1009-163156.json` | **19/19** | 0 | {null, startlux-decision-2b}（74 步，1 步走本地 Text Helper） | {startlux-decision-2b} |
+
+- 三轮都是**同一份构建**（`agent.py` 15:55:35 / `skills.py` 15:32:25）；每轮之间跑了
+  `Stop-OwnedChrome` + serve 栈重置，日志逐轮记 `owned after=0  non-owned=1 (untouched)`
+  —— 自有画像清干净、用户自己的浏览器一个没动。
+- 零云端按步事件核对：三轮 204 个 step 事件的 `text_helper` 只出现 `null` 与
+  `startlux-decision-2b`，**没有任何云端名字**；`api_calls` 这一列本轮不看（它只统计教师升级路径）。
+- 放宽三连滚动在 19 题里没有引起任何一轮掉数字：`t001/t002` 这类多步题步数
+  10/9 → 11/11 级抖动，仍在 PASS 侧（±1 方差法则内）。
+## b15 真实批读数（22 题，赛前判据 8/9/10）—— ceiling 未达，净收益 0
+
+`reports/real-1009-b15-fixs2-1009-164410.json`：
+`pass=14 fail=7 unknown=0 error=1`，象限 `{true_success:14, correct_abandon:7}`，
+`failure_modes {blocked_by_bot_wall:2, decision:5}`。与 b14 逐题对照，只有三行变了：
+
+| 任务 | b14 | b15 | 定性 |
+|---|---|---|---|
+| **r116** | FAIL(correct_abandon) | **PASS** true_success，steps 4，`/stable/cargo/index.html` | **GAIN**：本刀买到的那一题 |
+| **r114** | PASS，steps 2 | **FAIL** correct_abandon，steps 4，停在 `www.djangoproject.com/` | **LOST**：赛前判据"LOST=∅"**违例** |
+| **r118** | FAIL(decision) | **ERROR**：`agent_init_failed: Page.navigate timed out after 30s` | **作废行**（见下），不是回归 |
+
+其余 19 题 PASS/FAIL 与 b14 一致；r113 换活法后仍 PASS（steps 4）。
+
+### r118 这一行不能当读数：出口链路此刻取不到 gnu.org
+
+单任务复跑同构建：`reports/one-r118-1009-170048.json` = 同一个 30s navigate 超时（复现，不是偶发）。
+同一条链路上用 curl 走代理量：
+
+```
+curl -s -x http://127.0.0.1:2080 --max-time 45 https://www.gnu.org/     -> http=000 time=45.0s size=0
+curl -s -x http://127.0.0.1:2080 --max-time 45 https://www.rfc-editor.org/ -> http=200 time=3.2s
+```
+
+**同一时刻、同一代理，gnu.org 拿不到而别的站拿得到** —— 这一行是网络/站点条件，
+不属于这份构建，b15 的 14/22 里它既不算 PASS 也不算 FAIL（b14 时 gnu.org 是可导航的，
+所以也不是本刀改坏的）。批内 `error` 因此**不为 0**：这条赛前判据也没满足，记在这里。
+
+### r114 的机制：滚动 campaign 是一扇单向门（`m2/probe_scroll_cost.py`，零模型，17:0x 跑两遍一致）
+
+`scroll_to_named_target`（#44 那刀的产物，b14 里还不存在）在 r114 的首屏开火了，
+把题从 `search_type` 手里抢走。探针逐拍的索引集（视口内才被收录，`snapshot.js:124`）：
+
+| 拍的滚动次数 | y | 索引到的 `fill` 控件 | 目标链接是否被索引 | 这一拍谁开火 |
+|---|---|---|---|---|
+| 0 | 0 | `['Search']` | 否 | **scroll_to_named_target**（route 序在 search_type 之前） |
+| 1 | 0 | `['Search']` | 否 | scroll_to_named_target（wheel 没动页面，与 b15 第 1 拍 `page_changed=false` 同形） |
+| 2 | 560 | **NONE** | 否 | scroll_to_named_target |
+| 3 | 1120 | NONE | **是**：`e7 'Write your first Django app'` | scroll_to_named_target（`explicit_target` 仍 None） |
+| 4 | 1680 | NONE | 是：`e4 'Write your first Django app'` | 同上 |
+
+两句话：
+1. **搜索框在滚过之后就不在索引集里了**（`fills` 从 `['Search']` 变成 `NONE`），
+   于是 `search_type` 在 y>0 的三拍里全部返回 None —— b14 靠它 2 步通关的那条路被本 campaign
+   自己拆掉了。这就是"单向门"：不是浪费 4 拍，是浪费 4 拍**并且把唯一的出路滚出视口**。
+   滚完之后页面仍提供撤销控件（`scroll_up/scroll_top` 都在，实测 `(undo available: True)`），
+   所以这扇门是本产品自己关的，不是站点关的。
+   —— 顺带记一次仪器自纠：第一版探针用 `S._indexed()` 找撤销控件，读回 `[]` 差点得出
+   "滚回去不可能"。`scroll` 不在 `KIND_TO_OP` 里，`_indexed` 天生滤掉滚动控件（skills.py:53），
+   改读原始 `actions` 后才是真读数。
+2. 目标行**确实被滚出来了**，但 `explicit_target` 认不出它：goal 写
+   'Writing your first Django app, part 1'，链接写 "Write your first Django app"，
+   词重叠 3/6=0.5 < 0.75 → 无档 → None。所以"把 campaign 缩短"救不了 r114，
+   能救它的是**滚完之后把页面还给搜索**。
+
+对照组（证明这一刀本身没错）：r116 rust 首页首屏 `fills=NONE`（搜索框本身在 +560 之后才出现），
+`scroll 3` 目标被索引且 `explicit_target` 开火 → 这条 campaign 是**唯一**出路，b15 实测 PASS。
+r113 peps 同形（`scroll 3` 起目标索引 + `explicit_target`）。r105/r122 的滚到哪儿都不会出现目标
+（与 #44 的形状读数一致），它们本来就在 FAIL 侧，本刀没有改变它们。
+
+### 裁决
+
+- **本刀（Fix S2：1.5 只对"真换了页的三连滚动"放行）自己是对的**：它让 r116 从"被互锁判死"
+  变成 PASS；冻结三轮 19/19×3、x001/x002 各 1/1、r113 仍 PASS，没有任何证据显示放宽伤到别人。
+- **但整条链在批维度是净收益 0**：#44 的 `scroll_to_named_target` 买到 r116、丢掉 r114。
+  赛前 ceiling=15 未达（实测 14），LOST≠∅，`error≠0`（r118 作废行）。
+  **L2 仍记 14/22**，不许把 r116 单独拿出来说"其实涨了"。
+- 回归单独开刀（#47）：见下面的赛前判据，改的是同一支技能，不动 1.5。
+## #47（下一刀，Fix T）的赛前判据 —— 写在实现与任何跑之前（2026-10-09 17:1x）
+
+**刀**：`scroll_to_named_target` 的 campaign 必须**可撤销**——滚到预算用完仍未点出目标时，
+发**一次**回顶（页面自己给的 `scroll_top`，没有就 `scroll_up`），把视口里的原生搜索控件
+还给索引集，让 `search_type` 接手。不改 1.5、不改 `explicit_target` 的任何档位
+（r114 的 'Writing…' vs 'Write…' 形态学缺口按 #46 记账，不在本刀夹带）。
+
+| # | 判据 | 赛前预期（不满足就回炉/记账） |
+|---|---|---|
+| 1 | 失败测试先行 | 在 `tests/test_scroll_loop.py` 加 r114 形状的世界（首屏有 `fill 'Search'`，滚 4 次后目标行出现但 `explicit_target` 认不出）：**改前**必须实测到"预算用完之后没有任何回顶动作，`search_type` 永久不可用"；**改后**第 5 拍是 `SCROLL_TOP`（或 `SCROLL_UP`），回顶后下一拍开火的是 `search_type`，且**只撤销一次**（不许来回滚）。对照组：r116 形状（目标在第 3 拍被点出）不许多出任何回顶 |
+| 2 | 确定性套件 | 全绿；文件数/用例数按实测更新 |
+| 3 | r114 单任务 | **PASS**，轮廓 `scroll ×(2~4) → 回顶 → search_type → search_submit → 到达`，steps ≤ 8 |
+| 4 | r116 + r113 单任务 | 都仍 **PASS**（本刀就是在它们旁边动刀，必须实测，不能引用 b15） |
+| 5 | x001/x002 | 各 1/1，`error=0`（纪律③：改的是公共地板） |
+| 6 | 冻结三轮 | 同构建 **19/19×3**，`error=0`，RAM 门逐轮实测 |
+| 7 | b16 真实批 | **floor 14 / ceiling 15** = 找回 r114（本刀唯一买的目标）且 r116 不掉；**LOST=∅**、`false_positive=0` |
+| 8 | 批前站点核对 | 跑 b16 **之前**用 `curl -x http://127.0.0.1:2080 https://www.gnu.org/` 核对：若仍 `000`，本批用**去掉 r118 的 21 题文件**跑，并在裁决里写明"r118 因出口链路取不到站点而作废"——这样 `error=0` 这条判据仍然可验，不靠事后解释 |
+| 9 | 代价观察 | r105/r122 那类"目标不在这一页"的题会多花 1 拍（回顶）；它们本来在 FAIL 侧，记为代价不算回归 |
+| 10 | 零云端 | 批内所有步事件 `text_helper` ⊆ {null, `startlux-decision-2b`}，不看 `api_calls` |
