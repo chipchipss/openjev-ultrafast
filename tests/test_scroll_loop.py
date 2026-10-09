@@ -13,6 +13,9 @@ click/fill 不放宽：见过的病家（s001 连点"翻译此页"、n004 连填
 
 不连浏览器、不调模型：Browser 整个换掉，决策要么用脚本、要么用真地板 `skills.route`。
 
+⑥⑦ 属于下一刀 #47（Fix T）：同一个技能滚完之后必须把页面还回顶部，
+否则它会把"本来能解这道题的"视口外控件一起滚走（r114 在 b15 的实测死法）。
+
 运行：python tests/test_scroll_loop.py
 """
 from __future__ import annotations
@@ -40,17 +43,30 @@ CARGO = "https://doc.rust-lang.org/cargo/"
 GOAL = "From the Rust documentation home, open 'The Cargo Book'."
 
 
-def page(url, fp, labels, y=0, height=3318, links_only=False):
-    """按真实快照的形状造页：click 动作 + 合成滚动控件 + wait。"""
+def page(url, fp, labels, y=0, height=3318, links_only=False, fills=()):
+    """按真实快照的形状造页：click 动作 + fill 控件 + 合成滚动控件 + wait。
+
+    `fills` 是给 #47（r114 的单向门）用的：真实快照只收录**视口内**的动作
+    （`snapshot.js:124`），页头的搜索框在滚下去之后就不在 actions 里了。
+    滚动控件同理：`scroll_up/scroll_top` 只在 y>0 时存在（`snapshot.js:158/163`）。
+    """
     acts = [{"id": f"e{i}", "kind": "click", "node": i, "role": "link",
              "label": lab, "href": href, "value": ""}
             for i, (lab, href) in enumerate(labels, 1)]
+    for j, lab in enumerate(fills, 1):
+        acts.append({"id": f"e{len(labels) + j}", "kind": "fill", "node": 500 + j,
+                     "role": "textbox", "label": lab, "value": ""})
     acts.append({"id": "scroll_down", "kind": "scroll", "label": "Scroll down",
                  "delta": 560, "node": 900})
     if not links_only:
         acts.append({"id": "scroll_bottom", "kind": "scroll", "label": "Scroll to bottom",
                      "delta": 9999, "node": 901})
         acts.append({"id": "wait", "kind": "wait", "label": "Wait"})
+    if y > 0:
+        acts.append({"id": "scroll_up", "kind": "scroll", "label": "Scroll up",
+                     "delta": -560, "node": 902})
+        acts.append({"id": "scroll_top", "kind": "scroll", "label": "Scroll to top",
+                     "delta": -y, "node": 903})
     return {
         "url": url, "title": url.rsplit("/", 1)[-1] or url, "text": "Rust documentation",
         "actions": acts, "guards": {}, "fingerprint": fp, "marker": "m",
@@ -108,6 +124,11 @@ class ScrollWorld:
         self.acts.append((kind, action.get("id")))
         n = sum(1 for k, _ in self.acts if k == "scroll")
         if kind == "scroll":
+            # 向上的滚动是**撤销**：世界回到那一级页面（#47 的回顶）。
+            if action.get("id") in ("scroll_top", "scroll_up"):
+                back = 0 if action.get("id") == "scroll_top" else 1
+                self.i = max(0, self.i - (len(self.pages) if back == 0 else back))
+                return
             if n not in self.no_effect_at and self.i + 1 < len(self.pages):
                 self.i += 1
         elif kind == "click" and self.dest is not None:
@@ -139,12 +160,12 @@ def scripted(decision_of):
     return choose
 
 
-def run(world, choose, goal=GOAL, ticks=8):
+def run(world, choose, goal=GOAL, ticks=8, start=HOME):
     S._STUCK.clear()            # 用例之间隔离"技能让位"状态（同一页指纹会被复用）
     A.Browser = lambda url: world
     A.choose = choose
     A.time.sleep = lambda s: None
-    ag = A.Agent(HOME, goal)
+    ag = A.Agent(start, goal)
     terminal = {"done", "blocked", "budget_exceeded"}
     for _ in range(ticks):
         if ag.state["status"] in terminal:
@@ -257,8 +278,70 @@ def t_floor_bounds_its_own_scrolling():
     goal = "Open RFC 9110, 'HTTP Semantics'."
     ag = run(w, floor_choose, goal=goal, ticks=12)
     scrolls = sum(1 for k, _ in w.acts if k == "scroll")
-    assert scrolls <= S._PATH_SCROLL_MAX, (
-        f"地板滚动越界：{scrolls} > {S._PATH_SCROLL_MAX}，acts={w.acts}")
+    assert scrolls <= S._PATH_SCROLL_MAX + 1, (
+        f"地板滚动越界（回顶那一拍之外）：{scrolls}，acts={w.acts}")
+
+
+# ---------------------------------------------------------------------------
+# ⑥⑦ #47（Fix T）：r114 的"单向门"。
+# b15 实测（`logs/real-1009-b15-fixs2-1009-164410/r114.jsonl` + `m2/probe_scroll_cost.py`）：
+# django 首屏索引集里有页头 `fill 'Search'`（b14 就是靠 search_type 2 步通关的），
+# 而 `scroll_to_named_target` 在 route 序里排在它**前面**；滚过 560px 之后
+# 快照不再收录视口外的动作，`fills` 变成 NONE —— campaign 不只是浪费 4 拍，
+# 它是把唯一的出路滚出了视口（单向门）。目标链在 y=1120 确实被索引了
+# （"Write your first Django app"），但 goal 写的是 'Writing your first Django app,
+# part 1'，词重叠 3/6=0.5 → `explicit_target` 认不出，所以"少滚两拍"救不了它。
+# 页面在滚下去之后仍然提供 scroll_top/scroll_up（探针实测 undo available: True），
+# 所以这扇门是产品自己关的，也得由它自己打开。
+# ---------------------------------------------------------------------------
+
+DJHOME = "https://www.djangoproject.com/"
+DJ_GOAL = ("From the Django homepage, open the page titled "
+           "'Writing your first Django app, part 1'.")
+_DJ_TOP_LABELS = [("The Python framework for the perfectionists with deadlines", ""),
+                  ("Download", "download/"),
+                  ("Latest news", "news/"),
+                  ("Dapps", "dapps/")]
+# 首屏：页头搜索框在索引集里，目标链不在
+DJ0 = page(DJHOME, "fp-dj0", _DJ_TOP_LABELS, y=0, height=3401, fills=("Search",))
+DJ1 = page(DJHOME, "fp-dj1", _DJ_TOP_LABELS[1:], y=560, height=3401)
+DJ2 = page(DJHOME, "fp-dj2", [("Getting started", ""), ("Documentation", "")],
+           y=1120, height=3401)
+# 滚出来的那一行：真实标签，与 goal 的引号串只差 "Writing"/"Write" 和一个尾缀
+_DJ_MID = [("Documentation", ""), ("Community", ""), ("Blog", ""),
+           ("Write your first Django app", "intro/tutorial01/")]
+DJ3 = page(DJHOME, "fp-dj3", _DJ_MID, y=1680, height=3401)
+DJ4 = page(DJHOME, "fp-dj4", _DJ_MID, y=2240, height=3401)
+
+
+def _undos(acts):
+    return [a for _, a in acts if a in ("scroll_top", "scroll_up")]
+
+
+@case("⑥ 滚满预算仍认不出目标 → campaign 必须把页面还回顶部，让页头搜索框重新可用")
+def t_failed_campaign_gives_the_page_back():
+    w = ScrollWorld([DJ0, DJ1, DJ2, DJ3, DJ4])
+    ag = run(w, floor_choose, goal=DJ_GOAL, ticks=12, start=DJHOME)
+    acts = w.acts
+    undo = _undos(acts)
+    typed = [a for k, a in acts if k == "fill"]
+    assert undo, (
+        f"campaign 用完了滚动预算却没有把页面滚回去：页头的搜索框从 y=560 起就不在"
+        f"索引集里，`search_type` 从此再也开不了火（r114 在 b15 的死法）。"
+        f"acts={acts}，status={ag.state['status']}")
+    assert len(undo) == 1, f"撤销必须恰好一次，不许来回滚：{acts}"
+    assert typed, f"回到顶部后 `search_type` 没接手：acts={acts}"
+    assert acts.index(("scroll", undo[0])) < acts.index(("fill", typed[0])), \
+        f"回顶发生在输入之后：{acts}"
+
+
+@case("⑦ 对照：r116 那种第 3 拍就把目标滚出来的题，本刀一律不多花一拍回顶")
+def t_successful_campaign_never_undoes():
+    w = ScrollWorld([ROOT0, ROOT1, ROOT2, ROOT3], DEST)
+    ag = run(w, floor_choose)
+    assert _undos(w.acts) == [], f"成功的 campaign 也去回顶了：{w.acts}"
+    assert [k for k, _ in w.acts][:4] == ["scroll", "scroll", "scroll", "click"], w.acts
+    assert reached(ag, CARGO), f"点击没落到 /cargo/：{w.acts}"
 
 
 def main() -> int:

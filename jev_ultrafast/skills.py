@@ -1763,7 +1763,8 @@ def scroll_to_named_target(page: dict, goal: str, history: list) -> dict | None:
       - `scroll_down` 是快照在**下方确有内容**时才合成的（snapshot.js:157），拿不到控件
         就等于滚不动，这条守卫是免费的（与 goto_path 同一依据）；
       - 有界 `_PATH_SCROLL_MAX`：r105/r122 那样"目标根本不在这一页"的站点最多浪费几拍，
-        之后照常交回模型（两页实测滚到 2800px / 滚到底仍不出现目标）。
+        之后照常交回模型（两页实测滚到 2800px / 滚到底仍不出现目标）；**并且结束时把
+        页面滚回顶部**（#47）——不然这一趟会把视口外的原生搜索控件一起带走。
     """
     if _is_scroll_visible_goal(goal) or _AWAY_VERB_RE.search(goal or ""):
         return None
@@ -1776,12 +1777,34 @@ def scroll_to_named_target(page: dict, goal: str, history: list) -> dict | None:
         return None
     if explicit_target(page, goal, history) is not None:
         return None                        # 目标已在首屏，那一档的活
-    if sum(1 for h in (history or []) if h.get("kind") == "scroll") >= _PATH_SCROLL_MAX:
+    scrolls = [h for h in (history or []) if h.get("kind") == "scroll"]
+    down = _scroll_ctl(page, "down")
+    if down is not None and len(scrolls) < _PATH_SCROLL_MAX:
+        return _decision("SCROLL_DOWN", None, down, "scroll_to_named_target")
+    # 单向门守卫（#47，r114 在 b15 的死法）：campaign 结束了（滚不动了，或者预算用完了）
+    # 却没把目标滚进索引集，这一趟不是"多花 4 拍"——快照只收录**视口内**的动作
+    # （snapshot.js:124），滚下去之后页头的原生搜索框就不在 actions 里了。
+    # `m2/probe_scroll_cost.py`（零模型，2026-10-09 17:1x 跑两遍一致）逐拍实测 django 首页：
+    # y=0 `fills=['Search']` 且 `search_type` 开火，y≥560 `fills=NONE`、`search_type`
+    # 全程 None —— b14 靠 search_type 两步通关的出路，是被这个 campaign 自己滚出视口的
+    # （目标链在 y=1120 确实出现，但 goal 写 'Writing your first Django app, part 1'
+    # 而链接写 "Write your first Django app"，词重叠 3/6 → `explicit_target` 认不出，
+    # 所以"少滚两拍"救不了它）。页面在滚下去之后仍然给得到回顶控件（同探针实测
+    # undo available: True），所以这扇门是产品自己关的：**还一次**，把那一拍还回给
+    # `search_type`。只还一次（还过的 campaign 不再说话，不许来回滚）；两种"没有欠下的门"
+    # 的情况也不多花那一拍：首屏本来就滚不动的页面，以及**已经交过棒**的页面
+    # ——目标一旦被滚进索引集，`explicit_target` 就接管了（r116 实测第 4 拍），后面
+    # 若还有滚动是别人的战役，由 `scroll_to_target`/`goto_path` 自己收口（⑦ 对照）。
+    if not scrolls or any(h.get("skill") == "explicit_target" for h in (history or [])):
         return None
-    ctl = _scroll_ctl(page, "down")
+    if any(re.search(r"\b(up|top)\b", (h.get("action") or "").lower()) for h in scrolls):
+        return None
+    ctl = _scroll_ctl(page, "top") or _scroll_ctl(page, "up")
     if ctl is None:
         return None
-    return _decision("SCROLL_DOWN", None, ctl, "scroll_to_named_target")
+    # op 名必须是控件 id 的大写（decision_validator 用 controls[action.id.upper()]
+    # 反查 expected_choice，:181），所以这里不写死 SCROLL_UP。
+    return _decision(ctl["id"].upper(), None, ctl, "scroll_to_named_target")
 
 
 #: 提交成功的可见确认字样（与 DoneGuard 规则 3 同表）。

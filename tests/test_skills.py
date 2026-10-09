@@ -1401,10 +1401,22 @@ def t_scroll_to_named_target():
     assert S.scroll_to_named_target(seen, goal, []) is None, "目标已可见还滚"
     assert S.explicit_target(seen, goal, []) is not None, "首屏命中链没被 explicit_target 认出来"
 
-    # 有界：滚过 _PATH_SCROLL_MAX 次就交回模型（r105/r122 的页面上滚多少步都不可能出现）
+    # 有界（#47 之后是"两拍"）：滚满 `_PATH_SCROLL_MAX` 还没把目标滚进索引集，
+    # 先**把页面还回顶部**（不还的话，视口外的原生搜索控件就永久消失在动作集里 ——
+    # r114 在 b15 的死法，`m2/probe_scroll_cost.py` 实测），还过一次之后彻底闭嘴。
     scrolled = [{"step": i, "kind": "scroll", "action": "Scroll down",
                  "choice": "scroll_down"} for i in range(1, S._PATH_SCROLL_MAX + 1)]
-    assert S.scroll_to_named_target(below, goal, scrolled) is None, "滚动没有上限"
+    d = S.scroll_to_named_target(below, goal, scrolled)
+    assert d is not None and d["operation"] in {"SCROLL_TOP", "SCROLL_UP"}, \
+        f"滚满预算后没有把页面还回去：{d}"
+    assert d["choice"] in {"scroll_top", "scroll_up"} and d["target"] is None, d
+    assert V(d, below).valid, V(d, below).reason
+    undone = scrolled + [{"step": 5, "kind": "scroll", "action": "Scroll to top",
+                          "choice": d["choice"]}]
+    assert S.scroll_to_named_target(below, goal, undone) is None, "还过一次还不停"
+    handed_off = scrolled + [{"step": 5, "kind": "click", "action": "The Cargo Book",
+                              "choice": "e1", "skill": "explicit_target"}]
+    assert S.scroll_to_named_target(below, goal, handed_off) is None, "已经交过棒还去滚"
 
     # 底部没有 scroll_down 可发（页面已在底）→ 不是本技能的事
     at_bottom = dict(below, actions=[a for a in below["actions"]

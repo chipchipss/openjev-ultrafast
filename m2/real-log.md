@@ -2454,3 +2454,259 @@ r113 peps 同形（`scroll 3` 起目标索引 + `explicit_target`）。r105/r122
 | 8 | 批前站点核对 | 跑 b16 **之前**用 `curl -x http://127.0.0.1:2080 https://www.gnu.org/` 核对：若仍 `000`，本批用**去掉 r118 的 21 题文件**跑，并在裁决里写明"r118 因出口链路取不到站点而作废"——这样 `error=0` 这条判据仍然可验，不靠事后解释 |
 | 9 | 代价观察 | r105/r122 那类"目标不在这一页"的题会多花 1 拍（回顶）；它们本来在 FAIL 侧，记为代价不算回归 |
 | 10 | 零云端 | 批内所有步事件 `text_helper` ⊆ {null, `startlux-decision-2b`}，不看 `api_calls` |
+
+---
+
+## #47 判据 3 的实测：回顶动作**发了**，但地板在看一张**还在滚的页面**（2026-10-09 17:2x）
+
+改后单任务（`reports/one-r114-1009-172047.json`，`logs/one-r114-1009-172047/r114.jsonl`）：
+
+```
+step1..4  SCROLL_DOWN  skill=scroll_to_named_target  page_changed = True / False / True / True
+step5     SCROLL_TOP   skill=scroll_to_named_target  page_changed = True
+step6     decision skill=None model=startlux-decision-2b BLOCKED conf=0.71
+task_result FAIL correct_abandon  steps=5  final_url=https://www.djangoproject.com/
+```
+
+判据 3（"PASS，轮廓 `scroll ×(2~4) → 回顶 → search_type → search_submit → 到达`"）**未满足**：
+回顶这一拍真的执行了，`search_type` 却没有接手。按纪律④先读页，不猜。
+
+### 复现产品动作序列的零模型回放（`m2/probe_undo_restores.py`，17:2x）
+
+用真 `Browser.act` 逐拍重放（4 次 `scroll_down` + 技能自己发的 `scroll_top`），每拍打印
+`scroll.y` / 索引到的 `fill` / `_goal_query` / `search_type` / `route`：
+
+| 拍 | 观测到的 y | 索引 `fill` | route 开火 |
+|---|---|---|---|
+| 1 | 0 | `['Search']` | scroll_to_named_target → SCROLL_DOWN |
+| 2–4 | 560 / 1120 / 1680 | NONE | SCROLL_DOWN ×3 |
+| 5 | 2240 | NONE | **SCROLL_TOP**（#47 这一刀开火了） |
+| 6 | 0 | `['Search']` | **search_type → TYPE_TEXT e3** |
+| 7 | 0 | `['Search']` | search_submit → CLICK e5 |
+| 8 | 结果页 | — | goal_reached → DONE |
+
+关键读数在两处：
+1. 每一拍滚动之后都额外补了一句 `TIMING: y right after the wheel = 560, after 1.2s quiet = 1120`
+   —— **wheel 事件的效果在 0.35s 后还没落到页面上**，产品读到的是"上一拍的位置"。
+2. 回放里回顶之后 `search_type`、`search_submit`、`DONE` 是**连续开火**的（第 6/7/8 拍），
+   也就是 #47 想要的轮廓本来就存在；真实运行看不到它，是因为它在 y=2240 的**过渡帧**上做了
+   第 6 拍决策（那条决策的指纹 `9892060c…` 与回放里"y=2240 那一页"的指纹逐字相同 —— 不是推测）。
+
+### 这把病归给了谁
+
+不是 #44、不是 #47、不是 `explicit_target` 的形态学缺口，而是**观测层**：
+`SETTLE_CAPS_MS = {"click":1500,"select":800,"fill":800}`（`browser.py:318`）里**没有 `scroll`**，
+所以动作后的复观察（`agent.py:747`）在读一张还在做滚动动画的页面。后果有三层，都能在上面
+两张表里对上号：
+- 每拍的 `page_changed` / 索引集都是"上一次滚动的落点"，campaign 的进度被系统性看晚一拍
+  （b15 里 r114 第 2 拍 `page_changed=false` —— 那次不是"滚不动"，是**还没滚到**）；
+- 目标行进入索引的那一拍，视口其实已经越过它了；
+- 回顶之后读到的是回顶**之前**的页面 → 地板整体弃权 → 模型 BLOCKED。
+
+`_STUCK={}` 全程为空，`_goal_query` 恒能派生出 'Writing your first Django app, part 1'，
+所以判据 3 的障碍**不是**技能守卫（上面第 (c) 种假设排除掉了）。
+
+### 下一刀（#47b）赛前要定的唯一数字：回顶之后要等多久
+
+`scroll` 要不要进 settle 表、上限取多少，不能凭感觉填。先量（`m2/probe_scroll_timing.py`，
+零模型，产品同款 `Input.dispatchMouseEvent(mouseWheel, deltaY)` + 页内 25ms 采样）：
+在 django / rust-stable / peps / rfc-editor 四个站上，各测 `+560` 两拍与 `-scrollY` 回顶的
+"偏移停止"时刻。**赛前定死判据**：settle 上限 = 实测最晚停止时刻向上取整到 50ms，且必须
+证明"0.35s 立刻读"与"settle 之后读"落点不同；拿不到稳定数字就不写死数值，改成"偏移连续
+100ms 不变即放行、否则最多等 X"的两段式（X 用实测值）。
+
+### 停止时刻量出来了：合成 wheel 事件在 ~1.0s 之后**一次性**落地（`m2/probe_scroll_timing.py`，零模型，17:3x）
+
+第一版探针把采样器放在页内 `setInterval`，读回"1.0~2.9s 一次性跳变"——那个数字不能信：
+后台页签的定时器会被节流到 ~1s 粒度，**仪器本身就是延迟**。改成用产品观测的同一条路
+（Python 侧 `Runtime.evaluate` 轮询 `window.scrollY`，50ms 名义间隔、实测约 120ms 一次往返），
+并加了三组对照（A 只发 wheel / B 先 `mouseMoved` 再 wheel / C 脚本 `scrollBy`）：
+
+| 站点 | `scroll-behavior` | 可见性 | A 第 1 拍落地 | A 第 2 拍落地 | B 回顶（-y）落地 |
+|---|---|---|---|---|---|
+| django（r114） | auto | visible | 53ms | 1027ms | 984ms |
+| rust /stable（r116） | auto | visible | 未动（页自己先跳到 560） | 1046ms | 1024ms |
+| peps（r113） | auto | visible | 1007ms | 1040ms | 998ms |
+| rfc-editor（r122） | auto | visible | 1012ms | 1053ms | 1010ms |
+
+三条读数决定这一刀的写法：
+1. **不是平滑动画**：偏移在落地前一直是旧值，落地时一步到位（四个站都是），
+   `scroll-behavior: auto` 也证实了页面没开 `smooth`。所以不能拿"偏移连续不变"当归静判据
+   —— 未开始和已结束长得一样。判据必须写成**"到 target 为止"**（target = clamp(y0+delta, 0, max)）。
+2. **不是 hover 缺位**：先发 `mouseMoved` 再发 wheel，落地时刻没变（984/1024/998/1010ms 与
+   A 同带）。所以不必改事件派发形状，只需要等。
+3. **脚本滚动是即时的**：`window.scrollTo(0,0)` 之后紧接着读就是 0。也就是说 1s 是
+   Chrome 对**合成 wheel 输入**的处理时延，不是页面属性。改走 `scrollBy` 当然更快，但它只能滚
+   窗口、滚不到游标下的内层容器（现有 wheel 语义能），四个观测站都是窗口滚动条，
+   而"内层容器"这种形状我们**没见过失败实例**——按"名词只收见过的"，本刀不动执行机制，只加等待。
+
+**取的数**：落地最晚 1053ms + 采样误差 ≈120ms ⇒ 1173ms；上限取 **1500ms**（留 327ms 余量）。
+这个上限只在"窗口根本不会动"的页面上付满；正常落地时 promise 一等到 target 就返回（~1.05s）。
+
+### #47b（scroll settle）赛前判据 —— 写在实现之前（2026-10-09 17:3x）
+
+| # | 判据 | 赛前预期 |
+|---|---|---|
+| 1 | 失败测试先行 | 新建 `tests/test_scroll_settle.py`：用 `tests/test_settle.py` 的同款 `Recorder` 替掉 `Browser.call`，断言 `act()` 对 `kind=="scroll"` 会发一次带"到 target 为止"判据的 `Runtime.evaluate`，且上限数字就是 1500；对 click 不额外发这一发。**改前必须实测 FAIL**（现在 scroll 一发都不发） |
+| 2 | 不动执行机制 | `browser_operation` 的 wheel 派发、`snapshot.js` 的合成控件、`SETTLE_CAPS_MS` 表都**不改**（DOM 静默判据对滚动是错的仪器，两个既有锁继续为真） |
+| 3 | 回放 | `m2/probe_undo_restores.py` 在同一构建上重跑：第 6 拍必须是 `search_type`（不再需要额外 1.2s 静置才看得到 `fills=['Search']`），且各拍的 `y` 与动作请求的 delta 一致（不再"看晚一拍"） |
+| 4 | r114 单任务 | 判据 3 原样重发：**PASS**，轮廓 `scroll ×(2~4) → 回顶 → search_type → search_submit → 到达`，steps ≤ 8 |
+| 5 | r116 / r113 单任务 | 都仍 PASS（这两题的 campaign 靠滚动把目标滚进视口，等待改变的是"看得见"的时刻） |
+| 6 | 代价 | 每次滚动动作最多 +1.5s：批内要盯 `elapsed_ms`，单题不得因等待撞时限；冻结三轮仍 19/19×3 |
+| 7 | x001/x002 | 各 1/1，`error=0`（纪律③：改的是执行层公共路径） |
+| 8 | 零云端 | 所有步事件 `text_helper` ⊆ {null, `startlux-decision-2b`} |
+
+### #47b 落地读数（2026-10-09 17:3x，实现 = `browser.py::await_scroll_settle`）
+
+**失败测试先行**（纪律①）：`tests/test_scroll_settle.py` 在**改前**实测 `3/7 passed`
+——① FAIL「改前实测：scroll 动作后一发 CDP 都不发」、④ FAIL「一次滚动该只等一发，实发 0」、
+②③ ERROR IndexError（没有那一发可言）、⑦ ERROR（没有上限常量）；⑤⑥ 是"不许扩表/不许抛错"
+的既有锁，改前就为真。**改后 7/7**。确定性套件从 11 文件 136 例涨到 **12 文件 143 例，全绿**
+（`test_settle.py` 的 6 例与 `test_scroll_loop.py` 的 7 例都没被这次改动打破）。
+
+**回放判据（#47b 判据 3）满足**：`m2/probe_undo_restores.py` 在同一构建重跑，第 5 拍
+`y=2240 → SCROLL_TOP`，第 6 拍直接 `y=0`、`fills=['Search']`、`route=search_type`，
+第 7 拍 `search_submit`，第 8 拍 `goal_reached/DONE`——**再也没有一条 `TIMING:` 输出**，
+也就是"动作后立刻读"与"1.2s 静置后读"现在一致（改前两拍就差 560px）。
+
+**单任务（判据 4、5）**：
+
+| 题 | 构建 | 结果 | 轮廓 | steps | 报表 |
+|---|---|---|---|---|---|
+| r114 | Fix U | **PASS** true_success | `SCROLL_DOWN ×4 → SCROLL_TOP → TYPE_TEXT e3(Search) → CLICK e5(提交) → DONE`，每拍 `page_changed=True` | 7 | `reports/one-r114-1009-173855.json` |
+| r116 | Fix U | **PASS** true_success | 落到 `/stable/cargo/index.html` | 3（改前 4） | `reports/one-r116-1009-173935.json` |
+| r113 | Fix U | **PASS** true_success | 落到 `pep-0008` | 3（改前 4） | `reports/one-r113-1009-173952.json` |
+| x001 | Fix U | 1/1 | — | 0 | `reports/one-x001-1009-174020.json` |
+| x002 | Fix U | 1/1 | — | 5 | `reports/one-x002-1009-174031.json` |
+
+r114 这条 trace 全程 `skill` 非空（地板自己走完全程），步事件 `text_helper` 集合 = `{null}`
+——零云端按步事件验，不看 `api_calls`。**#47 的判据 3 至此才算真的满足**：改前的失败不是
+"回顶没发"，而是"回顶发了也没人去看落定之后的页面"。
+
+**判据 5 的额外收益**：r116/r113 各少花一拍。原因很直白——改前每拍的索引集是"上一拍的落点"，
+目标行进入视口后还要再等一拍才被看见。
+
+### 冻结三轮的前置：本机内存（诚实记账，不硬跑）
+
+17:4x 实测（关掉 9 个自有 CDP Chrome 之后）：`total 16.9GB / used 13.9GB / free 3.02GB`。
+自有常驻：`llama-server`（PID 18988，`-c 16384 --parallel 4`，工作集 4019MB）+
+`gguf_server` wire（PID 11992，736MB）+ `browser_harness.daemon`（49MB）≈ 4.8GB。
+runner 的内存门是 **free 3000MB**，我的批次脚本按 3800MB 等（`prep_b15.ps1` 的写法）。
+现在正卡在 2785~3010MB 之间：**这一条不硬闯**——按既有规矩（1571 行：上次腾内存需要用户授权
+关 Termius/msedge），先按文档路径复位自己的栈再看数，不动用户进程。
+
+### 更正一条旧读数的解释（不改数字，只改因果）
+
+b15 那节的机制表里第 2 行写的是「滚 1 拍：y=0，`fills=['Search']`，
+scroll_to_named_target（**wheel 没动页面**，与 b15 第 1 拍 `page_changed=false` 同形）」。
+数字是对的（探针在派发后 0.35s 读到的确实是 y=0），但"wheel 没动页面"这个解释是错的：
+`m2/probe_scroll_timing.py` 量到合成 wheel 的偏移在 **0.05~1.05s 之后一次性落地**，
+所以那一拍读到的是"还没落地"，不是"滚不动"。b15 里 r114 第 2 拍的 `page_changed=false`
+同理——不是页面无效果，是**观测早于落点**。这条更正由 #48（Fix U）负责修，
+它同时说明：`m2/probe_scroll_cost.py` 的结论（滚过之后搜索框离开索引集 → 单向门）不受影响，
+因为那个结论用的是"落地之后"的拍。
+
+
+## #47b 判据 6 的读数：冻结三轮 19/19×3 + 滚动的真实代价（2026-10-09 18:0x~18:3x）
+
+同一构建（`browser.py` 17:37:44 / `skills.py` 17:18:36 / `agent.py` 15:55:35，三轮之间未改动）：
+
+| 轮 | 报告 | 读数 | 起始 free |
+|---|---|---|---|
+| 1 | `reports/m1-baseline-fixur1-1009-174954.json` | **19/19**，`error=0`，quadrants `{'true_success': 19}` | 3.0GB（链路自带 3800MB 门） |
+| 2 | `reports/m1-baseline-fixur2-1009-180815.json` | **19/19**，`error=0`，同上 | 5669MB（轮前复位自己的栈） |
+| 3 | `reports/m1-baseline-fixur3-1009-182102.json` | **19/19**，`error=0`，同上 | 5499MB（同上） |
+
+**协议更正（记下来，因为它改了轮间条件）**：第 1 轮跑完后 free 掉到 2690~2784MB，第 2 轮在
+RAM 门前等了 7 分钟没过去——`llama-server` 工作集随预热涨回 ~4GB。所以第 2、3 轮之前按
+既有文档路径复位**我自己的**常驻栈（`stop llama-server + *gguf_server* + browser_harness
+daemon` → `scripts/startlux_serve.ps1 -SkipEnsure` → 等 :8081/:8090 `/health`），
+free 7514MB→5669MB。用户进程一个没动，代理 :2080 也没碰。三轮的起始条件因此是同一型。
+
+**零云端（判据 8，按步事件）**：三轮 19 个 `*.jsonl` 里全部步事件的 `text_helper` 集合 =
+`{null}`（64 / 68 / 67 个步事件），没有一次云端模型名。
+
+**代价（判据 6 的实测，不是估计）**：用步事件相邻 `elapsed_ms` 差算"滚动之后那一拍的间隔"，
+与 Fix S2 的三轮同口径对比：
+
+| 构建 | 三轮「滚动后一拍」均值 | 三轮全批步数 | 三轮单题耗时合计 |
+|---|---|---|---|
+| Fix S2 | 1197 / 1311 / 1114 ms | 62 / 68 / 74 | 72.3 / 82.7 / 89.2 s |
+| Fix U | 1654 / 1665 / 1715 ms | 64 / 68 / 67 | 88.7 / 99.1 / 96.6 s |
+
+即：**每次滚动动作平均多付 ~400ms**（上限 1500ms 只在页面根本不会滚时才付满），
+滚动次数没变（14~18 → 17），全批耗时 +约 10s / 19 题，单题没有因为等待撞时限，
+三轮仍 19/19、`error=0`。这条就是 #47b 赛前写的"最多 +1.5s"的真实落点。
+
+
+## 我自己的仪器错误：一次过宽的命令行 kill 过滤器打断并作废了 b16 的第一次发车（2026-10-09 18:37）
+
+冻结三轮之后要腾内存跑 b16（free 2343MB < 3800MB 门）。我用一条 **inline `-Command`**
+复位自己的栈，过滤器写成 `CommandLine -match 'gguf_server|browser_harness'` 且**没有限定进程名**。
+结果它匹配到了**带着这段过滤器字符串自己的 shell**：
+
+```
+killing 4860 llama-server.exe      <- 该杀
+killing 10680 python.exe           <- gguf_server，该杀
+killing 19484 python.exe           <- browser_harness daemon，该杀
+killing 23988 python.exe           <- 该杀
+killing 22760 bash.exe             <- 不该杀：命令行里含 'gguf_server' 这个字串
+killing 19600 bash.exe             <- 同上
+killing 19876 bash.exe             <- 同上
+killing 5488 powershell.exe        <- 就是执行这条命令的 powershell 自己
+```
+
+**后果（如实记）**：`startlux_serve.ps1` 因此在启动途中被一起杀掉，:8081/:8090 双双无响应；
+b16 在**第一个任务之前**就被 `scripts/text_helper.ps1:44` 的可达性断言拦停（exit 1），
+`logs/` 里没有 b16 目录、`reports/` 里没有 b16 报告——**没有任何一题在坏底座上跑出读数**，
+所以这不是一次被污染的批，是一次没跑的批。18:39 重启栈（:8081/:8090 `/health` 都回 ok，
+free 5410MB），18:41:58 重新发车。
+
+**规则（也写进 memory）**：命令行子串过滤器**必须**同时限定进程名，且这类"要杀东西的"命令
+走 `-File` 脚本而不是 inline `-Command`——字符串出现在谁的命令行里，就会杀掉谁。
+我不能确认被杀的 3 个 bash 是否都只是我自己这一侧的 shell；这一点不粉饰，
+后续任何"用户进程被动过"的现象都应以这条为第一嫌疑。
+
+
+## b16 真实批裁决：Fix T + Fix U **留下**，ceiling 达到（2026-10-09 18:4x~18:53）
+
+批：`reports/real-1009-b16-fixu-1009-184158.json`（21 题；r118 按赛前判据 8 剔除，因为
+`curl -x http://127.0.0.1:2080 https://www.gnu.org/` 实测 **000**，45.0s 无响应）。
+构建 = 冻结那一份（`browser.py` 17:37:44 / `skills.py` 17:18:36 / `agent.py` 15:55:35）。
+
+| # | 赛前判据（#47/#47b 原样） | 实测 | 结论 |
+|---|---|---|---|
+| 1 | 失败测试先行 | `tests/test_scroll_settle.py` 改前 **3/7**、改后 **7/7** | 过 |
+| 2 | 不动执行机制（wheel 派发 / `snapshot.js` / `SETTLE_CAPS_MS`） | 三者未改；既有 `tests/test_settle.py` 仍锁住"scroll 不在表内" | 过 |
+| 3 | 回放第 6 拍 = `search_type` | `probe_undo_restores` 第 6 拍 `search_type`；批内实况第 6 拍 `fill Search` | 过 |
+| 4 | r114 单任务 PASS，轮廓 `scroll ×(2~4) → 回顶 → search_type → search_submit → 到达`，steps ≤ 8 | 单任务 PASS steps 7；**批内** PASS steps 7，轮廓逐拍为 1~4 `SCROLL_DOWN`、5 `SCROLL_TOP`、6 `fill Search`、7 `提交`，落到 `django…/intro/tutorial01/` | 过 |
+| 5 | r116 / r113 仍 PASS | 批内 r116 PASS 3 拍、r113 PASS 3 拍（都比 b15 少一拍） | 过 |
+| 6 | 代价：每滚动最多 +1.5s，单题不得因等待撞时限；冻结 19/19×3 | 三轮 19/19×3；批内全批耗时 176.8s → **196.0s（+19.2s / 21 题）**，最大单题增量 r102 +13.8s、r114 +7.5s，全部远低于 300s 时限 | 过 |
+| 7 | b16 **floor 14 / ceiling 15** = 找回 r114 且 r116 不掉；**LOST=∅**、`false_positive=0` | **PASS 15/21**（同口径 b15 = 14/21），GAIN=`r114`，**LOST=∅**，quadrants `{true_success:15, correct_abandon:6}` ⇒ `false_positive=0`，`error=0` | **ceiling 达到** |
+| 8 | 批前站点核对 | gnu.org 000 → 用 21 题文件；rfc-editor=200、djangoproject=200 | 按判据执行 |
+| 9 | 零云端（按步事件） | 全批步事件 `text_helper` 集合 = `{null, startlux-decision-2b}` | 过 |
+
+**r118 的账**：b15 里它是 `ERROR`（出口代理到 gnu.org 无响应），不是模型读数；b16 直接从题集剔除。
+两批可比的是 21 题：**b15 14/21 → b16 15/21**。
+
+### 剩下的 6 题（按类记账，名词只收见过的）
+
+| 题 | 失败形态（b16 实况轮廓） | 类 |
+|---|---|---|
+| r101 | pypi 搜索已提交，然后 3 拍 `WAIT` → 撞 bot 墙收口 | A（墙） |
+| r102 | arXiv：`click Search`→`fill`→`click Search`×2 → 误入 `/login` → `Advanced search`，7 拍仍在搜索页 | O（结果行不在首屏/标题非链接） |
+| r103 | stackoverflow：**连两拍 `fill Search`，没有提交**，2 拍收口 | E（提交链） |
+| r104 | pubmed：`fill`→`click Search`→`click Advanced`，进了高级搜索而不是结果页 | O |
+| r105 | github 首页第 1 拍点 `Open Enter your email`（页脚邮箱框）——地板空点击占拍 | P（#25） |
+| r122 | rfc-editor：`scroll_down ×2 → scroll_top → scroll_down`——Fix T 的归还生效后 campaign 又开了一轮，目标行始终不在可点集合里 | O |
+
+L2（真实站 50 题 ≥45）还差的是**题量扩张**（21→50）与上表这 6 题；本轮不夸大：
+15/21 是**可达站点**上的读数，不是 L2 完成度。
+
+### 下一刀（按收益/证据强度排序，写在裁决之后、动手之前）
+
+1. **#25 `first_action_floor` 的空点击占拍**（r105 第 1 拍点页脚邮箱框）：地板把"页面上第一个动作"
+   当成安全动作，但没有"这个动作是否离开当前页"的判据。买 r105 一题。
+2. **E 类 r103 的提交链**：连两拍 `fill` 而无 `submit`，`search_submit` 没接住（Fix D 的形态在
+   stackoverflow 的表单上未覆盖）。买 r103 一题。
+3. **O 类（r102/r104/r122）**：结果行不在首屏或标题不是链接——先量形状再决定，不猜。

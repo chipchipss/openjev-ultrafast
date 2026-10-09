@@ -315,6 +315,8 @@ class Browser:
     # 相反，这里要等页面**归静**：DOM 连续 quiet_ms 无变化、且该动作发起的请求结束、
     # 且无进行中的元素 transition，才返回；否则最多等 cap。已静止的页面只付一个
     # quiet_ms 窗口，不吃上限。
+    # scroll 故意不在这张表里：滚动不改 DOM，DOM 静默判据对它等于没等，要用落点等待
+    # （await_scroll_settle）。把它加进这张表会同时得到"没等"和"以为等了"。
     SETTLE_CAPS_MS = {"click": 1500, "select": 800, "fill": 800}
     SETTLE_QUIET_MS = 120
 
@@ -345,6 +347,53 @@ class Browser:
         cap_ms = self.SETTLE_CAPS_MS.get(kind)
         if cap_ms:
             self._await_settle(cap_ms)
+
+    #: 合成 wheel 的落点等待上限（#47b）。数字是量出来的：`m2/probe_scroll_timing.py`
+    #: 在 django/rust-stable/peps/rfc-editor 上，`Input.dispatchMouseEvent(mouseWheel)`
+    #: 之后用**产品观测的同一条路**（Python 侧 `Runtime.evaluate` 轮询 `window.scrollY`）
+    #: 看偏移，四站 `scroll-behavior` 全是 auto、页签 visible，落地时刻 53~1053ms，
+    #: 且都是**一次性跳变**（落地前一直是旧值）；先发 `mouseMoved` 不改变这个时刻。
+    #: 最晚 1053ms + 轮询自身 ~120ms 往返误差 ⇒ 1200ms 是下界，取 1500ms 留 327ms 余量。
+    #: 上限只在"窗口根本不动"的页面（内层容器滚动条）才付满；正常落地一等到就返回。
+    SCROLL_SETTLE_CAP_MS = 1500
+
+    def await_scroll_settle(self, delta: int) -> None:
+        """等这一次滚动的**落点**到位，再让 agent 观测。
+
+        判据不能是"偏移连续不变"：实测落地前偏移一直停在旧值上，「还没开始」和
+        「已经结束」在同一条曲线上长得一样。所以按请求算出 target = clamp(y0+delta)，
+        等到到达 target 才放行；页面自己停在别处（例如快照之后又长了内容）时，
+        以"动过且 150ms 不再变"收口；窗口不可滚（内层容器滚动条）时吃上限。
+        """
+        try:
+            self.call(
+                "Runtime.evaluate",
+                expression=(
+                    "((delta, capMs) => new Promise(resolve => {"
+                    " const maxScroll = () => {"
+                    "   const el = document.scrollingElement || document.documentElement;"
+                    "   return Math.max(0, (el ? el.scrollHeight : 0) - innerHeight); };"
+                    " const y0 = Math.round(scrollY);"
+                    " const target = Math.min(Math.max(0, y0 + delta), maxScroll());"
+                    " const t0 = performance.now(); let last = y0, lastChange = t0, done = false;"
+                    " const finish = () => { if (done) return; done = true; resolve(1); };"
+                    " const check = () => {"
+                    "   const now = performance.now(); const y = Math.round(scrollY);"
+                    "   if (y !== last) { last = y; lastChange = now; }"
+                    "   if (Math.abs(y - target) <= 2) return finish();"
+                    "   if (now - t0 >= capMs) return finish();"
+                    "   if (y !== y0 && now - lastChange >= 150) return finish();"
+                    "   setTimeout(check, 30);"
+                    " };"
+                    " setTimeout(check, 30);"
+                    f" }}))({int(delta)},{int(self.SCROLL_SETTLE_CAP_MS)})"
+                ),
+                awaitPromise=True,
+                returnByValue=True,
+            )
+        except Exception:
+            # 导航会销毁执行上下文 —— 后续 observe 的 StalePage 重试负责接住过渡态。
+            pass
 
     def _await_settle(self, cap_ms: int, floor_ms: int = 0, quiet_ms: int | None = None) -> None:
         quiet = self.SETTLE_QUIET_MS if quiet_ms is None else quiet_ms
@@ -421,6 +470,8 @@ class Browser:
         self.after_input = action if action["kind"] != "wait" else None
         if action["kind"] in self.SETTLE_CAPS_MS:
             self.await_action_settle(action["kind"])
+        elif action["kind"] == "scroll":
+            self.await_scroll_settle(int(action.get("delta") or 0))
         return result
 
     def close(self):
