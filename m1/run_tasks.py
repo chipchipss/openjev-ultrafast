@@ -99,6 +99,18 @@ def _reset_cdp() -> None:
     except Exception as e:
         print(f"    [cdp-reset] warn: {type(e).__name__}: {e}")
 
+#: 自有浏览器"没了/不是我们的"这两种 fail-closed 读数（`browser.py::_assert_owned_browser`
+#: 的两个前缀）。b19 实况：批跑到 r120 那一拍 `:9222` 上已经没有浏览器，守卫按设计拒绝
+#: 回退去开别人的浏览器——**守卫是对的，缺的是它后面没有自愈**，于是整行没跑也没 trace
+#: （批目录只有 49 个 jsonl），代价是一行分母 + 一次 28 分钟重跑。
+#: 口径必须是这两个前缀，不是"任何异常都重试"：后者会把真 bug 洗成一次画像重起。
+_BROWSER_LOSS = ("no-browser:", "foreign-browser:")
+
+
+def _is_browser_loss(exc: BaseException) -> bool:
+    return any(p in str(exc) for p in _BROWSER_LOSS)
+
+
 def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dict:
     """运行单个 task。返回 {task_id, result, error?}。
 
@@ -136,13 +148,31 @@ def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dic
         agent = Agent(url=start_url, goals=spec["goal"], task_spec=spec,
                       screenshots=screenshot, **agent_kwargs)
     except Exception as e:
-        logger.close()
-        return {
-            "task_id": task_id,
-            "result": "ERROR",
-            "error": f"agent_init_failed: {type(e).__name__}: {e}",
-            "traceback": traceback.format_exc(),
-        }
+        # 自有浏览器在批中途消失（b19 的 r120 那一拍）：重起我们自己的画像，重试这一行**一次**。
+        # 只许一次——重起会清空画像，真·站点不可达时反复重起只会把一批烧成慢速死循环。
+        # logger 不在这里关：b19 的"整行没有 trace"就是 close() 掉了一个空日志文件，
+        # 事后无从判断那一拍到底看见了什么。
+        if not _is_browser_loss(e):
+            logger.close()
+            return {
+                "task_id": task_id,
+                "result": "ERROR",
+                "error": f"agent_init_failed: {type(e).__name__}: {e}",
+                "traceback": traceback.format_exc(),
+            }
+        print(f"    [browser-lost] {task_id}: {str(e)[:90]} -- reset owned CDP, retry once")
+        _reset_cdp()
+        try:
+            agent = Agent(url=start_url, goals=spec["goal"], task_spec=spec,
+                          screenshots=screenshot, **agent_kwargs)
+        except Exception as e2:
+            logger.close()
+            return {
+                "task_id": task_id,
+                "result": "ERROR",
+                "error": f"agent_init_failed_after_cdp_reset: {type(e2).__name__}: {e2}",
+                "traceback": traceback.format_exc(),
+            }
 
     try:
         for _ in agent.run():
