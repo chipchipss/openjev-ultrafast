@@ -39,8 +39,10 @@
 | **泛化任务** | **90/90 = 100%**（30 任务 × 3 轮，全部 true_success） | `reports/m2-gen10.json`、`m2-gen13.json` |
 | **Google Flights 端到端** | **9.3s，7/7 checks，模型调用 0 次**（纯技能驱动） | `reports/flights-reg-v210.json` |
 | M1 benchmark（20 任务） | **15/20**（基线 12/20，历史峰值 16/20） | `reports/m1-final3.json` |
-| 安全硬线（假阳性 / 崩溃） | **fp = 0**（M1 验收通过，`acceptance.passed = true`） | 同上 |
-| 回归测试 | skills 33/33 · rotation 8/8 · decider smoke 21/21 | `tests/` |
+| 冻结集 19 任务（生产配置） | **19/19 × 3 轮**，fp=0 | `reports/m1-baseline-1010-1544/1549/1555.json` |
+| **真实站点 50 任务（L2 口径）** | **44/50 = 88%**（旧 21 题 15/21、扩题新 29 行 29/29），批墙钟 27.7–28.4 min | `reports/real-1009-b18-expand-1009-215419.json`、`real-1010-b19-fix52-1010-160144.json` |
+| 安全硬线（假阳性 / 崩溃） | **fp = 0**（M1 验收通过，`acceptance.passed = true`）；真实批每批 quadrants 里 `unknown` 恒 0 | 同上 |
+| 回归测试 | 14 个离线套件 **163/163**（skills 66 · phrases_ident 12 · wait_bound 10 · cdp_ownership 9 · runner_safety 9 · runner_zero_cloud 8 · rotation 8 · scroll_loop 7 · scroll_settle 7 · page_changed_unknown 6 · settle 6 · fix_o 5 · runner_browser_recovery 4 · agent_init_backoff 3） | `tests/` |
 
 ### 1.3 与上游的正面速度对比
 
@@ -119,8 +121,8 @@ m1/ m2/ m4a/                    基准、数据飞轮、LoRA 实验
 | 阶段 | 目标 | 验收标准 |
 |---|---|---|
 | **L1 决策层自主** | 决策后端完全脱离 TypeSafe 协议依赖，可换任意开源模型 | ✅ 事实上已完成；待固化文档 |
-| **L2 真实站点鲁棒性** | 从自建测试站走向真实网站（登录、表单、搜索、翻页） | 真实站点 50 任务 ≥ 45 pass |
-| **L3 回归体系** | 100-300 任务的自动化回归，每次改动可验证 | CI 化，回归 ≤ 30 分钟 |
+| **L2 真实站点鲁棒性** | 从自建测试站走向真实网站（登录、表单、搜索、翻页） | 真实站点 50 任务 ≥ 45 pass —— **进行中 2026-10-10：44/50**（题集 22→50 已交付，25 个不同 host；缺口 1 题，唯一点名的买主是 r104 PubMed 的 `first_result` 选行，其代码侧证据已进仓 `aac6e2d`，实盘见证被站方浏览器侧墙挡住：curl 200/253KB 而自有 Chrome 拿 13 字节 `403 Forbidden` / reCAPTCHA 页） |
+| **L3 回归体系** | 100-300 任务的自动化回归，每次改动可验证 | CI 化，回归 ≤ 30 分钟 —— **未启动，且现底座已被自己的读数判死**：串行 27.7–28.4 min/50 题 ⇒ 100 题 ≈ 57 min，判据要并行 runner（#35）；每批判据读数已脚本化进仓 `m2/batch_audit.py` |
 | **L4 决策质量** | 决策层从"能用"到"强"（不自己训练，用最好的现成模型） | M1 20 任务 ≥ 18/20 —— **✅ 2026-10-07：19/19×3 轮冻结（1007-1552/1557/1601），fp=0** |
 | **L5 成本归零** | 全链路零付费 API | 文本 helper 也本地化 |
 | **L6 可交付** | 一条命令跑起来的完整产品 | `.\run_demo.ps1` 全绿 —— **✅ 2026-10-07：冷栈一条命令全绿（`demo-flights-1007-1620`），缺权重/llama.cpp 二进制首启自动下载，复用在线 wire，只清自家进程** |
