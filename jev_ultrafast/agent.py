@@ -105,8 +105,17 @@ def _done_guard(decision: dict, state: dict) -> str | None:
         from . import skills as _skills
         if (not _form_goal and not _search_then_open and _skills._phrases(state["goal"])
                 and re.search(r"\b(open|navigate|go to|visit|reach)\b", state["goal"], re.I)):
-            if _skills.goal_reached(state["page"], state["goal"],
-                                    state["history"]) is None:
+            arrived = (_skills.goal_reached(state["page"], state["goal"], state["history"])
+                       is not None or
+                       # #59：`goal_reached` 读的是**页面正文**，而这类 goal 的引号短语是
+                       # 起点页那条链的标签（r126 落地页 lang.html 里 'SQL Syntax' 出现 0 次），
+                       # 所以它对六行恒说"没到"。第二张判据 `link_followed_arrival` 读的是
+                       # **导航事实**：goal 点名的链刚被踩过、那一拍确实换了页、现在还在落地页上、
+                       # 同主机。加的是"多一张判据说了算"，不是"放行 DONE"——模型自己发的 DONE
+                       # 两张判据都不认时照旧拒（tests/test_done_guard_arrival.py 第 2 案钉住）。
+                       _skills.link_followed_arrival(state["page"], state["goal"],
+                                                     state["history"]) is not None)
+            if not arrived:
                 return "nav goal target not reached (goal_reached says no)"
     except Exception:
         pass
@@ -749,6 +758,10 @@ class Agent:
                     "skill": decision.get("skill"),
                     "page_changed": None,
                     "url": page["url"],
+                    # :608 在观测之后把 `url` 改写成**落地页**（"这一拍把我们带到了哪"）。
+                    # 落地即停的判据还需要**出发页**——同一主机守卫只能拿它比，所以在这里
+                    # 另存一份，不去动 :608 那条被 DoneGuard 依赖的语义。
+                    "url_from": page["url"],
                     # M1.5 机制③：执行前页指纹——SPA toggle 判据（点击后
                     # fingerprint 落回已访问集合 = 环边，无论 pc 真假）
                     "page_fp_before": page["fingerprint"],

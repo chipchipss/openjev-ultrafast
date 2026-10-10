@@ -1,0 +1,1714 @@
+{
+ "actions": [
+  {
+   "href": "/en-US/",
+   "id": "e1",
+   "kind": "click",
+   "label": "MDN",
+   "node": 1,
+   "rect": {
+    "h": 40,
+    "w": 99,
+    "x": 10,
+    "y": 104
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "expanded": "false",
+   "id": "e2",
+   "kind": "click",
+   "label": "HTML",
+   "node": 2,
+   "rect": {
+    "h": 37,
+    "w": 87.84375,
+    "x": 125,
+    "y": 105.5
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "expanded": "false",
+   "id": "e3",
+   "kind": "click",
+   "label": "CSS",
+   "node": 3,
+   "rect": {
+    "h": 37,
+    "w": 74.484375,
+    "x": 212.84375,
+    "y": 105.5
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "expanded": "false",
+   "id": "e4",
+   "kind": "click",
+   "label": "JavaScript JS",
+   "node": 4,
+   "rect": {
+    "h": 37,
+    "w": 121.890625,
+    "x": 287.328125,
+    "y": 105.5
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "expanded": "false",
+   "id": "e5",
+   "kind": "click",
+   "label": "Web APIs",
+   "node": 5,
+   "rect": {
+    "h": 37,
+    "w": 117.046875,
+    "x": 409.21875,
+    "y": 105.5
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "expanded": "false",
+   "id": "e6",
+   "kind": "click",
+   "label": "All",
+   "node": 6,
+   "rect": {
+    "h": 37,
+    "w": 62.015625,
+    "x": 526.265625,
+    "y": 105.5
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "expanded": "false",
+   "id": "e7",
+   "kind": "click",
+   "label": "Learn",
+   "node": 7,
+   "rect": {
+    "h": 37,
+    "w": 107.203125,
+    "x": 588.28125,
+    "y": 105.5
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "expanded": "false",
+   "id": "e8",
+   "kind": "click",
+   "label": "Tools",
+   "node": 8,
+   "rect": {
+    "h": 37,
+    "w": 105.015625,
+    "x": 695.484375,
+    "y": 105.5
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "expanded": "false",
+   "id": "e9",
+   "kind": "click",
+   "label": "About",
+   "node": 9,
+   "rect": {
+    "h": 37,
+    "w": 87.15625,
+    "x": 800.5,
+    "y": 105.5
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/en-US/blog/",
+   "id": "e10",
+   "kind": "click",
+   "label": "Blog",
+   "node": 10,
+   "rect": {
+    "h": 36,
+    "w": 56.15625,
+    "x": 887.65625,
+    "y": 106
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development",
+   "id": "e11",
+   "kind": "click",
+   "label": "Learn",
+   "node": 11,
+   "rect": {
+    "h": 24,
+    "w": 42.828125,
+    "x": 18,
+    "y": 161
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Core",
+   "id": "e12",
+   "kind": "click",
+   "label": "Core learning modules",
+   "node": 12,
+   "rect": {
+    "h": 24,
+    "w": 170.078125,
+    "x": 88.828125,
+    "y": 161
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e13",
+   "kind": "click",
+   "label": "Prerequisites",
+   "node": 13,
+   "rect": {
+    "h": 32,
+    "w": 113.734375,
+    "x": 867,
+    "y": 261
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e14",
+   "kind": "click",
+   "label": "Modules",
+   "node": 14,
+   "rect": {
+    "h": 32,
+    "w": 80.671875,
+    "x": 867,
+    "y": 293
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e15",
+   "kind": "click",
+   "label": "Prerequisites",
+   "node": 15,
+   "rect": {
+    "h": 39,
+    "w": 179.84375,
+    "x": 288,
+    "y": 443
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Getting_started",
+   "id": "e16",
+   "kind": "click",
+   "label": "Getting started modules",
+   "node": 16,
+   "rect": {
+    "h": 48,
+    "w": 501.203125,
+    "x": 288,
+    "y": 643
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Getting_started/Your_first_website",
+   "id": "e17",
+   "kind": "click",
+   "label": "Your first website",
+   "node": 17,
+   "rect": {
+    "h": 20,
+    "w": 130.46875,
+    "x": 410.4375,
+    "y": 743
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development",
+   "id": "e18",
+   "kind": "click",
+   "label": "Learn web development",
+   "node": 18,
+   "rect": {
+    "h": 32,
+    "w": 184.8125,
+    "x": 16,
+    "y": 77.59375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "/en-US/curriculum/",
+   "id": "e19",
+   "kind": "click",
+   "label": "MDN curriculum",
+   "node": 19,
+   "rect": {
+    "h": 32,
+    "w": 125.953125,
+    "x": 16,
+    "y": 125.59375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Getting_started",
+   "id": "e20",
+   "kind": "click",
+   "label": "Getting started modules",
+   "node": 20,
+   "rect": {
+    "h": 32,
+    "w": 185.390625,
+    "x": 16,
+    "y": 173.59375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e21",
+   "kind": "click",
+   "label": "Environment setup",
+   "node": 21,
+   "rect": {
+    "h": 32,
+    "w": 209,
+    "x": 16,
+    "y": 213.59375
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Getting_started/Environment_setup",
+   "id": "e22",
+   "kind": "click",
+   "label": "Environment setup",
+   "node": 22,
+   "rect": {
+    "h": 32,
+    "w": 140.09375,
+    "x": 32,
+    "y": 213.59375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e23",
+   "kind": "click",
+   "label": "Your first website",
+   "node": 23,
+   "rect": {
+    "h": 32,
+    "w": 209,
+    "x": 16,
+    "y": 253.59375
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Getting_started/Your_first_website",
+   "id": "e24",
+   "kind": "click",
+   "label": "Your first website",
+   "node": 24,
+   "rect": {
+    "h": 32,
+    "w": 130.46875,
+    "x": 32,
+    "y": 253.59375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e25",
+   "kind": "click",
+   "label": "Web standards",
+   "node": 25,
+   "rect": {
+    "h": 32,
+    "w": 209,
+    "x": 16,
+    "y": 293.59375
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Getting_started/Web_standards",
+   "id": "e26",
+   "kind": "click",
+   "label": "Web standards",
+   "node": 26,
+   "rect": {
+    "h": 32,
+    "w": 112.609375,
+    "x": 32,
+    "y": 293.59375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e27",
+   "kind": "click",
+   "label": "Soft skills",
+   "node": 27,
+   "rect": {
+    "h": 32,
+    "w": 209,
+    "x": 16,
+    "y": 333.59375
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Getting_started/Soft_skills",
+   "id": "e28",
+   "kind": "click",
+   "label": "Soft skills",
+   "node": 28,
+   "rect": {
+    "h": 32,
+    "w": 72.515625,
+    "x": 32,
+    "y": 333.59375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Core",
+   "id": "e29",
+   "kind": "click",
+   "label": "Core modules",
+   "node": 29,
+   "rect": {
+    "h": 32,
+    "w": 106.984375,
+    "x": 16,
+    "y": 381.59375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e30",
+   "kind": "click",
+   "label": "Structuring content with HTML",
+   "node": 30,
+   "rect": {
+    "h": 56,
+    "w": 209,
+    "x": 16,
+    "y": 421.59375
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Core/Structuring_content",
+   "id": "e31",
+   "kind": "click",
+   "label": "Structuring content with HTML",
+   "node": 31,
+   "rect": {
+    "h": 56,
+    "w": 193,
+    "x": 32,
+    "y": 421.59375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e32",
+   "kind": "click",
+   "label": "CSS styling basics",
+   "node": 32,
+   "rect": {
+    "h": 32,
+    "w": 209,
+    "x": 16,
+    "y": 485.59375
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Core/Styling_basics",
+   "id": "e33",
+   "kind": "click",
+   "label": "CSS styling basics",
+   "node": 33,
+   "rect": {
+    "h": 32,
+    "w": 139.46875,
+    "x": 32,
+    "y": 485.59375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e34",
+   "kind": "click",
+   "label": "CSS text styling",
+   "node": 34,
+   "rect": {
+    "h": 32,
+    "w": 209,
+    "x": 16,
+    "y": 525.59375
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Core/Text_styling",
+   "id": "e35",
+   "kind": "click",
+   "label": "CSS text styling",
+   "node": 35,
+   "rect": {
+    "h": 32,
+    "w": 119.21875,
+    "x": 32,
+    "y": 525.59375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e36",
+   "kind": "click",
+   "label": "CSS layout",
+   "node": 36,
+   "rect": {
+    "h": 32,
+    "w": 209,
+    "x": 16,
+    "y": 565.59375
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Core/CSS_layout",
+   "id": "e37",
+   "kind": "click",
+   "label": "CSS layout",
+   "node": 37,
+   "rect": {
+    "h": 32,
+    "w": 82.21875,
+    "x": 32,
+    "y": 565.59375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e38",
+   "kind": "click",
+   "label": "Dynamic scripting with JavaScript",
+   "node": 38,
+   "rect": {
+    "h": 56,
+    "w": 209,
+    "x": 16,
+    "y": 605.59375
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Core/Scripting",
+   "id": "e39",
+   "kind": "click",
+   "label": "Dynamic scripting with JavaScript",
+   "node": 39,
+   "rect": {
+    "h": 56,
+    "w": 193,
+    "x": 32,
+    "y": 605.59375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e40",
+   "kind": "click",
+   "label": "JavaScript frameworks and libraries",
+   "node": 40,
+   "rect": {
+    "h": 56,
+    "w": 209,
+    "x": 16,
+    "y": 669.59375
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Core/Frameworks_libraries",
+   "id": "e41",
+   "kind": "click",
+   "label": "JavaScript frameworks and libraries",
+   "node": 41,
+   "rect": {
+    "h": 56,
+    "w": 193,
+    "x": 32,
+    "y": 669.59375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e42",
+   "kind": "click",
+   "label": "Accessibility",
+   "node": 42,
+   "rect": {
+    "h": 32,
+    "w": 209,
+    "x": 16,
+    "y": 733.59375
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/en-US/docs/Learn_web_development/Core/Accessibility",
+   "id": "e43",
+   "kind": "click",
+   "label": "Accessibility",
+   "node": 43,
+   "rect": {
+    "h": 32,
+    "w": 94.9375,
+    "x": 32,
+    "y": 733.59375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "delta": 560,
+   "id": "scroll_down",
+   "kind": "scroll",
+   "label": "Scroll down"
+  },
+  {
+   "delta": 3490,
+   "id": "scroll_bottom",
+   "kind": "scroll",
+   "label": "Scroll to bottom"
+  },
+  {
+   "id": "reload",
+   "kind": "reload",
+   "label": "Reload the page"
+  },
+  {
+   "id": "wait",
+   "kind": "wait",
+   "label": "Wait for the page to update"
+  }
+ ],
+ "fingerprint": "a89b555fecd1d397cf31338cebdaad0bdfb8c1a41b138cae73a64ae998025f7c",
+ "guards": {
+  "1": [
+   1,
+   "link",
+   "MDN",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/",
+   ""
+  ],
+  "10": [
+   10,
+   "link",
+   "Blog",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/blog/",
+   "Blog"
+  ],
+  "11": [
+   11,
+   "link",
+   "Learn",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development",
+   "Learn"
+  ],
+  "12": [
+   12,
+   "link",
+   "Core learning modules",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Core",
+   "Core learning modules"
+  ],
+  "13": [
+   13,
+   "link",
+   "Prerequisites",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "#prerequisites",
+   "Prerequisites"
+  ],
+  "14": [
+   14,
+   "link",
+   "Modules",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "#modules",
+   "Modules"
+  ],
+  "15": [
+   15,
+   "link",
+   "Prerequisites",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "#prerequisites",
+   "Prerequisites"
+  ],
+  "16": [
+   16,
+   "link",
+   "Getting started modules",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Getting_started",
+   "While there is no prerequisite knowledge for starting this set of modules, we would recommend that you familiarize yourself with your computer, make sure you've got a basic set of required applications installed (such as web browsers and a code editor), and do some background reading on the web and web technologies, if you have not already done so. All these topics are covered in our Getting started modules."
+  ],
+  "17": [
+   17,
+   "link",
+   "Your first website",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Getting_started/Your_first_website",
+   "In particular, if you've never done any coding before, we'd recommend the Your first website module, which introduces you web technologies very gently and takes you through the process of building a simple website."
+  ],
+  "18": [
+   18,
+   "link",
+   "Learn web development",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development",
+   "Learn web development"
+  ],
+  "19": [
+   19,
+   "link",
+   "MDN curriculum",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/curriculum/",
+   "MDN curriculum"
+  ],
+  "2": [
+   2,
+   "button",
+   "HTML",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   "false",
+   null,
+   null,
+   null,
+   "HTML"
+  ],
+  "20": [
+   20,
+   "link",
+   "Getting started modules",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Getting_started",
+   "Getting started modules"
+  ],
+  "21": [
+   21,
+   "button",
+   "Environment setup",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "Environment setup"
+  ],
+  "22": [
+   22,
+   "link",
+   "Environment setup",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Getting_started/Environment_setup",
+   "Environment setup"
+  ],
+  "23": [
+   23,
+   "button",
+   "Your first website",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "Your first website"
+  ],
+  "24": [
+   24,
+   "link",
+   "Your first website",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Getting_started/Your_first_website",
+   "Your first website"
+  ],
+  "25": [
+   25,
+   "button",
+   "Web standards",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "Web standards"
+  ],
+  "26": [
+   26,
+   "link",
+   "Web standards",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Getting_started/Web_standards",
+   "Web standards"
+  ],
+  "27": [
+   27,
+   "button",
+   "Soft skills",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "Soft skills"
+  ],
+  "28": [
+   28,
+   "link",
+   "Soft skills",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Getting_started/Soft_skills",
+   "Soft skills"
+  ],
+  "29": [
+   29,
+   "link",
+   "Core modules",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Core",
+   "Core modules"
+  ],
+  "3": [
+   3,
+   "button",
+   "CSS",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   "false",
+   null,
+   null,
+   null,
+   "CSS"
+  ],
+  "30": [
+   30,
+   "button",
+   "Structuring content with HTML",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "Structuring content with HTML"
+  ],
+  "31": [
+   31,
+   "link",
+   "Structuring content with HTML",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Core/Structuring_content",
+   "Structuring content with HTML"
+  ],
+  "32": [
+   32,
+   "button",
+   "CSS styling basics",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "CSS styling basics"
+  ],
+  "33": [
+   33,
+   "link",
+   "CSS styling basics",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Core/Styling_basics",
+   "CSS styling basics"
+  ],
+  "34": [
+   34,
+   "button",
+   "CSS text styling",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "CSS text styling"
+  ],
+  "35": [
+   35,
+   "link",
+   "CSS text styling",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Core/Text_styling",
+   "CSS text styling"
+  ],
+  "36": [
+   36,
+   "button",
+   "CSS layout",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "CSS layout"
+  ],
+  "37": [
+   37,
+   "link",
+   "CSS layout",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Core/CSS_layout",
+   "CSS layout"
+  ],
+  "38": [
+   38,
+   "button",
+   "Dynamic scripting with JavaScript",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "Dynamic scripting with JavaScript"
+  ],
+  "39": [
+   39,
+   "link",
+   "Dynamic scripting with JavaScript",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Core/Scripting",
+   "Dynamic scripting with JavaScript"
+  ],
+  "4": [
+   4,
+   "button",
+   "JavaScript JS",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   "false",
+   null,
+   null,
+   null,
+   "JavaScript"
+  ],
+  "40": [
+   40,
+   "button",
+   "JavaScript frameworks and libraries",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "JavaScript frameworks and libraries"
+  ],
+  "41": [
+   41,
+   "link",
+   "JavaScript frameworks and libraries",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Core/Frameworks_libraries",
+   "JavaScript frameworks and libraries"
+  ],
+  "42": [
+   42,
+   "button",
+   "Accessibility",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "Accessibility"
+  ],
+  "43": [
+   43,
+   "link",
+   "Accessibility",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/en-US/docs/Learn_web_development/Core/Accessibility",
+   "Accessibility"
+  ],
+  "5": [
+   5,
+   "button",
+   "Web APIs",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   "false",
+   null,
+   null,
+   null,
+   "Web APIs"
+  ],
+  "6": [
+   6,
+   "button",
+   "All",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   "false",
+   null,
+   null,
+   null,
+   "All"
+  ],
+  "7": [
+   7,
+   "button",
+   "Learn",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   "false",
+   null,
+   null,
+   null,
+   "Learn"
+  ],
+  "8": [
+   8,
+   "button",
+   "Tools",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   "false",
+   null,
+   null,
+   null,
+   "Tools"
+  ],
+  "9": [
+   9,
+   "button",
+   "About",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   "false",
+   null,
+   null,
+   null,
+   "About"
+  ]
+ },
+ "h": 780,
+ "marker": [
+  1791661503704.6,
+  "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core",
+  0,
+  0,
+  1120,
+  780,
+  "Core learning modules - Learn web development | MDN",
+  "HTML\nCSS\nJavaScript\nWeb APIs\nAll\nLearn\nTools\nAbout\nBlog\nLearn\nCore learning modules\nCore learning modules\nOur\nCore modules\ncover topics that we feel every web developer should have a good grounding in. This includes all the information they need to design and build a basic, accessible web app that follows modern best practices, and manage and deploy their code using appropriate tools.\nIn this article\nPrerequisites\nModules\nPrerequisites\nWhile there is no prerequisite knowledge for starting this set of modules, we would recommend that you familiarize yourself with your computer, make sure you've got a basic set of required applications installed (such as web browsers and a code editor), and do some background reading on the web and web technologies, if you have not already done so. All these topics are covered in our\nGetting started modules\n.\nIn particular, if you've never done any coding before, we'd recommend the\nYour first website\nmodule, which introduces you web technologies very gently and takes you through the process of building a simple website.\nLearn web development\nMDN curriculum\nGetting started modules\nEnvironment setup\nYour first website\nWeb standards\nSoft skills\nCore modules\nStructuring content with HTML\nCSS styling basics\nCSS text styling\nCSS layout\nDynamic scripting with JavaScript\nJavaScript frameworks and libraries\nAccessibility\nDesign for developers",
+  [
+   {
+    "href": "/en-US/",
+    "kind": "click",
+    "label": "MDN",
+    "node": 1,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "expanded": "false",
+    "kind": "click",
+    "label": "HTML",
+    "node": 2,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "expanded": "false",
+    "kind": "click",
+    "label": "CSS",
+    "node": 3,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "expanded": "false",
+    "kind": "click",
+    "label": "JavaScript JS",
+    "node": 4,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "expanded": "false",
+    "kind": "click",
+    "label": "Web APIs",
+    "node": 5,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "expanded": "false",
+    "kind": "click",
+    "label": "All",
+    "node": 6,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "expanded": "false",
+    "kind": "click",
+    "label": "Learn",
+    "node": 7,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "expanded": "false",
+    "kind": "click",
+    "label": "Tools",
+    "node": 8,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "expanded": "false",
+    "kind": "click",
+    "label": "About",
+    "node": 9,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/en-US/blog/",
+    "kind": "click",
+    "label": "Blog",
+    "node": 10,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development",
+    "kind": "click",
+    "label": "Learn",
+    "node": 11,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Core",
+    "kind": "click",
+    "label": "Core learning modules",
+    "node": 12,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Prerequisites",
+    "node": 13,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Modules",
+    "node": 14,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Prerequisites",
+    "node": 15,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Getting_started",
+    "kind": "click",
+    "label": "Getting started modules",
+    "node": 16,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Getting_started/Your_first_website",
+    "kind": "click",
+    "label": "Your first website",
+    "node": 17,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development",
+    "kind": "click",
+    "label": "Learn web development",
+    "node": 18,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "/en-US/curriculum/",
+    "kind": "click",
+    "label": "MDN curriculum",
+    "node": 19,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Getting_started",
+    "kind": "click",
+    "label": "Getting started modules",
+    "node": 20,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Environment setup",
+    "node": 21,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Getting_started/Environment_setup",
+    "kind": "click",
+    "label": "Environment setup",
+    "node": 22,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Your first website",
+    "node": 23,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Getting_started/Your_first_website",
+    "kind": "click",
+    "label": "Your first website",
+    "node": 24,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Web standards",
+    "node": 25,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Getting_started/Web_standards",
+    "kind": "click",
+    "label": "Web standards",
+    "node": 26,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Soft skills",
+    "node": 27,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Getting_started/Soft_skills",
+    "kind": "click",
+    "label": "Soft skills",
+    "node": 28,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Core",
+    "kind": "click",
+    "label": "Core modules",
+    "node": 29,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Structuring content with HTML",
+    "node": 30,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Core/Structuring_content",
+    "kind": "click",
+    "label": "Structuring content with HTML",
+    "node": 31,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "CSS styling basics",
+    "node": 32,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Core/Styling_basics",
+    "kind": "click",
+    "label": "CSS styling basics",
+    "node": 33,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "CSS text styling",
+    "node": 34,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Core/Text_styling",
+    "kind": "click",
+    "label": "CSS text styling",
+    "node": 35,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "CSS layout",
+    "node": 36,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Core/CSS_layout",
+    "kind": "click",
+    "label": "CSS layout",
+    "node": 37,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Dynamic scripting with JavaScript",
+    "node": 38,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Core/Scripting",
+    "kind": "click",
+    "label": "Dynamic scripting with JavaScript",
+    "node": 39,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "JavaScript frameworks and libraries",
+    "node": 40,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Core/Frameworks_libraries",
+    "kind": "click",
+    "label": "JavaScript frameworks and libraries",
+    "node": 41,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Accessibility",
+    "node": 42,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/en-US/docs/Learn_web_development/Core/Accessibility",
+    "kind": "click",
+    "label": "Accessibility",
+    "node": 43,
+    "role": "link",
+    "value": ""
+   }
+  ],
+  null
+ ],
+ "marker_stable": [
+  1791661503704.6,
+  "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core",
+  "Core learning modules - Learn web development | MDN"
+ ],
+ "omitted_actions": 0,
+ "page_key": [
+  1791661503704.6,
+  "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core",
+  0,
+  0,
+  1120,
+  780
+ ],
+ "scroll": {
+  "height": 4270,
+  "y": 0
+ },
+ "text": "HTML\nCSS\nJavaScript\nWeb APIs\nAll\nLearn\nTools\nAbout\nBlog\nLearn\nCore learning modules\nCore learning modules\nOur\nCore modules\ncover topics that we feel every web developer should have a good grounding in. This includes all the information they need to design and build a basic, accessible web app that follows modern best practices, and manage and deploy their code using appropriate tools.\nIn this article\nPrerequisites\nModules\nPrerequisites\nWhile there is no prerequisite knowledge for starting this set of modules, we would recommend that you familiarize yourself with your computer, make sure you've got a basic set of required applications installed (such as web browsers and a code editor), and do some background reading on the web and web technologies, if you have not already done so. All these topics are covered in our\nGetting started modules\n.\nIn particular, if you've never done any coding before, we'd recommend the\nYour first website\nmodule, which introduces you web technologies very gently and takes you through the process of building a simple website.\nLearn web development\nMDN curriculum\nGetting started modules\nEnvironment setup\nYour first website\nWeb standards\nSoft skills\nCore modules\nStructuring content with HTML\nCSS styling basics\nCSS text styling\nCSS layout\nDynamic scripting with JavaScript\nJavaScript frameworks and libraries\nAccessibility\nDesign for developers",
+ "title": "Core learning modules - Learn web development | MDN",
+ "url": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core",
+ "w": 1120
+}

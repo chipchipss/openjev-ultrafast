@@ -1,0 +1,1717 @@
+{
+ "actions": [
+  {
+   "href": "../genindex.html",
+   "id": "e1",
+   "kind": "click",
+   "label": "index",
+   "node": 1,
+   "rect": {
+    "h": 20,
+    "w": 34.265625,
+    "x": 1044.734375,
+    "y": 19.375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../py-modindex.html",
+   "id": "e2",
+   "kind": "click",
+   "label": "modules",
+   "node": 2,
+   "rect": {
+    "h": 20,
+    "w": 54.609375,
+    "x": 977.734375,
+    "y": 19.375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "intro.html",
+   "id": "e3",
+   "kind": "click",
+   "label": "next",
+   "node": 3,
+   "rect": {
+    "h": 20,
+    "w": 27.171875,
+    "x": 938.171875,
+    "y": 19.375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../builtins/time-complexity.html",
+   "id": "e4",
+   "kind": "click",
+   "label": "previous",
+   "node": 4,
+   "rect": {
+    "h": 20,
+    "w": 54.09375,
+    "x": 871.6875,
+    "y": 19.375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "https://www.python.org/",
+   "id": "e5",
+   "kind": "click",
+   "label": "Python",
+   "node": 5,
+   "rect": {
+    "h": 20,
+    "w": 44.65625,
+    "x": 45.953125,
+    "y": 19.375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "current_value": "English",
+   "id": "e6",
+   "kind": "select",
+   "label": "Language → German | Deutsch",
+   "node": 6,
+   "rect": {
+    "h": 19,
+    "w": 275,
+    "x": 105.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "de"
+  },
+  {
+   "current_value": "English",
+   "id": "e7",
+   "kind": "select",
+   "label": "Language → Greek | Ελληνικά",
+   "node": 6,
+   "rect": {
+    "h": 19,
+    "w": 275,
+    "x": 105.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "el"
+  },
+  {
+   "current_value": "English",
+   "id": "e8",
+   "kind": "select",
+   "label": "Language → Spanish | español",
+   "node": 6,
+   "rect": {
+    "h": 19,
+    "w": 275,
+    "x": 105.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "es"
+  },
+  {
+   "current_value": "English",
+   "id": "e9",
+   "kind": "select",
+   "label": "Language → Persian | فارسی",
+   "node": 6,
+   "rect": {
+    "h": 19,
+    "w": 275,
+    "x": 105.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "fa"
+  },
+  {
+   "current_value": "English",
+   "id": "e10",
+   "kind": "select",
+   "label": "Language → French | français",
+   "node": 6,
+   "rect": {
+    "h": 19,
+    "w": 275,
+    "x": 105.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "fr"
+  },
+  {
+   "current_value": "English",
+   "id": "e11",
+   "kind": "select",
+   "label": "Language → Italian | italiano",
+   "node": 6,
+   "rect": {
+    "h": 19,
+    "w": 275,
+    "x": 105.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "it"
+  },
+  {
+   "current_value": "English",
+   "id": "e12",
+   "kind": "select",
+   "label": "Language → Japanese | 日本語",
+   "node": 6,
+   "rect": {
+    "h": 19,
+    "w": 275,
+    "x": 105.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "ja"
+  },
+  {
+   "current_value": "English",
+   "id": "e13",
+   "kind": "select",
+   "label": "Language → Korean | 한국어",
+   "node": 6,
+   "rect": {
+    "h": 19,
+    "w": 275,
+    "x": 105.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "ko"
+  },
+  {
+   "current_value": "English",
+   "id": "e14",
+   "kind": "select",
+   "label": "Language → Polish | polski",
+   "node": 6,
+   "rect": {
+    "h": 19,
+    "w": 275,
+    "x": 105.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "pl"
+  },
+  {
+   "current_value": "English",
+   "id": "e15",
+   "kind": "select",
+   "label": "Language → Brazilian Portuguese | Português brasileiro",
+   "node": 6,
+   "rect": {
+    "h": 19,
+    "w": 275,
+    "x": 105.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "pt-br"
+  },
+  {
+   "current_value": "English",
+   "id": "e16",
+   "kind": "select",
+   "label": "Language → Romanian | Românește",
+   "node": 6,
+   "rect": {
+    "h": 19,
+    "w": 275,
+    "x": 105.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "ro"
+  },
+  {
+   "current_value": "English",
+   "id": "e17",
+   "kind": "select",
+   "label": "Language → Russian | Русский",
+   "node": 6,
+   "rect": {
+    "h": 19,
+    "w": 275,
+    "x": 105.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "ru"
+  },
+  {
+   "current_value": "English",
+   "id": "e18",
+   "kind": "select",
+   "label": "Language → Turkish | Türkçe",
+   "node": 6,
+   "rect": {
+    "h": 19,
+    "w": 275,
+    "x": 105.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "tr"
+  },
+  {
+   "current_value": "English",
+   "id": "e19",
+   "kind": "select",
+   "label": "Language → Simplified Chinese | 简体中文",
+   "node": 6,
+   "rect": {
+    "h": 19,
+    "w": 275,
+    "x": 105.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "zh-cn"
+  },
+  {
+   "current_value": "English",
+   "id": "e20",
+   "kind": "select",
+   "label": "Language → Traditional Chinese | 繁體中文",
+   "node": 6,
+   "rect": {
+    "h": 19,
+    "w": 275,
+    "x": 105.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "zh-tw"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e21",
+   "kind": "select",
+   "label": "Python version → dev (3.16)",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.16"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e22",
+   "kind": "select",
+   "label": "Python version → 3.14",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.14"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e23",
+   "kind": "select",
+   "label": "Python version → 3.13",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.13"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e24",
+   "kind": "select",
+   "label": "Python version → 3.12",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.12"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e25",
+   "kind": "select",
+   "label": "Python version → 3.11",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.11"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e26",
+   "kind": "select",
+   "label": "Python version → 3.10",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.10"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e27",
+   "kind": "select",
+   "label": "Python version → 3.9",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.9"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e28",
+   "kind": "select",
+   "label": "Python version → 3.8",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.8"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e29",
+   "kind": "select",
+   "label": "Python version → 3.7",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.7"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e30",
+   "kind": "select",
+   "label": "Python version → 3.6",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.6"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e31",
+   "kind": "select",
+   "label": "Python version → 3.5",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.5"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e32",
+   "kind": "select",
+   "label": "Python version → 3.4",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.4"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e33",
+   "kind": "select",
+   "label": "Python version → 3.3",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.3"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e34",
+   "kind": "select",
+   "label": "Python version → 3.2",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.2"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e35",
+   "kind": "select",
+   "label": "Python version → 3.1",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.1"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e36",
+   "kind": "select",
+   "label": "Python version → 3.0",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "3.0"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e37",
+   "kind": "select",
+   "label": "Python version → 2.7",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "2.7"
+  },
+  {
+   "current_value": "3.15.0",
+   "id": "e38",
+   "kind": "select",
+   "label": "Python version → 2.6",
+   "node": 7,
+   "rect": {
+    "h": 19,
+    "w": 83,
+    "x": 385.796875,
+    "y": 21.375
+   },
+   "role": "combobox",
+   "value": "2.6"
+  },
+  {
+   "href": "../index.html",
+   "id": "e39",
+   "kind": "click",
+   "label": "3.15.0 Documentation",
+   "node": 8,
+   "rect": {
+    "h": 20,
+    "w": 139.828125,
+    "x": 477.75,
+    "y": 19.375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e40",
+   "kind": "click",
+   "label": "The Python standard library",
+   "node": 9,
+   "rect": {
+    "h": 20,
+    "w": 175.21875,
+    "x": 632.765625,
+    "y": 19.375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e41",
+   "kind": "fill",
+   "label": "Quick search",
+   "name": "q",
+   "node": 10,
+   "rect": {
+    "h": 20,
+    "w": 151,
+    "x": 881.640625,
+    "y": 50.375
+   },
+   "role": "searchbox",
+   "value": ""
+  },
+  {
+   "id": "e42",
+   "kind": "click",
+   "label": "Open Quick search",
+   "name": "q",
+   "node": 10,
+   "rect": {
+    "h": 20,
+    "w": 151,
+    "x": 881.640625,
+    "y": 50.375
+   },
+   "role": "searchbox",
+   "value": ""
+  },
+  {
+   "id": "e43",
+   "kind": "click",
+   "label": "Go",
+   "node": 11,
+   "rect": {
+    "h": 20,
+    "w": 40,
+    "x": 1036.59375,
+    "y": 50.375
+   },
+   "role": "button",
+   "value": "Go"
+  },
+  {
+   "current_value": "Auto",
+   "id": "e44",
+   "kind": "select",
+   "label": "Theme → Light",
+   "node": 12,
+   "rect": {
+    "h": 19,
+    "w": 51,
+    "x": 818.234375,
+    "y": 51.375
+   },
+   "role": "combobox",
+   "value": "light"
+  },
+  {
+   "current_value": "Auto",
+   "id": "e45",
+   "kind": "select",
+   "label": "Theme → Dark",
+   "node": 12,
+   "rect": {
+    "h": 19,
+    "w": 51,
+    "x": 818.234375,
+    "y": 51.375
+   },
+   "role": "combobox",
+   "value": "dark"
+  },
+  {
+   "href": "../reference/index.html#reference-index",
+   "id": "e46",
+   "kind": "click",
+   "label": "The Python Language Reference",
+   "node": 13,
+   "rect": {
+    "h": 21,
+    "w": 227.28125,
+    "x": 393.078125,
+    "y": 247.203125
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../builtins/index.html#builtins-index",
+   "id": "e47",
+   "kind": "click",
+   "label": "Python built-ins reference",
+   "node": 14,
+   "rect": {
+    "h": 21,
+    "w": 182.171875,
+    "x": 346.1875,
+    "y": 272.796875
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "https://pypi.org",
+   "id": "e48",
+   "kind": "click",
+   "label": "Python Package Index",
+   "node": 15,
+   "rect": {
+    "h": 21,
+    "w": 154.65625,
+    "x": 414.703125,
+    "y": 653.515625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "intro.html",
+   "id": "e49",
+   "kind": "click",
+   "label": "Introduction",
+   "node": 16,
+   "rect": {
+    "h": 21,
+    "w": 87.265625,
+    "x": 335.1875,
+    "y": 695.109375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "intro.html#notes-on-availability",
+   "id": "e50",
+   "kind": "click",
+   "label": "Notes on availability",
+   "node": 17,
+   "rect": {
+    "h": 21,
+    "w": 143.15625,
+    "x": 355.1875,
+    "y": 720.703125
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "text.html",
+   "id": "e51",
+   "kind": "click",
+   "label": "Text Processing Services",
+   "node": 18,
+   "rect": {
+    "h": 21,
+    "w": 168.828125,
+    "x": 335.1875,
+    "y": 746.296875
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../builtins/time-complexity.html",
+   "id": "e52",
+   "kind": "click",
+   "label": "Time complexity of operations on built-in types",
+   "node": 19,
+   "rect": {
+    "h": 34.328125,
+    "w": 232.546875,
+    "x": 36,
+    "y": 158.140625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "intro.html",
+   "id": "e53",
+   "kind": "click",
+   "label": "Introduction",
+   "node": 20,
+   "rect": {
+    "h": 17,
+    "w": 72.703125,
+    "x": 36,
+    "y": 241.109375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../bugs.html",
+   "id": "e54",
+   "kind": "click",
+   "label": "Report a bug",
+   "node": 21,
+   "rect": {
+    "h": 17,
+    "w": 76.671875,
+    "x": 36,
+    "y": 313.765625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "https://docs.python.org/3/improve-page.html?pagetitle=The+Python+standard+library&pageurl=https%3A%2F%2Fdocs.python.org%",
+   "id": "e55",
+   "kind": "click",
+   "label": "Improve this page",
+   "node": 22,
+   "rect": {
+    "h": 17,
+    "w": 106.359375,
+    "x": 36,
+    "y": 331.09375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "https://github.com/python/cpython/blob/3.15/Doc/library/index.rst?plain=1",
+   "id": "e56",
+   "kind": "click",
+   "label": "Show source",
+   "node": 23,
+   "rect": {
+    "h": 17,
+    "w": 74.5,
+    "x": 36,
+    "y": 348.421875
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "delta": 560,
+   "id": "scroll_down",
+   "kind": "scroll",
+   "label": "Scroll down"
+  },
+  {
+   "delta": 7534,
+   "id": "scroll_bottom",
+   "kind": "scroll",
+   "label": "Scroll to bottom"
+  },
+  {
+   "id": "reload",
+   "kind": "reload",
+   "label": "Reload the page"
+  },
+  {
+   "id": "wait",
+   "kind": "wait",
+   "label": "Wait for the page to update"
+  }
+ ],
+ "fingerprint": "5c83688bb590cb12a9a0b25cebad986a4b21a7982065d33575bb9b82a4430406",
+ "guards": {
+  "1": [
+   1,
+   "link",
+   "index",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../genindex.html",
+   "index"
+  ],
+  "10": [
+   10,
+   "searchbox",
+   "Quick search",
+   "",
+   false,
+   null,
+   false,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "  "
+  ],
+  "11": [
+   11,
+   "button",
+   "Go",
+   "Go",
+   false,
+   null,
+   false,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "  "
+  ],
+  "12": [
+   12,
+   "combobox",
+   "Theme",
+   "auto",
+   null,
+   0,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "Theme \nAuto\nLight\nDark\n |"
+  ],
+  "13": [
+   13,
+   "link",
+   "The Python Language Reference",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../reference/index.html#reference-index",
+   "Elsewhere, The Python Language Reference describes the exact syntax and semantics of the Python language, and Python built-ins reference describes the built-in functions."
+  ],
+  "14": [
+   14,
+   "link",
+   "Python built-ins reference",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../builtins/index.html#builtins-index",
+   "Elsewhere, The Python Language Reference describes the exact syntax and semantics of the Python language, and Python built-ins reference describes the built-in functions."
+  ],
+  "15": [
+   15,
+   "link",
+   "Python Package Index",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://pypi.org",
+   "In addition to the standard library, there is an active collection of hundreds of thousands of components (from individual programs and modules to packages and entire application development frameworks), available from the Python Package Index."
+  ],
+  "16": [
+   16,
+   "link",
+   "Introduction",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "intro.html",
+   "Introduction\nNotes on availability"
+  ],
+  "17": [
+   17,
+   "link",
+   "Notes on availability",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "intro.html#notes-on-availability",
+   "Notes on availability"
+  ],
+  "18": [
+   18,
+   "link",
+   "Text Processing Services",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "text.html",
+   "Text Processing Services\nstring — Common string operations\nstring.templatelib — Support for template string literals\nre — Regular expression operations\ndifflib — Helpers for computing deltas\ntextwrap — Text wrapping and filling\nunicodedata — Unicode Database\nstringprep — Internet String Preparation\nreadline — GNU readline interface\nrlcompleter — Completion function for GNU readline"
+  ],
+  "19": [
+   19,
+   "link",
+   "Time complexity of operations on built-in types",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../builtins/time-complexity.html",
+   "Time complexity of operations on built-in types"
+  ],
+  "2": [
+   2,
+   "link",
+   "modules",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../py-modindex.html",
+   "modules |"
+  ],
+  "20": [
+   20,
+   "link",
+   "Introduction",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "intro.html",
+   "Introduction"
+  ],
+  "21": [
+   21,
+   "link",
+   "Report a bug",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../bugs.html",
+   "Report a bug"
+  ],
+  "22": [
+   22,
+   "link",
+   "Improve this page",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://docs.python.org/3/improve-page.html?pagetitle=The+Python+standard+library&pageurl=https%3A%2F%2Fdocs.python.org%2F3%2Flibrary%2Findex.html&pagesource=library%2Findex.rst",
+   "Improve this page"
+  ],
+  "23": [
+   23,
+   "link",
+   "Show source",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://github.com/python/cpython/blob/3.15/Doc/library/index.rst?plain=1",
+   "Show source"
+  ],
+  "3": [
+   3,
+   "link",
+   "next",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "intro.html",
+   "next |"
+  ],
+  "4": [
+   4,
+   "link",
+   "previous",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../builtins/time-complexity.html",
+   "previous |"
+  ],
+  "5": [
+   5,
+   "link",
+   "Python",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://www.python.org/",
+   "Python »"
+  ],
+  "6": [
+   6,
+   "combobox",
+   "Language",
+   "en",
+   null,
+   2,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "German | Deutsch\nGreek | Ελληνικά\nEnglish\nSpanish | español\nPersian | فارسی\nFrench | français\nItalian | italiano\nJapanese | 日本語\nKorean | 한국어\nPolish | polski\nBrazilian Portuguese | Português brasileiro\nRomanian | Românește\nRussian | Русский\nTurkish | Türkçe\nSimplified Chinese | 简体中文\nTraditional Chinese | 繁體中文\ndev (3.16)\n3.15.0\n3.14\n3.13\n3.12\n3.11\n3.10\n3.9\n3.8\n3.7\n3.6\n3.5\n3.4\n3.3\n3.2\n3.1\n3.0\n2.7\n2.6"
+  ],
+  "7": [
+   7,
+   "combobox",
+   "Python version",
+   "3.15",
+   null,
+   1,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "German | Deutsch\nGreek | Ελληνικά\nEnglish\nSpanish | español\nPersian | فارسی\nFrench | français\nItalian | italiano\nJapanese | 日本語\nKorean | 한국어\nPolish | polski\nBrazilian Portuguese | Português brasileiro\nRomanian | Românește\nRussian | Русский\nTurkish | Türkçe\nSimplified Chinese | 简体中文\nTraditional Chinese | 繁體中文\ndev (3.16)\n3.15.0\n3.14\n3.13\n3.12\n3.11\n3.10\n3.9\n3.8\n3.7\n3.6\n3.5\n3.4\n3.3\n3.2\n3.1\n3.0\n2.7\n2.6"
+  ],
+  "8": [
+   8,
+   "link",
+   "3.15.0 Documentation",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../index.html",
+   "3.15.0 Documentation » "
+  ],
+  "9": [
+   9,
+   "link",
+   "The Python standard library",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "",
+   "The Python standard library"
+  ]
+ },
+ "h": 780,
+ "marker": [
+  1791663244448.1,
+  "https://docs.python.org/3/library/index.html",
+  0,
+  0,
+  1120,
+  780,
+  "The Python standard library — Python 3.15.0 documentation",
+  "index\nmodules\n|\nnext\n|\nprevious\n|\nPython\n»\n3.15.0 Documentation\n»\nThe Python standard library\n|\nTheme\n|\nThe Python standard library\nThis library reference manual describes the standard library\ndistributed with Python. It also describes some of the optional\ncomponents that are commonly included in Python distributions.\nElsewhere,\nThe Python Language Reference\ndescribes the exact syntax and\nsemantics of the Python language, and\nPython built-ins reference\ndescribes\nthe built-in functions.\nPython’s standard library is extensive, offering a wide range of\nfacilities as indicated by the long table of contents listed below. The\nlibrary contains built-in modules (written in C) that provide access to\nsystem functionality such as file I/O that would otherwise be\ninaccessible to Python programmers, as well as modules written in Python\nthat provide standardized solutions for many problems that occur in\neveryday programming. Some of these modules are explicitly designed to\nencourage and enhance the portability of Python programs by abstracting\naway platform-specifics into platform-neutral APIs.\nThe Python installers for the Windows platform usually include\nthe entire standard library and often also include many additional\ncomponents. For Unix-like operating systems Python is normally provided\nas a collection of packages, so it may be necessary to use the packaging\ntools provided with the operating system to obtain some or all of the\noptional components.\nIn addition to the standard library, there is an active collection of\nhundreds of thousands of components (from individual programs and modules to\npackages and entire application development frameworks), available from\nthe\nPython Package Index\n.\nIntroduction\nNotes on availability\nText Processing Services\nstring\n— Common string operations\nPrevious topic\nTime complexity of operations on built-in types\nNext topic\nIntroduction\nThis page\nReport a bug\nImprove this page\nShow source\n«",
+  [
+   {
+    "href": "../genindex.html",
+    "kind": "click",
+    "label": "index",
+    "node": 1,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../py-modindex.html",
+    "kind": "click",
+    "label": "modules",
+    "node": 2,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "intro.html",
+    "kind": "click",
+    "label": "next",
+    "node": 3,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../builtins/time-complexity.html",
+    "kind": "click",
+    "label": "previous",
+    "node": 4,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "https://www.python.org/",
+    "kind": "click",
+    "label": "Python",
+    "node": 5,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "current_value": "English",
+    "kind": "select",
+    "label": "Language → German | Deutsch",
+    "node": 6,
+    "role": "combobox",
+    "value": "de"
+   },
+   {
+    "current_value": "English",
+    "kind": "select",
+    "label": "Language → Greek | Ελληνικά",
+    "node": 6,
+    "role": "combobox",
+    "value": "el"
+   },
+   {
+    "current_value": "English",
+    "kind": "select",
+    "label": "Language → Spanish | español",
+    "node": 6,
+    "role": "combobox",
+    "value": "es"
+   },
+   {
+    "current_value": "English",
+    "kind": "select",
+    "label": "Language → Persian | فارسی",
+    "node": 6,
+    "role": "combobox",
+    "value": "fa"
+   },
+   {
+    "current_value": "English",
+    "kind": "select",
+    "label": "Language → French | français",
+    "node": 6,
+    "role": "combobox",
+    "value": "fr"
+   },
+   {
+    "current_value": "English",
+    "kind": "select",
+    "label": "Language → Italian | italiano",
+    "node": 6,
+    "role": "combobox",
+    "value": "it"
+   },
+   {
+    "current_value": "English",
+    "kind": "select",
+    "label": "Language → Japanese | 日本語",
+    "node": 6,
+    "role": "combobox",
+    "value": "ja"
+   },
+   {
+    "current_value": "English",
+    "kind": "select",
+    "label": "Language → Korean | 한국어",
+    "node": 6,
+    "role": "combobox",
+    "value": "ko"
+   },
+   {
+    "current_value": "English",
+    "kind": "select",
+    "label": "Language → Polish | polski",
+    "node": 6,
+    "role": "combobox",
+    "value": "pl"
+   },
+   {
+    "current_value": "English",
+    "kind": "select",
+    "label": "Language → Brazilian Portuguese | Português brasileiro",
+    "node": 6,
+    "role": "combobox",
+    "value": "pt-br"
+   },
+   {
+    "current_value": "English",
+    "kind": "select",
+    "label": "Language → Romanian | Românește",
+    "node": 6,
+    "role": "combobox",
+    "value": "ro"
+   },
+   {
+    "current_value": "English",
+    "kind": "select",
+    "label": "Language → Russian | Русский",
+    "node": 6,
+    "role": "combobox",
+    "value": "ru"
+   },
+   {
+    "current_value": "English",
+    "kind": "select",
+    "label": "Language → Turkish | Türkçe",
+    "node": 6,
+    "role": "combobox",
+    "value": "tr"
+   },
+   {
+    "current_value": "English",
+    "kind": "select",
+    "label": "Language → Simplified Chinese | 简体中文",
+    "node": 6,
+    "role": "combobox",
+    "value": "zh-cn"
+   },
+   {
+    "current_value": "English",
+    "kind": "select",
+    "label": "Language → Traditional Chinese | 繁體中文",
+    "node": 6,
+    "role": "combobox",
+    "value": "zh-tw"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → dev (3.16)",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.16"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 3.14",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.14"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 3.13",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.13"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 3.12",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.12"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 3.11",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.11"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 3.10",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.10"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 3.9",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.9"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 3.8",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.8"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 3.7",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.7"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 3.6",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.6"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 3.5",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.5"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 3.4",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.4"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 3.3",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.3"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 3.2",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.2"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 3.1",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.1"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 3.0",
+    "node": 7,
+    "role": "combobox",
+    "value": "3.0"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 2.7",
+    "node": 7,
+    "role": "combobox",
+    "value": "2.7"
+   },
+   {
+    "current_value": "3.15.0",
+    "kind": "select",
+    "label": "Python version → 2.6",
+    "node": 7,
+    "role": "combobox",
+    "value": "2.6"
+   },
+   {
+    "href": "../index.html",
+    "kind": "click",
+    "label": "3.15.0 Documentation",
+    "node": 8,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "The Python standard library",
+    "node": 9,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "fill",
+    "label": "Quick search",
+    "name": "q",
+    "node": 10,
+    "role": "searchbox",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Open Quick search",
+    "name": "q",
+    "node": 10,
+    "role": "searchbox",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Go",
+    "node": 11,
+    "role": "button",
+    "value": "Go"
+   },
+   {
+    "current_value": "Auto",
+    "kind": "select",
+    "label": "Theme → Light",
+    "node": 12,
+    "role": "combobox",
+    "value": "light"
+   },
+   {
+    "current_value": "Auto",
+    "kind": "select",
+    "label": "Theme → Dark",
+    "node": 12,
+    "role": "combobox",
+    "value": "dark"
+   },
+   {
+    "href": "../reference/index.html#reference-index",
+    "kind": "click",
+    "label": "The Python Language Reference",
+    "node": 13,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../builtins/index.html#builtins-index",
+    "kind": "click",
+    "label": "Python built-ins reference",
+    "node": 14,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "https://pypi.org",
+    "kind": "click",
+    "label": "Python Package Index",
+    "node": 15,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "intro.html",
+    "kind": "click",
+    "label": "Introduction",
+    "node": 16,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "intro.html#notes-on-availability",
+    "kind": "click",
+    "label": "Notes on availability",
+    "node": 17,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "text.html",
+    "kind": "click",
+    "label": "Text Processing Services",
+    "node": 18,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../builtins/time-complexity.html",
+    "kind": "click",
+    "label": "Time complexity of operations on built-in types",
+    "node": 19,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "intro.html",
+    "kind": "click",
+    "label": "Introduction",
+    "node": 20,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../bugs.html",
+    "kind": "click",
+    "label": "Report a bug",
+    "node": 21,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "https://docs.python.org/3/improve-page.html?pagetitle=The+Python+standard+library&pageurl=https%3A%2F%2Fdocs.python.org%",
+    "kind": "click",
+    "label": "Improve this page",
+    "node": 22,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "https://github.com/python/cpython/blob/3.15/Doc/library/index.rst?plain=1",
+    "kind": "click",
+    "label": "Show source",
+    "node": 23,
+    "role": "link",
+    "value": ""
+   }
+  ],
+  null
+ ],
+ "marker_stable": [
+  1791663244448.1,
+  "https://docs.python.org/3/library/index.html",
+  "The Python standard library — Python 3.15.0 documentation"
+ ],
+ "omitted_actions": 0,
+ "page_key": [
+  1791663244448.1,
+  "https://docs.python.org/3/library/index.html",
+  0,
+  0,
+  1120,
+  780
+ ],
+ "scroll": {
+  "height": 8314,
+  "y": 0
+ },
+ "text": "index\nmodules\n|\nnext\n|\nprevious\n|\nPython\n»\n3.15.0 Documentation\n»\nThe Python standard library\n|\nTheme\n|\nThe Python standard library\nThis library reference manual describes the standard library\ndistributed with Python. It also describes some of the optional\ncomponents that are commonly included in Python distributions.\nElsewhere,\nThe Python Language Reference\ndescribes the exact syntax and\nsemantics of the Python language, and\nPython built-ins reference\ndescribes\nthe built-in functions.\nPython’s standard library is extensive, offering a wide range of\nfacilities as indicated by the long table of contents listed below. The\nlibrary contains built-in modules (written in C) that provide access to\nsystem functionality such as file I/O that would otherwise be\ninaccessible to Python programmers, as well as modules written in Python\nthat provide standardized solutions for many problems that occur in\neveryday programming. Some of these modules are explicitly designed to\nencourage and enhance the portability of Python programs by abstracting\naway platform-specifics into platform-neutral APIs.\nThe Python installers for the Windows platform usually include\nthe entire standard library and often also include many additional\ncomponents. For Unix-like operating systems Python is normally provided\nas a collection of packages, so it may be necessary to use the packaging\ntools provided with the operating system to obtain some or all of the\noptional components.\nIn addition to the standard library, there is an active collection of\nhundreds of thousands of components (from individual programs and modules to\npackages and entire application development frameworks), available from\nthe\nPython Package Index\n.\nIntroduction\nNotes on availability\nText Processing Services\nstring\n— Common string operations\nPrevious topic\nTime complexity of operations on built-in types\nNext topic\nIntroduction\nThis page\nReport a bug\nImprove this page\nShow source\n«",
+ "title": "The Python standard library — Python 3.15.0 documentation",
+ "url": "https://docs.python.org/3/library/index.html",
+ "w": 1120
+}

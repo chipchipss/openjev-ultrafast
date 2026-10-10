@@ -1,0 +1,2403 @@
+{
+ "actions": [
+  {
+   "href": "index.html",
+   "id": "e1",
+   "kind": "click",
+   "label": "Home",
+   "node": 1,
+   "rect": {
+    "h": 31.1875,
+    "w": 71.234375,
+    "x": 8,
+    "y": 108
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "about.html",
+   "id": "e2",
+   "kind": "click",
+   "label": "About",
+   "node": 2,
+   "rect": {
+    "h": 31.1875,
+    "w": 71.453125,
+    "x": 79.234375,
+    "y": 108
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "docs.html",
+   "id": "e3",
+   "kind": "click",
+   "label": "Documentation",
+   "node": 3,
+   "rect": {
+    "h": 31.1875,
+    "w": 146.578125,
+    "x": 150.6875,
+    "y": 108
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "download.html",
+   "id": "e4",
+   "kind": "click",
+   "label": "Download",
+   "node": 4,
+   "rect": {
+    "h": 31.1875,
+    "w": 103.34375,
+    "x": 297.265625,
+    "y": 108
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "copyright.html",
+   "id": "e5",
+   "kind": "click",
+   "label": "License",
+   "node": 5,
+   "rect": {
+    "h": 31.1875,
+    "w": 83.5625,
+    "x": 400.609375,
+    "y": 108
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "support.html",
+   "id": "e6",
+   "kind": "click",
+   "label": "Support",
+   "node": 6,
+   "rect": {
+    "h": 31.1875,
+    "w": 88.25,
+    "x": 484.171875,
+    "y": 108
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "prosupport.html",
+   "id": "e7",
+   "kind": "click",
+   "label": "Purchase",
+   "node": 7,
+   "rect": {
+    "h": 31.1875,
+    "w": 96.953125,
+    "x": 572.421875,
+    "y": 108
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e8",
+   "kind": "click",
+   "label": "Search",
+   "node": 8,
+   "rect": {
+    "h": 31.1875,
+    "w": 79.78125,
+    "x": 1017.21875,
+    "y": 108
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "omitted.html",
+   "id": "e9",
+   "kind": "click",
+   "label": "omit some features",
+   "node": 9,
+   "rect": {
+    "h": 19,
+    "w": 156.25,
+    "x": 560.984375,
+    "y": 221.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_keywords.html",
+   "id": "e10",
+   "kind": "click",
+   "label": "SQL keywords",
+   "node": 10,
+   "rect": {
+    "h": 19,
+    "w": 114.3125,
+    "x": 8,
+    "y": 259.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "syntaxdiagrams.html",
+   "id": "e11",
+   "kind": "click",
+   "label": "syntax diagrams",
+   "node": 11,
+   "rect": {
+    "h": 19,
+    "w": 132.9375,
+    "x": 602.078125,
+    "y": 259.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_aggfunc.html",
+   "id": "e12",
+   "kind": "click",
+   "label": "aggregate functions",
+   "node": 12,
+   "rect": {
+    "h": 19,
+    "w": 160.03125,
+    "x": 97,
+    "y": 352.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_altertable.html",
+   "id": "e13",
+   "kind": "click",
+   "label": "ALTER TABLE",
+   "node": 13,
+   "rect": {
+    "h": 19,
+    "w": 105.09375,
+    "x": 97,
+    "y": 371.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_analyze.html",
+   "id": "e14",
+   "kind": "click",
+   "label": "ANALYZE",
+   "node": 14,
+   "rect": {
+    "h": 19,
+    "w": 72.421875,
+    "x": 97,
+    "y": 390.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_attach.html",
+   "id": "e15",
+   "kind": "click",
+   "label": "ATTACH DATABASE",
+   "node": 15,
+   "rect": {
+    "h": 19,
+    "w": 153.0625,
+    "x": 97,
+    "y": 409.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_transaction.html",
+   "id": "e16",
+   "kind": "click",
+   "label": "BEGIN TRANSACTION",
+   "node": 16,
+   "rect": {
+    "h": 19,
+    "w": 175.765625,
+    "x": 97,
+    "y": 428.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_comment.html",
+   "id": "e17",
+   "kind": "click",
+   "label": "comment",
+   "node": 17,
+   "rect": {
+    "h": 19,
+    "w": 75.140625,
+    "x": 97,
+    "y": 447.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_transaction.html",
+   "id": "e18",
+   "kind": "click",
+   "label": "COMMIT TRANSACTION",
+   "node": 18,
+   "rect": {
+    "h": 19,
+    "w": 190.890625,
+    "x": 97,
+    "y": 466.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_corefunc.html",
+   "id": "e19",
+   "kind": "click",
+   "label": "core functions",
+   "node": 19,
+   "rect": {
+    "h": 19,
+    "w": 113.109375,
+    "x": 97,
+    "y": 485.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_createindex.html",
+   "id": "e20",
+   "kind": "click",
+   "label": "CREATE INDEX",
+   "node": 20,
+   "rect": {
+    "h": 19,
+    "w": 120.125,
+    "x": 97,
+    "y": 504.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_createtable.html",
+   "id": "e21",
+   "kind": "click",
+   "label": "CREATE TABLE",
+   "node": 21,
+   "rect": {
+    "h": 19,
+    "w": 117.875,
+    "x": 97,
+    "y": 523.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_createtrigger.html",
+   "id": "e22",
+   "kind": "click",
+   "label": "CREATE TRIGGER",
+   "node": 22,
+   "rect": {
+    "h": 19,
+    "w": 141.796875,
+    "x": 97,
+    "y": 542.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_createview.html",
+   "id": "e23",
+   "kind": "click",
+   "label": "CREATE VIEW",
+   "node": 23,
+   "rect": {
+    "h": 19,
+    "w": 111.625,
+    "x": 97,
+    "y": 561.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_createvtab.html",
+   "id": "e24",
+   "kind": "click",
+   "label": "CREATE VIRTUAL TABLE",
+   "node": 24,
+   "rect": {
+    "h": 19,
+    "w": 193.15625,
+    "x": 97,
+    "y": 580.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_datefunc.html",
+   "id": "e25",
+   "kind": "click",
+   "label": "date and time functions",
+   "node": 25,
+   "rect": {
+    "h": 19,
+    "w": 190.859375,
+    "x": 97,
+    "y": 599.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_delete.html",
+   "id": "e26",
+   "kind": "click",
+   "label": "DELETE",
+   "node": 26,
+   "rect": {
+    "h": 19,
+    "w": 61.453125,
+    "x": 426,
+    "y": 352.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_detach.html",
+   "id": "e27",
+   "kind": "click",
+   "label": "DETACH DATABASE",
+   "node": 27,
+   "rect": {
+    "h": 19,
+    "w": 156.203125,
+    "x": 426,
+    "y": 371.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_dropindex.html",
+   "id": "e28",
+   "kind": "click",
+   "label": "DROP INDEX",
+   "node": 28,
+   "rect": {
+    "h": 19,
+    "w": 103.4375,
+    "x": 426,
+    "y": 390.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_droptable.html",
+   "id": "e29",
+   "kind": "click",
+   "label": "DROP TABLE",
+   "node": 29,
+   "rect": {
+    "h": 19,
+    "w": 101.171875,
+    "x": 426,
+    "y": 409.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_droptrigger.html",
+   "id": "e30",
+   "kind": "click",
+   "label": "DROP TRIGGER",
+   "node": 30,
+   "rect": {
+    "h": 19,
+    "w": 125.09375,
+    "x": 426,
+    "y": 428.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_dropview.html",
+   "id": "e31",
+   "kind": "click",
+   "label": "DROP VIEW",
+   "node": 31,
+   "rect": {
+    "h": 19,
+    "w": 94.9375,
+    "x": 426,
+    "y": 447.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_transaction.html",
+   "id": "e32",
+   "kind": "click",
+   "label": "END TRANSACTION",
+   "node": 32,
+   "rect": {
+    "h": 19,
+    "w": 157.984375,
+    "x": 426,
+    "y": 466.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_explain.html",
+   "id": "e33",
+   "kind": "click",
+   "label": "EXPLAIN",
+   "node": 33,
+   "rect": {
+    "h": 19,
+    "w": 69.28125,
+    "x": 426,
+    "y": 485.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_expr.html",
+   "id": "e34",
+   "kind": "click",
+   "label": "expression",
+   "node": 34,
+   "rect": {
+    "h": 19,
+    "w": 86.234375,
+    "x": 426,
+    "y": 504.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_indexedby.html",
+   "id": "e35",
+   "kind": "click",
+   "label": "INDEXED BY",
+   "node": 35,
+   "rect": {
+    "h": 19,
+    "w": 101,
+    "x": 426,
+    "y": 523.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_insert.html",
+   "id": "e36",
+   "kind": "click",
+   "label": "INSERT",
+   "node": 36,
+   "rect": {
+    "h": 19,
+    "w": 60.28125,
+    "x": 426,
+    "y": 542.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "json1.html",
+   "id": "e37",
+   "kind": "click",
+   "label": "JSON functions",
+   "node": 37,
+   "rect": {
+    "h": 19,
+    "w": 121.484375,
+    "x": 426,
+    "y": 561.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_keywords.html",
+   "id": "e38",
+   "kind": "click",
+   "label": "keywords",
+   "node": 38,
+   "rect": {
+    "h": 19,
+    "w": 76.25,
+    "x": 426,
+    "y": 580.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_mathfunc.html",
+   "id": "e39",
+   "kind": "click",
+   "label": "math functions",
+   "node": 39,
+   "rect": {
+    "h": 19,
+    "w": 120.3125,
+    "x": 426,
+    "y": 599.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_conflict.html",
+   "id": "e40",
+   "kind": "click",
+   "label": "ON CONFLICT clause",
+   "node": 40,
+   "rect": {
+    "h": 19,
+    "w": 167.75,
+    "x": 755,
+    "y": 352.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "pragma.html#syntax",
+   "id": "e41",
+   "kind": "click",
+   "label": "PRAGMA",
+   "node": 41,
+   "rect": {
+    "h": 19,
+    "w": 68.546875,
+    "x": 755,
+    "y": 371.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_reindex.html",
+   "id": "e42",
+   "kind": "click",
+   "label": "REINDEX",
+   "node": 42,
+   "rect": {
+    "h": 19,
+    "w": 73.359375,
+    "x": 755,
+    "y": 390.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_savepoint.html",
+   "id": "e43",
+   "kind": "click",
+   "label": "RELEASE SAVEPOINT",
+   "node": 43,
+   "rect": {
+    "h": 19,
+    "w": 170.921875,
+    "x": 755,
+    "y": 409.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_replace.html",
+   "id": "e44",
+   "kind": "click",
+   "label": "REPLACE",
+   "node": 44,
+   "rect": {
+    "h": 19,
+    "w": 72.03125,
+    "x": 755,
+    "y": 428.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_returning.html",
+   "id": "e45",
+   "kind": "click",
+   "label": "RETURNING clause",
+   "node": 45,
+   "rect": {
+    "h": 19,
+    "w": 152.96875,
+    "x": 755,
+    "y": 447.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_transaction.html",
+   "id": "e46",
+   "kind": "click",
+   "label": "ROLLBACK TRANSACTION",
+   "node": 46,
+   "rect": {
+    "h": 19,
+    "w": 209.265625,
+    "x": 755,
+    "y": 466.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_savepoint.html",
+   "id": "e47",
+   "kind": "click",
+   "label": "SAVEPOINT",
+   "node": 47,
+   "rect": {
+    "h": 19,
+    "w": 93.109375,
+    "x": 755,
+    "y": 485.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_select.html",
+   "id": "e48",
+   "kind": "click",
+   "label": "SELECT",
+   "node": 48,
+   "rect": {
+    "h": 19,
+    "w": 61.109375,
+    "x": 755,
+    "y": 504.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_update.html",
+   "id": "e49",
+   "kind": "click",
+   "label": "UPDATE",
+   "node": 49,
+   "rect": {
+    "h": 19,
+    "w": 63.671875,
+    "x": 755,
+    "y": 523.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_upsert.html",
+   "id": "e50",
+   "kind": "click",
+   "label": "UPSERT",
+   "node": 50,
+   "rect": {
+    "h": 19,
+    "w": 62.9375,
+    "x": 755,
+    "y": 542.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_vacuum.html",
+   "id": "e51",
+   "kind": "click",
+   "label": "VACUUM",
+   "node": 51,
+   "rect": {
+    "h": 19,
+    "w": 69.484375,
+    "x": 755,
+    "y": 561.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "windowfunctions.html",
+   "id": "e52",
+   "kind": "click",
+   "label": "window functions",
+   "node": 52,
+   "rect": {
+    "h": 19,
+    "w": 139.09375,
+    "x": 755,
+    "y": 580.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "lang_with.html",
+   "id": "e53",
+   "kind": "click",
+   "label": "WITH clause",
+   "node": 53,
+   "rect": {
+    "h": 19,
+    "w": 100.390625,
+    "x": 755,
+    "y": 599.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "c3ref/prepare.html",
+   "id": "e54",
+   "kind": "click",
+   "label": "sqlite3_prepare_v2()",
+   "node": 54,
+   "rect": {
+    "h": 19,
+    "w": 169.875,
+    "x": 114.125,
+    "y": 667.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "c3ref/prepare.html",
+   "id": "e55",
+   "kind": "click",
+   "label": "sqlite3_prepare()",
+   "node": 55,
+   "rect": {
+    "h": 19,
+    "w": 140.0625,
+    "x": 295.453125,
+    "y": 667.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "c3ref/prepare.html",
+   "id": "e56",
+   "kind": "click",
+   "label": "sqlite3_prepare16()",
+   "node": 56,
+   "rect": {
+    "h": 19,
+    "w": 160.40625,
+    "x": 446.96875,
+    "y": 667.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "c3ref/prepare.html",
+   "id": "e57",
+   "kind": "click",
+   "label": "sqlite3_prepare16_v2()",
+   "node": 57,
+   "rect": {
+    "h": 19,
+    "w": 190.21875,
+    "x": 618.828125,
+    "y": 667.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "c3ref/exec.html",
+   "id": "e58",
+   "kind": "click",
+   "label": "sqlite3_exec()",
+   "node": 58,
+   "rect": {
+    "h": 19,
+    "w": 114.484375,
+    "x": 820.5,
+    "y": 667.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "c3ref/free_table.html",
+   "id": "e59",
+   "kind": "click",
+   "label": "sqlite3_get_table()",
+   "node": 59,
+   "rect": {
+    "h": 19,
+    "w": 153.578125,
+    "x": 8,
+    "y": 686.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "syntax/sql-stmt-list.html",
+   "id": "e60",
+   "kind": "click",
+   "label": "sql-stmt-list:",
+   "node": 60,
+   "rect": {
+    "h": 19,
+    "w": 116.671875,
+    "x": 8,
+    "y": 721.0625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "delta": 560,
+   "id": "scroll_down",
+   "kind": "scroll",
+   "label": "Scroll down"
+  },
+  {
+   "delta": 1224,
+   "id": "scroll_bottom",
+   "kind": "scroll",
+   "label": "Scroll to bottom"
+  },
+  {
+   "id": "reload",
+   "kind": "reload",
+   "label": "Reload the page"
+  },
+  {
+   "id": "wait",
+   "kind": "wait",
+   "label": "Wait for the page to update"
+  }
+ ],
+ "fingerprint": "6b9fb631daff6d574d1acb748b7e1eda6282fb42099431b2ebce9bd332efee33",
+ "guards": {
+  "1": [
+   1,
+   "link",
+   "Home",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "index.html",
+   "Home"
+  ],
+  "10": [
+   10,
+   "link",
+   "SQL keywords",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_keywords.html",
+   "SQLite understands most of the standard SQL language. But it does omit some features while at the same time adding a few features of its own. This document attempts to describe precisely what parts of the SQL language SQLite does and does not support. A list of SQL keywords is also provided. The SQL language syntax is described by syntax diagrams."
+  ],
+  "11": [
+   11,
+   "link",
+   "syntax diagrams",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "syntaxdiagrams.html",
+   "SQLite understands most of the standard SQL language. But it does omit some features while at the same time adding a few features of its own. This document attempts to describe precisely what parts of the SQL language SQLite does and does not support. A list of SQL keywords is also provided. The SQL language syntax is described by syntax diagrams."
+  ],
+  "12": [
+   12,
+   "link",
+   "aggregate functions",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_aggfunc.html",
+   "aggregate functions"
+  ],
+  "13": [
+   13,
+   "link",
+   "ALTER TABLE",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_altertable.html",
+   "ALTER TABLE"
+  ],
+  "14": [
+   14,
+   "link",
+   "ANALYZE",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_analyze.html",
+   "ANALYZE"
+  ],
+  "15": [
+   15,
+   "link",
+   "ATTACH DATABASE",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_attach.html",
+   "ATTACH DATABASE"
+  ],
+  "16": [
+   16,
+   "link",
+   "BEGIN TRANSACTION",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_transaction.html",
+   "BEGIN TRANSACTION"
+  ],
+  "17": [
+   17,
+   "link",
+   "comment",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_comment.html",
+   "comment"
+  ],
+  "18": [
+   18,
+   "link",
+   "COMMIT TRANSACTION",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_transaction.html",
+   "COMMIT TRANSACTION"
+  ],
+  "19": [
+   19,
+   "link",
+   "core functions",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_corefunc.html",
+   "core functions"
+  ],
+  "2": [
+   2,
+   "link",
+   "About",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "about.html",
+   "About"
+  ],
+  "20": [
+   20,
+   "link",
+   "CREATE INDEX",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_createindex.html",
+   "CREATE INDEX"
+  ],
+  "21": [
+   21,
+   "link",
+   "CREATE TABLE",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_createtable.html",
+   "CREATE TABLE"
+  ],
+  "22": [
+   22,
+   "link",
+   "CREATE TRIGGER",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_createtrigger.html",
+   "CREATE TRIGGER"
+  ],
+  "23": [
+   23,
+   "link",
+   "CREATE VIEW",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_createview.html",
+   "CREATE VIEW"
+  ],
+  "24": [
+   24,
+   "link",
+   "CREATE VIRTUAL TABLE",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_createvtab.html",
+   "CREATE VIRTUAL TABLE"
+  ],
+  "25": [
+   25,
+   "link",
+   "date and time functions",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_datefunc.html",
+   "date and time functions"
+  ],
+  "26": [
+   26,
+   "link",
+   "DELETE",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_delete.html",
+   "DELETE"
+  ],
+  "27": [
+   27,
+   "link",
+   "DETACH DATABASE",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_detach.html",
+   "DETACH DATABASE"
+  ],
+  "28": [
+   28,
+   "link",
+   "DROP INDEX",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_dropindex.html",
+   "DROP INDEX"
+  ],
+  "29": [
+   29,
+   "link",
+   "DROP TABLE",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_droptable.html",
+   "DROP TABLE"
+  ],
+  "3": [
+   3,
+   "link",
+   "Documentation",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "docs.html",
+   "Documentation"
+  ],
+  "30": [
+   30,
+   "link",
+   "DROP TRIGGER",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_droptrigger.html",
+   "DROP TRIGGER"
+  ],
+  "31": [
+   31,
+   "link",
+   "DROP VIEW",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_dropview.html",
+   "DROP VIEW"
+  ],
+  "32": [
+   32,
+   "link",
+   "END TRANSACTION",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_transaction.html",
+   "END TRANSACTION"
+  ],
+  "33": [
+   33,
+   "link",
+   "EXPLAIN",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_explain.html",
+   "EXPLAIN"
+  ],
+  "34": [
+   34,
+   "link",
+   "expression",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_expr.html",
+   "expression"
+  ],
+  "35": [
+   35,
+   "link",
+   "INDEXED BY",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_indexedby.html",
+   "INDEXED BY"
+  ],
+  "36": [
+   36,
+   "link",
+   "INSERT",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_insert.html",
+   "INSERT"
+  ],
+  "37": [
+   37,
+   "link",
+   "JSON functions",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "json1.html",
+   "JSON functions"
+  ],
+  "38": [
+   38,
+   "link",
+   "keywords",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_keywords.html",
+   "keywords"
+  ],
+  "39": [
+   39,
+   "link",
+   "math functions",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_mathfunc.html",
+   "math functions"
+  ],
+  "4": [
+   4,
+   "link",
+   "Download",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "download.html",
+   "Download"
+  ],
+  "40": [
+   40,
+   "link",
+   "ON CONFLICT clause",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_conflict.html",
+   "ON CONFLICT clause"
+  ],
+  "41": [
+   41,
+   "link",
+   "PRAGMA",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "pragma.html#syntax",
+   "PRAGMA"
+  ],
+  "42": [
+   42,
+   "link",
+   "REINDEX",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_reindex.html",
+   "REINDEX"
+  ],
+  "43": [
+   43,
+   "link",
+   "RELEASE SAVEPOINT",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_savepoint.html",
+   "RELEASE SAVEPOINT"
+  ],
+  "44": [
+   44,
+   "link",
+   "REPLACE",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_replace.html",
+   "REPLACE"
+  ],
+  "45": [
+   45,
+   "link",
+   "RETURNING clause",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_returning.html",
+   "RETURNING clause"
+  ],
+  "46": [
+   46,
+   "link",
+   "ROLLBACK TRANSACTION",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_transaction.html",
+   "ROLLBACK TRANSACTION"
+  ],
+  "47": [
+   47,
+   "link",
+   "SAVEPOINT",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_savepoint.html",
+   "SAVEPOINT"
+  ],
+  "48": [
+   48,
+   "link",
+   "SELECT",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_select.html",
+   "SELECT"
+  ],
+  "49": [
+   49,
+   "link",
+   "UPDATE",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_update.html",
+   "UPDATE"
+  ],
+  "5": [
+   5,
+   "link",
+   "License",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "copyright.html",
+   "License"
+  ],
+  "50": [
+   50,
+   "link",
+   "UPSERT",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_upsert.html",
+   "UPSERT"
+  ],
+  "51": [
+   51,
+   "link",
+   "VACUUM",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_vacuum.html",
+   "VACUUM"
+  ],
+  "52": [
+   52,
+   "link",
+   "window functions",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "windowfunctions.html",
+   "window functions"
+  ],
+  "53": [
+   53,
+   "link",
+   "WITH clause",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "lang_with.html",
+   "WITH clause"
+  ],
+  "54": [
+   54,
+   "link",
+   "sqlite3_prepare_v2()",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "c3ref/prepare.html",
+   "The routines sqlite3_prepare_v2(), sqlite3_prepare(), sqlite3_prepare16(), sqlite3_prepare16_v2(), sqlite3_exec(), and sqlite3_get_table() accept an SQL statement list (sql-stmt-list) which is a semicolon-separated list of statements."
+  ],
+  "55": [
+   55,
+   "link",
+   "sqlite3_prepare()",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "c3ref/prepare.html",
+   "The routines sqlite3_prepare_v2(), sqlite3_prepare(), sqlite3_prepare16(), sqlite3_prepare16_v2(), sqlite3_exec(), and sqlite3_get_table() accept an SQL statement list (sql-stmt-list) which is a semicolon-separated list of statements."
+  ],
+  "56": [
+   56,
+   "link",
+   "sqlite3_prepare16()",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "c3ref/prepare.html",
+   "The routines sqlite3_prepare_v2(), sqlite3_prepare(), sqlite3_prepare16(), sqlite3_prepare16_v2(), sqlite3_exec(), and sqlite3_get_table() accept an SQL statement list (sql-stmt-list) which is a semicolon-separated list of statements."
+  ],
+  "57": [
+   57,
+   "link",
+   "sqlite3_prepare16_v2()",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "c3ref/prepare.html",
+   "The routines sqlite3_prepare_v2(), sqlite3_prepare(), sqlite3_prepare16(), sqlite3_prepare16_v2(), sqlite3_exec(), and sqlite3_get_table() accept an SQL statement list (sql-stmt-list) which is a semicolon-separated list of statements."
+  ],
+  "58": [
+   58,
+   "link",
+   "sqlite3_exec()",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "c3ref/exec.html",
+   "The routines sqlite3_prepare_v2(), sqlite3_prepare(), sqlite3_prepare16(), sqlite3_prepare16_v2(), sqlite3_exec(), and sqlite3_get_table() accept an SQL statement list (sql-stmt-list) which is a semicolon-separated list of statements."
+  ],
+  "59": [
+   59,
+   "link",
+   "sqlite3_get_table()",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "c3ref/free_table.html",
+   "The routines sqlite3_prepare_v2(), sqlite3_prepare(), sqlite3_prepare16(), sqlite3_prepare16_v2(), sqlite3_exec(), and sqlite3_get_table() accept an SQL statement list (sql-stmt-list) which is a semicolon-separated list of statements."
+  ],
+  "6": [
+   6,
+   "link",
+   "Support",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "support.html",
+   "Support"
+  ],
+  "60": [
+   60,
+   "link",
+   "sql-stmt-list:",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "syntax/sql-stmt-list.html",
+   "sql-stmt-list:"
+  ],
+  "7": [
+   7,
+   "link",
+   "Purchase",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "prosupport.html",
+   "Purchase"
+  ],
+  "8": [
+   8,
+   "link",
+   "Search",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "javascript:void(0)",
+   "Search"
+  ],
+  "9": [
+   9,
+   "link",
+   "omit some features",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "omitted.html",
+   "SQLite understands most of the standard SQL language. But it does omit some features while at the same time adding a few features of its own. This document attempts to describe precisely what parts of the SQL language SQLite does and does not support. A list of SQL keywords is also provided. The SQL language syntax is described by syntax diagrams."
+  ]
+ },
+ "h": 780,
+ "marker": [
+  1791663240301,
+  "https://www.sqlite.org/lang.html",
+  0,
+  0,
+  1120,
+  780,
+  "Query Language Understood by SQLite",
+  "Small. Fast. Reliable.\nChoose any three.\nHome\nAbout\nDocumentation\nDownload\nLicense\nSupport\nPurchase\nSearch\nSQL As Understood By SQLite\nSQLite understands most of the standard SQL\nlanguage.  But it does\nomit some features\nwhile at the same time\nadding a few features of its own.  This document attempts to\ndescribe precisely what parts of the SQL language SQLite does\nand does not support.  A list of\nSQL keywords\nis\nalso provided.  The SQL language syntax is described by\nsyntax diagrams\n.\nThe following syntax documentation topics are available:\naggregate functions\nALTER TABLE\nANALYZE\nATTACH DATABASE\nBEGIN TRANSACTION\ncomment\nCOMMIT TRANSACTION\ncore functions\nCREATE INDEX\nCREATE TABLE\nCREATE TRIGGER\nCREATE VIEW\nCREATE VIRTUAL TABLE\ndate and time functions\nDELETE\nDETACH DATABASE\nDROP INDEX\nDROP TABLE\nDROP TRIGGER\nDROP VIEW\nEND TRANSACTION\nEXPLAIN\nexpression\nINDEXED BY\nINSERT\nJSON functions\nkeywords\nmath functions\nON CONFLICT clause\nPRAGMA\nREINDEX\nRELEASE SAVEPOINT\nREPLACE\nRETURNING clause\nROLLBACK TRANSACTION\nSAVEPOINT\nSELECT\nUPDATE\nUPSERT\nVACUUM\nwindow functions\nWITH clause\nThe routines\nsqlite3_prepare_v2()\n,\nsqlite3_prepare()\n,\nsqlite3_prepare16()\n,\nsqlite3_prepare16_v2()\n,\nsqlite3_exec()\n, and\nsqlite3_get_table()\naccept\nan SQL statement list (sql-stmt-list) which is a semicolon-separated\nlist of statements.\nsql-stmt-list:\n;",
+  [
+   {
+    "href": "index.html",
+    "kind": "click",
+    "label": "Home",
+    "node": 1,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "about.html",
+    "kind": "click",
+    "label": "About",
+    "node": 2,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "docs.html",
+    "kind": "click",
+    "label": "Documentation",
+    "node": 3,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "download.html",
+    "kind": "click",
+    "label": "Download",
+    "node": 4,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "copyright.html",
+    "kind": "click",
+    "label": "License",
+    "node": 5,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "support.html",
+    "kind": "click",
+    "label": "Support",
+    "node": 6,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "prosupport.html",
+    "kind": "click",
+    "label": "Purchase",
+    "node": 7,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Search",
+    "node": 8,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "omitted.html",
+    "kind": "click",
+    "label": "omit some features",
+    "node": 9,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_keywords.html",
+    "kind": "click",
+    "label": "SQL keywords",
+    "node": 10,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "syntaxdiagrams.html",
+    "kind": "click",
+    "label": "syntax diagrams",
+    "node": 11,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_aggfunc.html",
+    "kind": "click",
+    "label": "aggregate functions",
+    "node": 12,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_altertable.html",
+    "kind": "click",
+    "label": "ALTER TABLE",
+    "node": 13,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_analyze.html",
+    "kind": "click",
+    "label": "ANALYZE",
+    "node": 14,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_attach.html",
+    "kind": "click",
+    "label": "ATTACH DATABASE",
+    "node": 15,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_transaction.html",
+    "kind": "click",
+    "label": "BEGIN TRANSACTION",
+    "node": 16,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_comment.html",
+    "kind": "click",
+    "label": "comment",
+    "node": 17,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_transaction.html",
+    "kind": "click",
+    "label": "COMMIT TRANSACTION",
+    "node": 18,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_corefunc.html",
+    "kind": "click",
+    "label": "core functions",
+    "node": 19,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_createindex.html",
+    "kind": "click",
+    "label": "CREATE INDEX",
+    "node": 20,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_createtable.html",
+    "kind": "click",
+    "label": "CREATE TABLE",
+    "node": 21,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_createtrigger.html",
+    "kind": "click",
+    "label": "CREATE TRIGGER",
+    "node": 22,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_createview.html",
+    "kind": "click",
+    "label": "CREATE VIEW",
+    "node": 23,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_createvtab.html",
+    "kind": "click",
+    "label": "CREATE VIRTUAL TABLE",
+    "node": 24,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_datefunc.html",
+    "kind": "click",
+    "label": "date and time functions",
+    "node": 25,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_delete.html",
+    "kind": "click",
+    "label": "DELETE",
+    "node": 26,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_detach.html",
+    "kind": "click",
+    "label": "DETACH DATABASE",
+    "node": 27,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_dropindex.html",
+    "kind": "click",
+    "label": "DROP INDEX",
+    "node": 28,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_droptable.html",
+    "kind": "click",
+    "label": "DROP TABLE",
+    "node": 29,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_droptrigger.html",
+    "kind": "click",
+    "label": "DROP TRIGGER",
+    "node": 30,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_dropview.html",
+    "kind": "click",
+    "label": "DROP VIEW",
+    "node": 31,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_transaction.html",
+    "kind": "click",
+    "label": "END TRANSACTION",
+    "node": 32,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_explain.html",
+    "kind": "click",
+    "label": "EXPLAIN",
+    "node": 33,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_expr.html",
+    "kind": "click",
+    "label": "expression",
+    "node": 34,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_indexedby.html",
+    "kind": "click",
+    "label": "INDEXED BY",
+    "node": 35,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_insert.html",
+    "kind": "click",
+    "label": "INSERT",
+    "node": 36,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "json1.html",
+    "kind": "click",
+    "label": "JSON functions",
+    "node": 37,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_keywords.html",
+    "kind": "click",
+    "label": "keywords",
+    "node": 38,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_mathfunc.html",
+    "kind": "click",
+    "label": "math functions",
+    "node": 39,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_conflict.html",
+    "kind": "click",
+    "label": "ON CONFLICT clause",
+    "node": 40,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "pragma.html#syntax",
+    "kind": "click",
+    "label": "PRAGMA",
+    "node": 41,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_reindex.html",
+    "kind": "click",
+    "label": "REINDEX",
+    "node": 42,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_savepoint.html",
+    "kind": "click",
+    "label": "RELEASE SAVEPOINT",
+    "node": 43,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_replace.html",
+    "kind": "click",
+    "label": "REPLACE",
+    "node": 44,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_returning.html",
+    "kind": "click",
+    "label": "RETURNING clause",
+    "node": 45,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_transaction.html",
+    "kind": "click",
+    "label": "ROLLBACK TRANSACTION",
+    "node": 46,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_savepoint.html",
+    "kind": "click",
+    "label": "SAVEPOINT",
+    "node": 47,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_select.html",
+    "kind": "click",
+    "label": "SELECT",
+    "node": 48,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_update.html",
+    "kind": "click",
+    "label": "UPDATE",
+    "node": 49,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_upsert.html",
+    "kind": "click",
+    "label": "UPSERT",
+    "node": 50,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_vacuum.html",
+    "kind": "click",
+    "label": "VACUUM",
+    "node": 51,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "windowfunctions.html",
+    "kind": "click",
+    "label": "window functions",
+    "node": 52,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "lang_with.html",
+    "kind": "click",
+    "label": "WITH clause",
+    "node": 53,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "c3ref/prepare.html",
+    "kind": "click",
+    "label": "sqlite3_prepare_v2()",
+    "node": 54,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "c3ref/prepare.html",
+    "kind": "click",
+    "label": "sqlite3_prepare()",
+    "node": 55,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "c3ref/prepare.html",
+    "kind": "click",
+    "label": "sqlite3_prepare16()",
+    "node": 56,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "c3ref/prepare.html",
+    "kind": "click",
+    "label": "sqlite3_prepare16_v2()",
+    "node": 57,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "c3ref/exec.html",
+    "kind": "click",
+    "label": "sqlite3_exec()",
+    "node": 58,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "c3ref/free_table.html",
+    "kind": "click",
+    "label": "sqlite3_get_table()",
+    "node": 59,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "syntax/sql-stmt-list.html",
+    "kind": "click",
+    "label": "sql-stmt-list:",
+    "node": 60,
+    "role": "link",
+    "value": ""
+   }
+  ],
+  null
+ ],
+ "marker_stable": [
+  1791663240301,
+  "https://www.sqlite.org/lang.html",
+  "Query Language Understood by SQLite"
+ ],
+ "omitted_actions": 0,
+ "page_key": [
+  1791663240301,
+  "https://www.sqlite.org/lang.html",
+  0,
+  0,
+  1120,
+  780
+ ],
+ "scroll": {
+  "height": 2004,
+  "y": 0
+ },
+ "text": "Small. Fast. Reliable.\nChoose any three.\nHome\nAbout\nDocumentation\nDownload\nLicense\nSupport\nPurchase\nSearch\nSQL As Understood By SQLite\nSQLite understands most of the standard SQL\nlanguage.  But it does\nomit some features\nwhile at the same time\nadding a few features of its own.  This document attempts to\ndescribe precisely what parts of the SQL language SQLite does\nand does not support.  A list of\nSQL keywords\nis\nalso provided.  The SQL language syntax is described by\nsyntax diagrams\n.\nThe following syntax documentation topics are available:\naggregate functions\nALTER TABLE\nANALYZE\nATTACH DATABASE\nBEGIN TRANSACTION\ncomment\nCOMMIT TRANSACTION\ncore functions\nCREATE INDEX\nCREATE TABLE\nCREATE TRIGGER\nCREATE VIEW\nCREATE VIRTUAL TABLE\ndate and time functions\nDELETE\nDETACH DATABASE\nDROP INDEX\nDROP TABLE\nDROP TRIGGER\nDROP VIEW\nEND TRANSACTION\nEXPLAIN\nexpression\nINDEXED BY\nINSERT\nJSON functions\nkeywords\nmath functions\nON CONFLICT clause\nPRAGMA\nREINDEX\nRELEASE SAVEPOINT\nREPLACE\nRETURNING clause\nROLLBACK TRANSACTION\nSAVEPOINT\nSELECT\nUPDATE\nUPSERT\nVACUUM\nwindow functions\nWITH clause\nThe routines\nsqlite3_prepare_v2()\n,\nsqlite3_prepare()\n,\nsqlite3_prepare16()\n,\nsqlite3_prepare16_v2()\n,\nsqlite3_exec()\n, and\nsqlite3_get_table()\naccept\nan SQL statement list (sql-stmt-list) which is a semicolon-separated\nlist of statements.\nsql-stmt-list:\n;",
+ "title": "Query Language Understood by SQLite",
+ "url": "https://www.sqlite.org/lang.html",
+ "w": 1120
+}

@@ -1521,6 +1521,184 @@ def t_scroll_to_named_target():
     assert r4 is not None and r4["skill"] != "scroll_to_named_target", r4
 
 
+# ---------------------------------------------------------------------------
+# #59 到站即停：goal 引号里点名的那条链**已经踩过、页也换了** → 不许再为那个短语翻页面
+# ---------------------------------------------------------------------------
+#
+# 六行全部照抄 b24 的 step/decision 事件
+# （`logs/real-1011-b24-ipc58-1011-015958/r1xx.jsonl`）：第 1 拍 `explicit_target` 点中
+# goal 里的短语、`page_changed=True`、落地页就是断言页；之后 3–4 拍全是
+# `scroll_to_named_target` 在到达页上找同一个短语——r123 第 6 拍甚至走到 `search_type`
+# （把目标名打进站内搜索框），r142 第 6–8 拍是模型点在陌生人上传的文件链接上。
+# 到达页是 `m2/probe_arrival_fixtures.py` 从 b24 的 final_url 抓的**真实快照**。
+#
+# 关键事实（`m2/real-log.md` 的短语计数表）：goal 的引号短语是**起点页那条链的标签**，
+# 不是目的地的标识——r126 的 'SQL Syntax' 在 lang.html 正文里出现 **0** 次。所以任何
+# "在到达页上找短语"的判据结构性地不会满足，翻页面只是白翻。
+ARRIVAL_ROWS = [
+    ("r123", "https://numpy.org/doc/stable/", "To the absolute beginner’s guide",
+     "From the NumPy documentation home, open 'To the absolute beginner’s guide'."),
+    ("r124", "https://numpy.org/doc/stable/", "API reference",
+     "From the NumPy documentation home, open the 'API reference'."),
+    ("r126", "https://www.sqlite.org/", "SQL Syntax",
+     "From the SQLite home page, open the 'SQL Syntax' page."),
+    ("r134", "https://docs.python.org/3/", "Library reference",
+     "From the Python documentation home, open the 'Library reference'."),
+    ("r142", "https://the-internet.herokuapp.com/", "File Download",
+     "From the example list, open the 'File Download' page."),
+    ("r148", "https://developer.mozilla.org/en-US/docs/Learn", "Core modules",
+     "From the MDN Learn page, open the 'Core modules' section."),
+]
+
+
+def _followed(start_url: str, label: str, landed: str, moved: bool = True) -> list:
+    """**结算之后**的历史条目（`agent.py:596-608` 的形状，不是追加那一刻的形状）。
+
+    这条区别是 #59 第一次实盘复跑全线没开火的原因：agent 在观测之后把 `url` 改写成
+    落地页，另存 `url_from` 是出发页，"换没换页"记在 `outcome.url_changed` 上。
+    我第一版按"历史里的 url 还是出发页"写判据，离线 72/72 全过、实盘一次都不开火。
+    """
+    return [{
+        "step": 1, "kind": "click", "action": label, "operation": "CLICK",
+        "url": landed, "url_from": start_url,
+        "page_changed": moved,
+        "outcome": {"status": "url_changed" if moved else "no_effect",
+                    "page_changed": moved, "url_changed": moved},
+        "skill": "explicit_target",
+    }]
+
+
+def _arrival_done(d):
+    return bool(d and d.get("choice") == "DONE"
+                and d.get("skill") == "link_followed_arrival")
+
+
+@case("#59 到站即停：踩过 goal 点名的链且页已换 → 第一决策必须是 DONE（六行真实到达页）")
+def t_link_followed_arrival_stops_the_hunt():
+    for tid, start, label, goal in ARRIVAL_ROWS:
+        page = fixture("%s_arrival.json" % tid)
+        d = S.route(page, goal, _followed(start, label, page["url"]))
+        assert d is not None, f"{tid} 到站后地板全体弃权（那一句还是交给模型乱点）"
+        assert _arrival_done(d), \
+            f"{tid} 到站后还在动手：skill={d.get('skill')} choice={d.get('choice')!r}"
+
+
+@case("#59 负例：那一拍根本没换页（outcome.url_changed=False）不许 DONE")
+def t_arrival_requires_an_actual_page_change():
+    tid, start, label, goal = ARRIVAL_ROWS[2]              # r126
+    page = {**fixture("r126_arrival.json"), "url": start}   # 还站在起点页那张
+    d = S.route(page, goal, _followed(start, label, start, moved=False))
+    assert not _arrival_done(d), \
+        "站在起点页上假装到了站——DONE 会把没走过的路说成走完了"
+
+
+@case("#59 负例：已经从落地页走开了（当前页 ≠ 那条历史的落地页）不许 DONE")
+def t_arrival_only_speaks_on_the_landing_page():
+    tid, start, label, goal = ARRIVAL_ROWS[2]              # r126
+    page = {**fixture("r126_arrival.json"), "url": "https://www.sqlite.org/somedownstream"}
+    d = S.route(page, goal, _followed(start, label, "https://www.sqlite.org/lang.html"))
+    assert not (d and d.get("skill") == "link_followed_arrival"), \
+        "落地之后的第三、第四张页上还由到达档说话，它会追认任何一站"
+
+
+@case("#59 负例：踩的链不是 goal 点名的那条（点到陌生人上传的文件上）不许 DONE")
+def t_arrival_requires_the_named_phrase_to_be_the_clicked_link():
+    tid, start, _label, goal = ARRIVAL_ROWS[4]             # r142
+    page = fixture("r142_arrival.json")
+    d = S.route(page, goal, _followed(start, "download-fae92529-3e0b-4b5a-8b0c.txt",
+                                     page["url"]))
+    assert not (d and d.get("skill") == "link_followed_arrival"), \
+        "随便点一条链接都算到站，这个档就成了任意导航的 DONE"
+
+
+@case("#59 负例：goal 要搜索/填写时不属于导航档（那一族有自己的收口）")
+def t_arrival_abstains_when_goal_asks_for_a_search():
+    tid, start, label, _goal = ARRIVAL_ROWS[2]             # r126
+    page = fixture("r126_arrival.json")
+    goal = "Search the site for 'SQL Syntax' and open the first result."
+    d = S.route(page, goal, _followed(start, label, page["url"]))
+    assert not (d and d.get("skill") == "link_followed_arrival"), \
+        "goal 写了 search，到达档不许抢 `search_type` 的活"
+
+
+@case("#59 负例：跳到**别的站**的链接不算到站（同主机守卫）")
+def t_arrival_stays_on_the_same_host():
+    tid, _start, label, goal = ARRIVAL_ROWS[2]             # r126
+    page = fixture("r126_arrival.json")                    # url 是 sqlite.org/lang.html
+    d = S.route(page, goal, _followed("https://example.com/", label, page["url"]))
+    assert not (d and d.get("skill") == "link_followed_arrival"), \
+        "从别的站点跳过来就 DONE，等于把外链广告页当成任务终点"
+
+
+@case("#59 负例：历史条目没有出发页（url_from 缺失）时不许猜")
+def t_arrival_needs_the_departure_url():
+    tid, start, label, goal = ARRIVAL_ROWS[2]              # r126
+    page = fixture("r126_arrival.json")
+    hist = [{k: v for k, v in h.items() if k != "url_from"}
+            for h in _followed(start, label, page["url"])]
+    d = S.route(page, goal, hist)
+    assert not (d and d.get("skill") == "link_followed_arrival"), \
+        "没有出发页就默认同站，守卫等于没有"
+
+
+@case("#59 负例：第一拍（还没有任何动作）不许 DONE")
+def t_arrival_needs_history():
+    tid, start, label, goal = ARRIVAL_ROWS[2]              # r126
+    page = fixture("r126_arrival.json")
+    for hist in ([], [{"step": 1, "kind": "wait", "url": page["url"],
+                       "url_from": start, "outcome": {"url_changed": False}}]):
+        d = S.route(page, goal, hist)
+        assert not (d and d.get("skill") == "link_followed_arrival"), \
+            f"history={hist} 时到达档开火了"
+
+
+@case("#59 负例（b25 的真错）：goal 里**容器**短语被点中时不许 DONE")
+def t_arrival_anchors_on_the_destination_phrase_not_the_container():
+    # b25 的 r110 逐字（logs/real-1011-b25-fix5960-1011-052452/r110.jsonl）：
+    # goal = In 'The Rust Programming Language' book, go forward to Chapter 4,
+    #        'Understanding Ownership'.
+    # 第 1 拍 explicit_target 点的是**容器**那条链（'The Rust Programming Language'），
+    # 落地 book/index.html；目的地是第二个短语。到达档把容器当成终点 → DONE → 该行 FAIL
+    # （b24 里这行是 PASS 3 拍：还要再点一次 'Understanding Ownership' 才到 ch04）。
+    goal = ("In 'The Rust Programming Language' book, go forward to Chapter 4, "
+            "'Understanding Ownership'.")
+    page = {"url": "https://doc.rust-lang.org/stable/book/index.html"}
+    hist = _followed("https://doc.rust-lang.org/stable/",
+                     "The Rust Programming Language", page["url"])
+    d = S.link_followed_arrival(page, goal, hist)
+    assert d is None, f"容器短语被认成了目的地：{d}"
+
+
+@case("#59 正例补：同一句 goal，踩中**目的地**短语之后就该 DONE")
+def t_arrival_fires_on_the_destination_phrase_of_a_two_phrase_goal():
+    goal = ("In 'The Rust Programming Language' book, go forward to Chapter 4, "
+            "'Understanding Ownership'.")
+    page = {"url": "https://doc.rust-lang.org/stable/book/ch04-00-understanding-ownership.html"}
+    hist = _followed("https://doc.rust-lang.org/stable/book/index.html",
+                     "Understanding Ownership", page["url"])
+    d = S.link_followed_arrival(page, goal, hist)
+    assert d and d.get("skill") == "link_followed_arrival", d
+
+
+@case("#59 负例：goal 里认不出导航动词就不开火（不知道要去哪儿，别说到了）")
+def t_arrival_fails_closed_without_a_navigation_verb():
+    tid, start, label, _goal = ARRIVAL_ROWS[2]              # r126
+    page = fixture("r126_arrival.json")
+    hist = _followed(start, label, page["url"])
+    for goal in ("The 'SQL Syntax' page exists.", "About 'SQL Syntax'."):
+        d = S.link_followed_arrival(page, goal, hist)
+        assert d is None, f"没有导航动词的 goal 也开火了：{goal!r}"
+
+
+@case("#59 负例：导航动词后面没有短语 → 弃权")
+def t_arrival_needs_the_phrase_to_follow_the_verb():
+    goal = "Open the page, then read the section about books."
+    page = {"url": "https://doc.rust-lang.org/stable/book/ch04-00-understanding-ownership.html"}
+    hist = _followed("https://doc.rust-lang.org/stable/", "Getting started", page["url"])
+    d = S.link_followed_arrival(page, goal, hist)
+    assert d is None, "动词之后没有具名终点，到达档却说话"
+
+
 def main():
     # Windows PowerShell 5.1 的控制台是 GBK，而用例名里有 'ö' 等非 GBK 字符
     # （v1.16 / 源码里的地名）。print 会抛 UnicodeEncodeError 并**中断整个套件**，

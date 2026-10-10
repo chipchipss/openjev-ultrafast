@@ -1,0 +1,201 @@
+{
+  "summary": {
+    "total": 6,
+    "pass": 6,
+    "fail": 0,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "true_success": 6
+    },
+    "failure_modes": {},
+    "agent_modes": {},
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "r123",
+      "result": {
+        "task_id": "r123",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://numpy.org/doc/stable/user/absolute_beginners.html#",
+          "final_title": "NumPy: the absolute basics for beginners — NumPy v2.5 Manual",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "numpy\\.org/doc/stable/user/absolute_beginners\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 9,
+          "model_calls": 15,
+          "api_calls": 0,
+          "elapsed_ms": 22665
+        }
+      }
+    },
+    {
+      "task_id": "r124",
+      "result": {
+        "task_id": "r124",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://numpy.org/doc/stable/reference/index.html#",
+          "final_title": "NumPy reference — NumPy v2.5 Manual",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "numpy\\.org/doc/stable/reference/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 8,
+          "model_calls": 15,
+          "api_calls": 0,
+          "elapsed_ms": 17565
+        }
+      }
+    },
+    {
+      "task_id": "r126",
+      "result": {
+        "task_id": "r126",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/lang.html",
+          "final_title": "Query Language Understood by SQLite",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 6,
+          "api_calls": 0,
+          "elapsed_ms": 9583
+        }
+      }
+    },
+    {
+      "task_id": "r134",
+      "result": {
+        "task_id": "r134",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/library/index.html",
+          "final_title": "The Python standard library — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/library/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 5,
+          "model_calls": 7,
+          "api_calls": 0,
+          "elapsed_ms": 13392
+        }
+      }
+    },
+    {
+      "task_id": "r142",
+      "result": {
+        "task_id": "r142",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/download",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "the-internet\\.herokuapp\\.com/download$"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 8,
+          "model_calls": 9,
+          "api_calls": 0,
+          "elapsed_ms": 19246
+        }
+      }
+    },
+    {
+      "task_id": "r148",
+      "result": {
+        "task_id": "r148",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core",
+          "final_title": "Core learning modules - Learn web development | MDN",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "developer\\.mozilla\\.org/en-US/docs/Learn_web_development/Core/?$"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 15,
+          "model_calls": 21,
+          "api_calls": 0,
+          "elapsed_ms": 33443
+        }
+      }
+    }
+  ]
+}

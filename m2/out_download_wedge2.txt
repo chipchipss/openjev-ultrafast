@@ -1,0 +1,11 @@
+导航后 2 秒，每个 session 各试一次 evaluate（6 秒上限）：
+  heroku /download            6.03s _IPCResponseTimeout
+  heroku /                    0.02s 正常
+  example.com                 0.03s 正常
+  heroku /download 第二次        6.03s _IPCResponseTimeout
+  heroku /download           -> 120s 内始终超时（累计 24 次）
+  heroku /download 第二次       -> 120s 内始终超时（累计 24 次）
+  heroku /download           状态不可读（_IPCResponseTimeout）
+  heroku /                   complete|https://the-internet.herokuapp.com/|anchors=46
+  example.com                complete|https://example.com/|anchors=1
+  heroku /download 第二次       状态不可读（_IPCResponseTimeout）

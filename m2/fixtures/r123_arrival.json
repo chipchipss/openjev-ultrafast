@@ -1,0 +1,1186 @@
+{
+ "actions": [
+  {
+   "href": "../index.html",
+   "id": "e1",
+   "kind": "click",
+   "label": "NumPy v2.5 Manual - Home \n     NumPy v2.5 Manual - Home",
+   "node": 1,
+   "rect": {
+    "h": 64,
+    "w": 155.59375,
+    "x": 16,
+    "y": 32
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "index.html",
+   "id": "e2",
+   "kind": "click",
+   "label": "User Guide",
+   "node": 2,
+   "rect": {
+    "h": 60.78125,
+    "w": 74.921875,
+    "x": 186.9375,
+    "y": 33.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../reference/index.html",
+   "id": "e3",
+   "kind": "click",
+   "label": "API reference",
+   "node": 3,
+   "rect": {
+    "h": 60.78125,
+    "w": 88.296875,
+    "x": 265.859375,
+    "y": 33.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../building/index.html",
+   "id": "e4",
+   "kind": "click",
+   "label": "Building from source",
+   "node": 4,
+   "rect": {
+    "h": 60.78125,
+    "w": 131.765625,
+    "x": 358.15625,
+    "y": 33.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../dev/index.html",
+   "id": "e5",
+   "kind": "click",
+   "label": "Development",
+   "node": 5,
+   "rect": {
+    "h": 34.390625,
+    "w": 112.34375,
+    "x": 493.921875,
+    "y": 33.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../release.html",
+   "id": "e6",
+   "kind": "click",
+   "label": "Release notes",
+   "node": 6,
+   "rect": {
+    "h": 60.78125,
+    "w": 90.703125,
+    "x": 610.265625,
+    "y": 33.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "https://numpy.org/numpy-tutorials/",
+   "id": "e7",
+   "kind": "click",
+   "label": "Learn",
+   "node": 7,
+   "rect": {
+    "h": 34.390625,
+    "w": 70.171875,
+    "x": 704.96875,
+    "y": 33.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "https://numpy.org/neps",
+   "id": "e8",
+   "kind": "click",
+   "label": "NEPs",
+   "node": 8,
+   "rect": {
+    "h": 34.390625,
+    "w": 65.78125,
+    "x": 779.140625,
+    "y": 33.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e9",
+   "kind": "click",
+   "label": "Search",
+   "node": 9,
+   "rect": {
+    "h": 34.390625,
+    "w": 24,
+    "x": 858.953125,
+    "y": 14.796875
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "id": "e10",
+   "kind": "click",
+   "label": "Color mode",
+   "node": 10,
+   "rect": {
+    "h": 34.390625,
+    "w": 24,
+    "x": 900.859375,
+    "y": 14.796875
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "id": "e11",
+   "kind": "click",
+   "label": "Version switcher list",
+   "node": 11,
+   "rect": {
+    "h": 29.5,
+    "w": 93.234375,
+    "x": 942.765625,
+    "y": 17.25
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "https://github.com/numpy/numpy",
+   "id": "e12",
+   "kind": "click",
+   "label": "GitHub",
+   "node": 12,
+   "rect": {
+    "h": 34.390625,
+    "w": 24,
+    "x": 1012,
+    "y": 78.796875
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e13",
+   "kind": "click",
+   "label": "On this page",
+   "node": 13,
+   "rect": {
+    "h": 34.390625,
+    "w": 37,
+    "x": 1052,
+    "y": 46.796875
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "expanded": "true",
+   "id": "e14",
+   "kind": "click",
+   "label": "Collapse Sidebar \n   Expand Sidebar",
+   "node": 14,
+   "rect": {
+    "h": 30.21875,
+    "w": 134.359375,
+    "x": 16,
+    "y": 141.125
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "whatisnumpy.html",
+   "id": "e15",
+   "kind": "click",
+   "label": "What is NumPy?",
+   "node": 15,
+   "rect": {
+    "h": 31.765625,
+    "w": 241.25,
+    "x": 16,
+    "y": 261.65625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "https://numpy.org/install/",
+   "id": "e16",
+   "kind": "click",
+   "label": "Installation",
+   "node": 16,
+   "rect": {
+    "h": 31.765625,
+    "w": 241.25,
+    "x": 16,
+    "y": 293.421875
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "quickstart.html",
+   "id": "e17",
+   "kind": "click",
+   "label": "NumPy quickstart",
+   "node": 17,
+   "rect": {
+    "h": 31.765625,
+    "w": 241.25,
+    "x": 16,
+    "y": 325.1875
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e18",
+   "kind": "click",
+   "label": "NumPy: the absolute basics for beginners",
+   "node": 18,
+   "rect": {
+    "h": 55.53125,
+    "w": 241.25,
+    "x": 16,
+    "y": 356.953125
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "basics.html",
+   "id": "e19",
+   "kind": "click",
+   "label": "NumPy fundamentals",
+   "node": 19,
+   "rect": {
+    "h": 31.765625,
+    "w": 241.25,
+    "x": 16,
+    "y": 464.25
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "numpy-for-matlab-users.html",
+   "id": "e20",
+   "kind": "click",
+   "label": "NumPy for MATLAB users",
+   "node": 20,
+   "rect": {
+    "h": 31.765625,
+    "w": 241.25,
+    "x": 16,
+    "y": 496.015625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "https://numpy.org/numpy-tutorials/",
+   "id": "e21",
+   "kind": "click",
+   "label": "NumPy tutorials",
+   "node": 21,
+   "rect": {
+    "h": 31.765625,
+    "w": 241.25,
+    "x": 16,
+    "y": 527.78125
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "howtos_index.html",
+   "id": "e22",
+   "kind": "click",
+   "label": "NumPy how-tos",
+   "node": 22,
+   "rect": {
+    "h": 31.765625,
+    "w": 241.25,
+    "x": 16,
+    "y": 559.546875
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "c-info.html",
+   "id": "e23",
+   "kind": "click",
+   "label": "Using NumPy C-API",
+   "node": 23,
+   "rect": {
+    "h": 31.765625,
+    "w": 241.25,
+    "x": 16,
+    "y": 666.84375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../f2py/index.html",
+   "id": "e24",
+   "kind": "click",
+   "label": "F2PY user guide and reference manual",
+   "node": 24,
+   "rect": {
+    "h": 55.53125,
+    "w": 241.25,
+    "x": 16,
+    "y": 698.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../index.html",
+   "id": "e25",
+   "kind": "click",
+   "label": "Home",
+   "node": 25,
+   "rect": {
+    "h": 21.109375,
+    "w": 14.390625,
+    "x": 303.25,
+    "y": 147
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "index.html",
+   "id": "e26",
+   "kind": "click",
+   "label": "NumPy user guide",
+   "node": 26,
+   "rect": {
+    "h": 21.109375,
+    "w": 113.140625,
+    "x": 347.640625,
+    "y": 147
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "whatisnumpy.html#whatisnumpy",
+   "id": "e27",
+   "kind": "click",
+   "label": "What is NumPy",
+   "node": 27,
+   "rect": {
+    "h": 22,
+    "w": 113.46875,
+    "x": 508.296875,
+    "y": 426
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "https://numpy.org/community/",
+   "id": "e28",
+   "kind": "click",
+   "label": "reach out",
+   "node": 28,
+   "rect": {
+    "h": 22,
+    "w": 71.1875,
+    "x": 1000.25,
+    "y": 426
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "https://numpy.org/install/",
+   "id": "e29",
+   "kind": "click",
+   "label": "installing NumPy",
+   "node": 29,
+   "rect": {
+    "h": 22,
+    "w": 125.15625,
+    "x": 333.140625,
+    "y": 552.28125
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "delta": 560,
+   "id": "scroll_down",
+   "kind": "scroll",
+   "label": "Scroll down"
+  },
+  {
+   "delta": 40935,
+   "id": "scroll_bottom",
+   "kind": "scroll",
+   "label": "Scroll to bottom"
+  },
+  {
+   "id": "reload",
+   "kind": "reload",
+   "label": "Reload the page"
+  },
+  {
+   "id": "wait",
+   "kind": "wait",
+   "label": "Wait for the page to update"
+  }
+ ],
+ "fingerprint": "9b21be944b8039dfc3cee0091245bd8256c02b4f2fc77484a803a497c1537caf",
+ "guards": {
+  "1": [
+   1,
+   "link",
+   "NumPy v2.5 Manual - Home \n     NumPy v2.5 Manual - Home",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../index.html",
+   ""
+  ],
+  "10": [
+   10,
+   "button",
+   "Color mode",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   ""
+  ],
+  "11": [
+   11,
+   "button",
+   "Version switcher list",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "2.5 (stable)"
+  ],
+  "12": [
+   12,
+   "link",
+   "GitHub",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://github.com/numpy/numpy",
+   "GitHub"
+  ],
+  "13": [
+   13,
+   "button",
+   "On this page",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "User Guide\nAPI reference\nBuilding from source\nDevelopment\nRelease notes\nLearn\nNEPs\n2.5 (stable)\nGitHub"
+  ],
+  "14": [
+   14,
+   "button",
+   "Collapse Sidebar \n   Expand Sidebar",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   "true",
+   null,
+   null,
+   null,
+   "Collapse Sidebar"
+  ],
+  "15": [
+   15,
+   "link",
+   "What is NumPy?",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "whatisnumpy.html",
+   "What is NumPy?"
+  ],
+  "16": [
+   16,
+   "link",
+   "Installation",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://numpy.org/install/",
+   "Installation"
+  ],
+  "17": [
+   17,
+   "link",
+   "NumPy quickstart",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "quickstart.html",
+   "NumPy quickstart"
+  ],
+  "18": [
+   18,
+   "link",
+   "NumPy: the absolute basics for beginners",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "#",
+   "NumPy: the absolute basics for beginners"
+  ],
+  "19": [
+   19,
+   "link",
+   "NumPy fundamentals",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "basics.html",
+   "NumPy fundamentals"
+  ],
+  "2": [
+   2,
+   "link",
+   "User Guide",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "index.html",
+   "User Guide"
+  ],
+  "20": [
+   20,
+   "link",
+   "NumPy for MATLAB users",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "numpy-for-matlab-users.html",
+   "NumPy for MATLAB users"
+  ],
+  "21": [
+   21,
+   "link",
+   "NumPy tutorials",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://numpy.org/numpy-tutorials/",
+   "NumPy tutorials"
+  ],
+  "22": [
+   22,
+   "link",
+   "NumPy how-tos",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "howtos_index.html",
+   "NumPy how-tos"
+  ],
+  "23": [
+   23,
+   "link",
+   "Using NumPy C-API",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "c-info.html",
+   "Using NumPy C-API"
+  ],
+  "24": [
+   24,
+   "link",
+   "F2PY user guide and reference manual",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../f2py/index.html",
+   "F2PY user guide and reference manual"
+  ],
+  "25": [
+   25,
+   "link",
+   "Home",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../index.html",
+   ""
+  ],
+  "26": [
+   26,
+   "link",
+   "NumPy user guide",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "index.html",
+   "NumPy user guide"
+  ],
+  "27": [
+   27,
+   "link",
+   "What is NumPy",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "whatisnumpy.html#whatisnumpy",
+   "NumPy: the absolute basics for beginners\n\nWelcome to the absolute beginner’s guide to NumPy!\n\nNumPy (Numerical Python) is an open source Python library that’s widely used in science and engineering. The NumPy library contains multidimensional array data structures, such as the homogeneous, N-dimensional ndarray, and a large library of functions that operate efficiently on these data structures. Learn more about NumPy at What is NumPy, and if you have comments or suggestions, please reach out!\n\nHow to import NumPy\n\nAfter installing NumPy, it may be imported into Python code like:\n\nimport numpy as np\n\n\nThis widespread convention allows access to NumPy features with a short, recognizable prefix (np.) while distinguishing NumPy features from others that have the same name.\n\nReading the example code\n\nThroughout the NumPy documentation, you will find blocks that look like:\n\n>>> a = np.array([[1, 2, 3],\n...               [4, 5, 6]])\n>>> a.shape\n(2, 3)\n\n\nText preceded by >>> or ... is input, the code that you would enter in a script or at a Python prompt. Everything else is output, the results of running your code. Note that >>> and ... are not part of the code and may cause an error if entered at a Python prompt.\n\nTo run the code in the examples, you can copy and paste it into a Python script or REPL, or use the experimental interactive examples in the browser provided in various locations in the documentation.\n\nWhy use NumPy?\n\nPython lists are excellent, general-purpose containers. They can be “heterogeneous”, meaning that they can contain elements of a variety of types, and they are quite fast when used to perform individual operations on a handful of elements.\n\nDepending on the characteristics of the data and the types of operations that need to be performed, other containers may be more appropriate; by exploiting these characteristics, we can improve speed, reduce memory consumption, and offer a high-level syntax for performing a variety of common processing tasks. NumPy shines when there are large quantities of “homogeneous” (same-type) data to be processed on the CPU.\n\nWhat is an “array”?\n\nIn computer programming, an array is a structure for storing and retrieving data. We often talk about an array as if it were a grid in space, with each cell storing one element of the data. For instance, if each element of the data were a number, we might visualize a “one-dimensional” array like a list:\n\n1\n\t\n5\n\t\n2\n\t\n0\n\nA two-dimensional array would be like a table:\n\n1\n\t\n5\n\t\n2\n\t\n0\n\n\n8\n\t\n3\n\t\n6\n\t\n1\n\n\n1\n\t\n7\n\t\n2\n\t\n9\n\nA three-dimensional array would be like a set of tables, perhaps stacked as though they were printed on separate pages. In NumPy, this idea is generalized to an arbitrary number of dimensions, and so the fundamental array class is called ndarray: it represents an “N-dimensional array”.\n\nMost NumPy arrays have some restrictions. For instance:\n\nAll elements of the array must be of the same type of data.\n\nOnce created, the total size of the array can’t change.\n\nThe shape must be “rectangular”, not “jagged”; e.g., each row of a two-dimensional array must have the same number of columns.\n\nWhen these conditions are met, NumPy exploits these characteristics to make the array faster, more memory efficient, and more convenient to use than less restrictive data structures.\n\nFor the remainder of this document, we will use the word “array” to refer to an instance of ndarray.\n\nArray fundamentals\n\nOne way to initialize an array is using a Python sequence, such as a list. For example:\n\n>>> a = np.array([1, 2, 3, 4, 5, 6])\n>>> a\narray([1, 2, 3, 4, 5, 6])\n\n\nElements of an array can be accessed in various ways. For instance, we can access an individual element of this array as we would access an element in the original list: using the integer index of the element within square brackets.\n\n>>> a[0]\n1\n\n\nNote\n\nAs with built-in Python sequences, NumPy arrays are “0-indexed”: the first element of the array is accessed using index 0, not 1.\n\nLike the original list, the array is mutable.\n\n>>> a[0] = 10\n>>> a\narray([10,  2,  3,  4,  5,  6])\n\n\nAlso like the original list, Python slice notation can be used for indexing.\n\n>>> a[:3]\narray([10, 2, 3])\n\n\nOne major difference is that slice indexing of a list copies the elements into a new list, but slicing an array returns a view: an object that refers to the data in the original array. The original array can be mutated using the view.\n\n>>> b = a[3:]\n>>> b\narray([4, 5, 6])\n>>> b[0] = 40\n>>> a\narray([ 10,  2,  3, 40,  5,  6])\n\n\nSee Copies and views for a more comprehensive explanation of when array operations return views rather than copies.\n\nTwo- and higher-dimensional arrays can be initialized from nested Python sequences:\n\n>>> a = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])\n>>> a\narray([[ 1,  2,  3,  4],\n       [ 5,  6,  7,  8],\n       [ 9, 10, 11, 12]])\n\n\nIn NumPy, a dimension of an array is sometimes referred to as an “axis”. This terminology may be useful to disambiguate between the dimensionality of an array and the dimensionality of the data represented by the array. For instance, the array a could represent three points, each lying within a four-dimensional space, but a has only two “axes”.\n\nAnother difference between an array and a list of lists is that an element of the array can be accessed by specifying the index along each axis within a single set of square brackets, separated by commas. For instance, the element 8 is in row 1 and column 3:\n\n>>> a[1, 3]\n8\n\n\nNote\n\nIt is familiar practice in mathematics to refer to elements of a matrix by the row index first and the column index second. This happens to be true for two-dimensional arrays, but a better mental model is to think of the column index as coming last and the row index as second to last. This generalizes to arrays with any number of dimensions.\n\nNote\n\nYou might hear of a 0-D (zero-dimensional) array referred to as a “scalar”, a 1-D (one-dimensional) array as a “vector”, a 2-D (two-dimensional) arra"
+  ],
+  "28": [
+   28,
+   "link",
+   "reach out",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://numpy.org/community/",
+   "NumPy: the absolute basics for beginners\n\nWelcome to the absolute beginner’s guide to NumPy!\n\nNumPy (Numerical Python) is an open source Python library that’s widely used in science and engineering. The NumPy library contains multidimensional array data structures, such as the homogeneous, N-dimensional ndarray, and a large library of functions that operate efficiently on these data structures. Learn more about NumPy at What is NumPy, and if you have comments or suggestions, please reach out!\n\nHow to import NumPy\n\nAfter installing NumPy, it may be imported into Python code like:\n\nimport numpy as np\n\n\nThis widespread convention allows access to NumPy features with a short, recognizable prefix (np.) while distinguishing NumPy features from others that have the same name.\n\nReading the example code\n\nThroughout the NumPy documentation, you will find blocks that look like:\n\n>>> a = np.array([[1, 2, 3],\n...               [4, 5, 6]])\n>>> a.shape\n(2, 3)\n\n\nText preceded by >>> or ... is input, the code that you would enter in a script or at a Python prompt. Everything else is output, the results of running your code. Note that >>> and ... are not part of the code and may cause an error if entered at a Python prompt.\n\nTo run the code in the examples, you can copy and paste it into a Python script or REPL, or use the experimental interactive examples in the browser provided in various locations in the documentation.\n\nWhy use NumPy?\n\nPython lists are excellent, general-purpose containers. They can be “heterogeneous”, meaning that they can contain elements of a variety of types, and they are quite fast when used to perform individual operations on a handful of elements.\n\nDepending on the characteristics of the data and the types of operations that need to be performed, other containers may be more appropriate; by exploiting these characteristics, we can improve speed, reduce memory consumption, and offer a high-level syntax for performing a variety of common processing tasks. NumPy shines when there are large quantities of “homogeneous” (same-type) data to be processed on the CPU.\n\nWhat is an “array”?\n\nIn computer programming, an array is a structure for storing and retrieving data. We often talk about an array as if it were a grid in space, with each cell storing one element of the data. For instance, if each element of the data were a number, we might visualize a “one-dimensional” array like a list:\n\n1\n\t\n5\n\t\n2\n\t\n0\n\nA two-dimensional array would be like a table:\n\n1\n\t\n5\n\t\n2\n\t\n0\n\n\n8\n\t\n3\n\t\n6\n\t\n1\n\n\n1\n\t\n7\n\t\n2\n\t\n9\n\nA three-dimensional array would be like a set of tables, perhaps stacked as though they were printed on separate pages. In NumPy, this idea is generalized to an arbitrary number of dimensions, and so the fundamental array class is called ndarray: it represents an “N-dimensional array”.\n\nMost NumPy arrays have some restrictions. For instance:\n\nAll elements of the array must be of the same type of data.\n\nOnce created, the total size of the array can’t change.\n\nThe shape must be “rectangular”, not “jagged”; e.g., each row of a two-dimensional array must have the same number of columns.\n\nWhen these conditions are met, NumPy exploits these characteristics to make the array faster, more memory efficient, and more convenient to use than less restrictive data structures.\n\nFor the remainder of this document, we will use the word “array” to refer to an instance of ndarray.\n\nArray fundamentals\n\nOne way to initialize an array is using a Python sequence, such as a list. For example:\n\n>>> a = np.array([1, 2, 3, 4, 5, 6])\n>>> a\narray([1, 2, 3, 4, 5, 6])\n\n\nElements of an array can be accessed in various ways. For instance, we can access an individual element of this array as we would access an element in the original list: using the integer index of the element within square brackets.\n\n>>> a[0]\n1\n\n\nNote\n\nAs with built-in Python sequences, NumPy arrays are “0-indexed”: the first element of the array is accessed using index 0, not 1.\n\nLike the original list, the array is mutable.\n\n>>> a[0] = 10\n>>> a\narray([10,  2,  3,  4,  5,  6])\n\n\nAlso like the original list, Python slice notation can be used for indexing.\n\n>>> a[:3]\narray([10, 2, 3])\n\n\nOne major difference is that slice indexing of a list copies the elements into a new list, but slicing an array returns a view: an object that refers to the data in the original array. The original array can be mutated using the view.\n\n>>> b = a[3:]\n>>> b\narray([4, 5, 6])\n>>> b[0] = 40\n>>> a\narray([ 10,  2,  3, 40,  5,  6])\n\n\nSee Copies and views for a more comprehensive explanation of when array operations return views rather than copies.\n\nTwo- and higher-dimensional arrays can be initialized from nested Python sequences:\n\n>>> a = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])\n>>> a\narray([[ 1,  2,  3,  4],\n       [ 5,  6,  7,  8],\n       [ 9, 10, 11, 12]])\n\n\nIn NumPy, a dimension of an array is sometimes referred to as an “axis”. This terminology may be useful to disambiguate between the dimensionality of an array and the dimensionality of the data represented by the array. For instance, the array a could represent three points, each lying within a four-dimensional space, but a has only two “axes”.\n\nAnother difference between an array and a list of lists is that an element of the array can be accessed by specifying the index along each axis within a single set of square brackets, separated by commas. For instance, the element 8 is in row 1 and column 3:\n\n>>> a[1, 3]\n8\n\n\nNote\n\nIt is familiar practice in mathematics to refer to elements of a matrix by the row index first and the column index second. This happens to be true for two-dimensional arrays, but a better mental model is to think of the column index as coming last and the row index as second to last. This generalizes to arrays with any number of dimensions.\n\nNote\n\nYou might hear of a 0-D (zero-dimensional) array referred to as a “scalar”, a 1-D (one-dimensional) array as a “vector”, a 2-D (two-dimensional) arra"
+  ],
+  "29": [
+   29,
+   "link",
+   "installing NumPy",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://numpy.org/install/",
+   "NumPy: the absolute basics for beginners\n\nWelcome to the absolute beginner’s guide to NumPy!\n\nNumPy (Numerical Python) is an open source Python library that’s widely used in science and engineering. The NumPy library contains multidimensional array data structures, such as the homogeneous, N-dimensional ndarray, and a large library of functions that operate efficiently on these data structures. Learn more about NumPy at What is NumPy, and if you have comments or suggestions, please reach out!\n\nHow to import NumPy\n\nAfter installing NumPy, it may be imported into Python code like:\n\nimport numpy as np\n\n\nThis widespread convention allows access to NumPy features with a short, recognizable prefix (np.) while distinguishing NumPy features from others that have the same name.\n\nReading the example code\n\nThroughout the NumPy documentation, you will find blocks that look like:\n\n>>> a = np.array([[1, 2, 3],\n...               [4, 5, 6]])\n>>> a.shape\n(2, 3)\n\n\nText preceded by >>> or ... is input, the code that you would enter in a script or at a Python prompt. Everything else is output, the results of running your code. Note that >>> and ... are not part of the code and may cause an error if entered at a Python prompt.\n\nTo run the code in the examples, you can copy and paste it into a Python script or REPL, or use the experimental interactive examples in the browser provided in various locations in the documentation.\n\nWhy use NumPy?\n\nPython lists are excellent, general-purpose containers. They can be “heterogeneous”, meaning that they can contain elements of a variety of types, and they are quite fast when used to perform individual operations on a handful of elements.\n\nDepending on the characteristics of the data and the types of operations that need to be performed, other containers may be more appropriate; by exploiting these characteristics, we can improve speed, reduce memory consumption, and offer a high-level syntax for performing a variety of common processing tasks. NumPy shines when there are large quantities of “homogeneous” (same-type) data to be processed on the CPU.\n\nWhat is an “array”?\n\nIn computer programming, an array is a structure for storing and retrieving data. We often talk about an array as if it were a grid in space, with each cell storing one element of the data. For instance, if each element of the data were a number, we might visualize a “one-dimensional” array like a list:\n\n1\n\t\n5\n\t\n2\n\t\n0\n\nA two-dimensional array would be like a table:\n\n1\n\t\n5\n\t\n2\n\t\n0\n\n\n8\n\t\n3\n\t\n6\n\t\n1\n\n\n1\n\t\n7\n\t\n2\n\t\n9\n\nA three-dimensional array would be like a set of tables, perhaps stacked as though they were printed on separate pages. In NumPy, this idea is generalized to an arbitrary number of dimensions, and so the fundamental array class is called ndarray: it represents an “N-dimensional array”.\n\nMost NumPy arrays have some restrictions. For instance:\n\nAll elements of the array must be of the same type of data.\n\nOnce created, the total size of the array can’t change.\n\nThe shape must be “rectangular”, not “jagged”; e.g., each row of a two-dimensional array must have the same number of columns.\n\nWhen these conditions are met, NumPy exploits these characteristics to make the array faster, more memory efficient, and more convenient to use than less restrictive data structures.\n\nFor the remainder of this document, we will use the word “array” to refer to an instance of ndarray.\n\nArray fundamentals\n\nOne way to initialize an array is using a Python sequence, such as a list. For example:\n\n>>> a = np.array([1, 2, 3, 4, 5, 6])\n>>> a\narray([1, 2, 3, 4, 5, 6])\n\n\nElements of an array can be accessed in various ways. For instance, we can access an individual element of this array as we would access an element in the original list: using the integer index of the element within square brackets.\n\n>>> a[0]\n1\n\n\nNote\n\nAs with built-in Python sequences, NumPy arrays are “0-indexed”: the first element of the array is accessed using index 0, not 1.\n\nLike the original list, the array is mutable.\n\n>>> a[0] = 10\n>>> a\narray([10,  2,  3,  4,  5,  6])\n\n\nAlso like the original list, Python slice notation can be used for indexing.\n\n>>> a[:3]\narray([10, 2, 3])\n\n\nOne major difference is that slice indexing of a list copies the elements into a new list, but slicing an array returns a view: an object that refers to the data in the original array. The original array can be mutated using the view.\n\n>>> b = a[3:]\n>>> b\narray([4, 5, 6])\n>>> b[0] = 40\n>>> a\narray([ 10,  2,  3, 40,  5,  6])\n\n\nSee Copies and views for a more comprehensive explanation of when array operations return views rather than copies.\n\nTwo- and higher-dimensional arrays can be initialized from nested Python sequences:\n\n>>> a = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])\n>>> a\narray([[ 1,  2,  3,  4],\n       [ 5,  6,  7,  8],\n       [ 9, 10, 11, 12]])\n\n\nIn NumPy, a dimension of an array is sometimes referred to as an “axis”. This terminology may be useful to disambiguate between the dimensionality of an array and the dimensionality of the data represented by the array. For instance, the array a could represent three points, each lying within a four-dimensional space, but a has only two “axes”.\n\nAnother difference between an array and a list of lists is that an element of the array can be accessed by specifying the index along each axis within a single set of square brackets, separated by commas. For instance, the element 8 is in row 1 and column 3:\n\n>>> a[1, 3]\n8\n\n\nNote\n\nIt is familiar practice in mathematics to refer to elements of a matrix by the row index first and the column index second. This happens to be true for two-dimensional arrays, but a better mental model is to think of the column index as coming last and the row index as second to last. This generalizes to arrays with any number of dimensions.\n\nNote\n\nYou might hear of a 0-D (zero-dimensional) array referred to as a “scalar”, a 1-D (one-dimensional) array as a “vector”, a 2-D (two-dimensional) arra"
+  ],
+  "3": [
+   3,
+   "link",
+   "API reference",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../reference/index.html",
+   "API reference"
+  ],
+  "4": [
+   4,
+   "link",
+   "Building from source",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../building/index.html",
+   "Building from source"
+  ],
+  "5": [
+   5,
+   "link",
+   "Development",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../dev/index.html",
+   "Development"
+  ],
+  "6": [
+   6,
+   "link",
+   "Release notes",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../release.html",
+   "Release notes"
+  ],
+  "7": [
+   7,
+   "link",
+   "Learn",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://numpy.org/numpy-tutorials/",
+   "Learn"
+  ],
+  "8": [
+   8,
+   "link",
+   "NEPs",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://numpy.org/neps",
+   "NEPs"
+  ],
+  "9": [
+   9,
+   "button",
+   "Search",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   ""
+  ]
+ },
+ "h": 780,
+ "marker": [
+  1791663232384.3,
+  "https://numpy.org/doc/stable/user/absolute_beginners.html#",
+  0,
+  0,
+  1120,
+  780,
+  "NumPy: the absolute basics for beginners — NumPy v2.5 Manual",
+  "User Guide\nAPI reference\nBuilding from source\nDevelopment\nRelease notes\nLearn\nNEPs\n2.5 (stable)\nGitHub\nCollapse Sidebar\nSection Navigation\nGetting started\nWhat is NumPy?\nInstallation\nNumPy quickstart\nNumPy: the absolute basics for beginners\nFundamentals and usage\nNumPy fundamentals\nNumPy for MATLAB users\nNumPy tutorials\nNumPy how-tos\nAdvanced usage and interoperability\nUsing NumPy C-API\nF2PY user guide and reference manual\nUnder-the-hood documentation for developers\nNumPy user guide\nNumPy: the absolute basics for beginners\nNumPy: the absolute basics for beginners\nWelcome to the absolute beginner’s guide to NumPy!\nNumPy (\nNum\nerical\nPy\nthon) is an open source Python library that’s\nwidely used in science and engineering. The NumPy library contains\nmultidimensional array data structures, such as the homogeneous, N-dimensional\nndarray\n, and a large library of functions that operate efficiently on these\ndata structures. Learn more about NumPy at\nWhat is NumPy\n,\nand if you have comments or suggestions, please\nreach out\n!\nHow to import NumPy\nAfter\ninstalling NumPy\n, it may be imported\ninto Python code like:\nimport\nnumpy\nas\nnp\nThis widespread convention allows access to NumPy features with a short,\nrecognizable prefix (\nnp.\n) while distinguishing NumPy features from others\nthat have the same name.\nReading the example code",
+  [
+   {
+    "href": "../index.html",
+    "kind": "click",
+    "label": "NumPy v2.5 Manual - Home \n     NumPy v2.5 Manual - Home",
+    "node": 1,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "index.html",
+    "kind": "click",
+    "label": "User Guide",
+    "node": 2,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../reference/index.html",
+    "kind": "click",
+    "label": "API reference",
+    "node": 3,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../building/index.html",
+    "kind": "click",
+    "label": "Building from source",
+    "node": 4,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../dev/index.html",
+    "kind": "click",
+    "label": "Development",
+    "node": 5,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../release.html",
+    "kind": "click",
+    "label": "Release notes",
+    "node": 6,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "https://numpy.org/numpy-tutorials/",
+    "kind": "click",
+    "label": "Learn",
+    "node": 7,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "https://numpy.org/neps",
+    "kind": "click",
+    "label": "NEPs",
+    "node": 8,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Search",
+    "node": 9,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Color mode",
+    "node": 10,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Version switcher list",
+    "node": 11,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "https://github.com/numpy/numpy",
+    "kind": "click",
+    "label": "GitHub",
+    "node": 12,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "On this page",
+    "node": 13,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "expanded": "true",
+    "kind": "click",
+    "label": "Collapse Sidebar \n   Expand Sidebar",
+    "node": 14,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "whatisnumpy.html",
+    "kind": "click",
+    "label": "What is NumPy?",
+    "node": 15,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "https://numpy.org/install/",
+    "kind": "click",
+    "label": "Installation",
+    "node": 16,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "quickstart.html",
+    "kind": "click",
+    "label": "NumPy quickstart",
+    "node": 17,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "NumPy: the absolute basics for beginners",
+    "node": 18,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "basics.html",
+    "kind": "click",
+    "label": "NumPy fundamentals",
+    "node": 19,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "numpy-for-matlab-users.html",
+    "kind": "click",
+    "label": "NumPy for MATLAB users",
+    "node": 20,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "https://numpy.org/numpy-tutorials/",
+    "kind": "click",
+    "label": "NumPy tutorials",
+    "node": 21,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "howtos_index.html",
+    "kind": "click",
+    "label": "NumPy how-tos",
+    "node": 22,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "c-info.html",
+    "kind": "click",
+    "label": "Using NumPy C-API",
+    "node": 23,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../f2py/index.html",
+    "kind": "click",
+    "label": "F2PY user guide and reference manual",
+    "node": 24,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../index.html",
+    "kind": "click",
+    "label": "Home",
+    "node": 25,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "index.html",
+    "kind": "click",
+    "label": "NumPy user guide",
+    "node": 26,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "whatisnumpy.html#whatisnumpy",
+    "kind": "click",
+    "label": "What is NumPy",
+    "node": 27,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "https://numpy.org/community/",
+    "kind": "click",
+    "label": "reach out",
+    "node": 28,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "https://numpy.org/install/",
+    "kind": "click",
+    "label": "installing NumPy",
+    "node": 29,
+    "role": "link",
+    "value": ""
+   }
+  ],
+  null
+ ],
+ "marker_stable": [
+  1791663232384.3,
+  "https://numpy.org/doc/stable/user/absolute_beginners.html#",
+  "NumPy: the absolute basics for beginners — NumPy v2.5 Manual"
+ ],
+ "omitted_actions": 0,
+ "page_key": [
+  1791663232384.3,
+  "https://numpy.org/doc/stable/user/absolute_beginners.html#",
+  0,
+  0,
+  1120,
+  780
+ ],
+ "scroll": {
+  "height": 41715,
+  "y": 0
+ },
+ "text": "User Guide\nAPI reference\nBuilding from source\nDevelopment\nRelease notes\nLearn\nNEPs\n2.5 (stable)\nGitHub\nCollapse Sidebar\nSection Navigation\nGetting started\nWhat is NumPy?\nInstallation\nNumPy quickstart\nNumPy: the absolute basics for beginners\nFundamentals and usage\nNumPy fundamentals\nNumPy for MATLAB users\nNumPy tutorials\nNumPy how-tos\nAdvanced usage and interoperability\nUsing NumPy C-API\nF2PY user guide and reference manual\nUnder-the-hood documentation for developers\nNumPy user guide\nNumPy: the absolute basics for beginners\nNumPy: the absolute basics for beginners\nWelcome to the absolute beginner’s guide to NumPy!\nNumPy (\nNum\nerical\nPy\nthon) is an open source Python library that’s\nwidely used in science and engineering. The NumPy library contains\nmultidimensional array data structures, such as the homogeneous, N-dimensional\nndarray\n, and a large library of functions that operate efficiently on these\ndata structures. Learn more about NumPy at\nWhat is NumPy\n,\nand if you have comments or suggestions, please\nreach out\n!\nHow to import NumPy\nAfter\ninstalling NumPy\n, it may be imported\ninto Python code like:\nimport\nnumpy\nas\nnp\nThis widespread convention allows access to NumPy features with a short,\nrecognizable prefix (\nnp.\n) while distinguishing NumPy features from others\nthat have the same name.\nReading the example code",
+ "title": "NumPy: the absolute basics for beginners — NumPy v2.5 Manual",
+ "url": "https://numpy.org/doc/stable/user/absolute_beginners.html#",
+ "w": 1120
+}

@@ -1,0 +1,14 @@
+pages=2  其中 https://the-internet.herokuapp.com/download = 1
+  3817B63F download   'The Internet'
+  6DAE79B7 other      '新标签页'
+
+--- 现场导航（每一步 8 秒上限）---
+  Page.navigate    0.95s -> {"frameId": "7D06729863A589A7B5ABC4D3387D9082", "loaderId": 
+  readyState#1     8.02s -> _IPCResponseTimeout
+  1+1              8.00s -> _IPCResponseTimeout
+  readyState#2     8.03s -> _IPCResponseTimeout
+  [1] 已有 target 的 evaluate（8s 上限）8.00s -> 超时/失败：_IPCResponseTimeout
+      snapshot.js -> _IPCResponseTimeout（8.02s）
+  [2] attach 失败：TypeError
+对照组 about:blank 新 target evaluate：0.02s -> 正常
+关闭泄漏标签：1，剩余：1

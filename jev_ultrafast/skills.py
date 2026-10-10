@@ -525,6 +525,117 @@ def goal_reached(page: dict, goal: str, history: list) -> dict | None:
     return None
 
 
+def _same_site(a: str, b: str) -> bool:
+    from urllib.parse import urlsplit
+    ha, hb = (urlsplit(a or "").hostname or "").lower(), (urlsplit(b or "").hostname or "").lower()
+    return bool(ha) and ha == hb
+
+
+def _phrase_token_set(s: str) -> set[str]:
+    return {_stem(t) for t in _tokens(_flat(s or "")) if t}
+
+
+#: "踩过链之后要不要停下来"里的"链"必须至少有两个实词，否则一个 'the' / 'page'
+#: 就能把任意导航判成到站（#52 的页眉 chrome 就是这么混进来的）。
+_ARRIVAL_MIN_TOKENS = 2
+
+#: goal 里"要去哪儿"的动词。b25 的 r110 就是被这条钉住的：
+#: `In 'The Rust Programming Language' book, go forward to Chapter 4, 'Understanding Ownership'.`
+#: 第 1 拍点的是**容器**那条链（'The Rust Programming Language'），落地
+#: `doc.rust-lang.org/stable/book/index.html`，而目的地是第二个短语——旧判据拿
+#: "任一引号短语"去比标签，把容器认成终点，DONE 之后那一行从 b24 的 PASS 变 FAIL。
+#: 动词集与 DoneGuard 规则 6 判"纯导航 goal"用的是同一族词（agent.py:107），
+#: 另外要接住 "go forward to / go back to" 这种中间带副词的写法。
+_NAV_VERB_RE = re.compile(
+    r"\b(?:open[s]?|navigat(?:e|es)\s+to|go\s+(?:forward\s+|back\s+|on\s+)?to|visit[s]?"
+    r"|reach(?:es)?)\b", re.I)
+
+
+def _destination_phrases(goal: str, quoted: set[str]) -> list[str]:
+    """goal 里**最后一个导航动词之后**出现的具名短语 = 这趟路要去的地方。
+
+    认不出动词、或动词后面没有具名短语 → 返回空（不知道终点就不说话）。
+    50 条 goal 里只有一条是"容器短语 + 目的地短语"的形状（r110），其余导航题的
+    动词之后就只有一个短语，六行复跑与 b25 的 8 次开火都在这一类里。
+    """
+    verbs = list(_NAV_VERB_RE.finditer(goal or ""))
+    if not verbs:
+        return []
+    tail = (goal or "")[verbs[-1].end():]
+    return [p for p in quoted if p in tail]
+
+
+def link_followed_arrival(page: dict, goal: str, history: list) -> dict | None:
+    """goal 用引号点名的那条链**已经被踩了、页也换了** → DONE，别再为那个短语翻页面。
+
+    形状来自 b24 的六行（`logs/real-1011-b24-ipc58-1011-015958/r1xx.jsonl`，
+    `tests/test_skills.py::ARRIVAL_ROWS` 逐字抄的）：第 1 拍 `explicit_target` 在起点页
+    点中 goal 里的短语，`page_changed=True`，落地页就是断言页；然后第 2–5 拍
+    `scroll_to_named_target` 在到达页上继续找**同一个短语**，r123 第 6 拍走到
+    `search_type`（把目标名打进站内搜索框），r142 第 6–8 拍由模型点在陌生人上传的
+    文件链接上（三个 `page_changed=False` 的下载）。
+
+    为什么"在到达页上找短语"这条路永远走不通：goal 的引号短语是**起点页那条链的标签**，
+    不是目的地的标识。`m2/probe_arrival_fixtures.py` 抓的真实到达页量过（计数表在
+    `m2/real-log.md`）：r126 的 'SQL Syntax' 在 sqlite.org/lang.html 正文里出现 **0** 次
+    （那页的标题是 'Query Language Understood by SQLite'）。所以这不是"多滚两拍"的
+    效率问题，是判据结构性地不会满足。
+
+    守卫（每一条都有反面形状）：
+      - **goal 是纯导航**：`_AWAY_VERB_RE`（search/scroll/fill/type/select/submit…）或
+            `_is_scroll_visible_goal` 命中就弃权——goal 写了搜索/滚动时那一族有自己的收口，
+            这里抢会把 `search_type` 的活吃掉（r116 第一次单任务实测就是这个形状）。
+      - **最后一个真实动作是 click**（`_last_real` 跳过技能发的 WAIT，缺陷#26b 同因）。
+      - **踩的就是那个短语**：标签与引号短语在词干集上互相包含；实词少于 2 个不认。
+        而且比的是**目的地短语**——最后一个导航动词之后的那个（b25 的 r110 点的
+        'The Rust Programming Language' 是容器，不是终点；认不出动词或动词后没有短语就弃权）。
+      - **那一拍确实换了页**：用 agent 结算出来的 `outcome.url_changed`（:602-608），
+        而不是"我以为历史里有出发页"——第一次实盘复跑就是因为读错这张表而全线没开火，
+        详见 `m2/real-log.md`。
+      - **还站在落地页上**：`page['url']` 等于那条历史记录的落地 `url`（去掉片段比）。
+        已经走开了就不是"刚到站"，不该由这一档说话。
+      - **同一个站点**：出发页 `url_from` 与落地页同主机——跨站跳过来的不是任务终点。
+    """
+    if _is_scroll_visible_goal(goal) or _AWAY_VERB_RE.search(goal or ""):
+        return None
+    quoted = {m.group(1) for m in re.finditer(r"['\"]([^'\"]{2,60})['\"]", goal or "")}
+    if not quoted:
+        return None
+    phrases = _destination_phrases(goal, quoted)
+    if not phrases:
+        return None
+    h = _last_real(history)
+    if not h or h.get("kind") != "click":
+        return None
+    label = str(h.get("action") or "")
+    if not label:
+        return None
+    from urllib.parse import urlsplit
+
+    def _key(u: str) -> str:
+        # SplitResult 的字段只有 scheme/netloc/path/query/fragment；netloc 本身带 userinfo，
+        # 所以"去掉片段再比"就够，别去 _replace 不存在的 username/password。
+        return urlsplit(u or "")._replace(fragment="").geturl()
+
+    cur = str(page.get("url") or "")
+    if not (h.get("outcome") or {}).get("url_changed"):
+        return None
+    if _key(cur) != _key(str(h.get("url") or "")):
+        return None                                   # 已经离开落地页
+    if not _same_site(str(h.get("url_from") or ""), cur):
+        return None
+    lab = _phrase_token_set(label)
+    if len(lab) < _ARRIVAL_MIN_TOKENS:
+        return None
+    for ph in phrases:
+        toks = _phrase_token_set(ph)
+        if len(toks) < _ARRIVAL_MIN_TOKENS:
+            continue
+        if toks <= lab or lab <= toks:
+            return _decision("DONE", None, None, "link_followed_arrival")
+    return None
+
+
 def _fill_values(goal: str) -> list[str]:
     """goal 里处于「值位置」的引号串：`fill X with 'v'` / `enter 'v' into X`。
 
@@ -1969,7 +2080,8 @@ def first_result(page: dict, goal: str, history: list) -> dict | None:
 # 顺序即优先级。search_submit 放最后：机票页要先填完 from/to/日期/票种再提交。
 # scroll_to_named_target 紧跟 explicit_target：目标在首屏就点它，不在首屏就先让页面动，
 # 再往下才轮到 fill/search 族（r116 第一次单任务实测：晚一步就被站内搜索框拐走）。
-SKILLS = (blocked_dead_page, page_not_ready, goal_reached, stop_when_visible,
+SKILLS = (blocked_dead_page, page_not_ready, goal_reached, link_followed_arrival,
+          stop_when_visible,
           confirm_then_done, scroll_to_target, first_result,
           goto_path, explicit_target, scroll_to_named_target,
           select_option,

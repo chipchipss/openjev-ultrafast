@@ -3553,3 +3553,429 @@ chrome 进程数 13↔21=常态摆动），三次都写进日志而不是悄悄�
 
 规矩（写进记忆，别再犯）：**提交信息必须重写，禁止从上一条复制**；发现已经写错就在此表登记，
 不改写已提交历史。
+
+
+## 2026-10-11 早晨：#58 的真因第三次改判（**第四次错因，撤回"冷 dyno 125 秒"**）—— 页面弹了个 `alert(1)`，我们的 harness 没人应答，renderer 主线程永久楔死
+
+抓 fixture 的探针（`m2/probe_arrival_fixtures.py`，零模型）在 r142 的到达 URL 上稳定失败，
+顺手量了三条探针。**这条不是"环境慢"，是我们自己的缺件**，所以下面每一步都带命令。
+
+### 量出来的事实（按顺序，每条都可复算）
+
+1. **网站不慢**：`curl.exe -x http://127.0.0.1:2080 https://the-internet.herokuapp.com/download`
+   → `200`，Content-Type `text/html;charset=utf-8`，19,617 B，**1.04 秒**。页面 5 个外部子资源
+   （app.css / 298279967.js / foundation.js / jquery / forkme.png）逐个 HEAD 全 200、0.99–1.72 秒。
+2. **不是 daemon 全局死**（`m2/probe_download_wedge.py`）：navigate 0.95 s 返回、标题已渲染成
+   'The Internet'，此后该 session 的 `Runtime.evaluate` 8 s/30 s 全部超时；**同一时刻新开的
+   about:blank 0.02 s 正常**。
+3. **是 URL 特有且永久**（`m2/probe_download_wedge2.py`）：同时开四个 target，
+   `heroku /download` 6.03 s 超时、`heroku /`（同站根路径）0.02 s 正常、`example.com` 0.03 s 正常、
+   `/download` 第二次 6.03 s 超时；对楔住的 session 每 5 秒轮询、**120 秒内 24 次全超时**，不自行恢复。
+4. **仪器自检**（裸 CDP 直连该 target 的 `webSocketDebuggerUrl`，不经 daemon）：先在 about:blank 上
+   自检——裸 WS 回 `{"result":{"result":{"type":"number","value":2}}}`，证明仪器能用；再连 /download
+   的既有 target，两个都超时（后来明白：没 `Page.enable` 时事件不收，而 evaluate 需要主线程）。
+5. **真因**（裸 WS + `Page.enable` + `Runtime.enable` 后看事件流）：
+   `Page.javascriptDialogOpening` 在 **+0.58 s** 到达，params
+   `{"url":"…/download", "message":"1", "type":"alert", "hasBrowserHandler":true}`。
+   发 `Page.handleJavaScriptDialog{accept:true}` → **0.00 s 回包**（浏览器进程处理，不需要主线程），
+   紧接着又弹一个（一共 4 个），全部处置完 `Runtime.evaluate` 立刻回
+   `complete|a=201`。**对话框就是主线程阻塞点**，与"慢"无关。
+6. **alert 从哪来**：`grep -o "alert(1)" m2/tmp_download.html` = 4 次，上下文是
+   `<a href="download/probe<img src=x onerror=alert(1)>.txt">probe<img src=x onerror=alert(1)>.txt</a>`
+   —— 这个站把**任何人上传的文件名原样拼进 HTML**，/download 列表里躺着别人投的存储型 XSS，
+   `<img src=x>` 加载失败触发 `onerror`，于是**打开页面本身就会弹 alert**。
+   起点页 the-internet 根路径 `grep -c "onerror" m2/tmp_root.html` = **0**（干净）；
+   50 题里只有 r142 会走到 /download。
+7. **daemon 侧为什么永远不应答**：`browser_harness/daemon.py` 全文没有 `Page.enable`
+   （`grep -n "Page.enable" …` 无命中），它只是在 `_record_event` 里
+   `if method == "Page.javascriptDialogOpening": self.dialog = params`（:628）并暴露
+   `meta:"pending_dialog"`（:739）等人来读。**没人 enable 就没有事件；没事件就没人 accept；
+   renderer 一直停在 modal 上。**
+
+### 撤回第四次错因
+
+昨天我写下"分钟级来自 step 1 的导航：heroku 冷 dyno 一次点击要等 125 秒"。那句话把
+`executed_ms=124.5/124.8` 当成了导航耗时。现在对着同一台机器、同一个 URL、零模型重量的两条
+数字：**导航本身 0.95 秒**，125 秒是**导航之后 CDP 等一个永远不会来的应答**——
+`Browser.call` 的重试是 4 次 × 30 秒 = 120 秒，加上首轮 poll 的尾巴，正好就是 124.5/124.8。
+**"冷 dyno"这个解释作废。**（同一批里我先前还错认过"崩在 42 行=会话累积"和"chrome 进程 13↔21"，
+加上这次，今晚到今早一共四次把相关当因果，全部登记在册。）
+
+### 因此 #58/#59 的账要重记
+
+- **#58 不再是"慢导航的收口"**，是"**JS 对话框必须有人应答**"。修法在 `jev_ultrafast/browser.py`：
+  会话建立时 `Page.enable`；`Browser.call` 撞上 `_IPCResponseTimeout` 时先 `drain_events()`
+  查本 session 的 `Page.javascriptDialogOpening`，有就 `Page.handleJavaScriptDialog{accept:true}`
+  再重试（accept 而不是 dismiss：`confirm()` 需要真值才走站点自己的分支）。
+- **b22/b23 的 r142 崩、b18–b24 的 step 1 分钟级**都是这同一条，不是两件事。
+- **#59（到站即停）不受影响，仍然是真账**：b24 那六行的多手拍次都在到达之后，量级是秒。
+
+### 待办（预登记，跑之前先把判据钉住）
+
+`#60` 的验收：①失败测试先行——假 CDP 层，evaluate 撞超时 + 事件缓冲里有本 session 的
+dialogOpening，断言修复后代码会发出 `Page.handleJavaScriptDialog` 且这次调用成功；**该测试在
+修复前必须失败**（现状是直接抛 `_IPCResponseTimeout`）。②离线全套件（15 个）。③实盘见证 =
+r142 的到达 fixture 能抓下来 + r142 单任务不再吃掉一整行。④共享 harness 改动 → x001/x002 复测。
+⑤冻结 19/19×3 再谈 b25。上限（写死）：这一刀买的是 **r142 那一行 + 每行 120 秒的保险**，
+分数不在上限里；若冻结轮出现任何 19/19 之外的新死法，按纪律直接回滚。
+
+## #60 落地前的现场量：防御必须和 `Page.enable` 一起用，而且**我先前那句"0 个对话框事件"是仪器没开机**
+
+### 我自己的仪器错误（登记，不删）
+
+`m2/probe_dialog_which.py` / `probe_dialog_culprit.py` 读到"装上防御之后仍然楔，且排空到
+**0 个** `Page.javascriptDialogOpening`"，我据此写下"还有第二个主线程阻塞源"。错了：
+`browser.py` 的 `Page.enable` 是在 `_settle_patch()` 里发的，而那一步排在 readyState 轮询**之后**；
+`probe_dialog_which` 排空到的 12 条事件里方法分布是 `Target.attachedToTree…/Inspector.detached`，
+**Page 域根本没开**——没开就没有事件，"0 个"什么都不能证明。是 C 段的 2×2 才把它逼出来。
+
+### 三条现场的、可复算的读数
+
+1. **JS 本身没问题**（`m2/probe_guard_effect.py` E1，about:blank 上直接问）：
+   `Object.prototype.hasOwnProperty.call(window,'alert')` = **True**（alert 是 window 自有属性，
+   原型上没有）；`Object.defineProperty(window,'alert',{value:()=>undefined, writable:false,
+   configurable:false})` 之后 `String(window.alert)` = `() => undefined`，调用返回 undefined，
+   随后页面自己 `window.alert = function(){…}` **写不进去**（调用仍返回 undefined）。
+2. **现场有效**（同脚本 E2，`Page.enable` 提前发）：不装防御 → 导航后 8 秒排空到
+   1 个 `type=alert message='1'`、`document.readyState` 6 秒不答；装 MODAL_GUARD_JS →
+   0 个事件、`readyState=complete` **+0.01s**、`String(window.alert)` = `() => undefined`。
+3. **到底是哪一步不一样**（`m2/probe_emulation_matrix.py` 2×2，每条轮 15 秒）：
+
+   | Emulation | 防御 | 结果 |
+   |---|---|---|
+   | 关 | 关 | 轮 2 次，**+4.42s 楔**，对话框事件 1，accept 后仍不答 |
+   | 关 | 开 | 轮 **73** 次，complete@0.44s，**不楔**，事件 0 |
+   | 开 | 关 | 同上，**+4.42s 楔** |
+   | 开 | 开 | 轮 **72** 次，complete@0.42s，**不楔** |
+
+   再排掉"轮询太密"这个解释（真实 `Browser` 是 0.02 秒一轮）：
+   `Page.enable=真 轮询 0.02s` → **522 次全答、complete@0.33s**；
+   `Page.enable=假 轮询 0.02s` → 13 次后 **+4.39s 楔**，和完全不装防御的时刻一样。
+   ⇒ **`Page.enable` 发在导航之前是防御生效的前提**；那两次 `Emulation.*` 与轮询频率都不是变量。
+
+### 因此代码落了两行（都在第一次导航之前）
+
+`jev_ultrafast/browser.py::Browser.__init__`：`Page.enable` → `Page.addScriptToEvaluateOnNewDocument
+ (MODAL_GUARD_JS)` → `Page.navigate`，整段包 `try/except`（装不上就等价改前行为，不让新页面起不来，
+ 这条由单测第 4 案钉住）。
+
+### 失败测试先行的读数（纪律①）
+
+`tests/test_browser_modal_guard.py`：
+- 只装防御、不动 `Page.enable` 之前：**2 案失败**，签名就是现场那条
+  `_IPCResponseTimeout: Runtime.evaluate timed out waiting for the daemon`；
+- 加了"`Page.enable` 必须在 `Page.navigate` 之前"这一案、还没改代码时：**5/6**，
+  失败消息逐字 `Page.enable 排在第 8 个、Page.navigate 在第 5 个`；
+- 改完之后：**6/6**；17 个离线套件全绿（124 案，含 `test_cdp_ownership` 9/9、`test_skills` 66/66）。
+
+### 实盘见证（零模型，已经拿到）
+
+真实 `Browser('https://the-internet.herokuapp.com/download')` 连做两次：
+**30.8s 成功**（title 'The Internet'、text 1028、43 个动作、`String(window.alert)` = `() => undefined`）
+和 **2.5s 成功**；改前同一条是 125.4s / 125.9s 抛 `_IPCResponseTimeout`。
+到达页 fixture 也终于抓下来了：`m2/fixtures/r142_arrival.json`（255 KB），六个到站页齐了。
+
+30.8 秒里大头是 readyState 轮询的 15 秒上限 + settle 的 5 秒——那是代理慢，不是 wedge；
+wedge 的特征是**永不返回**，现在已经会返回。
+
+### 还没做的
+
+#60 的 live 链（r142 单任务 → x001/x002 → 冻结 19/19×3）与 #59 的到站即停分开跑单任务，
+为的是**归因分得开**：#60 只该动 r142 那一行（以及"每行 124 秒的保险"），#59 只该动那六行的拍数。
+
+## #59 到站即停：失败测试先行的读数 + 六行实盘复跑的判据（**跑之前写死**）
+
+### 改前读数（纪律①：测试必须先在改前代码上失败）
+
+`tests/test_skills.py` 新增 6 案（1 正 + 5 负），只加测试、不动 `skills.py` 时：
+**71/72**，唯一失败的那条就是正面案，签名逐字：
+
+    FAIL  #59 到站即停：踩过 goal 点名的链且页已换 → 第一决策必须是 DONE（六行真实到达页）
+          r123 到站后还在动手：skill=scroll_to_named_target choice='scroll_down'
+
+——正是 b24 现场那条：第 1 拍点完 'To the absolute beginner’s guide' 落到
+`numpy.org/doc/stable/user/absolute_beginners.html`，第 2 拍地板还在滚页面找那个短语。
+
+### 落的东西
+
+`jev_ultrafast/skills.py`：新档 `link_followed_arrival`，排在 `goal_reached` 之后、
+`stop_when_visible` 之前（`SKILLS` 元组顺序即优先级）。判据四条守卫全带反面形状：
+纯导航 goal（`_AWAY_VERB_RE`/`_is_scroll_visible_goal` 命中就弃权）、最后一个真实动作是
+click 且标签与引号短语在**词干集**上互相包含（实词 ≥2）、当前 URL 与点击所在页 URL
+**去掉片段后不同**、同主机。改完 72/72，17 个离线套件全绿（130 案）。
+
+### 六行实盘复跑（`one-r59six-*`）判据——先看数字预期，再看读数
+
+| 预期 | 值 |
+|---|---|
+| 每行拍数 | b24 是 4/5/5/5/7/6 → 复跑应收到 **2 拍**（第 1 拍点链、第 2 拍 DONE） |
+| `link_followed_arrival` 开火 | 每行恰好 1 次，且只在**第 2 拍**；六行之外不许出现（这档的射程就这六行的形状） |
+| PASS | 六行**全是 PASS**（b24 里它们全过）——这一刀买的是拍数不是分数 |
+| r142 的 step 1 | #60 已经把它从 124,751ms 打到 1,885ms；复跑若回到十万级说明防御没生效 |
+| 风险面 | 任何一行从 PASS 变 FAIL = 到达档在错的地方开火 → **按纪律直接回滚** |
+
+## #59 第一次实盘复跑**全线没开火**——我把历史的形状猜错了（第五次自我纠正，测试全绿也救不了）
+
+`one-r59six-1011-044621`（04:46–04:50，六行）读数：`skills=[explicit_target,
+scroll_to_named_target ×3…]`，六行**一行都没变**，r142 仍是 8 拍、r148 仍是 15 拍。
+离线却是 72/72 全绿。两边差的只有一个东西：**我喂给判据的 history 条目是我造的**。
+
+现场（`jev_ultrafast/agent.py:596-614`）是这么结算的：
+- 追加那一刻 `url` 写的是**出发页**（:751），观测之后如果页面变了，`:608` 把它**改写成落地页**；
+- "换没换页"不写在 `page_changed` 上给人读，而是记进 `outcome = {status, page_changed,
+  url_changed}`（:603-607）；
+- 出发页**根本没存**——所以我原来那句"当前 URL 与点击所在页 URL 不同"在实盘里恒等于
+  "当前 URL 与自己相同"，永远为假，判据结构性地不响。
+
+我把这条记成第 5 次"仪器读快了我没发现"：前四次是 42 行=题序、chrome 进程 13↔21、
+冷 dyno 125 秒、"0 个对话框事件"。这次的独特之处在于**离线测试全绿**——绿的是我自己
+编的那张表，不是产品的表。教训落成两条规矩：
+1. 凡是判据要读 `state["history"]`，先在 `agent.py` 里读一遍**结算之后**的字段名和语义，
+   再把那张表抄进测试的构造器（现在 `_followed()` 的 docstring 里就写着 :596-608）；
+2. 新增技能档必须有一条**用真实 trace 重放**的射程审计，不能只有手写/半真实的历史。
+
+改的东西：
+- `agent.py`：追加历史条目时多存一份 `url_from`（出发页）。不动 :608——那个 `url`
+  的"落地页"语义已经被 DoneGuard 规则 3/5 依赖（:68/:75）。
+- `skills.py::link_followed_arrival`：换成读 `outcome.url_changed`（换页证据）、
+  `page['url'] == 落地 url`（**还站在**落地页上，走开了就不许由这一档说话）、
+  `url_from` 与落地页同主机（跨站外链不算到站）。
+- 测试改成结算后的形状，并补两条负例：走开之后不许追认、`url_from` 缺失时**不猜**。
+  74/74。
+
+新的射程审计（`m2/probe_arrival_scope.py`，把判据逐拍重放过 b24 全部 50 行）：
+**7/50 会开火，全是 navigate 类**——目标六行 + r110
+（goal 写的就是 'Understanding Ownership' 那条链，第 2 拍踩中、第 3 拍正是落地页，
+开火是对的）。搜索/表单/日期那几族一次都没响。
+审计脚本第一版也抄错了同一张表，跟着一起改成结算后的形状。
+
+## #59 第二次实盘复跑：地板开火了，DONE 却被 DoneGuard 拒掉并被**静音**——读数 6/6 PASS、拍数一拍没少
+
+`one-r59six-b-1011-045404`（04:54–05:0x，六行）：
+
+| 行 | 拍数 | 地板序列（decision.skill） |
+|---|---|---|
+| r123 | 9 | explicit_target, **link_followed_arrival**, scroll×4, search_type, search_submit×5 |
+| r124 | 8 | explicit_target, **link_followed_arrival**, scroll×4, explicit_target, **link_followed_arrival**, explicit_target×5 |
+| r126 | 4 | explicit_target, **link_followed_arrival**, scroll×3 → 末决策 BLOCKED |
+| r134 | 5 | explicit_target, **link_followed_arrival**, scroll×4 → BLOCKED |
+| r142 | 8 | explicit_target, **link_followed_arrival**, scroll×4（+模型点文件×2） |
+| r148 | 15 | explicit_target×3, **link_followed_arrival**, scroll×3… |
+
+PASS=6/6、`quadrants={'true_success': 6}`、`api_calls total: 0`——**分数没变、拍数一点没少**。
+判据本身对了（每一行第 2 拍都开火），但那一拍的 DONE 没有执行：`agent.py:325` 的
+`_done_guard` 拒绝之后，`:336-338` 的 `note_no_effect(fingerprint, rejected_skill)`
+把这一档在**这一页指纹**上静音，下一拍 `route()` 就跳到 `scroll_to_named_target`。
+离线复算拒绝原因逐字：`nav goal target not reached (goal_reached says no)`。
+
+### 这条拒绝是 s001 落的规定，不是 bug
+
+规则 6（`agent.py:92-110`）：**纯导航 goal 的 DONE 只有"到达判据"说了才算**，防止模型在
+搜索结果页上连发 DONE。它原来只认 `goal_reached` 一张判据，而 `goal_reached` 读的是
+**页面正文**——r126 落地页 `lang.html` 的标题是 'Query Language Understood by SQLite'，
+goal 的短语 'SQL Syntax' 在正文里 0 次，所以它在这六行上**永远**说"没到"。
+换句话说：#52/#59 这两族想修的东西，被这张只认正文的门挡着。
+
+### 改的是"多一张判据"，不是"放行 DONE"
+
+`_done_guard` 规则 6 现在接受 `goal_reached(...) is not None` **或**
+`link_followed_arrival(...) is not None`。后者给的证据是导航事实（goal 点名的链刚被踩过、
+那一拍 `outcome.url_changed` 为真、当前页仍等于那条历史的落地页、同主机）。
+
+`tests/test_done_guard_arrival.py` 的读数：
+- 改前 **3/4**，失败案逐字 `DONE 仍被拒：nav goal target not reached (goal_reached says no)`；
+- 改后 **6/6**，三条保护各有反面：0 步 DONE 被规则 1 拒；踩了**别的**链（cli.html）之后
+  模型发 DONE 被规则 6 拒；从落地页**走开**之后发 DONE 也被拒。
+- 我自己写错过一条前提：原本用例写"落地页上模型发的 DONE 也要拒"。想清楚就知道那是错的——
+  那一刻两张判据里有一张真的说"到了"，拒它才是撒谎。这条改成了 `t_arrival_evidence_authorizes_done_from_any_source`，
+  并在注释里写明放行只取决于"这是不是到达页"，不取决于谁说话。
+
+离线全套：**18 个套件 136 案全绿**（`test_skills` 74/74、`test_cdp_ownership` 9/9、
+`test_runner_zero_cloud` 8/8、新增 `test_done_guard_arrival` 6/6）。
+第三次实盘复跑（`one-r59six-c-*`）判据：六行拍数应收到 **2 拍**，其余不变。
+
+### 第三次实盘复跑（`one-r59six-c-1011-050041`，05:00）——判据命中
+
+| 行 | b24 拍数 | 第一次复跑(判据没开火) | 第二次(开火被拒) | **第三次** | PASS |
+|---|---|---|---|---|---|
+| r123 | 9 | 9 | 9 | **1** | ✅ |
+| r124 | 8 | 8 | 8 | **1** | ✅ |
+| r126 | 4 | 4 | 4 | **1** | ✅ |
+| r134 | 5 | 5 | 5 | **1** | ✅ |
+| r142 | 7 | 8 | 8 | **1** | ✅ |
+| r148 | 15 | 15 | 15 | **1** | ✅ |
+
+`pass 6/6 | quadrants={'true_success': 6} | failure_modes={} | api_calls total: 0`，
+每行 `steps 1 / model 2`（一次决策 + 一次到达 DONE），落地 URL 与 b24 断言页逐字相同
+（例如 `numpy.org/doc/stable/user/absolute_beginners.html`、`sqlite.org/lang.html`）。
+六行合计拍数 48 → **6**。
+
+预登记的判据全部命中：**分数不在上限里**（六行本来就 PASS），买的是拍数与"到站之后不再
+乱点陌生人上传的文件"这条风险面（r142 在 b24 里第 6–8 拍点中过 `download-fae…`、
+`cucumber-dow…`、`intro to DAX`，三个 `page_changed=False`）。
+
+## b25 的判据（**跑之前**写死，配对基线 = b24 同一张 50 行、同一顺序）
+
+先确认配对性：`tasks_b19_50.jsonl` 的 50 个 task_id 与
+`reports/real-1011-b24-ipc58-1011-015958.json` 的 results 顺序**逐位相同**（脚本核对 `同序=True`），
+所以 GAIN/LOST 是按行对齐算的，不是按名字凑的。
+
+b24 的 5 个失败行（全部 correct_abandon，与这一刀无关）：
+`r105 rfc/github 出不去`、`r122 rfc-editor 出不去`、`r102 arxiv 结果行不在首屏`、
+`r103 stackoverflow 结果行不在首屏`、`r104 PubMed 机器人墙`。
+
+| # | 判据 | 预期 |
+|---|---|---|
+| 1 | 分数 | **仍是 45/50**。这五个死的形状都不是"到站后多手"，#59/#60 买不到它们——**分数不在这两刀的上限里**（六行复跑已经证实：6/6 PASS，拍数 48→6） |
+| 2 | GAIN / LOST（配对 b24） | GAIN=∅、LOST=∅。**任何一行从 PASS 变 FAIL 就按纪律回滚**（到达档误响 / 防御误伤） |
+| 3 | `link_followed_arrival` 射程 | 只在 navigate 族开火；离线重放 b24 全 50 行 = **7 行**（六行 + r110），搜索/表单/日期族 0 次 |
+| 4 | r142 的 step 1 | b24 是 124,751 ms；#60 落地后单任务实测 **1,885 ms**。批里若回到十万级 = 防御在批内没生效 |
+| 5 | 零云端 | step 事件 `text_helper ⊆ {null, startlux-decision-2b}`；`api_calls` 只做旁证 |
+| 6 | false_positive | 必须 0 |
+| 7 | 批墙钟 / 总拍数 | 拍数预期显著低于 b24（那 7 行至少省 40 拍）；墙钟不作判据——91% 在任务间开销（#56 的量已记档，等 #59/#58 收口后再重提） |
+| 8 | 前置 | 冻结 19/19 × 3 同一构建（`freeze5960-r1/r2/r3`），任一轮没写报告算 **blocked** 不算失败 |
+
+跑完用 `m2/batch_audit.py` 复算 1-6，不靠手读。
+
+## 冻结三轮（同一构建 = #60 防御 + #59 到达档 + DoneGuard 第二判据 + `url_from`）
+
+| 轮 | 报告 | 判据 | 墙钟 |
+|---|---|---|---|
+| 1 | `reports/m1-baseline-1011-0511.json` | **19/19**，fp=0，fail=0，error=0 | 3.8 min |
+| 2 | `reports/m1-baseline-1011-0515.json` | **19/19**，fp=0 | 3.7 min |
+| 3 | `reports/m1-baseline-1011-0519.json` | **19/19**，fp=0 | 3.8 min |
+
+三轮都是脚本自己复算过的读数（`VERDICT: clean sweep (19/19)` + JSON 里逐行 `result=PASS`
+计数与 `quadrant=false_positive` 计数=0），不是我读控制台的话。中间第 1 轮**先被 RAM 门挡了一次**
+（05:09，`free memory: 2767MB` < 3000，没写报告 = blocked，不是失败）；量出来是
+`llama-server.exe` 一轮没跑就占 3,432 MB（栈用热了，老账），冷却重启栈之后 free 回到 4,849 MB，
+`baseline-1011-0511` 才真正开跑。全程没动用户自己的进程（Qoder 1,805 MB / msedge 1,292 MB 原样在）。
+
+安全侧另有一笔：x001/x002 在这套改动之后各自单跑 **PASS**（`logs/one-x00{1,2}-fix5960-console.txt`，
+象限 true_success、fp=None）。x001 是 `chrome-error://` 起点（题面就是要它放弃），
+冻结轮里它走过"pilot FAIL → 合并 PASS"的重试行（`<-- WON`），三轮都一样，不是新形状。
+
+b25 前置条件齐了。
+
+## b25 读数：43/50，配对 LOST = `r110`（我这一刀的真错）+ `r101`（pypi 墙）；#60 在批内证实
+
+`reports/real-1011-b25-fix5960-1011-052452.json`，`m2/batch_audit.py` 复算（预登记 8 条逐条对）：
+
+| 判据 | 读数 | 判定 |
+|---|---|---|
+| 分数 | **43/50**（pass=43 fail=7 unknown=0 error=0） | ✗ 低于 b24 的 45 |
+| 象限 | `true_success=43, correct_abandon=7`，**fp=0** | ✓ 没有假阳性 |
+| 配对 b24（同 50 行同序） | **GAIN=[] LOST=[r101, r110]** | ✗ 触发回滚条款 |
+| 到达档射程 | 批内开火 8 行（六行 + r140 + **r110**），`--scope` 报"射程外开火=[r140]" | r140 是真到站（`Add/Remove Elements`，1 拍 PASS）；**r110 是错的** |
+| r142 的 step 1 | **1,939 ms**（b24 同拍 124,751 ms） | ✓ #60 在批内成立 |
+| 零云端 | step 事件 85，`text_helper = {None: 83, startlux-decision-2b: 2}` ⊆ 允许集 | ✓ |
+| 总拍数 | b24 131 → **b25 85**（-35%） | 这是这一刀买的东西 |
+| 批墙钟 | 25.1 min（不作判据，91% 在任务间开销，见 #56 的量） | — |
+
+### r110 是我写错的，不是环境
+
+b25 现场逐字（`logs/real-1011-b25-fix5960-1011-052452/r110.jsonl`）：
+
+    step The Rust Programming L url=.../stable/book/index.html ms=538   skill=explicit_target
+         skill=link_followed_arrival DONE          → 该行 FAIL，最终停在 book/index.html
+
+goal 是 `In 'The Rust Programming Language' book, go forward to Chapter 4,
+'Understanding Ownership'.` —— **两个引号短语**：第一个是容器，第二个才是目的地。
+我的判据拿"任一引号短语"去比点击标签，于是踩中容器也算到站。b24 这行是 PASS（3 拍：
+先点容器、再点目的地）。预登记的"任何 PASS→FAIL 就回滚"条款在 r110 上被自己的现场证据击中。
+
+r101 与此无关：`pypi.org/search/?q=flask` 上 4 连 `page_not_ready` 之后判
+`blocked_by_bot_wall`，到达档在那行一次没开火。b24 里它 PASS（8 拍）。这是墙，按
+"#52 的欠一笔"同一类记账，不当成内部缺陷修。
+
+### 修法：把"短语"钉成**目的地短语**（动词锚点）
+
+`_NAV_VERB_RE` = `open|navigat?e to|go (forward|back|on)? to|visit|reach`（与 DoneGuard
+判"纯导航 goal"用的同族词，agent.py:107），到达档只认**最后一个导航动词之后**出现的
+引号短语；认不出动词、或动词后面没有具名短语 → 弃权（fail closed，"不知道要去哪儿就
+别说到了"）。
+
+50 条 goal 的语料对照（脚本量的，不是想的）：只有 **r110** 是"容器 + 目的地"两个短语；
+`r119` 也有两个但含 search 动词（本来就被 `_AWAY_VERB_RE` 排除）；`r120` 是填表题
+（`'Customer name'/'jev'` 是字段与值，没有导航动词 → 现在明确弃权）。
+
+失败测试先行的读数：加 4 案（r110 反例、r110 正例=踩中目的地、无导航动词不开火、
+动词后无短语不开火），**改前 76/78**，两条失败逐字是
+`容器短语被认成了目的地：{'choice': 'DONE', ...}` 和
+`没有导航动词的 goal 也开火了："The 'SQL Syntax' page exists."`；改后 **78/78**，
+19 个离线套件 **137 案全绿**。
+
+### 审计脚本自己也补了一笔（同一个错的第三面）
+
+`m2/probe_arrival_scope.py` 第一次跑 b25 报"0 行开火"——可 b25 明明是 8 行开火的批次。
+原因是我只评估"拍与拍之间"的状态，而那些行**第 1 拍就结束**，到达时刻落在最后一条 step
+之后，我的循环根本不看那里。补上"最后一拍之后评估一次（记作 n+1）"之后：
+b24 重放 **21 行**开火（全 `navigate` 类，含 r110 在**踩中目的地的第 3 拍**——那是对的），
+b25 重放 **20 行**（r110 不再开火）。范围全在"From 首页, open the '<X>' page"这一族，
+搜索/表单/日期/交易族一次都没有。
+
+接下来：r110/r116/r142 单跑见证 → x001/x002 → 冻结 19/19×3 → **b26**。
+
+## b26 的判据（**跑之前**写死；构建 = #60 + #59 + 目的地锚点）
+
+b25 已经证伪了我原来的射程估计，所以这一轮的判据按**量出来的射程**改写：
+锚点修复后离线重放 b24/b25 的全部 step 历史，开火行是 **20–21 行、全 `navigate` 类**
+（`m2/probe_arrival_scope.py`，不是"我以为的 7 行"）。
+
+| # | 判据 | 预期 |
+|---|---|---|
+| 1 | 分数 | **≥ 45/50**（回到 b24 的读数）。这一刀在 43 的基础上把 r110 买回来；r101 若在 pypi 墙上再死一次，按**环境**记账，不算这一刀的账（但会写在读数里，不藏） |
+| 2 | 配对 b24 | **LOST 里不许有到达档开过火的行**。b25 的教训就是这条：LOST=[r110(到达档误响), r101(墙)]。r110 必须在批里回到 PASS 且落地 `ch04-00-understanding-ownership.html` |
+| 3 | 配对 b25 | GAIN 至少含 r110 |
+| 4 | 总拍数 | ≤ b25 的 85（b24 是 131）。r110/r116 这类行买回来是靠"少动手"，不是靠"多点一拍" |
+| 5 | r142 的 step 1 | 仍是千秒级（b25 实测 1,939 ms；b24 是 124,751 ms）——#60 不能退化 |
+| 6 | 零云端 | step 事件 `text_helper ⊆ {null, startlux-decision-2b}`；fp=0；unknown=0；error=0 |
+| 7 | 前置 | 锚点版冻结 19/19×3（`freezeA-r1/r2/r3`），任一轮没写报告算 blocked |
+
+**如果 b26 仍 < 45**：说明这一刀的真实代价比收益大，按预登记直接回滚 `link_followed_arrival`
+（`#60` 的 browser.py 防御不回滚——它独立被 r142 单任务与 b25 批内两次证实）。
+
+## 锚点版冻结三轮 + b26 前置
+
+| 轮 | 判据 | 报告 |
+|---|---|---|
+| r1 | 19/19，fp=0 | `m1-baseline-1011-0557.json` |
+| r2 | 19/19，fp=0 | `m1-baseline-1011-0601.json` |
+| r3 | 19/19，fp=0 | `m1-baseline-1011-0605.json` |
+
+同一构建上还跑了：x001/x002 各自单跑 **PASS**（`logs/one-x00{1,2}-anchor.txt`），以及三行见证 `reports/one-anchor-1011-055514.json`：
+
+- **r110 PASS，2 拍**，落地 `doc.rust-lang.org/stable/book/ch04-00-understanding-ownership.html` —— 锚点修复的直接证据：先踩容器不再收口，踩到目的地短语才 DONE（b24 是 3 拍，b25 是 1 拍 FAIL）。
+- r116 PASS 3 拍（cargo 首页）；r142 PASS **1 拍**（#60 与 #59 同时在位）。
+
+b26 判据见上一节（≥45/50、LOST 不许含到达档开火行、总拍数 ≤85、r142 step1 千秒级）。
+
+## b26 裁决：44/50，配对 b24 只少 `r101`（pypi 墙），批内拍数 131 → **86**
+
+`reports/real-1011-b26-anchor-1011-061029.json` + `m2/batch_audit.py`（逐条对着上面预登记的 6 条）：
+
+| 判据 | 读数 | 判定 |
+|---|---|---|
+| 分数 ≥45 | **44/50**（pass=44 fail=6 unknown=0 error=0） | ✗ 差一行，差的就是 r101 |
+| LOST 里不许有到达档开火的行 | 配对 b24：**GAIN=[] LOST=['r101']**；批内到达档开火表 = {r110,r123,r124,r126,r134,r140,r142,r148}，**r101 不在里面** | ✓ |
+| 配对 b25 | r110 `PASS 2 拍` 落地 `book/ch04-00-understanding-ownership.html`（b25 是 1 拍 FAIL） | ✓ |
+| 总拍数 ≤85 | **86**（b24 131、b25 85）。差 1 拍是 r103 那一行自己多花了一拍（decision 族，与这一刀无关） | ≈ |
+| r142 step 1 | **1,929 ms**（b24 同拍 124,751 ms） | ✓ #60 不退化 |
+| 零云端 / fp | step 事件 86，`text_helper={None:83, startlux-decision-2b:3}` ⊆ 允许集；**fp=0**，unknown=0，error=0 | ✓ |
+| 射程 | 锚点后离线重放：b24 21 行、b25 20 行开火，**全部 `navigate` 类**；批内 `--scope` 报"射程外开火=[]" | ✓ |
+
+### r101 不归这一刀（也是按你定的规矩：不是内部原因就不算它账）
+
+`m2/batch_audit.py` 之外我又把 r101 在**全部 27 个批**里的读数拉出来对着看：
+`blocked_by_bot_wall` 死 **17 次**（b10–b22 连着死），只在 b7/b8/b11 之前、b23、b24 侥幸 PASS，
+b25/b26 又死。b26 现场逐拍：`search_type → search_submit → page_not_ready×3 →` 分类器判
+`failure_class=system, blocked_by_bot_wall`，最终页 `pypi.org/search/?q=flask`。
+到达档在那行一次没开火。**所以 b26 的 44 与 b24 的 45 之间那一行是墙，不是这一刀。**
+L2 的"干净读数 45/50"仍以 b24 为准，这条不改写；b26 是"同样 45 行的容量 + 少 45 拍 + 不再被 modal 楔死"。
+
+### 提交
+
+一个已验批次 = 一个提交：`#60`（browser.py 的 `Page.enable`+新文档防御）、`#59`
+（`link_followed_arrival` + DoneGuard 第二判据 + `url_from`）、两套新测试、六个到达页 fixture、
+十个零模型探针、b25/b26 与冻结/单任务报告、`m2/real-log.md` 的全部读数（含**第五次错因**
+"我把历史条目的形状猜错了"和 b25 的 r110 自伤）。

@@ -1,0 +1,8 @@
+  A 事件轮询       第1次      navigate=ok                     事件 7 / 对话框 1 / 本 session 1
+    accept 后仍超时：_IPCResponseTimeout
+  A 事件轮询       第2次      navigate=ok                     事件 13 / 对话框 2 / 本 session 1
+    accept 后 evaluate 恢复（+0.02s）
+  B 新文档补丁      第1次      注册 ok      navigate ok      loading|a=0（+0.02s）
+    排空到的对话框事件=1
+  B 新文档补丁      第2次      注册 ok      navigate ok      loading|a=0（+0.02s）
+    排空到的对话框事件=0

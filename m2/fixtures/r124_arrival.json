@@ -1,0 +1,1576 @@
+{
+ "actions": [
+  {
+   "href": "../index.html",
+   "id": "e1",
+   "kind": "click",
+   "label": "NumPy v2.5 Manual - Home \n     NumPy v2.5 Manual - Home",
+   "node": 1,
+   "rect": {
+    "h": 64,
+    "w": 155.59375,
+    "x": 16,
+    "y": 32
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../user/index.html",
+   "id": "e2",
+   "kind": "click",
+   "label": "User Guide",
+   "node": 2,
+   "rect": {
+    "h": 60.78125,
+    "w": 74.921875,
+    "x": 186.9375,
+    "y": 33.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e3",
+   "kind": "click",
+   "label": "API reference",
+   "node": 3,
+   "rect": {
+    "h": 60.78125,
+    "w": 88.296875,
+    "x": 265.859375,
+    "y": 33.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../building/index.html",
+   "id": "e4",
+   "kind": "click",
+   "label": "Building from source",
+   "node": 4,
+   "rect": {
+    "h": 60.78125,
+    "w": 131.765625,
+    "x": 358.15625,
+    "y": 33.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../dev/index.html",
+   "id": "e5",
+   "kind": "click",
+   "label": "Development",
+   "node": 5,
+   "rect": {
+    "h": 34.390625,
+    "w": 112.34375,
+    "x": 493.921875,
+    "y": 33.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../release.html",
+   "id": "e6",
+   "kind": "click",
+   "label": "Release notes",
+   "node": 6,
+   "rect": {
+    "h": 60.78125,
+    "w": 90.703125,
+    "x": 610.265625,
+    "y": 33.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "https://numpy.org/numpy-tutorials/",
+   "id": "e7",
+   "kind": "click",
+   "label": "Learn",
+   "node": 7,
+   "rect": {
+    "h": 34.390625,
+    "w": 70.171875,
+    "x": 704.96875,
+    "y": 33.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "https://numpy.org/neps",
+   "id": "e8",
+   "kind": "click",
+   "label": "NEPs",
+   "node": 8,
+   "rect": {
+    "h": 34.390625,
+    "w": 65.78125,
+    "x": 779.140625,
+    "y": 33.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e9",
+   "kind": "click",
+   "label": "Search",
+   "node": 9,
+   "rect": {
+    "h": 34.390625,
+    "w": 24,
+    "x": 858.953125,
+    "y": 14.796875
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "id": "e10",
+   "kind": "click",
+   "label": "Color mode",
+   "node": 10,
+   "rect": {
+    "h": 34.390625,
+    "w": 24,
+    "x": 900.859375,
+    "y": 14.796875
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "id": "e11",
+   "kind": "click",
+   "label": "Version switcher list",
+   "node": 11,
+   "rect": {
+    "h": 29.5,
+    "w": 93.234375,
+    "x": 942.765625,
+    "y": 17.25
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "https://github.com/numpy/numpy",
+   "id": "e12",
+   "kind": "click",
+   "label": "GitHub",
+   "node": 12,
+   "rect": {
+    "h": 34.390625,
+    "w": 24,
+    "x": 1012,
+    "y": 78.796875
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e13",
+   "kind": "click",
+   "label": "On this page",
+   "node": 13,
+   "rect": {
+    "h": 34.390625,
+    "w": 37,
+    "x": 1052,
+    "y": 46.796875
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "expanded": "true",
+   "id": "e14",
+   "kind": "click",
+   "label": "Collapse Sidebar \n   Expand Sidebar",
+   "node": 14,
+   "rect": {
+    "h": 30.21875,
+    "w": 134.359375,
+    "x": 16,
+    "y": 141.125
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "module_structure.html",
+   "id": "e15",
+   "kind": "click",
+   "label": "NumPy’s module structure",
+   "node": 15,
+   "rect": {
+    "h": 31.765625,
+    "w": 256.25,
+    "x": 16,
+    "y": 229.890625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "arrays.html",
+   "id": "e16",
+   "kind": "click",
+   "label": "Array objects",
+   "node": 16,
+   "rect": {
+    "h": 31.765625,
+    "w": 256.25,
+    "x": 16,
+    "y": 261.65625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "ufuncs.html",
+   "id": "e17",
+   "kind": "click",
+   "label": "Universal functions ( ufunc )",
+   "node": 17,
+   "rect": {
+    "h": 31.765625,
+    "w": 256.25,
+    "x": 16,
+    "y": 293.421875
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "routines.html",
+   "id": "e18",
+   "kind": "click",
+   "label": "Routines and objects by topic",
+   "node": 18,
+   "rect": {
+    "h": 31.765625,
+    "w": 256.25,
+    "x": 16,
+    "y": 325.1875
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "typing.html",
+   "id": "e19",
+   "kind": "click",
+   "label": "Typing ( numpy.typing )",
+   "node": 19,
+   "rect": {
+    "h": 31.765625,
+    "w": 256.25,
+    "x": 16,
+    "y": 356.953125
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "c-api/index.html",
+   "id": "e20",
+   "kind": "click",
+   "label": "NumPy C-API",
+   "node": 20,
+   "rect": {
+    "h": 31.765625,
+    "w": 256.25,
+    "x": 16,
+    "y": 388.71875
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "array_api.html",
+   "id": "e21",
+   "kind": "click",
+   "label": "Array API standard compatibility",
+   "node": 21,
+   "rect": {
+    "h": 31.765625,
+    "w": 256.25,
+    "x": 16,
+    "y": 420.484375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "simd/index.html",
+   "id": "e22",
+   "kind": "click",
+   "label": "CPU/SIMD optimizations",
+   "node": 22,
+   "rect": {
+    "h": 31.765625,
+    "w": 256.25,
+    "x": 16,
+    "y": 452.25
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "thread_safety.html",
+   "id": "e23",
+   "kind": "click",
+   "label": "Thread Safety",
+   "node": 23,
+   "rect": {
+    "h": 31.765625,
+    "w": 256.25,
+    "x": 16,
+    "y": 484.015625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "global_state.html",
+   "id": "e24",
+   "kind": "click",
+   "label": "Global Configuration Options",
+   "node": 24,
+   "rect": {
+    "h": 31.765625,
+    "w": 256.25,
+    "x": 16,
+    "y": 515.78125
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "security.html",
+   "id": "e25",
+   "kind": "click",
+   "label": "NumPy security",
+   "node": 25,
+   "rect": {
+    "h": 31.765625,
+    "w": 256.25,
+    "x": 16,
+    "y": 547.546875
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "testing.html",
+   "id": "e26",
+   "kind": "click",
+   "label": "Testing guidelines",
+   "node": 26,
+   "rect": {
+    "h": 31.765625,
+    "w": 256.25,
+    "x": 16,
+    "y": 579.3125
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "distutils_status_migration.html",
+   "id": "e27",
+   "kind": "click",
+   "label": "Status of  numpy.distutils  and migration advice",
+   "node": 27,
+   "rect": {
+    "h": 55.53125,
+    "w": 256.25,
+    "x": 16,
+    "y": 611.078125
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "swig.html",
+   "id": "e28",
+   "kind": "click",
+   "label": "NumPy and SWIG",
+   "node": 28,
+   "rect": {
+    "h": 31.765625,
+    "w": 256.25,
+    "x": 16,
+    "y": 666.609375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../index.html",
+   "id": "e29",
+   "kind": "click",
+   "label": "Home",
+   "node": 29,
+   "rect": {
+    "h": 21.109375,
+    "w": 14.390625,
+    "x": 303.25,
+    "y": 147
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "../index.html#numpy-docs-mainpage",
+   "id": "e30",
+   "kind": "click",
+   "label": "complete documentation",
+   "node": 30,
+   "rect": {
+    "h": 22,
+    "w": 188.03125,
+    "x": 759.484375,
+    "y": 348.921875
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "module_structure.html",
+   "id": "e31",
+   "kind": "click",
+   "label": "NumPy’s module structure",
+   "node": 31,
+   "rect": {
+    "h": 24,
+    "w": 218.25,
+    "x": 292.25,
+    "y": 475.203125
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "arrays.html",
+   "id": "e32",
+   "kind": "click",
+   "label": "Array objects",
+   "node": 32,
+   "rect": {
+    "h": 24,
+    "w": 107.46875,
+    "x": 292.25,
+    "y": 520.21875
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "arrays.ndarray.html",
+   "id": "e33",
+   "kind": "click",
+   "label": "The N-dimensional array ( ndarray )",
+   "node": 33,
+   "rect": {
+    "h": 24,
+    "w": 289.953125,
+    "x": 316.25,
+    "y": 549.234375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "arrays.scalars.html",
+   "id": "e34",
+   "kind": "click",
+   "label": "Scalars",
+   "node": 34,
+   "rect": {
+    "h": 24,
+    "w": 57.671875,
+    "x": 316.25,
+    "y": 581.828125
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "arrays.dtypes.html",
+   "id": "e35",
+   "kind": "click",
+   "label": "Data type objects ( dtype )",
+   "node": 35,
+   "rect": {
+    "h": 24,
+    "w": 212.359375,
+    "x": 316.25,
+    "y": 614.03125
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "arrays.promotion.html",
+   "id": "e36",
+   "kind": "click",
+   "label": "Data type promotion in NumPy",
+   "node": 36,
+   "rect": {
+    "h": 24,
+    "w": 255.140625,
+    "x": 316.25,
+    "y": 646.625
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "arrays.nditer.html",
+   "id": "e37",
+   "kind": "click",
+   "label": "Iterating over arrays",
+   "node": 37,
+   "rect": {
+    "h": 24,
+    "w": 165.859375,
+    "x": 316.25,
+    "y": 678.828125
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "arrays.classes.html",
+   "id": "e38",
+   "kind": "click",
+   "label": "Standard array subclasses",
+   "node": 38,
+   "rect": {
+    "h": 24,
+    "w": 214.5625,
+    "x": 316.25,
+    "y": 711.03125
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "maskedarray.html",
+   "id": "e39",
+   "kind": "click",
+   "label": "Masked arrays",
+   "node": 39,
+   "rect": {
+    "h": 24,
+    "w": 119.625,
+    "x": 316.25,
+    "y": 743.234375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "delta": 560,
+   "id": "scroll_down",
+   "kind": "scroll",
+   "label": "Scroll down"
+  },
+  {
+   "delta": 2262,
+   "id": "scroll_bottom",
+   "kind": "scroll",
+   "label": "Scroll to bottom"
+  },
+  {
+   "id": "reload",
+   "kind": "reload",
+   "label": "Reload the page"
+  },
+  {
+   "id": "wait",
+   "kind": "wait",
+   "label": "Wait for the page to update"
+  }
+ ],
+ "fingerprint": "22060845253a9b72fd406034a71fbe5b461e0e06109e68c8a7d400333aafac8f",
+ "guards": {
+  "1": [
+   1,
+   "link",
+   "NumPy v2.5 Manual - Home \n     NumPy v2.5 Manual - Home",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../index.html",
+   ""
+  ],
+  "10": [
+   10,
+   "button",
+   "Color mode",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   ""
+  ],
+  "11": [
+   11,
+   "button",
+   "Version switcher list",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "2.5 (stable)"
+  ],
+  "12": [
+   12,
+   "link",
+   "GitHub",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://github.com/numpy/numpy",
+   "GitHub"
+  ],
+  "13": [
+   13,
+   "button",
+   "On this page",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "User Guide\nAPI reference\nBuilding from source\nDevelopment\nRelease notes\nLearn\nNEPs\n2.5 (stable)\nGitHub"
+  ],
+  "14": [
+   14,
+   "button",
+   "Collapse Sidebar \n   Expand Sidebar",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   "true",
+   null,
+   null,
+   null,
+   "Collapse Sidebar"
+  ],
+  "15": [
+   15,
+   "link",
+   "NumPy’s module structure",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "module_structure.html",
+   "NumPy’s module structure"
+  ],
+  "16": [
+   16,
+   "link",
+   "Array objects",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "arrays.html",
+   "Array objects"
+  ],
+  "17": [
+   17,
+   "link",
+   "Universal functions ( ufunc )",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "ufuncs.html",
+   "Universal functions (ufunc)"
+  ],
+  "18": [
+   18,
+   "link",
+   "Routines and objects by topic",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "routines.html",
+   "Routines and objects by topic"
+  ],
+  "19": [
+   19,
+   "link",
+   "Typing ( numpy.typing )",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "typing.html",
+   "Typing (numpy.typing)"
+  ],
+  "2": [
+   2,
+   "link",
+   "User Guide",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../user/index.html",
+   "User Guide"
+  ],
+  "20": [
+   20,
+   "link",
+   "NumPy C-API",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "c-api/index.html",
+   "NumPy C-API"
+  ],
+  "21": [
+   21,
+   "link",
+   "Array API standard compatibility",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "array_api.html",
+   "Array API standard compatibility"
+  ],
+  "22": [
+   22,
+   "link",
+   "CPU/SIMD optimizations",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "simd/index.html",
+   "CPU/SIMD optimizations"
+  ],
+  "23": [
+   23,
+   "link",
+   "Thread Safety",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "thread_safety.html",
+   "Thread Safety"
+  ],
+  "24": [
+   24,
+   "link",
+   "Global Configuration Options",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "global_state.html",
+   "Global Configuration Options"
+  ],
+  "25": [
+   25,
+   "link",
+   "NumPy security",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "security.html",
+   "NumPy security"
+  ],
+  "26": [
+   26,
+   "link",
+   "Testing guidelines",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "testing.html",
+   "Testing guidelines"
+  ],
+  "27": [
+   27,
+   "link",
+   "Status of  numpy.distutils  and migration advice",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "distutils_status_migration.html",
+   "Status of numpy.distutils and migration advice"
+  ],
+  "28": [
+   28,
+   "link",
+   "NumPy and SWIG",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "swig.html",
+   "NumPy and SWIG"
+  ],
+  "29": [
+   29,
+   "link",
+   "Home",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../index.html",
+   ""
+  ],
+  "3": [
+   3,
+   "link",
+   "API reference",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "#",
+   "API reference"
+  ],
+  "30": [
+   30,
+   "link",
+   "complete documentation",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../index.html#numpy-docs-mainpage",
+   "NumPy reference\nRelease:\n\n2.5\n\nDate:\n\nJune 28, 2026\n\nThis reference manual details functions, modules, and objects included in NumPy, describing what they are and what they do. For learning how to use NumPy, see the complete documentation.\n\nPython API\nNumPy’s module structure\nArray objects\nThe N-dimensional array (ndarray)\nScalars\nData type objects (dtype)\nData type promotion in NumPy\nIterating over arrays\nStandard array subclasses\nMasked arrays\nThe array interface protocol\nDatetimes and timedeltas\nUniversal functions (ufunc)\nRoutines and objects by topic\nConstants\nArray creation routines\nArray manipulation routines\nBit-wise operations\nString functionality\nDatetime support functions\nData type routines\nMathematical functions with automatic domain\nFloating point error handling\nExceptions and Warnings\nDiscrete Fourier Transform\nFunctional programming\nInput and output\nIndexing routines\nLinear algebra\nLogic functions\nMasked array operations\nMathematical functions\nMiscellaneous routines\nPolynomials\nRandom sampling\nSet routines\nSorting, searching, and counting\nStatistics\nTest support\nWindow functions\nTyping (numpy.typing)\nC API\nNumPy C-API\nPython types and C-structures\nSystem configuration\nData type API\nArray API\nArray iterator API\nufunc API\nGeneralized universal function API\nNpyString API\nNumPy core math library\nDatetime API\nC API deprecations\nMemory management in NumPy\nOther topics\nArray API standard compatibility\nCPU/SIMD optimizations\nThread Safety\nGlobal Configuration Options\nNumPy security\nTesting guidelines\nStatus of numpy.distutils and migration advice\nNumPy and SWIG\nAcknowledgements\n\nLarge parts of this manual originate from Travis E. Oliphant’s book Guide to NumPy (which generously entered Public Domain in August 2008). The reference documentation for many of the functions are written by numerous contributors and developers of NumPy."
+  ],
+  "31": [
+   31,
+   "link",
+   "NumPy’s module structure",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "module_structure.html",
+   "NumPy’s module structure"
+  ],
+  "32": [
+   32,
+   "link",
+   "Array objects",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "arrays.html",
+   "Array objects\nThe N-dimensional array (ndarray)\nScalars\nData type objects (dtype)\nData type promotion in NumPy\nIterating over arrays\nStandard array subclasses\nMasked arrays\nThe array interface protocol\nDatetimes and timedeltas"
+  ],
+  "33": [
+   33,
+   "link",
+   "The N-dimensional array ( ndarray )",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "arrays.ndarray.html",
+   "The N-dimensional array (ndarray)"
+  ],
+  "34": [
+   34,
+   "link",
+   "Scalars",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "arrays.scalars.html",
+   "Scalars"
+  ],
+  "35": [
+   35,
+   "link",
+   "Data type objects ( dtype )",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "arrays.dtypes.html",
+   "Data type objects (dtype)"
+  ],
+  "36": [
+   36,
+   "link",
+   "Data type promotion in NumPy",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "arrays.promotion.html",
+   "Data type promotion in NumPy"
+  ],
+  "37": [
+   37,
+   "link",
+   "Iterating over arrays",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "arrays.nditer.html",
+   "Iterating over arrays"
+  ],
+  "38": [
+   38,
+   "link",
+   "Standard array subclasses",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "arrays.classes.html",
+   "Standard array subclasses"
+  ],
+  "39": [
+   39,
+   "link",
+   "Masked arrays",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "maskedarray.html",
+   "Masked arrays"
+  ],
+  "4": [
+   4,
+   "link",
+   "Building from source",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../building/index.html",
+   "Building from source"
+  ],
+  "5": [
+   5,
+   "link",
+   "Development",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../dev/index.html",
+   "Development"
+  ],
+  "6": [
+   6,
+   "link",
+   "Release notes",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "../release.html",
+   "Release notes"
+  ],
+  "7": [
+   7,
+   "link",
+   "Learn",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://numpy.org/numpy-tutorials/",
+   "Learn"
+  ],
+  "8": [
+   8,
+   "link",
+   "NEPs",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://numpy.org/neps",
+   "NEPs"
+  ],
+  "9": [
+   9,
+   "button",
+   "Search",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   ""
+  ]
+ },
+ "h": 780,
+ "marker": [
+  1791663236353.1,
+  "https://numpy.org/doc/stable/reference/index.html#",
+  0,
+  0,
+  1120,
+  780,
+  "NumPy reference — NumPy v2.5 Manual",
+  "User Guide\nAPI reference\nBuilding from source\nDevelopment\nRelease notes\nLearn\nNEPs\n2.5 (stable)\nGitHub\nCollapse Sidebar\nSection Navigation\nNumPy’s module structure\nArray objects\nUniversal functions (\nufunc\n)\nRoutines and objects by topic\nTyping (\nnumpy.typing\n)\nNumPy C-API\nArray API standard compatibility\nCPU/SIMD optimizations\nThread Safety\nGlobal Configuration Options\nNumPy security\nTesting guidelines\nStatus of\nnumpy.distutils\nand migration advice\nNumPy and SWIG\nNumPy reference\nNumPy reference\nRelease\n:\n2.5\nDate\n:\nJune 28, 2026\nThis reference manual details functions, modules, and objects\nincluded in NumPy, describing what they are and what they do.\nFor learning how to use NumPy, see the\ncomplete documentation\n.\nPython API\nNumPy’s module structure\nArray objects\nThe N-dimensional array (\nndarray\n)\nScalars\nData type objects (\ndtype\n)\nData type promotion in NumPy\nIterating over arrays\nStandard array subclasses\nMasked arrays\nThe array interface protocol",
+  [
+   {
+    "href": "../index.html",
+    "kind": "click",
+    "label": "NumPy v2.5 Manual - Home \n     NumPy v2.5 Manual - Home",
+    "node": 1,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../user/index.html",
+    "kind": "click",
+    "label": "User Guide",
+    "node": 2,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "API reference",
+    "node": 3,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../building/index.html",
+    "kind": "click",
+    "label": "Building from source",
+    "node": 4,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../dev/index.html",
+    "kind": "click",
+    "label": "Development",
+    "node": 5,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../release.html",
+    "kind": "click",
+    "label": "Release notes",
+    "node": 6,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "https://numpy.org/numpy-tutorials/",
+    "kind": "click",
+    "label": "Learn",
+    "node": 7,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "https://numpy.org/neps",
+    "kind": "click",
+    "label": "NEPs",
+    "node": 8,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Search",
+    "node": 9,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Color mode",
+    "node": 10,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Version switcher list",
+    "node": 11,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "https://github.com/numpy/numpy",
+    "kind": "click",
+    "label": "GitHub",
+    "node": 12,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "On this page",
+    "node": 13,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "expanded": "true",
+    "kind": "click",
+    "label": "Collapse Sidebar \n   Expand Sidebar",
+    "node": 14,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "module_structure.html",
+    "kind": "click",
+    "label": "NumPy’s module structure",
+    "node": 15,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "arrays.html",
+    "kind": "click",
+    "label": "Array objects",
+    "node": 16,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "ufuncs.html",
+    "kind": "click",
+    "label": "Universal functions ( ufunc )",
+    "node": 17,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "routines.html",
+    "kind": "click",
+    "label": "Routines and objects by topic",
+    "node": 18,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "typing.html",
+    "kind": "click",
+    "label": "Typing ( numpy.typing )",
+    "node": 19,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "c-api/index.html",
+    "kind": "click",
+    "label": "NumPy C-API",
+    "node": 20,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "array_api.html",
+    "kind": "click",
+    "label": "Array API standard compatibility",
+    "node": 21,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "simd/index.html",
+    "kind": "click",
+    "label": "CPU/SIMD optimizations",
+    "node": 22,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "thread_safety.html",
+    "kind": "click",
+    "label": "Thread Safety",
+    "node": 23,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "global_state.html",
+    "kind": "click",
+    "label": "Global Configuration Options",
+    "node": 24,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "security.html",
+    "kind": "click",
+    "label": "NumPy security",
+    "node": 25,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "testing.html",
+    "kind": "click",
+    "label": "Testing guidelines",
+    "node": 26,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "distutils_status_migration.html",
+    "kind": "click",
+    "label": "Status of  numpy.distutils  and migration advice",
+    "node": 27,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "swig.html",
+    "kind": "click",
+    "label": "NumPy and SWIG",
+    "node": 28,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../index.html",
+    "kind": "click",
+    "label": "Home",
+    "node": 29,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "../index.html#numpy-docs-mainpage",
+    "kind": "click",
+    "label": "complete documentation",
+    "node": 30,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "module_structure.html",
+    "kind": "click",
+    "label": "NumPy’s module structure",
+    "node": 31,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "arrays.html",
+    "kind": "click",
+    "label": "Array objects",
+    "node": 32,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "arrays.ndarray.html",
+    "kind": "click",
+    "label": "The N-dimensional array ( ndarray )",
+    "node": 33,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "arrays.scalars.html",
+    "kind": "click",
+    "label": "Scalars",
+    "node": 34,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "arrays.dtypes.html",
+    "kind": "click",
+    "label": "Data type objects ( dtype )",
+    "node": 35,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "arrays.promotion.html",
+    "kind": "click",
+    "label": "Data type promotion in NumPy",
+    "node": 36,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "arrays.nditer.html",
+    "kind": "click",
+    "label": "Iterating over arrays",
+    "node": 37,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "arrays.classes.html",
+    "kind": "click",
+    "label": "Standard array subclasses",
+    "node": 38,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "maskedarray.html",
+    "kind": "click",
+    "label": "Masked arrays",
+    "node": 39,
+    "role": "link",
+    "value": ""
+   }
+  ],
+  null
+ ],
+ "marker_stable": [
+  1791663236353.1,
+  "https://numpy.org/doc/stable/reference/index.html#",
+  "NumPy reference — NumPy v2.5 Manual"
+ ],
+ "omitted_actions": 0,
+ "page_key": [
+  1791663236353.1,
+  "https://numpy.org/doc/stable/reference/index.html#",
+  0,
+  0,
+  1120,
+  780
+ ],
+ "scroll": {
+  "height": 3042,
+  "y": 0
+ },
+ "text": "User Guide\nAPI reference\nBuilding from source\nDevelopment\nRelease notes\nLearn\nNEPs\n2.5 (stable)\nGitHub\nCollapse Sidebar\nSection Navigation\nNumPy’s module structure\nArray objects\nUniversal functions (\nufunc\n)\nRoutines and objects by topic\nTyping (\nnumpy.typing\n)\nNumPy C-API\nArray API standard compatibility\nCPU/SIMD optimizations\nThread Safety\nGlobal Configuration Options\nNumPy security\nTesting guidelines\nStatus of\nnumpy.distutils\nand migration advice\nNumPy and SWIG\nNumPy reference\nNumPy reference\nRelease\n:\n2.5\nDate\n:\nJune 28, 2026\nThis reference manual details functions, modules, and objects\nincluded in NumPy, describing what they are and what they do.\nFor learning how to use NumPy, see the\ncomplete documentation\n.\nPython API\nNumPy’s module structure\nArray objects\nThe N-dimensional array (\nndarray\n)\nScalars\nData type objects (\ndtype\n)\nData type promotion in NumPy\nIterating over arrays\nStandard array subclasses\nMasked arrays\nThe array interface protocol",
+ "title": "NumPy reference — NumPy v2.5 Manual",
+ "url": "https://numpy.org/doc/stable/reference/index.html#",
+ "w": 1120
+}

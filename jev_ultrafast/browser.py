@@ -138,6 +138,26 @@ SETTLE_INIT_JS = (
 class StalePage(ValueError):
     """A decision no longer refers to the observed page."""
 
+#: 模态框防御（#60）。the-internet 的 /download 把**任何人上传的文件名原样拼进 HTML**，
+#: 列表里躺着 `<img src=x onerror=alert(1)>`，于是**初始导航本身**就弹 alert。modal 把
+#: renderer 主线程钉住之后，该 session 的每一次 `Runtime.evaluate` 永不返回（实测
+#: 120 秒轮询 24 次全超时，同一时刻新开的 about:blank 0.02s 正常、同站根路径正常）——
+#: b22/b23 的 r142 崩、b18–b24 里 step 1 那 124.5/124.8 秒（正好是 `Browser.call`
+#: 的 4 次 × 30 秒）都是这一条，跟 heroku 冷热无关。
+#: 必须在 `Page.navigate` **之前**注册：new-document 脚本赶在页面自己的脚本之前跑，
+#: 装上之后 alert/confirm/prompt 根本不开 modal，点击之后的每个新 document 也自带。
+#: confirm→true、prompt→'' 与"应答对话框"时 accept 的语义一致。
+#: `configurable:false`：注入型页面最常干的事就是把 window.alert 改回来。
+#: 未覆盖的已知形状：`beforeunload` 这类浏览器生成的 modal 不走 window.* API（50 题里没有
+#: 这种页面，见 m2/real-log.md 的记账，等真见到再打这一刀）。
+MODAL_GUARD_JS = (
+    "(() => { const d = (name, v) => { try {"
+    " Object.defineProperty(window, name,"
+    " { value: v, writable: false, configurable: false }); } catch (e) {} };"
+    " d('alert', () => undefined); d('confirm', () => true);"
+    " d('prompt', () => ''); })()"
+)
+
 class Browser:
     def __init__(self, url):
         _ensure_daemon()
@@ -146,6 +166,17 @@ class Browser:
         self.call("Emulation.setDeviceMetricsOverride", width=1120, height=780, deviceScaleFactor=1, mobile=False)
         # Keep rAF/menus rendering in an owned background tab, without activating the user's Chrome tab.
         self.call("Emulation.setFocusEmulationEnabled", enabled=True)
+        # 对话框页的初始导航会把主线程钉死（见 MODAL_GUARD_JS），所以防御要在第一跳之前装。
+        # 实测顺序依赖（m2/probe_emulation_matrix 系列，2×2）：`Page.enable` **不发在导航之前**
+        # 时，装了防御也和没装一样——同一页照样在 +4.4s 楔死；开了 Page 域再装防御，
+        # 4/4 不楔（0.02s 与 0.2s 两种轮询频率都试，排除"轮询太密"这个解释）。
+        # 装不上就照旧跑：等价于改前行为，不能让新页面起不来。
+        try:
+            self.call("Page.enable", _response_timeout=5)
+            self.call("Page.addScriptToEvaluateOnNewDocument", source=MODAL_GUARD_JS,
+                      _response_timeout=5)
+        except Exception:
+            pass
         self.call("Page.navigate", url=url)
         deadline = time.monotonic() + 15
         while time.monotonic() < deadline:
