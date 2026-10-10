@@ -3259,3 +3259,34 @@ the-internet 任务**（heroku 冷 dyno 是这一族已知的慢法），r142 �
    损坏的那份留在 `stash@{0}` 作证据。**教训**：长文档里的字符串定位必须用**唯一锚点**或行号区间，
    命中"第一次出现"的 `str.index` 在追加式日志里是危险的；这类修补优先"回到已知状态重写"，
    不要手工剪重复段。
+
+## #57 立刀之前的复现尝试：**没复现**（这限制了这一刀能定成什么形状）· 2026-10-10 23:5x
+
+`m2/probe_init_latency.py`（零模型，同 b21 的条件：同一进程里一题一题 `Browser(url)`→`observe`→`close()`，
+**不**重启浏览器），跑 b21 连挂三行的那一族 8 个页面：
+
+```
+  [1] dropdown               init= 3.05s readyState=complete  observe=0.02s  null=0.00s
+  [2] add_remove_elements/   init= 1.99s readyState=complete  observe=0.03s  null=0.00s
+  [3] disappearing_elements  init= 2.12s readyState=complete  observe=0.02s  null=0.00s
+  [4] download               init= 2.60s readyState=complete  observe=0.04s  null=0.03s
+  [5] checkboxes             init= 2.03s readyState=complete  observe=0.02s  null=0.01s
+  [6] multiple_buttons       init= 1.99s readyState=complete  observe=0.02s  null=0.02s
+  [7] status_codes           init= 2.06s readyState=complete  observe=0.02s  null=0.02s
+  [8] wysiwyg                init= 1.98s readyState=complete  observe=0.01s  null=0.02s
+最慢 init=3.0s  最长空快照=0.0s  （Agent init 的退避预算=6.0s）
+```
+
+**读数说的事**：8/8 全部 `readyState=complete`、observe 一次过、快照一次也没返回 null，
+最慢的起点是 3.05 s——**离 6.0 s 的边界还有 3 秒余量**。所以 b21 那三行的"越过 6 秒"
+在今晚这一发里**没有重现**（一次尝试，不是"永远不会重现"）。
+
+**因此这一刀不许定成"把 6 秒改大"。** 加大边界需要知道真实的慢法分布，而这个分布现在只有一条
+>6 s 的读数（b21）和一条 ≤3.05 s 的读数（今晚），拿它调数字就是猜。能站得住的形状只有一条：
+**越界之后不许无声丢行**——`Agent.__init__` 的退避耗尽时，runner 重做一次完整起点（新
+`Browser` + 再导航），仍失败才记错误行；这与 #54 已经验证过的自愈同形（有界、一次、认签名）。
+可证伪的上限也照实写：**今天不买分**（error=0 的正常批里它一次也不会触发），它买的是
+"b21 那种窗口不再生吞三行"，以及 #56 门控重提时能拿到 `error=0` 的资格。
+
+**#56 的重提因此被两件事卡住**：① 上面这条自愈；② 一条能重现"跳过重启就慢过 6 秒"的读数——
+否则重提的批只是再赌一次。
