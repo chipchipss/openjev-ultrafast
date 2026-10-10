@@ -80,8 +80,15 @@ def t_retries_instead_of_escaping():
     assert SLEEPS == sorted(SLEEPS) and SLEEPS[-1] > SLEEPS[0], f"退避没有递增：{SLEEPS}"
 
 
-@case("全部失败时行为不变：抛出 StalePage 并关掉会话（不静默吞）")
+@case("全部失败时仍然抛出：两个起点都读不成才算不可达（不静默吞）")
 def t_gives_up_cleanly_when_page_never_settles():
+    """#57（b21）有意改掉这条用例的旧形状。
+
+    E1 原来钉的是"一次起点、6 次退避、耗尽就抛"——那条边界今晚被 b21 打了：三行
+    r139/r140/r141 就这么变成没有 trace 的 ERROR。现在**先重做一次完整起点**再放弃，
+    所以这里的上限变成 **两次起点 = 10 次退避**；抛出与关会话两条要求一字不降。
+    （重做的那一次由 `tests/test_agent_init_stale_retry.py` 单独钉。）
+    """
     install()
     FAIL["times"] = 99                      # 永远不会归静
     try:
@@ -89,10 +96,12 @@ def t_gives_up_cleanly_when_page_never_settles():
     except A.StalePage:
         pass
     else:
-        raise AssertionError("退避耗尽后必须仍然抛出——静默成功会把不可达说成可达")
-    br = FakeBrowser.instances[0]
-    assert br.closed, "放弃时没关浏览器会话（会留下挂死的 CDP target）"
-    assert len(SLEEPS) == 5, f"重试必须有上限，不能无限：观察 {1+len(SLEEPS)} 次 / {SLEEPS}"
+        raise AssertionError("两个起点都耗尽后必须仍然抛出——静默成功会把不可达说成可达")
+    ins = FakeBrowser.instances
+    assert len(ins) == 2, f"应当重做一次完整起点，实到 {len(ins)} 个起点"
+    assert all(b.closed for b in ins), "放弃时没关浏览器会话（会留下挂死的 CDP target）"
+    assert len(SLEEPS) == 10, \
+        f"重试必须有上限（2 次起点 × 5 次退避），不能无限：{SLEEPS}"
 
 
 @case("非 StalePage 的错误不重试（页面坏了不是慢）")

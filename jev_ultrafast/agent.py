@@ -113,6 +113,25 @@ def _done_guard(decision: dict, state: dict) -> str | None:
     return None
 
 class Agent:
+    def _observe_start(self):
+        """起点的有界退避观测（E1 的 6 次、合计 6.0 s）。
+
+        读不到返回 `None` 交给调用方决定"要不要重做一次完整起点"（#57），而不是在这里
+        把异常抛出构造函数 —— 那正是 b21 生吞三行的形状。非 StalePage 的异常照旧抛出：
+        普通 bug 不许被当成"起点没读成"重试一遍。
+        """
+        for attempt in range(6):
+            try:
+                return self.browser.observe(screenshot=self.screenshots)
+            except StalePage:
+                if attempt == 5:
+                    return None
+                time.sleep(0.4 * (attempt + 1))
+            except Exception:
+                self.browser.close()
+                raise
+        return None
+
     def __init__(self, url, goals, *, record_dir=None, screenshots=False,
                  task_spec=None, api_teacher=None, api_budget=None):
         task = goals.strip() if isinstance(goals, str) else "\n".join(goals).strip()
@@ -144,18 +163,23 @@ class Agent:
         # 早有有界退避（见下方 StalePage 分支的 5 次重试），init 这条路没有 ——
         # 于是 StalePage 逃出整个 run：报告只剩 result="ERROR"，连 jsonl 都没落，
         # 这条任务**连判据都没被跑过**。加退避而不是加词表：失败形状与页面内容无关。
-        for attempt in range(6):
-            try:
-                page = self.browser.observe(screenshot=self.screenshots)
+        #
+        # #57（b21 的 r139/r140/r141）补上退避**耗尽之后**的那一步：重做一次完整起点。
+        # 边界不加宽 —— 6 次退避合计 6.0 s 是 E1 定的，而今晚 `m2/probe_init_latency.py`
+        # 想复现那个窗口**没复现**（同族 8 个页面全好，最慢起点 3.05 s、空快照最长 0.03 s），
+        # 所以"把 6 秒改大"没有读数依据。有读数的形状只有一条：**越过边界不代表世界不可达，
+        # 只代表这一次起点没读成**——新建 `Browser(url)` 会重新走一遍 navigate +
+        # readyState + settle，正是那三行当时缺的第二次机会。有界一次，仍失败才抛穿。
+        page = None
+        for start in range(2):
+            if start:
+                self.browser = Browser(url)
+            page = self._observe_start()
+            if page is not None:
                 break
-            except StalePage:
-                if attempt == 5:
-                    self.browser.close()
-                    raise
-                time.sleep(0.4 * (attempt + 1))
-            except Exception:
-                self.browser.close()
-                raise
+            self.browser.close()
+        if page is None:
+            raise StalePage("Document is navigating")
         self.state = dict(
             browser=self.browser,
             goal="\n".join(plan),
