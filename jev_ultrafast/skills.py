@@ -1908,6 +1908,19 @@ def first_result(page: dict, goal: str, history: list) -> dict | None:
     "Help Center and other resources"；r104 同理点了自动补全的 chip，再点 Advanced，
     最后发 DONE 被 guard 否决。所以闸门是"那次 fill **之后**出现过 url_changed"——
     搜索提交成功才会跳页，跳了页才是结果页。
+
+    b18 的 r104 教了第三课（#52）：**跳了页也不等于那条链接是结果**。搜索链两拍全对、
+    终页就是 `?term=CRISPR+off-target` 结果页，"搜索框之后第一个可点标签"却落在页眉
+    'Advanced' 上（快照 `m2/fixtures/r104_pubmed_results.json`：引文行在位置 26/28，
+    href 是相对的 `/36970624/`；它们前面排着 20 多条页壳与翻页控件）。所以选行改成
+    **先筛"是结果的"，再按位置取第一个**：goal 内容词重合最高的候选赢，**同分保持
+    先出现的**（"第一个结果"的位置规则没有被丢掉，只是加了一层资格筛选）。重合全为 0
+    时退回原规则（第一个可点标签）——s011/r103 的形状里结果标题就是不含搜索词，
+    那条路不能断。
+
+    为什么翻页控件抢不走：'Navigates to the first page of results.' 与 goal 只重合
+    'first' 一词（'page'/'article'/'search'/'open' 都在 STOPWORDS 里），引文行重合
+    'crispr'+'off'+'target' 三词。
     """
     if not _FIRST_RESULT_RE.search(goal or ""):
         return None
@@ -1926,7 +1939,11 @@ def first_result(page: dict, goal: str, history: list) -> dict | None:
         return None                        # 还没搜过 → 不是结果页
     if not any((h.get("outcome") or {}).get("url_changed") for h in hist[fill_at:]):
         return None                        # 填了但没提交 → 还不是结果页（H 类）
+    goal_tokens = {_stem(t) for t in _content(goal or "")}
     seen_input = False
+    first = None                           # 兜底用：搜索框之后的第一个可点标签
+    best = None
+    best_overlap = 0
     for index, a in _indexed(page.get("actions") or []):
         if a.get("kind") == "fill" and _searchbox(a):
             seen_input = True
@@ -1938,8 +1955,15 @@ def first_result(page: dict, goal: str, history: list) -> dict | None:
             continue
         if set(_tokens(lab)) & {"search", "submit", "go"}:
             continue                       # 搜索按钮不是结果
-        return _decision("CLICK", index, a, "first_result")
-    return None
+        if first is None:
+            first = (index, a)
+        overlap = _goal_overlap(a, goal_tokens)
+        if overlap > best_overlap:         # 同分保持先出现的 = "第一个结果"的位置规则
+            best, best_overlap = (index, a), overlap
+    chosen = best or first
+    if chosen is None:
+        return None
+    return _decision("CLICK", chosen[0], chosen[1], "first_result")
 
 
 # 顺序即优先级。search_submit 放最后：机票页要先填完 from/to/日期/票种再提交。

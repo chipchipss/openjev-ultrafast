@@ -7,6 +7,8 @@
 """
 from __future__ import annotations
 
+import json
+import re
 import sys
 from pathlib import Path
 
@@ -34,6 +36,18 @@ def A(i, kind, label, node, **kw):
 
 def page(actions, url="https://www.google.com/travel/flights"):
     return {"url": url, "actions": list(actions) + list(SYNTH)}
+
+
+def fixture(name):
+    """读真实站快照（`m2/fixtures/`，由 `m2/probe_r104_fixture.py` 一类零模型探针抓）。
+
+    为什么需要它：手写的页面快照只能表达**我以为**的形状。r104 的病恰恰是"结果行在
+    动作表里的位置/标签/href 形状"我写不出来（引文行 href 是相对的 `/36970624/`，
+    标签里带断裂的空格和连字符）。快照进仓后，这条用例离线、确定性、不碰浏览器。
+    """
+    path = Path(__file__).resolve().parent.parent / "m2" / "fixtures" / name
+    with path.open(encoding="utf-8") as fh:
+        return json.load(fh)
 
 
 def waits(n):
@@ -631,7 +645,46 @@ def t_first_result_needs_submitted_search():
     results = dict(p, url="https://stackoverflow.com/search?q=python+slice+step",
                    text="results")
     d = S.first_result(results, goal, submitted)
-    assert d is not None and d["choice"] == "e6", f"提交后该点第一个链接：{d}"
+    # #52 之后这里点的是 e7 'Ask Question' 而不是页脚 'Help Center and other resources'：
+    # 这一关的本体是 H 闸门（上两行），最后一行只是钉住"提交后确实开火了"。开火之后
+    # 选哪条由 #52 的选行规则管（与 goal 重合的候选 > 零重合的页脚 chrome）。
+    # 这是**合成迷你页**，r103 的真页形状不在这里判——它还挂在 #46 与 O 类账上。
+    assert d is not None and d["choice"] == "e7", \
+        f"提交后该点与 goal 重合的那条（合成页里是 'Ask Question'）：{d}"
+
+
+@case("#52 r104 真实快照：结果页要点**引文行**，不是页眉 chrome（改前点的是 'Advanced'）")
+def t_first_result_picks_result_row_not_chrome():
+    """b18 r104 实况（`reports/real-1009-b18-expand-1009-215419.json` + `logs/…/r104.jsonl`）：
+
+    搜索链两拍全对（search_type→search_submit，conf 1.0），第 2 拍落在真结果页
+    `?term=CRISPR+off-target`。第 3 拍 `first_result` 按"搜索框之后**第一个**可点标签"
+    发火 → 点中页眉 'Advanced'（`/advanced/`），第 4 拍在 /advanced/ 上发 DONE。
+    快照（`m2/fixtures/r104_pubmed_results.json`）证明引文行**就在同一张动作表里**：
+    位置 26 `/36970624/`、位置 28 `/36453226/`，只是排在页眉后面。
+
+    所以这一关要的是"先筛是结果的，再按位置取第一个"：goal 内容词重合最高的候选赢，
+    同分取最靠前（'first' 的位置规则仍在）。负例钉住不能误伤的：'Advanced'（0 重合）、
+    'Navigates to the first page of results.'（'first' 重合 1 词，比引文行低）、
+    'crisproff target'（"Did you mean" chip，指向的还是这一页自己）。
+    """
+    p = fixture("r104_pubmed_results.json")
+    goal = ("Search PubMed for 'CRISPR off-target' and open the first "
+            "research article page.")
+    hist = [{"step": 1, "kind": "fill", "action": "Search:", "text": "CRISPR off-target",
+             "skill": "search_type", "outcome": {"url_changed": False}},
+            {"step": 2, "kind": "click", "action": "Search", "choice": "e8",
+             "skill": "search_submit", "outcome": {"url_changed": True}}]
+    d = S.first_result(p, goal, hist)
+    assert d is not None and d["operation"] == "CLICK", f"结果页没开火：{d}"
+    rows = {i: a for i, a in S._indexed(p["actions"])
+            if re.match(r"^/\d{7,9}/?$", (a.get("href") or "").strip())}
+    got = dict(S._indexed(p["actions"])).get(str(d["target"])) or {}
+    assert (got.get("href") or "").strip() in {a["href"].strip() for a in rows.values()}, \
+        f"没点引文行：{d} -> {got.get('label')!r} {got.get('href')!r}"
+    first_pos = min(rows, key=int)
+    assert d["choice"] == rows[first_pos]["id"], \
+        f"该点第一条引文（位置 {first_pos}），实点 {d['choice']} {got.get('label')!r}"
 
 
 @case("'fill all fields' 的占位值：email 字段必须是合法邮箱（f007）")

@@ -1,0 +1,1256 @@
+{
+ "actions": [
+  {
+   "expanded": "false",
+   "id": "e1",
+   "kind": "click",
+   "label": "Here's how you know",
+   "node": 1,
+   "rect": {
+    "h": 12,
+    "w": 126.83333587646484,
+    "x": 367.84375,
+    "y": 5
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "https://www.ncbi.nlm.nih.gov/",
+   "id": "e2",
+   "kind": "click",
+   "label": "NCBI Logo",
+   "node": 2,
+   "rect": {
+    "h": 63,
+    "w": 414,
+    "x": 62.333335876464844,
+    "y": 49
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "https://account.ncbi.nlm.nih.gov/?back_url=https%3A%2F%2Fpubmed.ncbi.nlm.nih.gov%2F%3Fterm%3DCRISPR%2Boff-target",
+   "id": "e3",
+   "kind": "click",
+   "label": "Log in",
+   "node": 3,
+   "rect": {
+    "h": 39,
+    "w": 87.70833587646484,
+    "x": 954.625,
+    "y": 56
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "/",
+   "id": "e4",
+   "kind": "click",
+   "label": "Pubmed Logo",
+   "node": 4,
+   "rect": {
+    "h": 50,
+    "w": 180,
+    "x": 62.333335876464844,
+    "y": 147
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "expanded": "false",
+   "id": "e5",
+   "kind": "fill",
+   "label": "Search:",
+   "name": "term",
+   "node": 5,
+   "rect": {
+    "h": 44,
+    "w": 604,
+    "x": 322.3333435058594,
+    "y": 152
+   },
+   "role": "combobox",
+   "value": "CRISPR off-target"
+  },
+  {
+   "expanded": "false",
+   "id": "e6",
+   "kind": "click",
+   "label": "Open Search:",
+   "name": "term",
+   "node": 5,
+   "rect": {
+    "h": 44,
+    "w": 604,
+    "x": 322.3333435058594,
+    "y": 152
+   },
+   "role": "combobox",
+   "value": "CRISPR off-target"
+  },
+  {
+   "id": "e7",
+   "kind": "click",
+   "label": "Clear search input",
+   "node": 6,
+   "rect": {
+    "h": 36,
+    "w": 40,
+    "x": 883.8333740234375,
+    "y": 156
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "id": "e8",
+   "kind": "click",
+   "label": "Search",
+   "node": 7,
+   "rect": {
+    "h": 44,
+    "w": 116,
+    "x": 926.3333740234375,
+    "y": 152
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/advanced/",
+   "id": "e9",
+   "kind": "click",
+   "label": "Advanced",
+   "node": 8,
+   "rect": {
+    "h": 18.666667938232422,
+    "w": 61.0625,
+    "x": 322.3333435058594,
+    "y": 201
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "href": "https://account.ncbi.nlm.nih.gov/?back_url=https%3A%2F%2Fpubmed.ncbi.nlm.nih.gov%2F%3Fterm%3DCRISPR%2Boff-target%23open-",
+   "id": "e10",
+   "kind": "click",
+   "label": "Create alert",
+   "node": 9,
+   "rect": {
+    "h": 18.666667938232422,
+    "w": 71.33333587646484,
+    "x": 397.2395935058594,
+    "y": 201
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e11",
+   "kind": "click",
+   "label": "Create RSS",
+   "node": 10,
+   "rect": {
+    "h": 18.666667938232422,
+    "w": 67.13542175292969,
+    "x": 482.41668701171875,
+    "y": 201
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/help/",
+   "id": "e12",
+   "kind": "click",
+   "label": "User Guide",
+   "node": 11,
+   "rect": {
+    "h": 18.666667938232422,
+    "w": 68.07292175292969,
+    "x": 974.2604370117188,
+    "y": 201
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "current_value": "Best match",
+   "id": "e13",
+   "kind": "select",
+   "label": "Sort by → Most recent",
+   "name": "sort",
+   "node": 12,
+   "rect": {
+    "h": 31,
+    "w": 154.125,
+    "x": 717.7291870117188,
+    "y": 252
+   },
+   "role": "combobox",
+   "value": "date"
+  },
+  {
+   "current_value": "Best match",
+   "id": "e14",
+   "kind": "select",
+   "label": "Sort by → Publication date",
+   "name": "sort",
+   "node": 12,
+   "rect": {
+    "h": 31,
+    "w": 154.125,
+    "x": 717.7291870117188,
+    "y": 252
+   },
+   "role": "combobox",
+   "value": "pubdate"
+  },
+  {
+   "current_value": "Best match",
+   "id": "e15",
+   "kind": "select",
+   "label": "Sort by → First author",
+   "name": "sort",
+   "node": 12,
+   "rect": {
+    "h": 31,
+    "w": 154.125,
+    "x": 717.7291870117188,
+    "y": 252
+   },
+   "role": "combobox",
+   "value": "fauth"
+  },
+  {
+   "current_value": "Best match",
+   "id": "e16",
+   "kind": "select",
+   "label": "Sort by → Journal",
+   "name": "sort",
+   "node": 12,
+   "rect": {
+    "h": 31,
+    "w": 154.125,
+    "x": 717.7291870117188,
+    "y": 252
+   },
+   "role": "combobox",
+   "value": "jour"
+  },
+  {
+   "id": "e17",
+   "kind": "click",
+   "label": "Display options",
+   "node": 13,
+   "rect": {
+    "h": 31,
+    "w": 150.4791717529297,
+    "x": 891.8541870117188,
+    "y": 252
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "expanded": "false",
+   "id": "e18",
+   "kind": "click",
+   "label": "Save",
+   "node": 14,
+   "rect": {
+    "h": 30.33333396911621,
+    "w": 63.927085876464844,
+    "x": 322.3333435058594,
+    "y": 252.33334350585938
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "expanded": "false",
+   "id": "e19",
+   "kind": "click",
+   "label": "Email",
+   "node": 15,
+   "rect": {
+    "h": 30.33333396911621,
+    "w": 68.38542175292969,
+    "x": 391.26043701171875,
+    "y": 252.33334350585938
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "id": "e20",
+   "kind": "click",
+   "label": "Send to",
+   "node": 16,
+   "rect": {
+    "h": 30.33333396911621,
+    "w": 83.04167175292969,
+    "x": 464.6458435058594,
+    "y": 252.33334350585938
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "https://www.ncbi.nlm.nih.gov/sites/myncbi/pubmed/filters",
+   "id": "e21",
+   "kind": "click",
+   "label": "Edit My Custom Filters",
+   "node": 17,
+   "rect": {
+    "h": 18.666667938232422,
+    "w": 110.51042175292969,
+    "x": 62.333335876464844,
+    "y": 346
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e22",
+   "kind": "click",
+   "label": "Expand/collapse timeline",
+   "node": 18,
+   "rect": {
+    "h": 32.333335876464844,
+    "w": 31,
+    "x": 62.333335876464844,
+    "y": 432.3333435058594
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "id": "e23",
+   "kind": "click",
+   "label": "Download CSV",
+   "node": 19,
+   "rect": {
+    "h": 33,
+    "w": 31,
+    "x": 102.33333587646484,
+    "y": 432.3333435058594
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "id": "e24",
+   "kind": "fill",
+   "label": "page number input",
+   "node": 20,
+   "rect": {
+    "h": 30,
+    "w": 45,
+    "x": 855.3333740234375,
+    "y": 320.8333435058594
+   },
+   "role": "spinbutton",
+   "value": "1"
+  },
+  {
+   "id": "e25",
+   "kind": "click",
+   "label": "Open page number input",
+   "node": 20,
+   "rect": {
+    "h": 30,
+    "w": 45,
+    "x": 855.3333740234375,
+    "y": 320.8333435058594
+   },
+   "role": "spinbutton",
+   "value": "1"
+  },
+  {
+   "id": "e26",
+   "kind": "click",
+   "label": "Navigates to the next page of results.",
+   "node": 21,
+   "rect": {
+    "h": 20,
+    "w": 20,
+    "x": 972.3333740234375,
+    "y": 325.8333435058594
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "id": "e27",
+   "kind": "click",
+   "label": "Navigates to the last page of results.",
+   "node": 22,
+   "rect": {
+    "h": 20,
+    "w": 20,
+    "x": 1012.3333740234375,
+    "y": 325.8333435058594
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/?term=crisproff+target&page=1",
+   "id": "e28",
+   "kind": "click",
+   "label": "crisproff target",
+   "node": 23,
+   "rect": {
+    "h": 21.33333396911621,
+    "w": 112.45833587646484,
+    "x": 495.5208435058594,
+    "y": 383.3333435058594
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e29",
+   "kind": "click",
+   "label": "Dismiss suggestion",
+   "node": 24,
+   "rect": {
+    "h": 20,
+    "w": 20,
+    "x": 1018.3333740234375,
+    "y": 382.3333435058594
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "id": "e30",
+   "kind": "click",
+   "label": "Cite",
+   "node": 25,
+   "rect": {
+    "h": 34,
+    "w": 31.125,
+    "x": 332.3333435058594,
+    "y": 477.66668701171875
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/36970624/",
+   "id": "e31",
+   "kind": "click",
+   "label": "Off - target  effects in  CRISPR /Cas9 gene editing.",
+   "node": 26,
+   "rect": {
+    "h": 24,
+    "w": 383.0833435058594,
+    "x": 381.71875,
+    "y": 429.66668701171875
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "id": "e32",
+   "kind": "click",
+   "label": "Cite",
+   "node": 27,
+   "rect": {
+    "h": 34,
+    "w": 31.125,
+    "x": 332.3333435058594,
+    "y": 675.3333740234375
+   },
+   "role": "button",
+   "value": ""
+  },
+  {
+   "href": "/36453226/",
+   "id": "e33",
+   "kind": "click",
+   "label": "Advances in  Off - Target  Detection for  CRISPR -Based Genome Editing.",
+   "node": 28,
+   "rect": {
+    "h": 24,
+    "w": 555.0104370117188,
+    "x": 381.71875,
+    "y": 627.3333740234375
+   },
+   "role": "link",
+   "value": ""
+  },
+  {
+   "delta": 560,
+   "id": "scroll_down",
+   "kind": "scroll",
+   "label": "Scroll down"
+  },
+  {
+   "delta": 2335,
+   "id": "scroll_bottom",
+   "kind": "scroll",
+   "label": "Scroll to bottom"
+  },
+  {
+   "id": "reload",
+   "kind": "reload",
+   "label": "Reload the page"
+  },
+  {
+   "id": "wait",
+   "kind": "wait",
+   "label": "Wait for the page to update"
+  }
+ ],
+ "fingerprint": "d1378cb97be94c4a2aff4fcacc028d52f6417676fdf417ceb4aaf41024f0e311",
+ "guards": {
+  "1": [
+   1,
+   "button",
+   "Here's how you know",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   "false",
+   null,
+   null,
+   null,
+   "An official website of the United States government\n\n Here's how you know "
+  ],
+  "10": [
+   10,
+   "button",
+   "Create RSS",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "#",
+   "Search:\n5 results are available, use up and down arrow keys to navigate.\nSearch\nAdvanced Create alert Create RSS\nUser Guide\nSort by:\nBest match\nMost recent\nPublication date\nFirst author\nJournal\nDisplay options\nSaveEmailSend to"
+  ],
+  "11": [
+   11,
+   "link",
+   "User Guide",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/help/",
+   "Search:\n5 results are available, use up and down arrow keys to navigate.\nSearch\nAdvanced Create alert Create RSS\nUser Guide\nSort by:\nBest match\nMost recent\nPublication date\nFirst author\nJournal\nDisplay options\nSaveEmailSend to"
+  ],
+  "12": [
+   12,
+   "combobox",
+   "Sort by",
+   "relevance",
+   null,
+   0,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "Search:\n5 results are available, use up and down arrow keys to navigate.\nSearch\nAdvanced Create alert Create RSS\nUser Guide\nSort by:\nBest match\nMost recent\nPublication date\nFirst author\nJournal\nDisplay options\nSaveEmailSend to"
+  ],
+  "13": [
+   13,
+   "button",
+   "Display options",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "Search:\n5 results are available, use up and down arrow keys to navigate.\nSearch\nAdvanced Create alert Create RSS\nUser Guide\nSort by:\nBest match\nMost recent\nPublication date\nFirst author\nJournal\nDisplay options\nSaveEmailSend to"
+  ],
+  "14": [
+   14,
+   "button",
+   "Save",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   "false",
+   null,
+   null,
+   null,
+   "Search:\n5 results are available, use up and down arrow keys to navigate.\nSearch\nAdvanced Create alert Create RSS\nUser Guide\nSort by:\nBest match\nMost recent\nPublication date\nFirst author\nJournal\nDisplay options\nSaveEmailSend to"
+  ],
+  "15": [
+   15,
+   "button",
+   "Email",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   "false",
+   null,
+   null,
+   null,
+   "Search:\n5 results are available, use up and down arrow keys to navigate.\nSearch\nAdvanced Create alert Create RSS\nUser Guide\nSort by:\nBest match\nMost recent\nPublication date\nFirst author\nJournal\nDisplay options\nSaveEmailSend to"
+  ],
+  "16": [
+   16,
+   "button",
+   "Send to",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "Search:\n5 results are available, use up and down arrow keys to navigate.\nSearch\nAdvanced Create alert Create RSS\nUser Guide\nSort by:\nBest match\nMost recent\nPublication date\nFirst author\nJournal\nDisplay options\nSaveEmailSend to"
+  ],
+  "17": [
+   17,
+   "link",
+   "Edit My Custom Filters",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://www.ncbi.nlm.nih.gov/sites/myncbi/pubmed/filters",
+   "my custom filters\nEdit custom filters"
+  ],
+  "18": [
+   18,
+   "button",
+   "Expand/collapse timeline",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "results by year\nExpand/collapse timeline\n2012\n2027\n\nTable representation of search results timeline featuring number of search results per year.\n\nYear\tNumber of Results\n2012\t1\n2013\t17\n2014\t85\n2015\t117\n2016\t153\n2017\t194\n2018\t237\n2019\t278\n2020\t325\n2021\t322\n2022\t362\n2023\t355\n2024\t369\n2025\t549\n2026\t501\n2027\t2"
+  ],
+  "19": [
+   19,
+   "button",
+   "Download CSV",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   ""
+  ],
+  "2": [
+   2,
+   "link",
+   "NCBI Logo",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://www.ncbi.nlm.nih.gov/",
+   ""
+  ],
+  "20": [
+   20,
+   "spinbutton",
+   "page number input",
+   "1",
+   false,
+   null,
+   false,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   ""
+  ],
+  "21": [
+   21,
+   "button",
+   "Navigates to the next page of results.",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "Page\nof 353"
+  ],
+  "22": [
+   22,
+   "button",
+   "Navigates to the last page of results.",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "Page\nof 353"
+  ],
+  "23": [
+   23,
+   "link",
+   "crisproff target",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/?term=crisproff+target&page=1",
+   "Did you mean crisproff target (39 results)?"
+  ],
+  "24": [
+   24,
+   "button",
+   "Dismiss suggestion",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "#",
+   "Did you mean crisproff target (39 results)?"
+  ],
+  "25": [
+   25,
+   "button",
+   "Cite",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "1\nCite\n \nOff-target effects in CRISPR/Cas9 gene editing.\nGuo C, Ma X, Gao F, Guo Y.\nFront Bioeng Biotechnol. 2023 Mar 9;11:1143157. doi: 10.3389/fbioe.2023.1143157. eCollection 2023.\nPMID: 36970624 Free PMC article. Review.\nGene editing stands for the methods to precisely make changes to a specific nucleic acid sequence. With the recent development of the clustered regularly interspaced short palindromic repeats (CRISPR)/Cas9 system, gene editing has …"
+  ],
+  "26": [
+   26,
+   "link",
+   "Off - target  effects in  CRISPR /Cas9 gene editing.",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/36970624/",
+   "1\nCite\n \nOff-target effects in CRISPR/Cas9 gene editing.\nGuo C, Ma X, Gao F, Guo Y.\nFront Bioeng Biotechnol. 2023 Mar 9;11:1143157. doi: 10.3389/fbioe.2023.1143157. eCollection 2023.\nPMID: 36970624 Free PMC article. Review.\nGene editing stands for the methods to precisely make changes to a specific nucleic acid sequence. With the recent development of the clustered regularly interspaced short palindromic repeats (CRISPR)/Cas9 system, gene editing has …"
+  ],
+  "27": [
+   27,
+   "button",
+   "Cite",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "2\nCite\n \nAdvances in Off-Target Detection for CRISPR-Based Genome Editing.\nWang H, Wang Y, Luo Z, Lin X, Liu M, Wu F, Shao H, Zhang W.\nHum Gene Ther. 2023 Feb;34(3-4):112-128. doi: 10.1089/hum.2022.198.\nPMID: 36453226 Review.\nThe CRISPR (Clustered Regularly Interspaced Short Palindromic Repeats)-based genome editing system exhibits marked potential for both gene editing and gene therapy, and its continuous improvement contributes to its great clinical p …"
+  ],
+  "28": [
+   28,
+   "link",
+   "Advances in  Off - Target  Detection for  CRISPR -Based Genome Editing.",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/36453226/",
+   "2\nCite\n \nAdvances in Off-Target Detection for CRISPR-Based Genome Editing.\nWang H, Wang Y, Luo Z, Lin X, Liu M, Wu F, Shao H, Zhang W.\nHum Gene Ther. 2023 Feb;34(3-4):112-128. doi: 10.1089/hum.2022.198.\nPMID: 36453226 Review.\nThe CRISPR (Clustered Regularly Interspaced Short Palindromic Repeats)-based genome editing system exhibits marked potential for both gene editing and gene therapy, and its continuous improvement contributes to its great clinical p …"
+  ],
+  "3": [
+   3,
+   "link",
+   "Log in",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://account.ncbi.nlm.nih.gov/?back_url=https%3A%2F%2Fpubmed.ncbi.nlm.nih.gov%2F%3Fterm%3DCRISPR%2Boff-target",
+   "Log in"
+  ],
+  "4": [
+   4,
+   "link",
+   "Pubmed Logo",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/",
+   "Search:\n5 results are available, use up and down arrow keys to navigate.\nSearch\nAdvanced Create alert Create RSS\nUser Guide\nSort by:\nBest match\nMost recent\nPublication date\nFirst author\nJournal\nDisplay options\nSaveEmailSend to"
+  ],
+  "5": [
+   5,
+   "combobox",
+   "Search:",
+   "CRISPR off-target",
+   false,
+   null,
+   false,
+   false,
+   null,
+   "false",
+   null,
+   null,
+   null,
+   "Search:\n5 results are available, use up and down arrow keys to navigate.\nSearch\nAdvanced Create alert Create RSS\nUser Guide\nSort by:\nBest match\nMost recent\nPublication date\nFirst author\nJournal\nDisplay options\nSaveEmailSend to"
+  ],
+  "6": [
+   6,
+   "button",
+   "Clear search input",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "#",
+   "Search:\n5 results are available, use up and down arrow keys to navigate.\nSearch\nAdvanced Create alert Create RSS\nUser Guide\nSort by:\nBest match\nMost recent\nPublication date\nFirst author\nJournal\nDisplay options\nSaveEmailSend to"
+  ],
+  "7": [
+   7,
+   "button",
+   "Search",
+   "",
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   null,
+   "Search:\n5 results are available, use up and down arrow keys to navigate.\nSearch\nAdvanced Create alert Create RSS\nUser Guide\nSort by:\nBest match\nMost recent\nPublication date\nFirst author\nJournal\nDisplay options\nSaveEmailSend to"
+  ],
+  "8": [
+   8,
+   "link",
+   "Advanced",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "/advanced/",
+   "Search:\n5 results are available, use up and down arrow keys to navigate.\nSearch\nAdvanced Create alert Create RSS\nUser Guide\nSort by:\nBest match\nMost recent\nPublication date\nFirst author\nJournal\nDisplay options\nSaveEmailSend to"
+  ],
+  "9": [
+   9,
+   "link",
+   "Create alert",
+   null,
+   null,
+   null,
+   null,
+   false,
+   null,
+   null,
+   null,
+   null,
+   "https://account.ncbi.nlm.nih.gov/?back_url=https%3A%2F%2Fpubmed.ncbi.nlm.nih.gov%2F%3Fterm%3DCRISPR%2Boff-target%23open-saved-search-panel",
+   "Search:\n5 results are available, use up and down arrow keys to navigate.\nSearch\nAdvanced Create alert Create RSS\nUser Guide\nSort by:\nBest match\nMost recent\nPublication date\nFirst author\nJournal\nDisplay options\nSaveEmailSend to"
+  ]
+ },
+ "h": 780,
+ "marker": [
+  1791558475837,
+  "https://pubmed.ncbi.nlm.nih.gov/?term=CRISPR+off-target",
+  0,
+  0,
+  1120,
+  780,
+  "CRISPR off-target - Search Results - PubMed",
+  "An official website of the United States government\nHere's how you know\nLog in\n5 results are available, use up and down arrow keys to navigate.\nSearch\nAdvanced\nCreate alert\nCreate RSS\nUser Guide\nSort by:\nDisplay options\nSave\nEmail\nSend to\nMy Custom Filters\nEdit custom filters\nResults by year\n2012\n2027\nPublication date\n1 year\n5 years\n10 years\nCustom Range\nText availability\n3,529\nresults\nPage\nof 353\nDid you mean\ncrisproff target\n(39 results)?\n1\nCite\nOff\n-\ntarget\neffects in\nCRISPR\n/Cas9 gene editing.\nGuo C, Ma X, Gao F, Guo Y.\nFront Bioeng Biotechnol. 2023 Mar 9;11:1143157. doi: 10.3389/fbioe.2023.1143157. eCollection 2023.\nPMID:\n36970624\nFree PMC article.\nReview.\nGene editing stands for the methods to precisely make changes to a specific nucleic acid sequence. With the recent development of the\nclustered\nregularly\ninterspaced\nshort\npalindromic\nrepeats\n(\nCRISPR\n)/Cas9 system, gene editing has …\n2\nCite\nAdvances in\nOff\n-\nTarget\nDetection for\nCRISPR\n-Based Genome Editing.\nWang H, Wang Y, Luo Z, Lin X, Liu M, Wu F, Shao H, Zhang W.\nHum Gene Ther. 2023 Feb;34(3-4):112-128. doi: 10.1089/hum.2022.198.\nPMID:\n36453226\nReview.\nThe\nCRISPR\n(\nClustered\nRegularly\nInterspaced\nShort\nPalindromic\nRepeats\n)-based genome editing system exhibits marked potential for both gene editing and gene therapy, and its continuous improvement contributes to its great clinical p …",
+  [
+   {
+    "expanded": "false",
+    "kind": "click",
+    "label": "Here's how you know",
+    "node": 1,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "https://www.ncbi.nlm.nih.gov/",
+    "kind": "click",
+    "label": "NCBI Logo",
+    "node": 2,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "https://account.ncbi.nlm.nih.gov/?back_url=https%3A%2F%2Fpubmed.ncbi.nlm.nih.gov%2F%3Fterm%3DCRISPR%2Boff-target",
+    "kind": "click",
+    "label": "Log in",
+    "node": 3,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "/",
+    "kind": "click",
+    "label": "Pubmed Logo",
+    "node": 4,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "expanded": "false",
+    "kind": "fill",
+    "label": "Search:",
+    "name": "term",
+    "node": 5,
+    "role": "combobox",
+    "value": "CRISPR off-target"
+   },
+   {
+    "expanded": "false",
+    "kind": "click",
+    "label": "Open Search:",
+    "name": "term",
+    "node": 5,
+    "role": "combobox",
+    "value": "CRISPR off-target"
+   },
+   {
+    "kind": "click",
+    "label": "Clear search input",
+    "node": 6,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Search",
+    "node": 7,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/advanced/",
+    "kind": "click",
+    "label": "Advanced",
+    "node": 8,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "href": "https://account.ncbi.nlm.nih.gov/?back_url=https%3A%2F%2Fpubmed.ncbi.nlm.nih.gov%2F%3Fterm%3DCRISPR%2Boff-target%23open-",
+    "kind": "click",
+    "label": "Create alert",
+    "node": 9,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Create RSS",
+    "node": 10,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/help/",
+    "kind": "click",
+    "label": "User Guide",
+    "node": 11,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "current_value": "Best match",
+    "kind": "select",
+    "label": "Sort by → Most recent",
+    "name": "sort",
+    "node": 12,
+    "role": "combobox",
+    "value": "date"
+   },
+   {
+    "current_value": "Best match",
+    "kind": "select",
+    "label": "Sort by → Publication date",
+    "name": "sort",
+    "node": 12,
+    "role": "combobox",
+    "value": "pubdate"
+   },
+   {
+    "current_value": "Best match",
+    "kind": "select",
+    "label": "Sort by → First author",
+    "name": "sort",
+    "node": 12,
+    "role": "combobox",
+    "value": "fauth"
+   },
+   {
+    "current_value": "Best match",
+    "kind": "select",
+    "label": "Sort by → Journal",
+    "name": "sort",
+    "node": 12,
+    "role": "combobox",
+    "value": "jour"
+   },
+   {
+    "kind": "click",
+    "label": "Display options",
+    "node": 13,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "expanded": "false",
+    "kind": "click",
+    "label": "Save",
+    "node": 14,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "expanded": "false",
+    "kind": "click",
+    "label": "Email",
+    "node": 15,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Send to",
+    "node": 16,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "https://www.ncbi.nlm.nih.gov/sites/myncbi/pubmed/filters",
+    "kind": "click",
+    "label": "Edit My Custom Filters",
+    "node": 17,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Expand/collapse timeline",
+    "node": 18,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Download CSV",
+    "node": 19,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "kind": "fill",
+    "label": "page number input",
+    "node": 20,
+    "role": "spinbutton",
+    "value": "1"
+   },
+   {
+    "kind": "click",
+    "label": "Open page number input",
+    "node": 20,
+    "role": "spinbutton",
+    "value": "1"
+   },
+   {
+    "kind": "click",
+    "label": "Navigates to the next page of results.",
+    "node": 21,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Navigates to the last page of results.",
+    "node": 22,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/?term=crisproff+target&page=1",
+    "kind": "click",
+    "label": "crisproff target",
+    "node": 23,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Dismiss suggestion",
+    "node": 24,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Cite",
+    "node": 25,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/36970624/",
+    "kind": "click",
+    "label": "Off - target  effects in  CRISPR /Cas9 gene editing.",
+    "node": 26,
+    "role": "link",
+    "value": ""
+   },
+   {
+    "kind": "click",
+    "label": "Cite",
+    "node": 27,
+    "role": "button",
+    "value": ""
+   },
+   {
+    "href": "/36453226/",
+    "kind": "click",
+    "label": "Advances in  Off - Target  Detection for  CRISPR -Based Genome Editing.",
+    "node": 28,
+    "role": "link",
+    "value": ""
+   }
+  ],
+  null
+ ],
+ "marker_stable": [
+  1791558475837,
+  "https://pubmed.ncbi.nlm.nih.gov/?term=CRISPR+off-target",
+  "CRISPR off-target - Search Results - PubMed"
+ ],
+ "omitted_actions": 0,
+ "page_key": [
+  1791558475837,
+  "https://pubmed.ncbi.nlm.nih.gov/?term=CRISPR+off-target",
+  0,
+  0,
+  1120,
+  780
+ ],
+ "scroll": {
+  "height": 3115,
+  "y": 0
+ },
+ "text": "An official website of the United States government\nHere's how you know\nLog in\n5 results are available, use up and down arrow keys to navigate.\nSearch\nAdvanced\nCreate alert\nCreate RSS\nUser Guide\nSort by:\nDisplay options\nSave\nEmail\nSend to\nMy Custom Filters\nEdit custom filters\nResults by year\n2012\n2027\nPublication date\n1 year\n5 years\n10 years\nCustom Range\nText availability\n3,529\nresults\nPage\nof 353\nDid you mean\ncrisproff target\n(39 results)?\n1\nCite\nOff\n-\ntarget\neffects in\nCRISPR\n/Cas9 gene editing.\nGuo C, Ma X, Gao F, Guo Y.\nFront Bioeng Biotechnol. 2023 Mar 9;11:1143157. doi: 10.3389/fbioe.2023.1143157. eCollection 2023.\nPMID:\n36970624\nFree PMC article.\nReview.\nGene editing stands for the methods to precisely make changes to a specific nucleic acid sequence. With the recent development of the\nclustered\nregularly\ninterspaced\nshort\npalindromic\nrepeats\n(\nCRISPR\n)/Cas9 system, gene editing has …\n2\nCite\nAdvances in\nOff\n-\nTarget\nDetection for\nCRISPR\n-Based Genome Editing.\nWang H, Wang Y, Luo Z, Lin X, Liu M, Wu F, Shao H, Zhang W.\nHum Gene Ther. 2023 Feb;34(3-4):112-128. doi: 10.1089/hum.2022.198.\nPMID:\n36453226\nReview.\nThe\nCRISPR\n(\nClustered\nRegularly\nInterspaced\nShort\nPalindromic\nRepeats\n)-based genome editing system exhibits marked potential for both gene editing and gene therapy, and its continuous improvement contributes to its great clinical p …",
+ "title": "CRISPR off-target - Search Results - PubMed",
+ "url": "https://pubmed.ncbi.nlm.nih.gov/?term=CRISPR+off-target",
+ "w": 1120
+}
