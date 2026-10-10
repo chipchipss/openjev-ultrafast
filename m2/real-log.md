@@ -3479,3 +3479,37 @@ CDP 的 observe 就被顶住几分钟；顶穿 harness 的 IPC 超时就是 b22/
 **L2 状态**：45/50 的干净读数已在 b24 拿到（`error=0`、`crash=0`、`fp=0`、零云端、LOST=∅）。
 不干净的那次（b23）也过了线，两批一起登记：**达标成立，且 r104 的实见证在 b23 已兑现过一次**。
 带外的是墙钟（28.4 → 27.7 → 30.0 → 30.8），那是 #34/#35 的账，不是分数的账。
+
+## #59 动手前的量：六行的到达页，目标短语到底以什么身份存在 · 2026-10-11 03:1x
+
+`m2/probe_arrival_stop.py`（零模型；题面取自 `m2/tasks_real.jsonl`、到站 URL 取自 b24 报告的
+`final_url`，**不手写**；短语判定全部用产品自己的 `_phrases`）：
+
+| 行 | 到达页 | 短语在 title | 在正文出现 | 在可点元素 label | `goal_reached` |
+|---|---|---|---|---|---|
+| r142 | `the-internet.herokuapp.com/download` | (本次读到空页) | 0 | 0 | None |
+| r126 | `sqlite.org/lang.html` | 否 | **0** | 0 | None |
+| r123 | `numpy.org/…/absolute_beginners.html` | 否 | 1 | 0 | None |
+| r134 | `docs.python.org/3/library/index.html` | 否 | 1 | 0 | None |
+| r124 | `numpy.org/…/reference/index.html` | 否 | 1 | **1** | None |
+| r148 | `developer.mozilla.org/…/Learn_web_development/Core` | 否 | 2 | **1** | None |
+
+**这一张表把 #59 从"模型不老实"改写成一个结构事实**：`goal_reached` 六次全弃权不是巧合 ——
+这些 goal 的引号短语是**起点页那条链接的标签**，不是目的地的标识。r126 最干净：站点把那一页叫
+"SQL As Understood By SQLite"，goal 写的 'SQL Syntax' 在到达页上**一个字都没有**；r142 同理
+（目的地标题是 'Download List'，'File Download' 是例子列表上那条链接的字面）。
+所以"按短语判到达"这条路在这些题上**结构上不可能响**，而 `scroll_to_named_target` 仍在滚 ——
+它找的东西只存在于**上一页**。r124/r148 是另一半：到达页上确实还挂着同名链接（侧栏/TOC 自链接），
+于是"再点一次"看起来总是合法的。
+
+**修法因此收窄，不往 fp=0 的红线上碰**：不去放宽到达判据（那样会把"正文提过这个词"当成到达，
+nav/面包屑遍地都是），而是钉住动作侧 ——
+**我已经按 goal 的短语点过一次、且那一拍 `page_changed` 为真 → 这个短语在后续拍里不再是待找目标**，
+`scroll_to_named_target` 与 `explicit_target` 都不许再为它滚/再点它。仓里已有两次同形先例：
+#25 的"重做已做过的动作不构成进展"（floor 的 tried 集合）与 Fix O 的"已提交的搜索不再重交"。
+
+预登记上限（发车前写）：这一刀买的是 ① b24 那 6 行的步数（目标：r123 9→≤3、r124 8→≤2、
+r134 5→≤2、r148 15→≤3、r126 4→≤2、r142 7→≤2）；② 批墙钟回到 22–28 带内（b23/b24 是 30.8/30.0）；
+③ #58 的触发源（r142 不再点文件链接 → 原生下载 UI 不再出现）。
+**分数不在上限里**：这 6 行现在 5 行已经 PASS，放宽判据买不到分，反而可能买到假阳性。
+若某行因此从 PASS 变 FAIL（到达判据误响），按纪律直接回滚。
