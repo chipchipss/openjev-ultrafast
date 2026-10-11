@@ -1,0 +1,3516 @@
+{
+  "summary": {
+    "total": 100,
+    "pass": 6,
+    "fail": 94,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "correct_abandon": 94,
+      "true_success": 6
+    },
+    "failure_modes": {
+      "decision": 94
+    },
+    "agent_modes": {
+      "decision": 94
+    },
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "r101",
+      "result": {
+        "task_id": "r101",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "pypi.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "pypi\\.org/project/[Ff]lask"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 3122
+        }
+      }
+    },
+    {
+      "task_id": "r102",
+      "result": {
+        "task_id": "r102",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "arxiv.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/abs/1706\\.03762"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1984
+        }
+      }
+    },
+    {
+      "task_id": "r103",
+      "result": {
+        "task_id": "r103",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "stackoverflow.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "stackoverflow\\.com/questions/\\d+"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "slice"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1951
+        }
+      }
+    },
+    {
+      "task_id": "r104",
+      "result": {
+        "task_id": "r104",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "pubmed.ncbi.nlm.nih.gov",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "pubmed\\.ncbi\\.nlm\\.nih\\.gov/\\d{7,8}"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1993
+        }
+      }
+    },
+    {
+      "task_id": "r105",
+      "result": {
+        "task_id": "r105",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "github.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "github\\.com/pytorch/pytorch/releases"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1971
+        }
+      }
+    },
+    {
+      "task_id": "r106",
+      "result": {
+        "task_id": "r106",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "huggingface.co",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/ggml-org/Llama-2-7B-GGUF/?$"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2009
+        }
+      }
+    },
+    {
+      "task_id": "r107",
+      "result": {
+        "task_id": "r107",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "news.ycombinator.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "news\\.ycombinator\\.com/newest"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1921
+        }
+      }
+    },
+    {
+      "task_id": "r108",
+      "result": {
+        "task_id": "r108",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "simple.wikipedia.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "simple\\.wikipedia\\.org/wiki/Photosynthesis(?![\\w(])"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1927
+        }
+      }
+    },
+    {
+      "task_id": "r109",
+      "result": {
+        "task_id": "r109",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.openstreetmap.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "openstreetmap\\.org/search\\?query=Zurich"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1968
+        }
+      }
+    },
+    {
+      "task_id": "r110",
+      "result": {
+        "task_id": "r110",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "doc.rust-lang.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "ch04-00-understanding-ownership"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1987
+        }
+      }
+    },
+    {
+      "task_id": "r111",
+      "result": {
+        "task_id": "r111",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+          "final_title": "Travel | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "books\\.toscrape\\.com/catalogue/category/books/travel_2/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2392
+        }
+      }
+    },
+    {
+      "task_id": "r112",
+      "result": {
+        "task_id": "r112",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html",
+          "final_title": "Tipping the Velvet | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "books\\.toscrape\\.com/catalogue/tipping-the-velvet_999/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 3021
+        }
+      }
+    },
+    {
+      "task_id": "r113",
+      "result": {
+        "task_id": "r113",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "peps.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "peps\\.python\\.org/pep-0008/"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1966
+        }
+      }
+    },
+    {
+      "task_id": "r114",
+      "result": {
+        "task_id": "r114",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.djangoproject.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.djangoproject\\.com/en/[0-9.]+/intro/tutorial01"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1937
+        }
+      }
+    },
+    {
+      "task_id": "r115",
+      "result": {
+        "task_id": "r115",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "www\\.python\\.org/downloads/"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1981
+        }
+      }
+    },
+    {
+      "task_id": "r116",
+      "result": {
+        "task_id": "r116",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "doc.rust-lang.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/(?:stable/)?cargo/"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1940
+        }
+      }
+    },
+    {
+      "task_id": "r117",
+      "result": {
+        "task_id": "r117",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "en.wikipedia.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "en\\.wikipedia\\.org/wiki/Photosynthesis(?![\\w(])"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1942
+        }
+      }
+    },
+    {
+      "task_id": "r119",
+      "result": {
+        "task_id": "r119",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "huggingface.co",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/google-bert/bert-base-uncased"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1966
+        }
+      }
+    },
+    {
+      "task_id": "r120",
+      "result": {
+        "task_id": "r120",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "httpbin.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "httpbin\\.org/post"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "jev"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2040
+        }
+      }
+    },
+    {
+      "task_id": "r121",
+      "result": {
+        "task_id": "r121",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.selenium.dev",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "www\\.selenium\\.dev/downloads/"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1917
+        }
+      }
+    },
+    {
+      "task_id": "r122",
+      "result": {
+        "task_id": "r122",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.rfc-editor.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "www\\.rfc-editor\\.org/rfc/rfc9110"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1997
+        }
+      }
+    },
+    {
+      "task_id": "r123",
+      "result": {
+        "task_id": "r123",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "numpy.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "numpy\\.org/doc/stable/user/absolute_beginners\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1975
+        }
+      }
+    },
+    {
+      "task_id": "r124",
+      "result": {
+        "task_id": "r124",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "numpy.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "numpy\\.org/doc/stable/reference/index\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2086
+        }
+      }
+    },
+    {
+      "task_id": "r125",
+      "result": {
+        "task_id": "r125",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "numpy.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "numpy\\.org/doc/stable/building/index\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1925
+        }
+      }
+    },
+    {
+      "task_id": "r126",
+      "result": {
+        "task_id": "r126",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.sqlite.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2049
+        }
+      }
+    },
+    {
+      "task_id": "r127",
+      "result": {
+        "task_id": "r127",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.sqlite.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang_select\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1971
+        }
+      }
+    },
+    {
+      "task_id": "r128",
+      "result": {
+        "task_id": "r128",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.sqlite.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/faq\\.html"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Frequently Asked"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2012
+        }
+      }
+    },
+    {
+      "task_id": "r129",
+      "result": {
+        "task_id": "r129",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.sqlite.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/json1\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1969
+        }
+      }
+    },
+    {
+      "task_id": "r130",
+      "result": {
+        "task_id": "r130",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "doc.rust-lang.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/cargo/reference/index\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 6460
+        }
+      }
+    },
+    {
+      "task_id": "r131",
+      "result": {
+        "task_id": "r131",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/cargo/getting-started/first-steps.html",
+          "final_title": "First Steps with Cargo - The Cargo Book",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/cargo/getting-started/first-steps\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2426
+        }
+      }
+    },
+    {
+      "task_id": "r132",
+      "result": {
+        "task_id": "r132",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "doc.rust-lang.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/cargo/guide/dependencies\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2378
+        }
+      }
+    },
+    {
+      "task_id": "r133",
+      "result": {
+        "task_id": "r133",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "docs.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/tutorial/index\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1966
+        }
+      }
+    },
+    {
+      "task_id": "r134",
+      "result": {
+        "task_id": "r134",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "docs.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/library/index\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1958
+        }
+      }
+    },
+    {
+      "task_id": "r135",
+      "result": {
+        "task_id": "r135",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "docs.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/installing/index\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1980
+        }
+      }
+    },
+    {
+      "task_id": "r136",
+      "result": {
+        "task_id": "r136",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "docs.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/builtins/index\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1950
+        }
+      }
+    },
+    {
+      "task_id": "r137",
+      "result": {
+        "task_id": "r137",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "docs.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/howto/index\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1884
+        }
+      }
+    },
+    {
+      "task_id": "r138",
+      "result": {
+        "task_id": "r138",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "docs.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/search\\.html\\?q=itertools"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1961
+        }
+      }
+    },
+    {
+      "task_id": "r139",
+      "result": {
+        "task_id": "r139",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "the-internet.herokuapp.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "the-internet\\.herokuapp\\.com/dropdown$"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1995
+        }
+      }
+    },
+    {
+      "task_id": "r140",
+      "result": {
+        "task_id": "r140",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "the-internet.herokuapp.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "the-internet\\.herokuapp\\.com/add_remove_elements/?$"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Add/Remove Elements"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1987
+        }
+      }
+    },
+    {
+      "task_id": "r141",
+      "result": {
+        "task_id": "r141",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "the-internet.herokuapp.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "the-internet\\.herokuapp\\.com/disappearing_elements$"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2006
+        }
+      }
+    },
+    {
+      "task_id": "r142",
+      "result": {
+        "task_id": "r142",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "the-internet.herokuapp.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "the-internet\\.herokuapp\\.com/download$"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2026
+        }
+      }
+    },
+    {
+      "task_id": "r143",
+      "result": {
+        "task_id": "r143",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "the-internet.herokuapp.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "the-internet\\.herokuapp\\.com/checkboxes$"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1976
+        }
+      }
+    },
+    {
+      "task_id": "r144",
+      "result": {
+        "task_id": "r144",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "git-scm.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "git-scm\\.com/docs/git-commit"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1982
+        }
+      }
+    },
+    {
+      "task_id": "r145",
+      "result": {
+        "task_id": "r145",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "git-scm.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "git-scm\\.com/docs/giteveryday"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1979
+        }
+      }
+    },
+    {
+      "task_id": "r146",
+      "result": {
+        "task_id": "r146",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "git-scm.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "git-scm\\.com/docs/gitignore"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2001
+        }
+      }
+    },
+    {
+      "task_id": "r147",
+      "result": {
+        "task_id": "r147",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "developer.mozilla.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "developer\\.mozilla\\.org/en-US/docs/Learn_web_development/Getting_started/?$"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1996
+        }
+      }
+    },
+    {
+      "task_id": "r148",
+      "result": {
+        "task_id": "r148",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "developer.mozilla.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "developer\\.mozilla\\.org/en-US/docs/Learn_web_development/Core/?$"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1970
+        }
+      }
+    },
+    {
+      "task_id": "r149",
+      "result": {
+        "task_id": "r149",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "arxiv.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/list/cs\\.CL/new"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Computation and Language"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2061
+        }
+      }
+    },
+    {
+      "task_id": "r150",
+      "result": {
+        "task_id": "r150",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "doc.rust-lang.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/std/prelude/index\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 4990
+        }
+      }
+    },
+    {
+      "task_id": "r151",
+      "result": {
+        "task_id": "r151",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/category/books/fantasy_19/index.html",
+          "final_title": "Fantasy | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "books\\.toscrape\\.com/catalogue/category/books/fantasy_19/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2440
+        }
+      }
+    },
+    {
+      "task_id": "r152",
+      "result": {
+        "task_id": "r152",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "docs.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/search\\.html\\?q=list"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "list",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1949
+        }
+      }
+    },
+    {
+      "task_id": "r153",
+      "result": {
+        "task_id": "r153",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "docs.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/search\\.html\\?q=enumerate"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "enumerate",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1954
+        }
+      }
+    },
+    {
+      "task_id": "r154",
+      "result": {
+        "task_id": "r154",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "docs.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/search\\.html\\?q=typing"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "typing",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1945
+        }
+      }
+    },
+    {
+      "task_id": "r155",
+      "result": {
+        "task_id": "r155",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "docs.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/search\\.html\\?q=asyncio"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "asyncio",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1946
+        }
+      }
+    },
+    {
+      "task_id": "r156",
+      "result": {
+        "task_id": "r156",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "docs.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/search\\.html\\?q=memoryview"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "memoryview",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1987
+        }
+      }
+    },
+    {
+      "task_id": "r157",
+      "result": {
+        "task_id": "r157",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "docs.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/search\\.html\\?q=itertools"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "itertools",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2018
+        }
+      }
+    },
+    {
+      "task_id": "r158",
+      "result": {
+        "task_id": "r158",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "doc.rust-lang.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/stable/std/\\?search=Result"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Result",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1923
+        }
+      }
+    },
+    {
+      "task_id": "r159",
+      "result": {
+        "task_id": "r159",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "doc.rust-lang.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/stable/std/\\?search=String"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "String",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1885
+        }
+      }
+    },
+    {
+      "task_id": "r160",
+      "result": {
+        "task_id": "r160",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "arxiv.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/search/\\?"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "language",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1946
+        }
+      }
+    },
+    {
+      "task_id": "r161",
+      "result": {
+        "task_id": "r161",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "arxiv.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/search/\\?"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "quantization",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1928
+        }
+      }
+    },
+    {
+      "task_id": "r162",
+      "result": {
+        "task_id": "r162",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "huggingface.co",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/models\\?search="
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "llama",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1971
+        }
+      }
+    },
+    {
+      "task_id": "r163",
+      "result": {
+        "task_id": "r163",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "huggingface.co",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/datasets\\?search="
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "wikipedia",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1964
+        }
+      }
+    },
+    {
+      "task_id": "r164",
+      "result": {
+        "task_id": "r164",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "github.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "github\\.com/search\\?q=pytorch"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "pytorch",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1994
+        }
+      }
+    },
+    {
+      "task_id": "r165",
+      "result": {
+        "task_id": "r165",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "numpy.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "numpy\\.org/doc/stable/search\\.html\\?q=broadcast"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "broadcast",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1968
+        }
+      }
+    },
+    {
+      "task_id": "r166",
+      "result": {
+        "task_id": "r166",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "books.toscrape.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "books\\.toscrape\\.com/catalogue/page-3\\.html"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Books",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3545
+        }
+      }
+    },
+    {
+      "task_id": "r167",
+      "result": {
+        "task_id": "r167",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/page-2.html",
+          "final_title": "All products | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "books\\.toscrape\\.com/catalogue/page-3\\.html"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Science Fiction",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 7532
+        }
+      }
+    },
+    {
+      "task_id": "r168",
+      "result": {
+        "task_id": "r168",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+          "final_title": "Travel | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "category/books/travel_2"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Travel",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2335
+        }
+      }
+    },
+    {
+      "task_id": "r169",
+      "result": {
+        "task_id": "r169",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/category/books/classics_6/index.html",
+          "final_title": "Classics | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "classics_6"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Classics",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2415
+        }
+      }
+    },
+    {
+      "task_id": "r170",
+      "result": {
+        "task_id": "r170",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "the-internet.herokuapp.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "status_codes$"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Status Codes",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1959
+        }
+      }
+    },
+    {
+      "task_id": "r171",
+      "result": {
+        "task_id": "r171",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.sqlite.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang\\.html"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "SQLite",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1976
+        }
+      }
+    },
+    {
+      "task_id": "r172",
+      "result": {
+        "task_id": "r172",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.sqlite.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/cli\\.html"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "sqlite3",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1972
+        }
+      }
+    },
+    {
+      "task_id": "r173",
+      "result": {
+        "task_id": "r173",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.sqlite.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/pragma\\.html"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "PRAGMA",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1912
+        }
+      }
+    },
+    {
+      "task_id": "r174",
+      "result": {
+        "task_id": "r174",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "doc.rust-lang.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/cargo/"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Cargo",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2000
+        }
+      }
+    },
+    {
+      "task_id": "r175",
+      "result": {
+        "task_id": "r175",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "doc.rust-lang.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/rustc/"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "rustc",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1915
+        }
+      }
+    },
+    {
+      "task_id": "r176",
+      "result": {
+        "task_id": "r176",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "doc.rust-lang.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "edition-guide"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Edition",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1986
+        }
+      }
+    },
+    {
+      "task_id": "r177",
+      "result": {
+        "task_id": "r177",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "python\\.org/about/apps"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Applications",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2007
+        }
+      }
+    },
+    {
+      "task_id": "r178",
+      "result": {
+        "task_id": "r178",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "python\\.org/jobs/"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Jobs",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1971
+        }
+      }
+    },
+    {
+      "task_id": "r179",
+      "result": {
+        "task_id": "r179",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "peps.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "peps\\.python\\.org/pep-0000/"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "PEP",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1945
+        }
+      }
+    },
+    {
+      "task_id": "r180",
+      "result": {
+        "task_id": "r180",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "peps.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "pep-0008/"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "PEP 8",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1984
+        }
+      }
+    },
+    {
+      "task_id": "r181",
+      "result": {
+        "task_id": "r181",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.djangoproject.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "djangoproject\\.com/community/"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Community",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1977
+        }
+      }
+    },
+    {
+      "task_id": "r182",
+      "result": {
+        "task_id": "r182",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.djangoproject.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "djangoproject\\.com/fundraising"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Django",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2013
+        }
+      }
+    },
+    {
+      "task_id": "r183",
+      "result": {
+        "task_id": "r183",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.selenium.dev",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "selenium\\.dev/documentation/"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Documentation",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1982
+        }
+      }
+    },
+    {
+      "task_id": "r184",
+      "result": {
+        "task_id": "r184",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.selenium.dev",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "selenium-ide"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Selenium IDE",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1973
+        }
+      }
+    },
+    {
+      "task_id": "r185",
+      "result": {
+        "task_id": "r185",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "git-scm.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "git-scm\\.com/docs"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "git",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1988
+        }
+      }
+    },
+    {
+      "task_id": "r186",
+      "result": {
+        "task_id": "r186",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "arxiv.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/list/cs\\.CL/new"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Computation and Language",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1995
+        }
+      }
+    },
+    {
+      "task_id": "r187",
+      "result": {
+        "task_id": "r187",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "arxiv.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/list/cs\\.LG/new"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Machine Learning",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1996
+        }
+      }
+    },
+    {
+      "task_id": "r188",
+      "result": {
+        "task_id": "r188",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "news.ycombinator.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "news\\.ycombinator\\.com/best"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Hacker News",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1931
+        }
+      }
+    },
+    {
+      "task_id": "r189",
+      "result": {
+        "task_id": "r189",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.rfc-editor.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "rfc-editor\\.org/rfc/rfc9110\\.html"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "HTTP",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1984
+        }
+      }
+    },
+    {
+      "task_id": "r190",
+      "result": {
+        "task_id": "r190",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "pypi.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "pypi\\.org/project/click/"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "click",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1931
+        }
+      }
+    },
+    {
+      "task_id": "r191",
+      "result": {
+        "task_id": "r191",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "huggingface.co",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/models$"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Models",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1921
+        }
+      }
+    },
+    {
+      "task_id": "r192",
+      "result": {
+        "task_id": "r192",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "huggingface.co",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/spaces"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Spaces",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1960
+        }
+      }
+    },
+    {
+      "task_id": "r193",
+      "result": {
+        "task_id": "r193",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "github.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "github\\.com/topics"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Topics",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1939
+        }
+      }
+    },
+    {
+      "task_id": "r194",
+      "result": {
+        "task_id": "r194",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "stackoverflow.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "questions/tagged/python"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "python",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1988
+        }
+      }
+    },
+    {
+      "task_id": "r195",
+      "result": {
+        "task_id": "r195",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "the-internet.herokuapp.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "herokuapp\\.com/context_menu$"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Context Menu",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2013
+        }
+      }
+    },
+    {
+      "task_id": "r196",
+      "result": {
+        "task_id": "r196",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "the-internet.herokuapp.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "drag_and_drop$"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Drag and Drop",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2002
+        }
+      }
+    },
+    {
+      "task_id": "r197",
+      "result": {
+        "task_id": "r197",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "the-internet.herokuapp.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "disappearing_elements$"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Elements",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1988
+        }
+      }
+    },
+    {
+      "task_id": "r198",
+      "result": {
+        "task_id": "r198",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "the-internet.herokuapp.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "herokuapp\\.com/tables$"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Smith",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1936
+        }
+      }
+    },
+    {
+      "task_id": "r199",
+      "result": {
+        "task_id": "r199",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "the-internet.herokuapp.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "challenging_dom$"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Challenging DOM",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 2043
+        }
+      }
+    },
+    {
+      "task_id": "r200",
+      "result": {
+        "task_id": "r200",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "books.toscrape.com",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "catalogue/page-5\\.html"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Books",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1969
+        }
+      }
+    },
+    {
+      "task_id": "r201",
+      "result": {
+        "task_id": "r201",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "arxiv.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/list/cs\\.CV/new"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Computer Vision",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 1938
+        }
+      }
+    }
+  ]
+}

@@ -189,6 +189,25 @@ def _assert_text_contains(a, page, history):
     return ok, [ClauseTrace(a, ok, None)]
 
 
+def _assert_title_contains(a, page, history):
+    """终点页的**标题**里要有这个词（计划书 2.3 的断言拆分补上的第三类证据）。
+
+    为什么不能由 `text_contains` 代替：`scripts/run_task.py` 原来把同一个 `--expect`
+    同时塞进 `url_matches` 和 `text_contains` 再套 `any_of`（:95-97）——任一条命中就算过。
+    第一个真实任务就是在这上面翻的车（HN：agent 点进外链，`--expect` 写的是站内 item 链接
+    → MISSING）。标题是一类独立证据（文档站/维基类的终点判据几乎都写在 <title> 里），
+    给它一个独立判据后，三类证据可以各自要求"必须成立"。
+    """
+    if page is None:
+        return False, [ClauseTrace(a, False, "page is None")]
+    title = page.get("title", "") or ""
+    needle = a["value"]
+    if not a.get("case_sensitive", False):
+        title, needle = title.lower(), needle.lower()
+    ok = needle in title
+    return ok, [ClauseTrace(a, ok, None)]
+
+
 def _assert_text_not_contains(a, page, history):
     if page is None:
         return False, [ClauseTrace(a, False, "page is None")]
@@ -252,6 +271,7 @@ _ASSERTION_HANDLERS = {
     "url_matches":        _assert_url_matches,
     "url_not_matches":    _assert_url_not_matches,
     "text_contains":      _assert_text_contains,
+    "title_contains":     _assert_title_contains,
     "text_not_contains":  _assert_text_not_contains,
     "element_exists":     _assert_element_exists,
     "element_absent":     _assert_element_absent,

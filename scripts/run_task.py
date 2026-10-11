@@ -35,10 +35,16 @@ def main() -> int:
     ap.add_argument("--url", required=True, help="starting URL")
     ap.add_argument("--goal", required=True, help="natural-language goal")
     ap.add_argument("--steps", type=int, default=20, help="step budget (default 20)")
-    ap.add_argument("--expect", action="append", default=[],
-                    help="completion evidence: a substring that must appear in the "
-                         "final page's URL or text. Repeatable. Without it the run "
-                         "reports status only, not success.")
+    # 断言拆分（计划书 2.3）：三类证据各自独立、彼此是 all_of（都要成立）。
+    # 原来只有一个 --expect，同时塞进 url_matches 与 text_contains 再套 any_of —— 任一条
+    # 命中就算过，这正是第一个真实任务翻车的地方（HN 那题：agent 点进外链，
+    # --expect 写的是站内 item 链接 → MISSING）。判据也不再自己实现，见下面的 evaluator 调用。
+    ap.add_argument("--expect-url", action="append", default=[], metavar="RE",
+                    help="regex the FINAL url must match. Repeatable (all must hold).")
+    ap.add_argument("--expect-title", action="append", default=[], metavar="STR",
+                    help="substring the final page <title> must contain. Repeatable.")
+    ap.add_argument("--expect-text", action="append", default=[], metavar="STR",
+                    help="substring the final page text must contain. Repeatable.")
     ap.add_argument("--start-chrome", action="store_true",
                     help="kill+start a headless Chrome with CDP and the egress proxy")
     ap.add_argument("--headed", action="store_true", help="watch the browser work")
@@ -89,12 +95,15 @@ def main() -> int:
 
     from jev_ultrafast.agent import Agent
 
+    clauses = ([{"type": "url_matches", "pattern": p} for p in args.expect_url]
+               + [{"type": "title_contains", "value": v} for v in args.expect_title]
+               + [{"type": "text_contains", "value": v} for v in args.expect_text])
     spec = {"task_id": "adhoc", "domain": "", "category": "browse",
             "goal": args.goal, "budget": {"steps": args.steps},
-            "success_assertion": {"type": "any_of", "clauses": [
-                {"type": "url_matches", "pattern": e.replace(".", r"\.")}
-                for e in args.expect] +
-                [{"type": "text_contains", "value": e} for e in args.expect]}}
+            # 没有任何证据时就给一个"永真但明说不是成功声明"的形状：any_of([]) 判 False，
+            # 由下面的打印明确写"这只报状态，不声明成功"。
+            "success_assertion": ({"type": "all_of", "clauses": clauses} if clauses
+                                  else {"type": "any_of", "clauses": []})}
 
     print(f"goal : {args.goal}")
     print(f"start: {args.url}")
@@ -119,11 +128,19 @@ def main() -> int:
         txt = (page.get("text") or "")[:300].replace("\n", " ")
         print(f"text   : {txt}")
         ok = True
-        if args.expect:
-            hay = f"{page.get('url') or ''}\n{page.get('text') or ''}".lower()
-            missing = [e for e in args.expect if e.lower() not in hay]
-            ok = not missing
-            print(f"expect : {'PASS' if ok else 'MISSING ' + str(missing)}")
+        if clauses:
+            # 判据交给 `jev_ultrafast.evaluator`——与跑批判 PASS 的是同一份代码。
+            # 这里原来自己实现"子串命中"，两套语义会漂移（本项目为文档与代码漂移付过代价）。
+            from jev_ultrafast import evaluator as E
+            r = E.evaluate(spec, page, hist, state.get("status") or "done")
+            ok = str(r.result) == "PASS"
+            print(f"verdict: {r.result}   quadrant={r.quadrant}")
+            for t in (r.evidence or {}).get("assertion_trace") or []:
+                c = t.get("clause") or {}
+                key = "pattern" if c.get("type") == "url_matches" else "value"
+                print("   %-4s %s %s=%r%s" % ("ok" if t.get("ok") else "MISS",
+                                              c.get("type"), key, c.get(key),
+                                              ("  (" + t["note"] + ")") if t.get("note") else ""))
         else:
             print("expect : (none given -- status only, not a success claim)")
         a.close()

@@ -1,0 +1,84 @@
+  c01  search     ✓断言成立  https://docs.python.org/3/search.html?q=list               Search — Python 3.15.0 documentati
+  c02  search     ✓断言成立  https://docs.python.org/3/search.html?q=enumerate          Search — Python 3.15.0 documentati
+  c03  search     ✓断言成立  https://docs.python.org/3/search.html?q=typing             Search — Python 3.15.0 documentati
+  c04  search     ✓断言成立  https://docs.python.org/3/search.html?q=asyncio            Search — Python 3.15.0 documentati
+  c05  search     ✓断言成立  https://docs.python.org/3/search.html?q=memoryview         Search — Python 3.15.0 documentati
+  c06  search     ✓断言成立  https://docs.python.org/3/search.html?q=itertools          Search — Python 3.15.0 documentati
+  c07  search     ✓断言成立  https://doc.rust-lang.org/stable/std/?search=Result        "Result" Search - Rust
+  c08  search     ✓断言成立  https://doc.rust-lang.org/stable/std/?search=String        "String" Search - Rust
+  c09  search     ✗丢  https://stackoverflow.com/search?q=pandas+merge            Human verification - Stack Overflo
+  c10  search     ✗丢  https://stackoverflow.com/search?q=numpy+reshape           Human verification - Stack Overflo
+  c11  search     ✓断言成立  https://arxiv.org/search/?query=large+language+models&sear Search | arXiv e-print repository
+  c12  search     ✓断言成立  https://arxiv.org/search/?query=quantization&searchtype=al Search | arXiv e-print repository
+  c13  search     ✓断言成立  https://huggingface.co/models?search=llama                 Models – Hugging Face
+  c14  search     ✓断言成立  https://huggingface.co/datasets?search=wikipedia           Datasets – Hugging Face
+  c15  search     ✓断言成立  https://github.com/search?q=pytorch&type=repositories      Repository search results · GitHub
+  c16  search     ✗丢  https://simple.wikipedia.org/w/index.php?search=otter&titl Otter - Simple English Wikipedia, 
+  c17  search     ✗丢  https://docs.djangoproject.com/en/stable/search/?q=ORM     Search | Django
+  c18  search     ✓断言成立  https://numpy.org/doc/stable/search.html?q=broadcast       Search - NumPy v2.5 Manual
+  c19  search     ✗丢  https://git-scm.com/search/results?q=workflow              Git
+  c20  pagination ✓断言成立  http://books.toscrape.com/catalogue/page-3.html            All products | Books to Scrape - S
+  c21  pagination ✓断言成立  http://books.toscrape.com/catalogue/page-3.html            All products | Books to Scrape - S
+  c22  pagination ✗丢  http://books.toscrape.com/catalogue/category/books/travel_ 404 Not Found
+  c23  navigate   ✓断言成立  http://books.toscrape.com/catalogue/category/books/travel_ Travel | Books to Scrape - Sandbox
+  c24  navigate   ✗丢  http://books.toscrape.com/catalogue/category/books/non-fic 404 Not Found
+  c25  navigate   ✓断言成立  http://books.toscrape.com/catalogue/category/books/classic Classics | Books to Scrape - Sandb
+  c26  navigate   ✗丢  https://the-internet.herokuapp.com/dropdown                The Internet
+  c27  navigate   ✗丢  https://the-internet.herokuapp.com/checkboxes              The Internet
+  c28  navigate   ✗丢  https://the-internet.herokuapp.com/key_presses             The Internet
+  c29  navigate   ✓断言成立  https://the-internet.herokuapp.com/status_codes            The Internet
+  c30  navigate   ✗丢  https://the-internet.herokuapp.com/ab_test                 
+  c31  navigate   ✗丢  https://the-internet.herokuapp.com/multiple_buttons        
+  c32  navigate   ✗丢  https://the-internet.herokuapp.com/hovers                  The Internet
+  c33  navigate   ✗丢  https://the-internet.herokuapp.com/nested_frames           
+  c34  navigate   ✗丢  https://the-internet.herokuapp.com/tinymce                 The Internet
+  c35  navigate   ✓断言成立  https://www.sqlite.org/lang.html                           Query Language Understood by SQLit
+  c36  navigate   ✓断言成立  https://www.sqlite.org/cli.html                            Command Line Shell For SQLite
+  c37  navigate   ✓断言成立  https://www.sqlite.org/pragma.html                         Pragma statements supported by SQL
+  c38  navigate   ✓断言成立  https://doc.rust-lang.org/cargo/index.html                 Introduction - The Cargo Book
+  c39  navigate   ✓断言成立  https://doc.rust-lang.org/rustc/what-is-rustc.html         What is rustc? - The rustc book
+  c40  navigate   ✓断言成立  https://doc.rust-lang.org/edition-guide/index.html         Introduction - The Rust Edition Gu
+  c41  navigate   ✓断言成立  https://www.python.org/about/apps/                         Applications for Python | Python.o
+  c42  navigate   ✓断言成立  https://www.python.org/jobs/                               Python Job Board | Python.org
+  c43  navigate   ✓断言成立  https://peps.python.org/pep-0000/                          PEP 0 – Index of Python Enhancemen
+  c44  navigate   ✓断言成立  https://peps.python.org/pep-0008/                          PEP 8 – Style Guide for Python Cod
+  c45  navigate   ✓断言成立  https://www.djangoproject.com/community/                   Django 社区 | Django
+  c46  navigate   ✓断言成立  https://www.djangoproject.com/fundraising/                 Support Django | Django
+  c47  navigate   ✓断言成立  https://www.selenium.dev/documentation/                    The Selenium Browser Automation Pr
+  c48  navigate   ✓断言成立  https://www.selenium.dev/selenium-ide/                     Selenium IDE · Open source record 
+  c49  navigate   ✓断言成立  https://git-scm.com/docs                                   Git - Reference
+  c50  navigate   ✗丢  https://git-scm.com/book/en/v2/Getting-Started-About-the-B Git
+  c51  navigate   ✗丢  https://www.openstreetmap.org/about                        OpenStreetMap
+  c52  navigate   ✗丢  https://www.openstreetmap.org/help                         OpenStreetMap
+  c53  navigate   ✓断言成立  https://arxiv.org/list/cs.CL/new                           Computation and Language
+  c54  navigate   ✓断言成立  https://arxiv.org/list/cs.LG/new                           Machine Learning
+  c55  navigate   ✓断言成立  https://news.ycombinator.com/best                          Top Links | Hacker News
+  c56  navigate   ✓断言成立  https://www.rfc-editor.org/rfc/rfc9110.html                RFC 9110: HTTP Semantics
+  c57  navigate   ✓断言成立  https://pypi.org/project/click/                            click · PyPI
+  c58  navigate   ✓断言成立  https://huggingface.co/models                              Models – Hugging Face
+  c59  navigate   ✓断言成立  https://huggingface.co/spaces                              Spaces - Hugging Face
+  c60  navigate   ✓断言成立  https://github.com/topics                                  Open Source, AI & Coding Topics on
+  c61  navigate   ✓断言成立  https://stackoverflow.com/questions/tagged/python          Newest 'python' Questions - Stack 
+  c62  navigate   ✓断言成立  https://the-internet.herokuapp.com/context_menu            The Internet
+  c63  navigate   ✓断言成立  https://the-internet.herokuapp.com/drag_and_drop           The Internet
+  c64  navigate   ✓断言成立  https://the-internet.herokuapp.com/disappearing_elements   The Internet
+  c65  navigate   ✓断言成立  https://the-internet.herokuapp.com/tables                  The Internet
+  c66  navigate   ✓断言成立  https://the-internet.herokuapp.com/challenging_dom         The Internet
+  c67  navigate   ✗丢  http://books.toscrape.com/catalogue/category/books/young-a 404 Not Found
+  c68  navigate   ✗丢  http://books.toscrape.com/catalogue/category/books/heartwa 404 Not Found
+  c69  pagination ✓断言成立  http://books.toscrape.com/catalogue/page-5.html            All products | Books to Scrape - S
+  c70  navigate   ✓断言成立  https://arxiv.org/list/cs.CV/new                           Computer Vision and Pattern Recogn
+  c71  navigate   ✓断言成立  https://arxiv.org/list/cs.AI/new                           Artificial Intelligence
+  c72  navigate   ✗丢  https://www.python.org/about/                              About Python™ | Python.org
+  c73  navigate   ✓断言成立  https://www.python.org/donations/                          Welcome to Python.org
+  c74  navigate   ✓断言成立  https://doc.rust-lang.org/reference/index.html             Introduction - The Rust Reference
+  c75  navigate   ✓断言成立  https://doc.rust-lang.org/rustdoc/index.html               What is rustdoc? - The rustdoc boo
+  c76  navigate   ✓断言成立  https://pypi.org/project/requests/                         requests · PyPI
+  c77  navigate   ✓断言成立  https://pypi.org/project/numpy/                            numpy · PyPI
+  c78  navigate   ✓断言成立  https://gist.github.com/about                              Page not found · GitHub · GitHub
+  c79  navigate   ✓断言成立  https://www.rfc-editor.org/rfc/rfc9112.html                RFC 9112: HTTP/1.1
+  c80  navigate   ✗丢  https://www.djangoproject.com/overview/                    Django overview | Django
+  c81  navigate   ✓断言成立  https://numpy.org/doc/stable/user/index.html               NumPy user guide — NumPy v2.5 Manu
+  c82  navigate   ✓断言成立  https://www.selenium.dev/changelog/                        404 Page not found | Selenium
+
+断言成立 60 / 82

@@ -4075,3 +4075,99 @@ r106 进"方差观察行"名单（与 #53 的 f001 同表），**门控收下**�
 
 smoke 的离线层（tier 1，18 套件）在提交前跑绿；它拒绝在批次占用浏览器时启动这条也已经现场验过
 （`CI FAIL: a batch is already running…`）。
+
+## L3-B：100 行回归集 `m2/tasks_real_100.jsonl` 的合成过程（含两次自伤与一次题面收紧）
+
+**核实路线换了三次，前两次的错都留在仓里**：
+1. `probe_task_candidates.py`（只看起点页有没有那条链/那个控件）——搜索族、表单族结构性看不见。
+2. `probe_task_driven.py`（自己填自己点）——**5/27 通过，而且是假的**：三行 python 文档搜索
+   根本没提交成功、停在起点页，却因为我那条"`填的值出现在正文里`"的回显判据算通过
+   （'list' 本来就在文档首页）。这条判据已改成"必须换页或值真的回显在**新**页面上"，
+   但整个驱动法我放弃了，原因见下。
+3. `probe_task_assertions.py`（**当前用的**）：每行带一个**见证 URL**，navigate 之后把真页面喂给
+   `jev_ultrafast.evaluator.evaluate(spec, page, [], "done")`——**跑批时判 PASS 的是同一份代码**。
+   断言被真页面满足 → 这行才进任务集。这不循环：我主张的是"终点页的性质"，agent 的活是走到那里。
+   82 条候选 → **60 条断言成立**（丢掉 22：books.toscrape 我猜错的分类 URL 404、
+   the-internet 几条正文里没有我写的字样、stackoverflow 搜索撞 "Human verification"、
+   openstreetmap / git book 路径）。
+
+**题面收紧（防注水）**：新搜索题的断言只到"搜索结果页"，而现有语料的搜索题（r101/r104）把断言
+钉在最终结果 URL。所以 `make_tasks_100.py::honest_goal` 把新题面从
+"…and open the first result." 改成 "…and reach its search results page."——
+**题面不得强于断言**；改的是题面，不是把断言放宽。
+
+**MDN 两行主动丢掉**：`…/Extensions/Tools` 的见证页 title 是 'Page not found | MDN'，
+但断言里 `text_contains('Tools')` 在 404 页也成立 → 那是我的断言太松，不是题可行。
+
+集合：基线 50 行按 **b26 实跑顺序**取（`m2/tasks_real.jsonl` 有 52 行，r118 站点作废、r151 预备题
+不在实跑集里，不能混进来）+ 新 50 行（search 14 / pagination 3 / navigate 33），共 100 行、20 个站点。
+
+### b30（100 行基线）判据——**跑之前**写死
+
+| # | 判据 | 预期 / 处置 |
+|---|---|---|
+| 1 | **墙钟 ≤ 30 分钟** | 这就是 L3 的验收数字。按门控下 50 行 8.2–9.5 分钟外推，预测 **16–22 分钟**；超 30 分钟则 L3 这一格判不过，转 L3-C 并行 |
+| 2 | `error` / `crash` / `unknown` | 全 0（b27–b29 三批都是 0，这条破了说明新题里有崩行形状） |
+| 3 | `false_positive` | 0 |
+| 4 | 零云端 | step 事件 `text_helper ⊆ {null, startlux-decision-2b}` |
+| 5 | 老 50 行 | 与 b28/b29 对齐：44/50 ± 1（墙行 r101/r104 允许在墙上浮动，但**不许**出现新的内部死法） |
+| 6 | 新 50 行 | **≥ 40/50**。低于这个数先怀疑题本身（断言/见证站点对不真），不当 agent 的分数记账 |
+| 7 | `link_followed_arrival` 射程 | 新导航题大量落在这档上（1 拍到 2 拍），射程外开火必须仍为 0 |
+
+## L3-B/C/D 收口（19:36–20:20）：100 行集成立、并行被读数判死、批路径补出口闸门
+
+### L3-C：并行不做，理由是量出来的
+
+`m2/probe_wire_parallel.py`（第一版仪器坏在把 `state` 传成 `{"page": …}`，KeyError 秒返回，
+"266 决策/秒"是异常吞吐——修好后走产品原路 `model.choose_typesafe`）：
+
+| 并发 | 次数 | 中位延迟 | 吞吐（决策/秒） |
+|---|---|---|---|
+| 1 | 4 | 0.64s | **1.55** |
+| 2 | 6 | 1.20s | 1.57 |
+| 4 | 8 | 2.46s | **1.58** |
+
+加速比 **1.02x**。`llama-server --parallel 4` 的槽位没有变成吞吐，多开 Chrome worker 只会在
+wire 前排队。到底是 shim（`gguf_server.py` 的 HTTP 层）串行化还是后端本身到此为止，
+**没量到**：`m2/probe_wire_bottleneck.py` 想直连 :8081 `/completion` 做同尺寸对照，
+连最小请求体都 400（这个 build 的端点形状我没查清）——记为未量，不猜。
+⇒ #35 关掉；L3 的算术改成"100 题 ≤30 分钟已达成，300 题需要的是**更快的决策后端**，不是并行 runner"。
+
+### L3-B：100 行集，22 行被自己的核实器丢掉
+
+`m2/tasks_real_100.jsonl` = b26 实跑的 50 行 + 新 50 行（search 14 / pagination 3 / navigate 33，
+20 个站点）。新行全部经 `m2/probe_task_assertions.py`：navigate 到**见证 URL**，把真页面喂给
+`jev_ultrafast.evaluator.evaluate(spec, page, [], "done")`——**跑批判 PASS 的是同一份代码**。
+82 条候选里 60 条断言成立，22 条丢掉（books.toscrape 我猜错的分类 URL、the-internet 几条
+正文里没有我写的字样、stackoverflow 搜索撞 "Human verification"、openstreetmap/git book）。
+
+途中三次仪器级自我纠正，全部留在仓里没删：
+① `probe_task_candidates.py` 只看起点页 → 搜索/表单族结构性看不见；
+② `probe_task_driven.py` 自己填自己点，`echoed` 判据把"首页正文本来就有 'list'"算成回显，
+   三行没提交成功也报"通过"；驱动法整个作废；
+③ 第一版出口预检用 `urllib` → **b31 现场证明它和 Chrome 走的是两条路**（run_one.ps1 不写代理
+   环境变量，探针直连成功而 Chrome 仍撞死代理，批跑到第 69 行才被我停）。
+   预检改成用 `Browser` 真的跳一跳，读 `location.href` 是否 `chrome-error://`。
+
+题面也收紧一次：新搜索题断言只到"结果页"，所以 `honest_goal` 把题面从
+"…and open the first result." 改成 "…and reach its search results page."——**题面不得强于断言**。
+MDN 两行主动丢掉：soft-404 页正文里也有 'Tools'，那是我的断言太松。
+
+### L3-D：两级闸门 + 断言拆分
+
+- `scripts/smoke.ps1`：tier1 = 20 个离线套件必须 n/n 全绿；`-Live` tier2 = s005/n004/x001/x002/r142
+  五题代表族，判据由 `m2/smoke_gate.py` **读报告**（不解析控制台），与真实批同一条读数路径。
+  preflight 现场验过：批在跑时它拒绝启动。
+- `scripts/ci_local.ps1`：smoke → 冻结三轮 → 回归批 → 阈值判定（`-MinPass` / `-MaxWallMinutes`），
+  写 `reports/ci-*.json`；"没写报告"返回 3 = BLOCKED，不算通过也不算失败。
+- 断言拆分（计划书 2.3 欠件）：评测器新增 `title_contains`；`scripts/run_task.py` 的
+  `--expect-url/--expect-title/--expect-text` 三类各自独立、彼此 `all_of`，并且**判据不再自己实现**，
+  改调 `evaluator.evaluate`（原来那套"url 或 text 任一命中"正是第一个真实任务翻车的地方）；
+  `mcp_server.agent_run` 同步成三个参数。失败测试先行：`tests/test_evaluator_title.py` 改前 **0/5 → 改后 5/5**，
+  `tests/test_runner_egress_gate.py` 改前 **0/4 → 改后 4/4**。全套 20 个离线套件 **146 案全绿**。
+
+### b30 作废（不引用它的分数）
+
+`reports/real-1011-b30-100-1011-193627.json`（6/100）是**环境阻断**产物：:2080 代理死了而
+Chrome 带 `--proxy-server=…:2080`，94/100 行 `steps=0` + `chrome-error://chromewebdata/`。
+文件保留只为可追溯，**分数禁止引用**。代理恢复后重跑的那一批才叫 b33（100 题基线读数）。

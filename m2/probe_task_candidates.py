@@ -45,20 +45,29 @@ def observe_settled(b, tries=8):
     return p
 
 
-def find_link(page, phrases):
-    """起点页动作表里，标签与某个目的地短语互相包含的第一条 click 动作。"""
+def matched_controls(page, phrases):
+    """起点页动作表里与任一短语词面相交的**控件**（click/fill/select 都要）。
+
+    为什么不能只找"终点链接"：第一批核实 29 条里只有 7 条是一跳到达，其余是 select /
+    checkbox / form / 翻页族——它们**没有终点链接**，可核实的证据是"控件在不在起点页上、
+    页面正文里有什么"。另外 `Key Presses`/`GET` 报了"没有那条链"，其实是链接存在但在
+    **视口外**（`snapshot.js` 只收录视口内动作，#40/#59 那张老账），所以还得看正文短语。
+    """
+    hits = []
     for _idx, a in S._indexed(page.get("actions") or []):
-        if a.get("kind") != "click":
-            continue
         lab = str(a.get("label") or "").strip()
         if not lab:
             continue
+        t1 = S._phrase_token_set(lab)
+        if not t1:
+            continue
         for ph in phrases:
-            t1 = S._phrase_token_set(lab)
             t2 = S._phrase_token_set(ph)
-            if t1 and t2 and (t1 <= t2 or t2 <= t1):
-                return a, ph
-    return None, None
+            if t2 and (t1 <= t2 or t2 <= t1):
+                hits.append({"kind": a.get("kind"), "label": lab[:60],
+                             "href": str(a.get("href") or "")[:80], "phrase": ph})
+                break
+    return hits
 
 
 def main():
@@ -78,37 +87,47 @@ def main():
         try:
             page = observe_settled(b)
             rec["start_title"] = str(page.get("title") or "")[:70]
-            phrases = S._destination_phrases(c["goal"],
-                                             {m.group(1) for m in re.finditer(
-                                                 r"['\"]([^'\"]{2,60})['\"]", c["goal"])})
-            link, matched = find_link(page, phrases)
-            rec["phrases"] = phrases
-            if link is None:
-                rec.update(ok=False, err="no-link-on-start-page")
-                print("  %-4s 起点页上没有那条链（短语=%s）" % (c["cid"], phrases))
-            else:
-                rec["label"] = str(link.get("label") or "")[:60]
-                rec["matched"] = matched
-                href = str(link.get("href") or link.get("url") or "")
-                dest = urljoin(c["start_url"], href) if href else ""
-                rec["href"] = href[:90]
+            quoted = {m.group(1) for m in re.finditer(r"['\"]([^'\"]{2,60})['\"]", c["goal"])}
+            rec["n_actions"] = len(page.get("actions") or [])
+            txt = str(page.get("text") or "")
+            rec["text_head"] = txt[:200]
+            rec["phrases"] = sorted(quoted)
+            rec["dest_phrases"] = S._destination_phrases(c["goal"], quoted)
+            hay = (txt + " " + rec["start_title"]).lower()
+            rec["phrase_in_text"] = {p: hay.count(p.lower()) for p in sorted(quoted)}
+            hits = matched_controls(page, sorted(quoted))
+            rec["controls"] = hits[:8]
+            link = next((h for h in hits if h["kind"] == "click" and h["href"]
+                         and h["phrase"] in rec["dest_phrases"]), None)
+            if link:
+                dest = urljoin(c["start_url"], link["href"])
                 if dest.startswith("http") and urlsplit(dest).netloc:
+                    rec["label"], rec["href"] = link["label"], link["href"][:90]
                     b2 = Browser(dest)
                     try:
                         p2 = observe_settled(b2)
                         rec["land_url"] = str(p2.get("url") or dest)[:110]
                         rec["land_title"] = str(p2.get("title") or "")[:70]
-                        txt = str(p2.get("text") or "")
-                        rec["text_head"] = txt[:160]
-                        rec["n_actions"] = len(p2.get("actions") or [])
+                        rec["land_text_head"] = str(p2.get("text") or "")[:200]
+                        rec["evidence"] = "one-hop-arrival"
                         rec["ok"] = True
-                        print("  %-4s ✓ %-28s -> %s" % (c["cid"], rec["label"][:28],
-                                                        rec["land_url"][:66]))
+                        print("  %-4s ✓ 一跳到达 %-24s -> %s" % (
+                            c["cid"], rec["label"][:24], rec["land_url"][:58]))
                     finally:
                         b2.close()
                 else:
-                    rec.update(ok=False, err="link-not-a-url")
-                    print("  %-4s 链不是可跳的 URL（href=%r）" % (c["cid"], href[:40]))
+                    rec.update(ok=False, err="link-not-a-url", href=link["href"][:60])
+                    print("  %-4s 链不是可跳的 URL（href=%r）" % (c["cid"], link["href"][:40]))
+            else:
+                # 没有终点链接 ≠ 不能用：多跳族（select/checkbox/form/翻页）的断言打在
+                # **起点页 + 控件 + 正文**上。视口外的链接这里靠正文短语认出来。
+                in_text = sum(1 for v in rec["phrase_in_text"].values() if v > 0)
+                rec["evidence"] = ("control-on-start-page" if hits else
+                                   ("phrase-in-text(below-fold?)" if in_text else "none"))
+                rec["ok"] = bool(hits) or in_text > 0
+                print("  %-4s %s 控件=%d 短语见文=%d 动作数=%d  [%s]" % (
+                    c["cid"], "✓" if rec["ok"] else "✗", len(hits), in_text,
+                    rec["n_actions"], rec["evidence"]))
         except Exception as e:
             rec.update(ok=False, err="%s:%s" % (type(e).__name__, str(e)[:70]))
             print("  %-4s 崩 %s" % (c["cid"], rec["err"]))

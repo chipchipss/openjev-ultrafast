@@ -146,7 +146,8 @@ def agent_status() -> str:
 
 
 @mcp.tool()
-def agent_run(url: str, goal: str, expect: str = "", steps: int = 20) -> str:
+def agent_run(url: str, goal: str, expect_url: str = "", expect_title: str = "",
+              expect_text: str = "", steps: int = 20) -> str:
     """Run one browser task with the local (free, on-GPU) agent.
 
     Args:
@@ -154,20 +155,27 @@ def agent_run(url: str, goal: str, expect: str = "", steps: int = 20) -> str:
         goal: natural-language instruction. Put explicit targets in it --
               quoted terms ('asyncio'), paths (/forms/post), field names.
               Vague goals make the model wander.
-        expect: optional completion evidence -- a substring that must appear
-                in the final page URL or text for the run to count as PASS.
+        expect_url: regex the FINAL url must match to count as PASS.
+        expect_title: substring the final page <title> must contain.
+        expect_text: substring the final page text must contain.
+              The three are independent and ALL must hold (no more "url or text
+              matched" -- that alias is what let an off-site landing count as
+              evidence in the first real task). Never sent to the model.
         steps: step budget (default 20).
-    Returns the step trace, final URL, page text excerpt, and PASS/MISSING.
+    Returns the step trace, final URL, page text excerpt, and PASS/FAIL.
     """
     args = ["--url", url, "--goal", goal, "--steps", str(steps)]
-    if expect:
-        args += ["--expect", expect]
+    for flag, value in (("--expect-url", expect_url), ("--expect-title", expect_title),
+                        ("--expect-text", expect_text)):
+        if value:
+            args += [flag, value]
+    claimed = bool(expect_url or expect_title or expect_text)
     try:
         note = _ensure_stack(proxy=True)
     except Exception as e:
         return f"backend startup failed: {e}"
     code, tail = _run_in_repo(args)
-    verdict = "PASS" if code == 0 else ("FAIL" if expect else "done")
+    verdict = "PASS" if code == 0 else ("FAIL" if claimed else "done")
     header = f"[openjev] {verdict}   ({note or 'backend running'})\n"
     return header + tail
 

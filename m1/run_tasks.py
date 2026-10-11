@@ -403,6 +403,33 @@ def _check_m1_acceptance(summary: dict, results: list[dict]) -> tuple[bool, list
     return ok, notes
 
 
+def _egress_block_reason(sample_url: str):
+    """批开跑前，用**批将来走的那条路**（自有 Chrome + 它自己的 `--proxy-server`）试一跳。
+
+    b30 现场：`:2080` 代理死了而 Chrome 带 `--proxy-server=…:2080` → 100 行里 94 行
+    `steps=0`、终点 `chrome-error://chromewebdata/`，最后写出一份"6/100"的报告——那是
+    环境阻断，不是能力读数，却会进 reports/ 被引用。
+
+    为什么第二版才改成走浏览器：第一版我用 `urllib` 探，**b31 现场证明它测的是另一条路**——
+    `scripts/run_one.ps1` 不把代理写进环境变量，于是探针直连成功、闸门放行，而 Chrome 仍然
+    走死代理（跑到第 69 行被我停掉，幸好报告是在循环结束后才写的）。判据和批不同路，闸门就是摆设。
+    """
+    if not (sample_url or "").startswith("http"):
+        return None                                   # 没有可试的起点（本地调试）→ 不拦
+    try:
+        from jev_ultrafast.browser import Browser
+        b = Browser(sample_url)
+        try:
+            url = str(b.evaluate("location.href") or "")
+        finally:
+            b.close()
+    except Exception as e:                                # noqa: BLE001
+        return f"起点页连不上（{type(e).__name__}: {str(e)[:70]}）"
+    if url.startswith("chrome-error://"):
+        return f"起点页落在 {url[:60]}（出口/代理不通）"
+    return None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--tasks", type=Path, default=Path("m1/tasks.jsonl"))
@@ -421,6 +448,14 @@ def main() -> int:
     if not tasks:
         print("No tasks found.", file=sys.stderr)
         return 2
+
+    # 出口预检（见 `_egress_block_reason`）：不通就一行的读数都不要产。
+    if not args.dry_run:
+        why = _egress_block_reason(_resolve_start_url(tasks[0], args.start_url))
+        if why:
+            print(f"[preflight] {why} —— 不跑批、不写报告。"
+                  "这是环境阻断，写成读数会被后续引用。", file=sys.stderr)
+            return 3
 
     print(f"Loaded {len(tasks)} tasks from {args.tasks}")
 

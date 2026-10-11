@@ -1,0 +1,29 @@
+  c01  select     ✗ no-fillable-field-or-searchbox -> None
+  c02  select     ✗ no-fillable-field-or-searchbox -> None
+  c03  form       ✗ no-fillable-field-or-searchbox -> None
+  c04  login      ✗ no-fillable-field-or-searchbox -> None
+  c12  pagination ✗ no-fillable-field-or-searchbox -> None
+  c13  pagination ✗ no-fillable-field-or-searchbox -> None
+  c16  multi_hop  ✗ no-fillable-field-or-searchbox -> None
+  c17  read_value ✗ no-fillable-field-or-searchbox -> None
+  c18  search     ✓ ['Quick search'] -> https://docs.python.org/3/
+  c19  search     ✗ ['Quick search'] -> https://docs.python.org/3/
+  c20  search     ✓ ['Quick search'] -> https://docs.python.org/3/
+  c21  search     ✗ ['Quick search'] -> https://docs.python.org/3/
+  c22  search     ✗ no-fillable-field-or-searchbox -> None
+  c23  search     ✗ no-fillable-field-or-searchbox -> None
+  c24  search     ✗ no-fillable-field-or-searchbox -> None
+  c25  search     ✗ no-fillable-field-or-searchbox -> None
+  c26  search     ✓ ['Search'] -> https://www.djangoproject.com/
+  c27  search     ✗ no-fillable-field-or-searchbox -> None
+  c28  search     ✗ ['Search models, datasets, users...'] -> https://huggingface.co/
+  c29  search     ✗ no-fillable-field-or-searchbox -> None
+  c30  search     ✓ ['Search'] -> https://stackoverflow.com/questions
+  c31  search     ✗ ['Search Wikipedia'] -> https://simple.wikipedia.org/wiki/Main_Page
+  c32  form       ✓ ['Customer name:'] -> https://httpbin.org/post
+  c33  form       ✗ no-fillable-field-or-searchbox -> None
+  c34  multi_hop  ✗ no-fillable-field-or-searchbox -> None
+  c35  multi_hop  ✗ no-fillable-field-or-searchbox -> None
+  c42  multi_hop  ✗ no-fillable-field-or-searchbox -> None
+
+驱动核实通过 5 / 27（证据在 tasks_l3_driven.jsonl）

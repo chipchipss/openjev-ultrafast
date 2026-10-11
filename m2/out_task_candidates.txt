@@ -1,0 +1,46 @@
+  c01  ✗ 控件=0 短语见文=0 动作数=27  [none]
+  c02  ✓ 控件=2 短语见文=0 动作数=5  [control-on-start-page]
+  c03  ✗ 控件=0 短语见文=0 动作数=27  [none]
+  c04  ✓ 一跳到达 Forgot Password          -> https://the-internet.herokuapp.com/forgot_password
+  c05  ✗ 控件=0 短语见文=0 动作数=27  [none]
+  c06  ✗ 控件=0 短语见文=0 动作数=27  [none]
+  c07  ✓ 一跳到达 A/B Testing              -> https://the-internet.herokuapp.com/abtest
+  c08  ✗ 控件=0 短语见文=0 动作数=27  [none]
+  c09  ✗ 控件=0 短语见文=0 动作数=27  [none]
+  c10  ✓ 一跳到达 Geolocation              -> https://the-internet.herokuapp.com/geolocation
+  c11  ✗ 控件=0 短语见文=0 动作数=27  [none]
+  c12  ✗ 控件=0 短语见文=0 动作数=40  [none]
+  c13  ✗ 控件=0 短语见文=0 动作数=40  [none]
+  c14  ✓ 一跳到达 Travel                   -> https://books.toscrape.com/catalogue/category/books/travel
+  c15  ✓ 一跳到达 Fiction                  -> https://books.toscrape.com/catalogue/category/books/fictio
+  c16  ✗ 控件=0 短语见文=0 动作数=41  [none]
+  c17  ✗ 控件=0 短语见文=0 动作数=8  [none]
+  c18  ✓ 控件=1 短语见文=1 动作数=89  [control-on-start-page]
+  c19  ✗ 控件=0 短语见文=0 动作数=89  [none]
+  c20  ✓ 控件=1 短语见文=1 动作数=89  [control-on-start-page]
+  c21  ✗ 控件=0 短语见文=0 动作数=89  [none]
+  c22  ✗ 控件=0 短语见文=0 动作数=25  [none]
+  c23  ✗ 控件=0 短语见文=0 动作数=25  [none]
+  c24  ✗ 控件=0 短语见文=0 动作数=8  [none]
+  c25  ✗ 控件=0 短语见文=0 动作数=8  [none]
+  c26  ✓ 控件=0 短语见文=1 动作数=44  [phrase-in-text(below-fold?)]
+  c27  ✗ 控件=0 短语见文=0 动作数=19  [none]
+  c28  ✗ 控件=0 短语见文=0 动作数=17  [none]
+  c29  ✗ 控件=0 短语见文=0 动作数=150  [none]
+  c30  ✗ 控件=0 短语见文=0 动作数=61  [none]
+  c31  ✗ 控件=0 短语见文=0 动作数=42  [none]
+  c32  ✓ 控件=2 短语见文=1 动作数=18  [control-on-start-page]
+  c33  ✗ 控件=0 短语见文=0 动作数=18  [none]
+  c34  ✗ 控件=0 短语见文=0 动作数=27  [none]
+  c35  ✓ 一跳到达 show                     -> https://news.ycombinator.com/show
+  c36  ✗ 控件=0 短语见文=0 动作数=8  [none]
+  c37  ✓ 一跳到达 SQL Syntax               -> https://www.sqlite.org/lang.html
+  c38  ✗ 控件=0 短语见文=0 动作数=27  [none]
+  c39  ✓ 一跳到达 Reference                -> https://git-scm.com/docs
+  c40  ✓ 一跳到达 Documentation            -> https://www.selenium.dev/documentation/
+  c41  ✓ 控件=1 短语见文=0 动作数=44  [control-on-start-page]
+  c42  ✗ 控件=0 短语见文=0 动作数=38  [none]
+  c43  ✓ 一跳到达 Fantasy                  -> https://books.toscrape.com/catalogue/category/books/fantas
+  c44  ✗ 控件=0 短语见文=0 动作数=42  [none]
+
+核实通过 16 / 44（证据在 tasks_l3_evidence.jsonl）
