@@ -195,7 +195,9 @@ def _pre_fix_code_fails():
     body = old[i:old.index("def call(", i)]
     nav = body.find('"Page.navigate"')
     if nav < 0 or "MODAL_GUARD_JS" in body:
-        raise AssertionError("改前不该已含防御（提交已落则本条应改为 Skip）")
+        # 提交已落 → 对照对象消失（同 test_cdp_ownership / test_runner_zero_cloud 的 Skip 规矩）
+        print("      skip: HEAD 已带防御（提交已落）——无从对照")
+        return
     assert "addScriptToEvaluateOnNewDocument" not in body[:nav], \
         "改前的 __init__ 在第一跳之前就注册了脚本，那第一条失败就不是楔死造成的"
 

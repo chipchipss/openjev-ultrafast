@@ -99,6 +99,80 @@ def _reset_cdp() -> None:
     except Exception as e:
         print(f"    [cdp-reset] warn: {type(e).__name__}: {e}")
 
+#: 任务间"要不要先问一句健康"的成本读数（2026-10-11 06:4x 在自有 Chrome 上连测三次：
+#: 2.77 / 2.83 / 3.05 秒；`_reset_cdp()` 一次 23.6 秒 = 0.4 杀 + 7.0 盲等 + 16.2 daemon 起，
+#: 见 `m2/real-log.md` 的 #34 分解）。49 个断点上"每次都问"最多付 49×2.9≈2.4 分钟，
+#: 而"每次都复位"要付 49×23.6≈19.3 分钟。
+
+def _cdp_healthy() -> bool:
+    """问一句"这个自有浏览器还能干净地开一次会话并读到**归静**的文档吗"。
+
+    顺序不能换：**先验归属**（`_assert_owned_browser`），再去碰浏览器——探测路径也是连接
+    路径，反过来就可能在问健康的路上连到用户的 Chrome（P0 硬线）。
+
+    为什么要在 about:blank 上真的建一次会话、而不是探端口/探进程：b21 那次门控被否决，
+    三行死的是 `agent_init_failed: StalePage: Document is navigating`（`m2/real-log.md` 的
+    b21 表），"端口有人、归属对"全都通过，坏的是**会话起来读不到一份归静的文档**。
+    这里问的就是那件真正会被下一题依赖的事。`Browser.__init__` 的 settle 段
+    （floor 1200ms / quiet 250ms / cap 5000ms）本来就是"归静"的判据，复用而不是另造。
+
+    它**不保证**下一题的起点站会顺利加载——那由 `#57`（起点观测有界退避 + 整个起点重做
+    一次，`Agent._observe_start`）负责。两件事各管一段：这段管"浏览器本身还能不能用"，
+    那段管"某一题的起点加载慢"。
+    """
+    import platform
+    if platform.system() != "Windows":
+        return False          # 这台机器上 _reset_cdp 在别的平台是静默跳过，无从对照
+    try:
+        from jev_ultrafast.browser import (Browser, MARKER_STABLE,
+                                          _assert_owned_browser)
+        _assert_owned_browser()
+        b = Browser("about:blank")
+        try:
+            marker = b.evaluate(MARKER_STABLE)
+            return bool(marker)
+        finally:
+            b.close()
+    except Exception:                                    # noqa: BLE001
+        return False
+
+
+#: 上一行的哪些结局说明"浏览器可能被带坏了"（这些之后无条件复位，哪怕探测说健康）。
+#: 名字只收见过的形状：`no-browser:`/`foreign-browser:` 是 `::_assert_owned_browser` 的两个
+#: 前缀；`agent_init_failed` 是 #54 的构造失败；`agent_init_failed_after_cdp_reset` 是它
+#: 复位一次之后仍失败；`_ipcresponsetimeout` 是 #58 那族（IPC 超时崩行）；
+#: `document is navigating` 是 b21 三行的原文；`crash`/`unknown` 是评测侧的系统类象限。
+_BROWSER_CLASS_MARKS = (
+    "no-browser:", "foreign-browser:", "agent_init_failed",
+    "_ipcresponsetimeout", "document is navigating",
+    "no close frame received or sent",
+)
+
+
+def _is_browser_class(prev: dict) -> bool:
+    if not isinstance(prev, dict):
+        return True                                   # 连行结果都没有 = 不可知，按坏处理
+    if prev.get("error"):
+        text = str(prev.get("error")) + str(prev.get("exception") or "")
+        if any(m in text.lower() for m in _BROWSER_CLASS_MARKS):
+            return True
+        return True                                   # 任何 runner 级 error 都不许带着复用往下走
+    raw = prev.get("result")
+    res = raw.get("result") if isinstance(raw, dict) else raw
+    quad = str(raw.get("quadrant")) if isinstance(raw, dict) else ""
+    return res in ("ERROR", "CRASH", None) or quad in ("system_crash", "unknown")
+
+
+def _needs_reset(prev, healthy: bool) -> bool:
+    """任务间决策（纯函数，便于把表钉死在测试里）：
+    第一题之前没有边界 → 不复位；上一行是浏览器类结局 → 必复位；否则不健康才复位。"""
+    if prev is None:
+        return False
+    if _is_browser_class(prev):
+        return True
+    return not healthy
+
+
 #: 自有浏览器"没了/不是我们的"这两种 fail-closed 读数（`browser.py::_assert_owned_browser`
 #: 的两个前缀）。b19 实况：批跑到 r120 那一拍 `:9222` 上已经没有浏览器，守卫按设计拒绝
 #: 回退去开别人的浏览器——**守卫是对的，缺的是它后面没有自愈**，于是整行没跑也没 trace
@@ -370,7 +444,8 @@ def main() -> int:
         start_url = _resolve_start_url(spec, args.start_url)
         print(f"[{i}/{len(tasks)}] {tid}  {start_url}")
         if i > 1:
-            _reset_cdp()
+            if _needs_reset(results[-1], _cdp_healthy()):
+                _reset_cdp()
         try:
             r = _run_one(spec, args.log_dir, start_url, args.screenshots)
         except Exception as e:
