@@ -27,10 +27,34 @@ if ($TaskId) {
     # Whitespace-tolerant pattern: m2/tasks_real.jsonl is written with json.dumps
     # default separators ("task_id": "r113") while m1/tasks.jsonl is compact; the
     # old exact match only covered the compact form, so no real-web task could run.
-    $src = Get-ChildItem -Path @((Join-Path $Repo "m1"), (Join-Path $Repo "m2")) `
-            -Filter "tasks*.jsonl" -EA SilentlyContinue |
-        ForEach-Object { Select-String -Path $_.FullName -Pattern "`"task_id`"\s*:\s*`"$TaskId`"" -EA SilentlyContinue } |
-        Select-Object -First 1
+    #
+    # Fail closed on AMBIGUOUS ids. Found 2026-10-11: `-TaskId r152` was defined both by
+    # m2/tasks_real.jsonl (its reserve row) and m2/tasks_real_100.jsonl (the new 50), and
+    # `Select-Object -First 1` silently took whichever file the directory walk hit first --
+    # a single-task reading that measures the wrong task. Either pass -TasksFile, or the id
+    # must have exactly one definition in the repo.
+    # (Keep this file ASCII-only in comments: Windows PowerShell 5.1 reads a BOM-less file
+    # as ANSI, and a mangled multi-byte byte that happens to be 0x60 is a line continuation
+    # -- it would swallow the next line into a comment.)
+    $pat = "`"task_id`"\s*:\s*`"$TaskId`""
+    if ($TasksFile) {
+        $roots = @($(if ([System.IO.Path]::IsPathRooted($TasksFile)) { $TasksFile } else { Join-Path $Repo $TasksFile }))
+    } else {
+        $roots = @(Get-ChildItem -Path @((Join-Path $Repo "m1"), (Join-Path $Repo "m2")) `
+                    -Filter "tasks*.jsonl" -EA SilentlyContinue | ForEach-Object { $_.FullName })
+    }
+    $hits = @($roots | ForEach-Object {
+        Select-String -Path $_ -Pattern $pat -EA SilentlyContinue
+    })
+    $hitFiles = @($hits | ForEach-Object { $_.Path } | Sort-Object -Unique)
+    if ($hits.Count -eq 0) { Write-Host "no task $TaskId found in $(if ($TasksFile) { $TasksFile } else { 'm1/ + m2/tasks*.jsonl' })"; exit 2 }
+    if ($hitFiles.Count -gt 1) {
+        Write-Host "task id $TaskId is defined in $($hitFiles.Count) files -- refusing to guess which one you meant:" -ForegroundColor Red
+        $hitFiles | ForEach-Object { Write-Host "    $_" }
+        Write-Host "pass -TasksFile <file> to pick one explicitly."
+        exit 2
+    }
+    $src = $hits[0]
     if ($src) { $src.Line | Set-Content -Path $TaskFile -Encoding UTF8 }
     elseif (-not (Test-Path $TaskFile)) { Write-Host "no task $TaskId found and no $TaskFile"; exit 2 }
 } else {

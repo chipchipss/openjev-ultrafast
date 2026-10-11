@@ -109,6 +109,60 @@ def t_main_aborts_before_writing_a_report():
     assert not d.exists(), f"出口不通还写出了报告文件（{d}）——那份读数会被当成分数引用"
 
 
+@case("取样题不许选『起点本来就不可达』的负向题（冻结第 1 轮 x001 现场）")
+def t_sample_skips_deliberately_unreachable_starts():
+    """`x001` 的 domain 是 `example.invalid`——它**就该**落 `chrome-error://`，题点是 agent 要 BLOCK。
+
+    预检拿 `tasks[0]` 当样本，于是把这道负向题读成了"出口/代理不通"，整行不跑、不写报告
+    （2026-10-11 22:41 的冻结第 1 轮：18/18 而不是 19/19，缺的就是 x001）。
+    """
+    assert hasattr(RT, "_egress_sample_url"), \
+        "没有独立的取样函数：闸门还是拿第一题当样本，负向题会把批挡死"
+    neg = {"task_id": "x001", "domain": "example.invalid", "category": "negative", "goal": "g"}
+    pos = {"task_id": "r101", "domain": "pypi.org", "category": "search", "goal": "g"}
+    sample = RT._egress_sample_url([neg, pos], None)
+    assert sample and "pypi.org" in sample and "invalid" not in sample, \
+        "取样选中了故意不可达的负向题（样本 %r）" % sample
+    assert RT._egress_sample_url([neg], None) is None, \
+        "全负向的题集没有可取样，应当放行（跳过闸门），而不是判环境阻断"
+    # 真实题集里 x001 的起点确实不可达：这条把"为什么必须跳过"钉在数据上
+    import json
+    laya = [json.loads(l) for l in (REPO / "m1" / "tasks-laya-19.jsonl")
+            .read_text(encoding="utf-8").splitlines() if l.strip()]
+    x001 = next(t for t in laya if t["task_id"] == "x001")
+    assert x001.get("category") == "negative", "x001 的分类变了，这条案例的前提要重写"
+
+
+@case("闸门跳过时 main 照常跑批（不许把『没有样本』当成失败）")
+def t_no_sample_still_runs():
+    import tempfile
+    d = Path(tempfile.mkdtemp()) / "out.json"
+    orig = (RT._egress_block_reason, RT._egress_sample_url, RT._load_tasks, RT._run_one, sys.argv)
+    called = {"probe": 0}
+
+    def fake_block(url):
+        called["probe"] += 1
+        return None
+
+    RT._egress_block_reason = fake_block
+    RT._egress_sample_url = lambda tasks, su: None          # 全负向题集
+    RT._load_tasks = lambda p: [{"task_id": "x001", "domain": "example.invalid",
+                                 "category": "negative", "goal": "g",
+                                 "success_assertion": {"type": "all_of", "clauses": []}}]
+    RT._run_one = lambda spec, log_dir, start_url, shots: {
+        "task_id": spec["task_id"],
+        "result": {"result": "BLOCKED", "quadrant": "correct_abandon", "status": "blocked"}}
+    sys.argv = ["run_tasks", "--tasks", "x.jsonl", "--log-dir", str(d.parent),
+                "--report", str(d)]
+    try:
+        code = RT.main()
+    finally:
+        (RT._egress_block_reason, RT._egress_sample_url, RT._load_tasks,
+         RT._run_one, sys.argv) = orig
+    assert called["probe"] == 0, "没有可取样还去探了一次（那次探测本身就会落 chrome-error）"
+    assert d.exists(), f"全负向题集被闸门挡死了（退出 {code}，报告没写）"
+
+
 def main() -> int:
     failed = 0
     for name, fn in CASES:

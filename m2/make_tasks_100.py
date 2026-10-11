@@ -5,7 +5,11 @@ r"""L3-B：把核实通过的候选合成 100 行回归集 `m2/tasks_real_100.js
 （books.toscrape 我猜错分类 URL、the-internet 几条正文里没有我写的字样、SO 搜索撞人机验证、
 openstreetmap/git 书）全部丢掉，不改断言去凑数。
 
-`task_id` 从 r152 起接现有 50 行；`budget.steps` 给 20（与现有真实站题一致）；
+`task_id` 从 **r153** 起接现有 50 行——r151/r152 是 `m2/tasks_real.jsonl` 里的预备题，占了这两个号。
+这不是排版问题：2026-10-11 晚 `-TaskId r152` 被两个文件同时命中，`run_one.ps1` 的
+`Select-Object -First 1` 静默挑了旧题，那次单任务读数量的是**另一道题**（它照样 PASS，所以
+错误不会自己冒出来）。runner 现在遇到重号会拒绝启动，但题集本身也不许留重号，所以这里加一道
+生成时的唯一性断言。`budget.steps` 给 20（与现有真实站题一致）；
 `domain` 用起点站（runner 的 `_resolve_start_url` 读它）。
 """
 import collections
@@ -17,6 +21,7 @@ VERIFIED = "m2/tasks_l3_verified.jsonl"
 BASE = "m2/tasks_real.jsonl"
 OUT = "m2/tasks_real_100.jsonl"
 NEED = 50
+ID_BASE = 152                       # 新行从 r153 起（r151/r152 是 BASE 的预备题）
 
 
 def host(u):
@@ -59,10 +64,36 @@ def honest_goal(r):
 
 out = list(base)
 for i, r in enumerate(picked, 1):
-    out.append({"task_id": "r%d" % (151 + i), "domain": r["start_url"],
+    out.append({"task_id": "r%d" % (ID_BASE + i), "domain": r["start_url"],
                 "category": "navigate" if r["family"] in ("navigate", "pagination") else r["family"],
                 "goal": honest_goal(r), "budget": {"steps": 20},
                 "success_assertion": r["success_assertion"]})
+
+# 生成时就把"重号"钉死：题号在仓里是读数的地址，两个文件抢同一个号，单任务读数就会静默量错题。
+taken = collections.Counter(t["task_id"] for t in out)
+dupes = sorted(k for k, v in taken.items() if v > 1)
+if dupes:
+    raise SystemExit("新 100 行内部有重号：%s" % dupes)
+new_ids = {t["task_id"] for t in out[len(base):]}
+others = collections.Counter()
+for path in glob.glob("m*/tasks*.jsonl"):
+    if path.replace("\\", "/") == OUT:
+        continue
+    for line in open(path, encoding="utf-8"):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            tid = json.loads(line).get("task_id")
+        except ValueError:
+            continue
+        if tid:
+            others[tid] += 1
+# 只查**新 50 行**：前 50 行的号本来就是从 BASE 抄来的，同号是出处而不是撞车。
+clash = sorted(new_ids & set(others))
+if clash:
+    raise SystemExit("新行与别的题集文件重号（把 ID_BASE 抬到已用号段之后）：%s" % clash)
+
 with open(OUT, "w", encoding="utf-8") as fh:
     for t in out:
         fh.write(json.dumps(t, ensure_ascii=False) + "\n")

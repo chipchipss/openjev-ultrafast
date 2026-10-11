@@ -77,7 +77,15 @@ def _reset_cdp() -> None:
     if system != "Windows":
         return
     chrome = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-    profile = r"C:\Users\Administrator\chrome-jev-profile"
+    # 复位后重起的那个 Chrome **必须和 runner/freeze 起来的是同一个形状**：
+    # `scripts/run_one.ps1:57` 与 `scripts/start_owned_chrome.ps1:9` 起的是
+    # headless + `C:\chrome-cdp-test` + `--proxy-server=http://127.0.0.1:2080`。
+    # 原来这里写的是 headed `chrome-jev-profile` 且**没有代理**（2026-10-11 晚发现）：
+    # 于是"门控真付过一次复位"的批里，第 1 题跑 headless 走代理、后面的题跑 headed 直连——
+    # 浏览器和出口 IP 一起换，站点反爬跟着变，而这一切与 agent 的决策无关。
+    # L3-A 的 b27/b28/b29 恰好 0 次复位，所以那个批是自洽的；b18–b26 是混合的，读它
+    # 们的分数时要记着这条（`m2/real-log.md` 已登记）。
+    profile = r"C:\chrome-cdp-test"
     # 我们拥有的画像：这里起的 + PS runner 起的（谁起的都由这里收口）
     _kill_ps = (
         "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
@@ -89,10 +97,14 @@ def _reset_cdp() -> None:
         subprocess.run(["powershell", "-NoProfile", "-Command", _kill_ps],
                        capture_output=True, timeout=30)
         time.sleep(2)
-        subprocess.Popen([chrome, f"--remote-debugging-port=9222",
-                          f"--user-data-dir={profile}",
-                          "--no-first-run", "--no-default-browser-check",
-                          "about:blank"],
+        proxy = os.environ.get("JEV_PROXY_URL", "http://127.0.0.1:2080")
+        argv = [chrome, "--headless=new", "--remote-debugging-port=9222",
+                f"--user-data-dir={profile}",
+                "--no-first-run", "--no-default-browser-check"]
+        if proxy:
+            argv.append(f"--proxy-server={proxy}")
+        argv.append("about:blank")
+        subprocess.Popen(argv,
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(5)
         _ensure_daemon()
@@ -430,6 +442,23 @@ def _egress_block_reason(sample_url: str):
     return None
 
 
+def _egress_sample_url(tasks: list[dict], start_url_override):
+    """出口取样要挑一道**应当可达**的题，不能直接用第一题。
+
+    x001 的 domain 是 `example.invalid`——它是**故意**不可达的负向题（题点是 agent 要 BLOCK）。
+    2026-10-11 22:41 的冻结第 1 轮里，闸门拿第一题当样本，把 x001 读成了『出口/代理不通』，
+    于是那一行不跑、不写报告，19 题只拿到 18/18。全负向的题集没有可取样，就跳过闸门照常跑批：
+    闸门是防"整批被环境打掉"的，不是防"题面本身设计成打不开"的。
+    """
+    if start_url_override:
+        return start_url_override
+    for spec in tasks:
+        if (spec.get("category") or "").lower() == "negative":
+            continue
+        return _resolve_start_url(spec, None)
+    return None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--tasks", type=Path, default=Path("m1/tasks.jsonl"))
@@ -450,12 +479,17 @@ def main() -> int:
         return 2
 
     # 出口预检（见 `_egress_block_reason`）：不通就一行的读数都不要产。
+    # 样本由 `_egress_sample_url` 挑——负向题的起点是故意不可达的，拿它取样会把能跑的批读成环境阻断。
     if not args.dry_run:
-        why = _egress_block_reason(_resolve_start_url(tasks[0], args.start_url))
-        if why:
-            print(f"[preflight] {why} —— 不跑批、不写报告。"
-                  "这是环境阻断，写成读数会被后续引用。", file=sys.stderr)
-            return 3
+        sample = _egress_sample_url(tasks, args.start_url)
+        if sample:
+            why = _egress_block_reason(sample)
+            if why:
+                print(f"[preflight] 样本 {sample[:60]}：{why} —— 不跑批、不写报告。"
+                      "这是环境阻断，写成读数会被后续引用。", file=sys.stderr)
+                return 3
+        else:
+            print("[preflight] 题集里没有可达性可取样（全负向题），跳过出口预检")
 
     print(f"Loaded {len(tasks)} tasks from {args.tasks}")
 

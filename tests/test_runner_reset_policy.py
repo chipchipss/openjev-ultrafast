@@ -24,6 +24,9 @@
    IPC 超时 / 起点 StalePage）时，下一道边界无条件复位**，哪怕探测说健康。复用会带状态，
    所以带过状态的那一行之后不赌。
 3. 复位本身没变，也只许杀我们自己的两个画像（P0 杀伤侧，`_reset_cdp` 的 kill filter）。
+4. 复位**重起的那次 Chrome 必须和 runner/freeze 起的是同一个形状**（headless + `chrome-cdp-test`
+   + `--proxy-server`）。少这一条，一批里就会出现"第 1 题走代理、其余直连"，站点反爬跟着出口 IP
+   变，而且 headed/headless 的渲染与动作时序也不同——那是网络和浏览器的差异，不是 agent 的差异。
 
 判据不在这个文件里：门控省下多少墙钟、有没有新死法，由 50 行的批读数判（`m2/batch_audit.py`
 配对 b26），不在单元测试里判——单元测试只管"政策长这样、而且改回去会红"。
@@ -32,6 +35,7 @@
 """
 from __future__ import annotations
 
+import os
 import re
 import sys
 from pathlib import Path
@@ -126,6 +130,107 @@ def t_pre_fix_code_fails():
         return
     assert "if i > 1:\n            _reset_cdp()" in old, \
         "改前的批循环不是无条件 `_reset_cdp()`，那第 1 案失败就不是归因到点上"
+
+
+@case("复位重起的 Chrome 必须和 runner/freeze 起的是**同一个形状**（headless + chrome-cdp-test + 代理）")
+def t_relaunch_matches_the_runner_browser():
+    """**行为检查，不查源码文本**——注释里写着 `--proxy-server` 也能骗过文本检查。
+
+    现役代码走假仪器（`subprocess.run`/`Popen`/`time.sleep`/`_ensure_daemon` 全换成假的，
+    只取真正递给 Chrome 的 argv）。HEAD 那一侧只做括号配平的文本提取，**不执行旧函数**：
+    执行它会真的把画像里的 Chrome 杀一遍。
+
+    2026-10-11 晚发现：`_reset_cdp` 重起的 Chrome 既没带代理，也不是 runner 起的那个
+    headless `chrome-cdp-test`，而是 headed `chrome-jev-profile`。于是"门控真付过一次复位"
+    的批里，第 1 题走代理 + headless，后面的题直连 + headed——出口 IP 和浏览器一起换，
+    站点反爬跟着变，而这一切与 agent 的决策无关。b27/b28/b29 恰好 0 次复位所以自洽，
+    b18–b26 是混合的。
+    """
+    argv = _capture_reset_launch(RT)
+    joined = " ".join(argv)
+    assert "--proxy-server=" in joined, \
+        "复位起的 Chrome 没有代理参数：批内会出现'第一题走代理、其余直连'的两条出口"
+    assert "--headless=new" in joined, \
+        "复位起的 Chrome 不是 headless：runner 起的是 headless，复位却换成 headed 画像"
+    assert "chrome-cdp-test" in joined, \
+        "复位重起的画像必须就是 runner/freeze 用的那个（chrome-cdp-test）"
+    assert "--remote-debugging-port=9222" in joined, "端口没钉在 :9222，守护进程会找不到它"
+
+    # 对照：改前的 `_reset_cdp` 传给 Chrome 的那串参数里，这三样都必须没有
+    old = _head_reset_cdp_flags()
+    if old is None:
+        print("      skip: HEAD 已带新形状（提交已落）——对照对象消失")
+    else:
+        miss = [flag for flag in ("--proxy-server=", "--headless=new", "chrome-cdp-test")
+                if flag not in old]
+        assert len(miss) == 3, "改前的复位竟然已经是新形状：这台仪器分辨不出改动 (%s)" % miss
+
+    runner = (REPO / "scripts" / "run_one.ps1").read_text(encoding="utf-8")
+    assert "--proxy-server=" in runner and "--headless=new" in runner, \
+        "runner 那边的形状也变了——这条测试钉的是**两边一致**，不是两边各自硬编码"
+
+
+def _capture_reset_launch(module, proxy_env="http://127.0.0.1:2080"):
+    """真的走一遍 `_reset_cdp()`，但把 run/Popen/sleep/daemon 全部换成假的，只取 argv。"""
+    import subprocess as sp
+    import time as _time
+    import types
+    import jev_ultrafast.browser as BR
+    captured = {}
+    saved = (sp.run, sp.Popen, _time.sleep, BR._ensure_daemon)
+    saved_proxy = os.environ.get("JEV_PROXY_URL")
+
+    def fake_run(*a, **k):
+        return types.SimpleNamespace(returncode=0, stdout=b"", stderr=b"")
+
+    def fake_popen(argv, *a, **k):
+        captured["argv"] = list(argv)
+        return types.SimpleNamespace(poll=lambda: None)
+
+    sp.run, sp.Popen, _time.sleep = fake_run, fake_popen, lambda s: None
+    BR._ensure_daemon = lambda *a, **k: None
+    os.environ["JEV_PROXY_URL"] = proxy_env
+    try:
+        module._reset_cdp()
+    finally:
+        sp.run, sp.Popen, _time.sleep, BR._ensure_daemon = saved
+        if saved_proxy is None:
+            os.environ.pop("JEV_PROXY_URL", None)
+        else:
+            os.environ["JEV_PROXY_URL"] = saved_proxy
+    return captured.get("argv") or []
+
+
+def _head_reset_cdp_flags():
+    """从 HEAD 的源码里取出旧 `_reset_cdp` 真正传给 Chrome 的那串 argv（**不执行它**）。
+
+    旧代码若执行会真的去杀一遍画像，所以这里只做括号配平的文本提取。对照的意义：
+    改前那串里没有代理、没有 headless、画像是 `chrome-jev-profile`。
+    """
+    import subprocess as sp
+    out = sp.run(["git", "show", "HEAD:m1/run_tasks.py"], cwd=str(REPO), capture_output=True)
+    if out.returncode != 0:
+        raise AssertionError("git show 失败，无从对照")
+    src = out.stdout.decode("utf-8", "replace")
+    if "def _reset_cdp" not in src:
+        return None
+    body = src[src.index("def _reset_cdp"):]
+    body = body[:body.index("\ndef ")]
+    marker = "subprocess.Popen("
+    if marker not in body:
+        return None
+    i = body.index(marker) + len(marker)
+    depth, j = 1, i
+    while j < len(body) and depth:
+        if body[j] == "(":
+            depth += 1
+        elif body[j] == ")":
+            depth -= 1
+        j += 1
+    chunk = body[i:j] + body[body.index("profile ="):body.index("profile =") + 80]
+    if "--proxy-server=" in chunk and "--headless=new" in chunk:
+        return None                                    # 对照对象已消失（提交已落）
+    return chunk
 
 
 def main():

@@ -1,15 +1,15 @@
 param(
-    [switch]$Full,                 # smoke(tier1) + 冻结三轮 + 一批真实回归
+    [switch]$Full,                 # smoke(tier1) + 3 freeze rounds + one real regression batch
     [ValidateSet(19, 50, 100)][int]$Tasks = 50,
-    [int]$MinPass = 43,            # 50 行集的下限：b24/b26 45/44，b25/b27 43/44 —— 见 m2/real-log.md
-    [double]$MaxWallMinutes = 14,  # 门控版实测 b27 9.5 min（b26 24.9）；>14 说明门控没跳或栈变慢
+    [int]$MinPass = 43,            # floor for the 50-row set: b24/b26 = 45/44, b25/b27 = 43/44 -- see m2/real-log.md
+    [double]$MaxWallMinutes = 14,  # gated build measured b27 = 9.5 min (b26 = 24.9); over 14 means the gate never skipped or the stack slowed
     [int]$SvcPort = 8090,
     [string]$TasksFile = ""
 )
 $ErrorActionPreference = "Stop"
 # ASCII only (PowerShell 5.1 reads .ps1 as ANSI without a BOM).
 #
-# L3 "CI 化" on this project's own terms: one unattended command on the box that owns the GPU,
+# L3 "CI automation" on this project's own terms: one unattended command on the box that owns the GPU,
 # the model and the browser, writing a machine-checkable verdict. GitHub-hosted CI is NOT what
 # this is -- and the reason is measured, not stylistic: the decision wire is a local
 # llama.cpp + StartLux-Decision-2B GGUF (2.7 GB, CUDA), and every batch needs a real Chrome
