@@ -219,6 +219,10 @@ def _head_reset_cdp_flags():
     marker = "subprocess.Popen("
     if marker not in body:
         return None
+    # 对照对象是否已经消失，看**整个函数体**：三样都在，说明 HEAD 已经是新形状
+    # （这条案子的"改前会红"在写它的那一刻实测过：6/7 → 7/7，读数记在 `m2/real-log.md`）。
+    if all(f in body for f in ("--proxy-server=", "--headless=new", "chrome-cdp-test")):
+        return None
     i = body.index(marker) + len(marker)
     depth, j = 1, i
     while j < len(body) and depth:
@@ -228,8 +232,6 @@ def _head_reset_cdp_flags():
             depth -= 1
         j += 1
     chunk = body[i:j] + body[body.index("profile ="):body.index("profile =") + 80]
-    if "--proxy-server=" in chunk and "--headless=new" in chunk:
-        return None                                    # 对照对象已消失（提交已落）
     return chunk
 
 
