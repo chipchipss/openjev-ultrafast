@@ -3550,9 +3550,10 @@ chrome 进程数 13↔21=常态摆动），三次都写进日志而不是悄悄�
 | `aac6e2d` | #52 选行 | #52：`first_result` 选行 + fixture + 探针（真） |
 | `f7c90de` | #52 选行（**错**） | **#57**：`Agent.__init__` 起点重做一次 + 两个测试 + b22/b23 报告 |
 | `4480772` | #52 选行（**错**） | **#58/#59 的第三次自我纠正**：r142 分钟级来自冷 dyno 导航，crash 是导航未落地顶穿 IPC 超时 |
+| `6288344` | L3-B/C/D（**错**，那是 `aae2754` 的标题被我第三次复制过来） | **今晚三条仪器缺陷的修复**：`_reset_cdp` 重起的 Chrome 形状对齐 runner（headless + `chrome-cdp-test` + 代理）、`run_one.ps1` 对重号题拒绝启动、出口闸门取样跳过 `category=negative`；外加题集新行改号 r153–r202 与两个测试文件 |
 | `512c579` | 标题没错，但**正文里两个文件路径被吃掉** | 100 行题集的可复现性登记。成因是我用 `git commit -m "…"` 的双引号写信息，bash 把里面的反引号当命令替换执行了（`m2/tasks_l3_verified.jsonl` 被当成脚本跑了一遍，逐行 command-not-found；`git diff` 被就地执行，恰好输出为空）。提交**内容**是干净的（只有 `m2/real-log.md` 的 7 行），坏的只有信息里的路径 |
 
-规矩（写进记忆，别再犯）：**提交信息一律用 heredoc `<<'EOF'`（单引号定界），禁止用双引号 `-m "…"`**——
+规矩（写进记忆，别再犯）：**提交信息的标题不许从上一条复制**——第三次犯了（`6288344`），以后写信息前先把 `git diff --name-only` 的结果贴在草稿第一行，标题必须描述这份文件清单；提交信息一律用 heredoc `<<'EOF'`（单引号定界），禁止用双引号 `-m "…"`**——
 双引号里的一切反引号都会被 bash 执行，轻则信息说谎、重则真的跑出副作用（这次如果 `git diff` 有输出，
 就会把未提交的工作树内容抄进提交信息里）。发现已经写错就在此表登记，不改写已提交历史。
 
@@ -4196,3 +4197,150 @@ Chrome 带 `--proxy-server=…:2080`，94/100 行 `steps=0` + `chrome-error://ch
   b26 报告的实跑顺序确定生成的。另外用产品自己的 `_resolve_start_url` 把 100 行全过了一遍：
   **0 行解不出起点 URL**，100 条 `url_matches` 正则全部可编译，题面里没有断言字段泄漏。
   这批静态检查的意义只有一个：b33 掉的每一行都必须是 agent 的失败，不能是我的题面或数据坏了。
+
+## 2026-10-11 晚（22:2x–22:4x）：代理回来后先抓到两个仪器缺陷，再进 b33
+
+`:2080` 恢复（curl 经它 200，pypi 1.0 s）。按登记的顺序第一步是复位，复位本身就暴露了第一条：
+
+### 缺陷 1：**复位重起的 Chrome 和 runner 起的不是同一个浏览器**（`m1/run_tasks.py::_reset_cdp`）
+
+`_reset_cdp` 里的 `Popen` 起的是 **headed `C:\Users\Administrator\chrome-jev-profile`，而且没有
+`--proxy-server`**；`scripts/run_one.ps1:57` 与 `scripts/start_owned_chrome.ps1:9` 起的是
+**headless `C:\chrome-cdp-test` + 代理**。后果不是"慢一点"，是**一批里两条路径**：
+只要健康门控真付过一次复位，第 1 题走 headless+代理、后面的题走 headed+直连——出口 IP 和浏览器
+一起换，站点反爬跟着换，而这一切与 agent 的决策无关。
+
+对上历史读数的影响（读数本身不改，改的是**解释**）：
+- b18–b26 是每任务无条件复位的年代 ⇒ 它们的第 2 题以后其实跑在 headed 直连画像上，
+  是**混合浏览器**的批；
+- L3-A 的 b27/b28/b29 记录的是 **0 次真复位** ⇒ 那三批全程 headless+代理，自洽，
+  所以 8.2/8.7/9.5 min 那组数不欠账。
+
+修法：`_reset_cdp` 的 argv 改成和 runner 同形状（`--headless=new` + `C:\chrome-cdp-test` +
+`--proxy-server=$JEV_PROXY_URL`，默认 `http://127.0.0.1:2080`）。
+失败测试先行：`tests/test_runner_reset_policy.py` 新加一案，**改前 6/7、改后 7/7**。
+这一案是**行为检查**（把 `subprocess.run`/`Popen`/`time.sleep`/`_ensure_daemon` 全换成假的，
+只取真正递给 Chrome 的 argv），因为我先写的那版是文本检查，被注释里那句
+"必须和 runner 同形状（headless + chrome-cdp-test + 代理）"自己满足了——**注释骗过了测试**。
+HEAD 的对照只做括号配平的文本提取，**不执行旧函数**（执行它会真杀一遍画像）。
+实盘见证：改后调用一次真复位（8.9 s），健康门控 True，新起的浏览器进程 pid 20752 的参数是
+`--headless=new --remote-debugging-port=9222 --user-data-dir=C:\chrome-cdp-test --proxy-server=http://127.0.0.1:2080`。
+
+### 缺陷 2：`-TaskId r152` 量的是**另一道题**，而且照样打印 PASS（`scripts/run_one.ps1`）
+
+预检跑新题集第一行时打回 `PASS steps=1`，落点却是 `the-internet.herokuapp.com/drag_and_drop`
+——因为 `r152` 在 `m2/tasks_real.jsonl`（它的预备题）和 `m2/tasks_real_100.jsonl`（我的新 50 行）里
+各有一条，`Select-Object -First 1` 按目录枚举顺序静默挑了旧的那条。**单任务读数可以完全错而输出全绿**，
+这是最坏的一类仪器错误。
+
+两处一起修：
+- runner **遇到重号拒绝启动**（exit 2 并列出所有命中文件），要嘛显式给 `-TasksFile`。
+  见证：改后 `-TaskId r152` 打印 "defined in 2 files -- refusing to guess" 并列出两个文件。
+- 新 50 行的号从 **r153–r202** 起（r151/r152 是预备题占用的），并在生成器里加**生成时唯一性断言**：
+  扫全仓 `m*/tasks*.jsonl`，新行号撞车就不写文件。负例见证：把 `ID_BASE` 退回 151 的临时副本
+  直接 exit 1 并列出撞的号。
+- 重跑生成器后核对：100 行、类别配比（search 24 / navigate 75 / form 1）、新 50 行族配比
+  （search 14 / pagination 3 / navigate 33）、站点 20 —— 与改前一致，
+  且**除了 `task_id` 那一列，50 行内容 diff 为 0**（`rows changed beyond the id: 0`）。
+- 重编号之后重做预检：`-TaskId r153`（docs.python.org 搜 'list' 到结果页）**FAIL /
+  `correct_abandon` / 3 步 / 落点 `wiki.python.org/python/Py3kStrUniTests.html`**
+  （`reports/one-r153-1011-223430.json`）。这一条按预登记的规矩先进账，等 b33 的新 50 行
+  总数来判断是题不对还是 agent 不对——单行不裁决。
+
+顺带一条 PowerShell 的坑（我自己踩的，值得记住）：`.ps1` 里写中文注释会让
+Windows PowerShell 5.1 按 ANSI 读，多字节里恰好等于 0x60 的那个字节就是**续行符**，
+会把下一行整句吞进注释——我的 `$pat = ...` 就是这么变成 `$null` 的。
+`scripts/ci_local.ps1` 里今晚新写的 4 行中文注释已全部改成 ASCII 英文，
+三个闸门脚本（`run_one.ps1`/`smoke.ps1`/`ci_local.ps1`）过 `[Parser]::ParseFile` 语法检查。
+
+### 更正一条我今晚报出去的数字：**离线套件不是 146 案，是 204 案**
+
+`aae2754`、`b0b7b87` 两条提交的信息里，以及我口头报出去的"20 件 146/146"，**那个 146 是错的**：
+它来自上一轮"取每份输出最后一行含 `passed` 的文本"再手加，遇到不是 `n/m passed` 形态的行就丢了。
+按 `n/m passed` 逐件重算：**改前 204/204，改后 205/205**（新增那一案）。
+提交历史不改写，按本仓规矩在此登记。
+
+
+### 缺陷 3：出口闸门把**故意不可达的负向题**读成了环境阻断（冻结第 1 轮 x001 现场）
+
+第 1 轮冻结打印的是 `PASS=18/18`、`note: 1 task(s) produced no report: x001`，
+不是 19/19。翻到 `btask_x001_err.log`（173 字节）只有一句话，正是我今晚新加的那道闸门打印的：
+
+    [preflight] 起点页落在 chrome-error://chromewebdata/（出口/代理不通） —— 不跑批、不写报告。
+
+而 `x001` 的 domain 就是 **`example.invalid`** —— 它是负向题，起点**设计上就打不开**，
+题点是 agent 必须 BLOCK。闸门取样取的是 `tasks[0]`，于是把"这题本来就该失败"读成了
+"整批环境坏了"，直接让这一行不跑、不写报告。这一条比前两条更难受：**闸门是我今晚刚写的，
+它自己制造了一份 18/19 的假阻断**。
+
+修法：取样独立成 `_egress_sample_url(tasks, override)` —— 跳过 `category == 'negative'` 的题，
+全负向题集就返回 `None` 并**跳过闸门照常跑批**（闸门防的是"整批被环境打掉"，不是"题面设计成打不开"）。
+失败测试先行：`tests/test_runner_egress_gate.py` 加两案，**改前 4/6 → 改后 6/6**
+（其中一案断言"没有样本时不许去探、且报告必须写出来"，另一案断言样本落在 `pypi.org` 而不是 `example.invalid`）。
+全套离线因此从 205 → **207/207**。
+
+第 1 轮冻结（`reports/m1-baseline-1011-2235.json`，18/18）**作废为冻结**：它缺 x001 一行，
+而且它跑在闸门修复之前的 build 上。三轮在 22:5x 重跑。
+
+顺带记一条 RAM 账（不是新事，是老账第三次遇到）：`llama-server` 的工作集会随会话长回去，
+22:4x 量到 RSS 4631 MB、free 2178 MB ⇒ 冻结第 2/3 轮在 4 秒内被 3000 MB 闸门拦下（没写报告 = BLOCKED）。
+按老办法只重启**我自己的**栈（`scripts/startlux_serve.ps1 -SkipEnsure`，它自己只收 `llama-server`
+和 `gguf_server`，动手前确认过全机只有 pid 21912 那一个 llama-server，路径在 `D:\openjev-models`）：
+重启后 free **6068 MB**、llama RSS 970 MB、`:8090`/`:8081` 都 200。
+
+## b33 · 100 行基线读数（23:10:42–23:31，`reports/real-1011-b33-100-1011-231042.json`）
+
+这批的目的是 L3 的算术（"100 题 ≤30 分钟"），不是把分数做上去。七条预登记判据对表：
+
+| # | 判据 | 读数 | 判定 |
+|---|---|---|---|
+| 1 | 墙钟 ≤ 30 min | **20.7 min**（`batch_audit` 的日志目录首末 mtime；报告文件 mtime 是 21.1 min） | ✅ |
+| 2 | `error`/`crash`/`unknown` = 0 | **0 / 0 / 0**，100 行全有 trace | ✅ |
+| 3 | `false_positive` = 0 | 四象限 `{true_success: 59, correct_abandon: 41}`，无 false_positive | ✅ |
+| 4 | 零云端 | 196 个 step 事件的 `text_helper` = `{None: 194, startlux-decision-2b: 2}` | ✅ |
+| 5 | 老 50 行 = b26 的 44 ±1 | **41/50**：`GAIN=∅`，`LOST=[r119, r127, r129]` | ❌（其中 2 行是环境，见下） |
+| 6 | 新 50 行 ≥ 40/50 | **18/50**（search 0/14、navigate 18/36） | ❌❌ |
+| 7 | `link_followed_arrival` 射程外开火 = 0 | 开火 10 行 / 10 拍，**全部 `category=navigate`** | ✅ |
+
+批内拍数 **196 拍 / 100 行 = 1.96 拍每行**（b26 是 86/50 = 1.72）。所以 ≤30 分钟这条不是靠并行买到的，
+是 1.02x 那条读数之后**串行也够**——L3 的吞吐前提到此收口。
+
+### 判据 5 的三条 LOST 里，两条不是 agent 的账
+
+`r127`（`sqlite.org/lang.html` 起点）与 `r129`（`sqlite.org/` 起点）在**第 1 拍就落在
+`chrome-error://chromewebdata/`**，`steps=1`，被记成 `failure_mode=decision`。
+现在（23:4x）用自有 headless Chrome 经 `:2080` 复探同一批 URL：
+
+    https://www.sqlite.org/lang.html -> href 同址, title='Query Language Understood by SQLite', text 1342 字符, 2.3 s
+    https://www.sqlite.org/          -> href 同址, title='SQLite Home Page',                  text 1153 字符, 4.5 s
+
+**站是通的**，那是批内一次瞬时失败，不是墙、也不是能力。扣掉这两行，老 50 行是 **43/48**，
+和 b26 的 44 差一行，那一行是 `r119`（Hugging Face 搜索：TYPE 之后 3 拍全在首页打转，已知决策缺口）。
+⇒ 这条同时把 **#16 从"分类欠件"升格成"真的在吃信号"**：`chrome-error` 起点在评测器里被记成
+`decision`，一批里 8 行（老 2 + 新 6）因此进了 agent 的失败账。下一刀有证据了，不是猜。
+
+### 判据 6 的 32 个失败拆成四堆（拆完才知道该怪谁）
+
+| 堆 | 行数 | 证据 | 归谁 |
+|---|---|---|---|
+| 起点 `chrome-error`（批尾连续 6 行） | 6 | `r197–r200` 全在 the-internet（heroku 会闪断）、`r201` books.toscrape、`r202` arXiv 列表页，`steps=0`；现在复探 the-internet 经代理 200 | 环境（又被记成 decision，同 #16） |
+| **URL 到了，`text_contains` 没过** | 4 | `r154/156/157/158` 落点正是 `docs.python.org/3/search.html?q=<词>`（`url_matches ok=True`），但 DONE 那拍的观测里没有结果文本。零模型复探：该页**归静后** text=1262 字符且含查询词 | agent 的**早读**——就是 n004 那一族（计划书 2.1），不是题坏 |
+| **我的断言太窄** | 2 | `r161/162` 真的走到了 `arxiv.org/search/physics?query=…&searchtype=all` —— 合法的 arXiv 结果页，但我的 pattern 写死 `arxiv\.org/search/\?` | **我的题坏**（见证器当时走的是 `/search/?` 那条规范 URL，所以核实没报错） |
+| 落点是答案页而不是结果页 | 2 | `r159` → `std/result/index.html`，`r160` → `std/string/struct.String.html` | 题面太死（它确实把东西找到了） |
+| 真决策缺口 | 18 | HF 下拉搜索 2 行、GitHub `steps=0`、NumPy 填了没提交、python 搜索跑到 wiki、books.toscrape 分类页 2 行、django/selenium/HN/rfc/pypi/github 各卡在"点错行/进不去" | agent（其中 HF 与 GitHub 是老账 #15/#40/#49 的同一族） |
+
+**今晚不动断言、不动题面**——判据 6 低就先怀疑题，这条规矩用在 `r161/162` 上是我自己写题时的错，
+登记之后留给下一批改；把它当分数修就是计划书支柱三禁止的那件事。
+
+### 三条仪器修复的收口证据（今晚全部实盘验过）
+
+- 复位形状对齐：真实复位 8.9 s 后 `:9222` 上的浏览器进程 pid 20752 带
+  `--headless=new --user-data-dir=C:\chrome-cdp-test --proxy-server=http://127.0.0.1:2080`；
+  `tests/test_runner_reset_policy.py` 6/7 → **7/7**。
+- 重号拒绝：`-TaskId r152` 现在打印 `defined in 2 files -- refusing to guess` 并 exit 2；
+  题集新行改号 **r153–r202**，生成器带全仓唯一性断言（旧号段跑 guard 直接 exit 1）。
+  **`reports/one-r152-1011-222908.json` 作废**：它量的是 `tasks_real.jsonl` 那道预备题。
+- 出口闸门取样：跳过 `category=negative`；`tests/test_runner_egress_gate.py` 4/6 → **6/6**；
+  冻结三轮 19/19×3（`m1-baseline-1011-2251/2258/2304.json`，x001 每轮 6 秒真跑）。
+- 全套离线 **207/207**（20 件）。
+
