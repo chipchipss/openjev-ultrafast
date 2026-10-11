@@ -1,342 +1,179 @@
 # OpenJEV Ultrafast
 
-一个跨平台、模型无关、可观测的 Browser Agent 框架。
+一个**全本地、模型无关、可观测**的 Browser Agent 框架:jev-ultrafast 的 Runtime + 可插拔的 Decision 层 + 工程化治理。
 
-**Google Flights 端到端任务:12.4–14.0s**(2026-10-07 四次实测,StartLux-Decision-2B 底座,`reports/demo-flights-1007-1617/1620/1622/1623.json`;**决策模型全本地**——这四次里 3 处填值都是 goal 字面量、由技能直接供值,不经文本 helper;该报告格式不记 `text_helper`,所以这里不写成"零云端调用"的证据,7 项独立校验全过;2026-10-04 旧 decider 底座曾测 10.4s)。
+日常它替我操作浏览器做真实任务;项目本身的价值在治理层——**四象限归因、`false_positive=0` 硬线、零云端的证明方法、以及"一条读数不许事后解释"的验证链**。这些考卷生态里的其他项目都没考。
+
+## 现在的实测状态(2026-10-11,每个数字都对得到一个 `reports/*.json`)
+
+| 口径 | 读数 | artifact |
+|---|---|---|
+| **19 题基准(冻结三轮)** | **19 / 19 / 19**,`fp=0`,单轮 5–6 分钟 | `m1-baseline-1011-2251/2258/2304.json` |
+| **真实站 50 题(L2 判据 ≥45)** | **45/50**(`error/crash/unknown=0`、`fp=0`、零云端、与 b20 配对 `LOST=∅`) | `real-1011-b24-ipc58-1011-015958.json` |
+| **真实站 100 题回归(L3 吞吐)** | 墙钟 **20.7 分钟**、1.96 拍每行、`error=0`、`fp=0`、零云端;分数 **59/100**(基线,低分已按归责拆成四堆) | `real-1011-b33-100-1011-231042.json` |
+| **50 题批的门控墙钟** | 27.8 → **8.2 / 8.7 / 9.5 分钟**(任务间复位改成"先问健康再付钱") | `real-1011-b27/b28/b29-gate*.json` |
+| **决策延迟** | 单决策中位 **0.64 s**(本机 2B GGUF,走产品原路) | `m2/probe_wire_parallel.py` 的并发 1 档 |
+| **离线测试** | 20 个套件 **207 案全绿**(`python tests/test_*.py`) | `tests/` |
+
+**并行不做,是被读数判死的**:并发 1→4 的吞吐 1.55 → 1.58 决策/秒(**加速比 1.02x**),`llama-server --parallel 4` 的槽位没变成吞吐,多开 worker 只会在 wire 前排队。所以 100 题 ≤30 分钟靠串行就已达成,而 300 题需要的是**更快的决策后端**,不是并行的 runner。
+
+## 快速开始
+
+### 一条命令看它跑真实任务
 
 ```powershell
-.\run_demo.ps1                      # 一条命令跑通上面这个任务(缺权重/二进制自动下载,决策栈不在线自动拉起)
-.\run_demo.ps1 -Task wikipedia      # 另一个 demo(2.1s,2026-10-07 `demo-wikipedia-1007-1632`)
-.\run_demo.ps1 -KeepOpen            # 跑完不关浏览器,自己看
-.\run_demo.ps1 -KeepService         # 跑完不关 llama-server+wire(下次复用,省 ~30s 加载)
+.\run_demo.ps1                       # Google Flights 端到端 12.4–14.0s(1007 四次实测,demo-flights-1007-16*.json)
+.\run_demo.ps1 -Task wikipedia       # 另一个 demo(2.1s)
+.\run_demo.ps1 -KeepOpen             # 跑完不关浏览器,自己看
+.\run_demo.ps1 -KeepService          # 跑完不关 llama-server + wire(下次省 ~30s 加载)
 ```
 
-> 2026-10-07 起 `run_demo.ps1` 就是 L6 的一条命令入口:内部走 StartLux 底座(:8090 wire,在线则复用),首启自动供给(llama.cpp CUDA 二进制 + StartLux GGUF 权重经代理下载);只清理自己拉起的进程,绝不动你自己的 Chrome。日常任意任务走「快速开始」:`startlux_serve.ps1` + `run_task.py`。
+`run_demo.ps1` 是 L6 入口:决策栈不在线就自己拉起,权重/二进制缺失自动经代理下载,**只清理自己起的进程**。
 
-M1 基准(19 任务集,冻结三轮 2026-10-06):
+### 日常任意任务
 
-| 底座 | PASS | false_positive | 单轮耗时 |
-|---|---|---|---|
-| **StartLux-Decision-2B(当前默认)** | **19 / 19 / 19(三轮冻结全满分,`m1-baseline-1007-1552/1557/1601`)** | 0 | 3.9–4.1 分钟 |
-| decider-2B(旧默认) | 17 / 17 / 18(±1 方差,失败项轮换) | 0 | 6.0–8.9 分钟 |
+```powershell
+.\scripts\startlux_serve.ps1                      # llama-server :8081 + /v1/systemone wire :8090
 
-两个底座全部 19 任务有效。**云端口径更正(10-08)**：这些基线轮报告的 `api_calls=0` 只统计 teacher 升级路径，而文本模型提议的 `TYPE_TEXT` 要填什么值，是由**文本 helper** 给的——10-08 Fix N 之前三个入口脚本把它指向云端 Groq。逐 artifact 审计 `reports/baseline-*/` 里 step 事件的 `text_helper` 字段实测到 **56 次**云端供值(86 个目录里 43 个中招)。Fix N 起 helper 默认指向本地 llama-server :8081(wire 后面那个已驻留的同一个 GGUF；不可达就退出，不静默降级),10-08 三轮冻结里 `text_helper` 只出现 `null`(技能供值)和本地模型名。历史失败项 n001(Python docs 判达词面漏接,10-07 上午 C2b 修复)与 n004(RFC 站首页异步挂载控件的初始早读,10-07 下午 settle detection 修复)均已收口;19/19×3 是修复后代码上的三轮连续读数。
+C:\Users\Administrator\miniconda3\envs\jev\python.exe scripts\run_task.py `
+  --start-chrome `
+  --url https://en.wikipedia.org/ `
+  --goal "Open the article about the Apollo program" `
+  --expect-text Apollo --expect-title Apollo
+```
 
-## 这是什么
+`--expect-url / --expect-title / --expect-text` 三类断言各自独立、彼此 `all_of`,**永远不进模型 prompt**,只做执行后核验(核验走的是评测器 `jev_ultrafast/evaluator.py`,与批判定 PASS 同一份代码)。`--goal` 的写法直接决定成败:**显式引用页面上的字面标题** > 模糊的排名描述("open the top story" 会失败,因为页面上没有叫 top story 的链接)。
 
-OpenJEV Ultrafast = **jev-ultrafast 的 Runtime + 可插拔的 Decision 层 + 工程化治理**。
+### 挂进 Claude Code(MCP)
 
-| 层 | 来源 | 特点 |
-|---|---|---|
-| Runtime(browser / snapshot / action space) | fork 自 [browser-use/jev-ultrafast](https://github.com/browser-use/jev-ultrafast)(MIT) | 原子快照、索引化动作、新鲜度守卫 |
-| Decision(模型) | **可插拔**:StartLux-Decision-2B(默认)/ 任意 OpenAI 兼容 / TypeSafe wire / 自定义 | 换模型只改环境变量(M8 实测验收:零修改换底座) |
-| 治理(Policy / Validator / Runtime Guard / Confidence Gate / Budget) | 本项目 | 四元组职责正交、双预算分离、四级归因 |
-| 技能层(skills.py) | 本项目 | M16 确定性技能(goal 字面可判的决策零模型调用)+ M18 探索地板 |
-| 数据飞轮(Logger / Evaluator / Sample Extractor) | 本项目 | 每一步可观测、四象限归因、DPO pair 抽取 |
+```powershell
+claude mcp add openjev -- python C:\Users\Administrator\openjev-ultrafast\mcp_server.py
+```
 
-## 为什么需要它
+暴露 `agent_status` / `agent_run(url, goal, expect_url, expect_title, expect_text, steps)` / `demo_flights`;需要本地栈时它自己拉,不在线不会静默降级。
 
-现有方案各自的限制:
+### 跑基准与回归
 
-| 项目 | 限制 |
-|---|---|
-| jev-ultrafast | Decision 绑定 TypeSafe 云 API(闭源,按调用付费) |
-| Laya-ultrafast | 锁定 Apple Silicon(MLX) |
-| OpenJEV | Decision 用 decider-2B,Runtime 用 browser-use(慢) |
-| browser-use | 上游框架,不含 Decision |
+```powershell
+.\scripts\smoke.ps1                  # 第一级闸门:20 个离线套件必须 n/n 全绿
+.\scripts\smoke.ps1 -Live            # 第二级:5 题代表族(s005/n004/x001/x002/r142),判据读报告不读控制台
+.\scripts\ci_local.ps1 -Tasks 50                     # smoke → 冻结三轮 → 回归批 → 阈值判定(默认阈值是 50 行口径:MinPass 43 / 墙钟 14 分钟)
+.\scripts\ci_local.ps1 -Tasks 100 -MinPass <下限> -MaxWallMinutes 30   # 100 行题集走 m2/tasks_real_100.jsonl,阈值必须自己给,且**跑之前先预登记**
+python m2\batch_audit.py reports\<新批>.json --pair reports\<对照批>.json --log logs\<新批目录>
+```
 
-**没有一个同时满足**:跨平台 + 模型无关 + Runtime 快 + 可观测。
+"没写报告"的轮次一律算 **BLOCKED(退出 3)**,不算通过也不算失败——环境阻断写成读数就会被后续引用。
 
-OpenJEV Ultrafast 补的就是这块。
+## 三条硬线(违反任何一条,那一批的读数作废)
+
+1. **`false_positive = 0`**。判定用四象限(`true_success / correct_abandon / false_negative / false_positive`),负向任务(故意做不到)有独立语义:正确放弃就是 `correct_abandon`。
+2. **"零云端"只由步事件证明**:逐条检查 step 事件的 `text_helper` ⊆ `{null, startlux-decision-2b}`。`api_calls=0` **不是**证据——那个计数器只统计 teacher 升级路径,10-08 之前的入口脚本正是靠它把 `TYPE_TEXT` 的填值发给云端 Groq,逐 artifact 审计实测到 **56 次**云端供值(见下方"云端口径")。
+3. **绝不动不是我们自己的浏览器**。自有画像只有两个:`chrome-cdp-test`、`chrome-jev-profile`(`jev_ultrafast/browser.py::OWNED_PROFILE_MARKERS`)。连接侧:`_pin_cdp_endpoint` 把 harness 钉在 :9222,`_assert_owned_browser` 在校验不过时抛 `foreign-browser:`/`no-browser:`;杀侧:`scripts/chrome_guard.ps1` 与 `_reset_cdp` 的 kill filter 只按这两个画像匹配,**仓里不存在任何裸 `Get-Process chrome | Stop-Process`**。曾有读数是在连着用户自己的浏览器跑出来的——那些已判作废,不引用。
 
 ## 架构
 
 ```
 User Goal
     ↓
-Browser State (DOM + A11y)
+Browser State (DOM + A11y)      ← 原子快照、新鲜度守卫;新文档归静;JS 对话框守卫(#60)
     ↓
-Dynamic Action Space
+Dynamic Action Space            ← 索引化动作摘要(不是 6000 字符全文)
     ↓
-Skills (M16/M18)  ← 字面可判的决策直接短路,不进模型
+Skills (21 项确定性地板)          ← goal 字面可判的决策不进模型
     ↓ (未命中回落)
-Decision Provider  ← 可插拔
-    ├── StartLux-Decision-2B (TypeSafe wire,默认)
-    ├── OpenAI-compatible (Groq / DeepSeek / GLM / Qwen / ...;须显式命名,从不默认)
-    └── 自定义
+Decision Provider               ← StartLux-Decision-2B(默认)/ OpenAI 兼容 / 自定义
     ↓
-DecisionValidator (D8 三级一致性)
-    ↓
-Runtime Guard (freshness / occlusion)
-    ↓
-Policy (permission)
-    ↓
-Confidence Gate (uncertainty)
+DecisionValidator → Runtime Guard → Policy → Confidence Gate → Budget
     ↓
 Browser Execute
     ↓
-Logger → Dataset → Benchmark
+Logger → Evaluator(四象限)→ Dataset / Benchmark
 ```
 
-关键设计原则(硬约束全文见 `docs/01-hard-rules.md`):
+**技能层现状(21 项,按优先级)**:`blocked_dead_page, page_not_ready, goal_reached, link_followed_arrival, stop_when_visible, confirm_then_done, scroll_to_target, first_result, goto_path, explicit_target, scroll_to_named_target, select_option, form_fill, form_submit, entity_fill, entity_confirm, trip_type, search_type, select_first, date_pick, search_submit`。
 
-- **A2**:Policy(允许吗)/ Validator(能不能执行)/ Confidence(值得相信吗)/ Task Success(成功了吗)四元组不可合并
-- **A4**:API Teacher 不豁免安全链
-- **A6**:Runtime Guard 与 Validator 分层独立
-- **A8**:Text Helper 独立于 Decision Model(换 helper 不影响决策行为,已行为级验证)
-- **B1**:Teacher Budget ≠ Recovery Budget
-- **B3**:延迟不是验收门槛,是优化目标
-- **C1**:Benchmark 域 ≠ Training 域
-- **H2**:Decision 层必须与 Runtime 解耦
+其中三条是这轮真实站调出来的关键判据:`goal_reached`(到达,C2b 会把 goal 头词的常见 URL 缩写展开且**只允许命中 host**)、`link_followed_arrival`(**到站即停**:goal 的"目的地短语"是刚点掉的链接标签、那一拍真的换了页、且仍停在落地页 ⇒ DONE,同时 DoneGuard 把它当作到达的第二判据)、`first_result`(结果页要先按 goal 词重叠筛"是结果的",页眉 chrome 不算结果)。
 
-## 快速开始
+**一条浏览器教训**:`_reset_cdp` 重起的 Chrome 必须和 runner 起的是**同一个形状**(headless + `chrome-cdp-test` + `--proxy-server`)。2026-10-11 之前它起的是 headed 的另一画像且**不带代理**,于是"门控真付过一次复位"的批里,第 1 题走代理、后面的题直连——出口 IP 和浏览器一起换。所以**读 b18–b26 的批读数时要带着这条注意事项**;b27(0 次真复位)起才是单形状。跨批评一个 PASS→FAIL 之前,先确认两批跑在同一浏览器、同一条出口上。
 
-### 用它干你自己的事(任意任务)
+## 治理与验证链(项目自己的法则)
 
-```powershell
-# 1) 一条命令把决策底座拉起来(StartLux-Decision-2B GGUF,llama.cpp + wire server;
-#    二进制/权重缺失自动经代理下载,-SkipEnsure 可跳过供给)
-.\scripts\startlux_serve.ps1        # llama-server :8081 + /v1/systemone :8090
-
-# 2) Chrome(走你的出口代理;不需要代理就去掉最后一个参数)
-& "C:\Program Files\Google\Chrome\Application\chrome.exe" --headless=new `
-  --remote-debugging-port=9222 --user-data-dir=C:\chrome-cdp-test `
-  --no-first-run --proxy-server=http://127.0.0.1:2080
-```
-
-跑任意任务(`--start-chrome` 可以让脚本自己拉 Chrome,省掉上面第 2 步):
-
-```powershell
-cd C:\Users\Administrator\openjev-ultrafast
-C:\Users\Administrator\miniconda3\envs\jev\python.exe scripts\run_task.py `
-  --start-chrome `
-  --url https://en.wikipedia.org/ `
-  --goal "Open the article about the Apollo program" `
-  --expect "Apollo"
-
-# --expect 给「完成证据」:它会拿去匹配最终页面的 URL/正文,全中才算成功。
-# 不给就只报告状态。--headed 可以看着它操作。
-```
-
-### 跑基准
-
-```powershell
-# StartLux-Decision-2B 底座(当前默认):先拉服务,再让 runner 用现成的 8090
-.\scripts\startlux_serve.ps1
-.\run_baseline_19.ps1 -NoService -SvcPort 8090
-
-# 旧 decider-2B 底座(runner 默认走它,端口 8000):一条命令全包
-.\run_baseline_19.ps1
-
-# 或手动跑
-python -m m1.run_tasks --tasks m1/tasks-laya-19.jsonl --log-dir logs/ --report reports/run.json
-```
-
-合并逐任务碎片报告(与基线差分、打印 fp 硬线判决):
-
-```powershell
-python -m m1.merge_reports
-```
-
-### 安装
-
-```bash
-git clone https://github.com/chipchipss/openjev-ultrafast.git
-cd openjev-ultrafast
-python -m venv .venv
-source .venv/bin/activate
-pip install httpx[http2] browser-harness==0.1.13
-```
-
-StartLux-Decision-2B 权重(Q8_0 GGUF,2GB)来自 Hugging Face `startlux-models/StartLux-Decision-2B-Q8_0-GGUF`,llama.cpp 用 CUDA 12.4 预编译 b11433(`$LlamaDir`)。**两者都不用手动拿**:`startlux_serve.ps1` 检测到缺失会自动经代理(默认 `http://127.0.0.1:2080`,`-ProxyUrl` 可改;代理不通再试直连)下载——GGUF 用 `huggingface_hub.snapshot_download` 落 `D:\openjev-models\startlux-decision-2b`(含 `startlux_decision` 包),二进制+CUDA 运行库从 GitHub Releases 两个 zip 解到 `D:\openjev-models\llamacpp`。注意启动脚本用 `-lm none` 加载——默认 mmap 会把 2GB 文件计入 RAM 工作集,16GB 机器上会误触内存闸。
-
-### 配置
-
-`.env`(参考 `.env.example`;**key 只放这里,不要写进任何被提交的文件**):
-
-```dotenv
-# Decision:StartLux gguf_server(默认底座,TypeSafe wire 兼容)
-DECIDER_MODE=typesafe
-TYPESAFE_BASE_URL=http://127.0.0.1:8090/v1/systemone
-TYPESAFE_API_KEY=local
-
-# Text Helper(TYPE_TEXT 时取字段值):默认必须是本机 llama-server(:8081)
-TEXT_HELPER_BASE_URL=http://127.0.0.1:8081/v1
-TEXT_HELPER_MODEL=startlux-decision-2b
-TEXT_HELPER_API_KEY=local
-# 云端 helper 只能显式指定(runner 的 -TextHelper groq|deepseek),从不作为默认值:
-# TEXT_HELPER_BASE_URL=https://api.groq.com/openai/v1
-# TEXT_HELPER_API_KEY=<your key>
-# 可选:出口代理(部分网络直连 Groq 会 403)
-HTTPX_PROXY=http://127.0.0.1:2080
-```
-
-本地服务端点请用 `http://127.0.0.1:PORT`,不要用 `localhost`(Windows 下会先试 IPv6 加约 2 秒延迟)。
-
-helper 延迟实测(单字段值抽取,中位延迟;这份对比是**零云端硬线之前**做的,只作历史记录):Groq `gpt-oss-120b` **~1.6s**(免费 1,000 次/天)> DeepSeek v4.1-flash ~3.5s > GLM-5.3-flash ~5.6s。Groq 拒收 `reasoning` 字段,本框架已自动处理。**现在默认只用本机 :8081 的 StartLux-Decision-2B**——helper 填的是页面里的字段值,云端默认等于把页面内容送给云模型,而报表的 `api_calls` 看不见它(那个计数器只统计 teacher 路径);逐 artifact 审计因此实测到 56 次云端供值,见上文「云端口径更正」。基线实测中 helper 几乎不触发——大部分任务 skills 层直接从 goal 取字面值(三轮 60 任务仅 x002 用了 1 次)。
-
-### 跑上游对照
-
-`reports/upstream-vs-ours.json`(2026-09-27,旧 decider-2B 底座)生成方式:克隆上游、`TYPESAFE_BASE_URL` 指向同一本地 decider、每 run 前 kill chrome + harness daemon 保证隔离。结论见下文「与上游的正面对决」。
-
-## 实测:与上游的正面对决(2026-09-27,decider-2B 底座)
-
-同一本地 decider-2B 后端、同一批任务,pristine 上游 vs 本框架([完整数据](reports/upstream-vs-ours.json)):
-
-| task | 上游(steps / wall / 决策延迟 p50) | 本框架 | 终点 |
-|---|---|---|---|
-| s004 Wikipedia 搜索(目标 Ada Lovelace) | 4 步 / 69.2s / **7025ms** | 2 步 / 24.8s / **1508ms** | 上游滞留首页;**仅本框架到达目标条目** |
-| n003 W3C Standards | **60 步 / 94.4s,ValueError 崩溃,无终点** | 3 步 / 5.5s,正确 blocked 收口 | **仅本框架**到 /standards/ |
-| n001 Python docs | 4 步 / 8.9s / 982ms | 3 步 / 11.5s / 987ms(更慢) | 上游到 /doc/;本框架到 docs.python.org/3/(更深一层) |
-| f004 httpbin 表单 | 4 步 / 6.2s,**完成提交(终到 /post)** | 3 步 / 3.9s,停在表单页 /forms/post(**未提交**) | 上游更完整 |
-
-任务级 wall time **3/4 更快,1/4 更慢**。本框架快的来源:决策输入小(动作空间摘要 vs 上游 6000 字符全文,p50 延迟 830–1508ms vs 上游 427–7025ms)、有死循环收口(n003 上游 60 步崩死 vs 本框架 3 步正确放弃)。**本框架并非处处更优**:n001 多走一层所以更慢;f004 上游完整提交而本框架停在表单页。
-
-这是 2026-09-27 旧底座的历史读数,保留作框架增益的证据;当前默认底座的成绩见「实验数据」。
+1. **失败测试先行**:新测试必须能在改前代码上失败,并记下改前的读数(今晚三条仪器修复都是 6/7→7/7、4/6→6/6 这种形状)。
+2. **单任务 → x001/x002 安全复测 → 冻结 19/19×3(同一 build)→ 才许跑真实批**。单次读数不作数,±1 是方差。
+3. **判据在跑之前预登记**(`m2/real-log.md`),事后不改写;分数低先怀疑自己的题/仪器,不当 agent 的分数记账。
+4. **一次运行独占浏览器和 :8090**;批在跑时闸门与探针拒绝启动。
+5. **反常指标第一动作是翻 jsonl 日志,不是建假设**;仪器若被误读,结论比"未知"更糟,所以结论旁边要贴命令。
+6. 命名规矩:**名词只收见过的,不许按想象扩充**。
 
 ## 接入一个新模型
 
-决策层是插槽(`DECIDER_MODE`),换底座不改框架。三种方式:
-
-### 方式 1:StartLux-Decision(TypeSafe wire,当前默认)
-
-开源决策模型,wire 格式与 jev 生态兼容,即插即用。`scripts\startlux_serve.ps1` 拉起后:
+决策层是插槽(`DECIDER_MODE`),换底座不改框架(M8 验收:换 Decider 只动 `.env` + runner 端口参数,Runtime/Validator/Policy/Logger/Benchmark **零修改**)。
 
 ```dotenv
+# 方式 1(默认):TypeSafe wire,本机 StartLux gguf_server
 DECIDER_MODE=typesafe
 TYPESAFE_BASE_URL=http://127.0.0.1:8090/v1/systemone
 TYPESAFE_API_KEY=local
+
+# Text Helper:必须是本机 llama-server(wire 后面那个同一个 GGUF);不可达就退出,不静默降级
+TEXT_HELPER_BASE_URL=http://127.0.0.1:8081/v1
+TEXT_HELPER_MODEL=startlux-decision-2b
 ```
 
-M8 验收记录(docs/03-milestones.md v1.3):换底座只动了 `.env` + runner 端口参数 + 新增 M18 技能,Runtime / Validator / Policy / Logger / Benchmark **零修改**。
+方式 2 是 OpenAI 兼容端点(`DECIDER_MODE=openai`,须显式命名、从不默认;通用 LLM 在索引化选择题上契合度差,glm-5.3-flash 直插 12/20 vs 同期本地 2B 13–15/20)。方式 3 是在 `jev_ultrafast/decider/provider.py` 里 `register_provider("my_model", fn)`,契约 `(observation, goal, history) -> decision`。
 
-### 方式 2:OpenAI 兼容端点(任意通用 LLM)
+权重与二进制不用手动拿:`startlux_serve.ps1` 缺啥下啥(GGUF 落 `D:\openjev-models\startlux-decision-2b`,CUDA 版 llama.cpp 落 `D:\openjev-models\llamacpp`);启动带 `-lm none`——默认 mmap 会把 2GB 文件计进 RAM 工作集,16GB 机器上会误触内存闸(那条闸门是 free<3000 MB 拦一轮)。本地端点写 `127.0.0.1` 别写 `localhost`(Windows 先试 IPv6,加约 2 秒)。
 
-只改 `.env`(注意:M1 实测通用 LLM 在索引化动作选择上契合度差,glm-5.3-flash 直插 12/20 vs 同期本地 2B 13–15/20——能用,不保证好使):
-
-```dotenv
-DECIDER_MODE=openai
-DECIDER_2B_BASE_URL=http://127.0.0.1:8000/v1
-DECIDER_2B_MODEL=your-model
-DECIDER_2B_API_KEY=local
-```
-
-### 方式 3:自定义后端
-
-在 `jev_ultrafast/decider/` 实现一个函数,契约(全文见 `jev_ultrafast/decider/provider.py`):
-
-- 签名 `(observation, goal, history) -> decision`
-- 返回值符合 decision 契约(choice/operation/target + 概率字段;schema 定义见 `provider.py` 头注,引用的 `specs/decision.schema.json` 未入库)
-- 连接/服务失败抛 `RuntimeError`(agent 会转 StalePage 重试)
-
-```python
-from jev_ultrafast.decider.provider import register_provider
-register_provider("my_model", my_decide_fn)   # 然后设 DECIDER_MODE=my_model
-```
-
-## 实验数据
-
-### M1 基准:两个底座的冻结三轮(19 任务集 `m1/tasks-laya-19.jsonl`)
-
-| 底座 | PASS(三轮) | fp | 决策延迟(模型决策,实测) | 单轮 wall |
-|---|---|---|---|---|
-| **StartLux-Decision-2B + M18 floor** | **17 / 17 / 17** | 0 | p50 813ms / p90 1193ms / max 1615ms | 3.7–3.9 分钟 |
-| decider-2B(收官三轮) | 17 / 17 / 18 | 0 | p50 779ms / p90 2220ms / max 34.2s | 6.0–8.9 分钟 |
-
-诚实对比(StartLux vs decider-2B **最终轮** m1-baseline-1004-2311):**0 胜 1 负**(n004)。对 runner 内置参照 `m1-final3`(20 任务集映射到 19 集)则是 4 胜 0 负(f001/f002/l002/x001)。两个读数都对——区别只在参照系;稳定收益是真实的:**中位延迟持平(~0.8s)但长尾收敛(p90 2.2s→1.2s,max 34s→1.6s),且三轮失败项完全一致(零方差),这是本项目第一次拿到不带 ±1 注脚的读数**。
-
-失败项(两底座共有,稳定)——**2026-10-07 均已修复**:
-- **n001**(Python docs 导航):实为 `goal_reached` 判达漏接(C2b 缩写展开已修,见 10-07 执行日志),非模型循环
-- **n004**(RFC 9110):真判据是**初始拍早读**——冷 profile 下 RFC 首页 readyState=complete 时异步 bundle 还没挂载搜索控件(23 元素残缺页),模型对残缺页 BLOCKED 0.77 → M18 地板按 goal 词重叠走向 Subscribe 死路。Browser 初始归静(floor 1.2s / quiet 250ms / cap 5s)+ 动作后 settle detection 修复;三轮冻结 n004 首拍全部落在 30 元素完整页(4e60613d),PASS
-
-### M1 四路对照(2026-10-04,旧底座,模型线关闭的证据)
-
-| Decision 后端 | 结果 | fp | 失败特征 |
-|---|---|---|---|
-| decider-2b(裸) | 13/17 ① | 0 | — |
-| decider-2b + adapter_m4b | 8/15(基线同批 12/15,0 胜 4 负) | 0 | 3 任务 harness ERROR;M4b 655 行训练数据无增益 |
-| Laya v17s (322M) | 6/18(其中 x001 正确拒绝计 1 个 true_success) | 0 | `model_calls ≫ steps`,反复输出终止操作;4 任务一次决策即终止 |
-| agent-jev 0.6B | 3/18 | 0 | **12/18 任务 `model_calls=0`**(system crash) |
-
-① 13/17 = `m1-final3`(15/20)折算到 Laya 的 17 个有效任务上,保证四路可比。
-
-20 任务时代(m1-final 系列,评估器修正前):decider-2B 峰值 16/20(`m1-skills-v15`/`v20`),收官 15/20(`m1-final3`)。glm-5.3-flash 直插(零适配)12/20(`m1-decider2b-v0927-glm2.json`)。
-
-**模型线关闭(M1 结论)——但换底座 ≠ 重开模型线**:M1 测的是模型与 action space 的契合度;通用 LLM 在索引化选择题上过度思考。StartLux 是在 TypeSafe wire 上专门训练的决策模型,wire 即插即用,半天接入(2026-10-06)。M18 探索地板(模型 BLOCKED 且页面有真实控件 → 有界强制探索)修掉了它唯一的坏习惯:首拍 0.74–0.77 置信度放弃。
-
-**训练线关闭**:M4a 951 行 → 6/20、M4b 655 行 → 8/15(基线同批 12/15),两次自训均无增益;DONE 样本必须来自真实落地页(模板化 DONE 会教坏终止判断)。
-
-**fp 硬线的适用范围**:fp=0 在全部 M1 基准轮成立(20 任务集与 19 任务集、四个模型、三个底座)。M2 数据飞轮的 500 任务自博弈轮(m2_final)有 8 条被旧版评估器标为 false_positive(l007 ×6、n003 ×2)——按现行 M1.6 象限语义复算,这些是 positive 任务 FAIL 的误标(现行为 correct_abandon),非真实伪造。M2 评估发生在 DoneGuard 与象限修正之前,数字不作硬线反证。
-
-### M2 数据飞轮(历史,2026-09-28 前后)
-
-- 10 轮 × 50 任务 = 500 任务轮(`m2_final`):309 true_success / 79 correct_abandon / 104 false_negative / 8 误标(见上)
-- 6,044 decisions / 2,478 teacher shadow
-- 243 个 C 类 preference pair / 708 个 A 类 positive 样本
-- 验收通过(acceptance.passed=true);随训练线关闭而暂停——其唯一产出是训练数据
-
-### 兼容性贡献
-
-- 本地 decider 服务端 choice 校验从 2..255 放宽到 **1..255**(上游 TypeSafe wire 允许单候选 target,原实现会 422)
-- 发现并修复 3B 级文本模型的"字段值复制"bug(recent_actions 显示 origin 已填时把 Zurich 复制进 destination;anti-copy 提示后 5/5)
+> 原生端点提示:llama.cpp 的 `/v1/systemone` 要求 GGUF 带 `{arch}.decision.type` 元数据(嵌入式决策头架构)。StartLux-2B 是因果模型 + letter-readout,GGUF 里没有这份元数据,所以 `gguf_server.py` 这层 wire 转换**不可删**;原生端点留给未来"转换过"的决策模型。
 
 ## 项目结构
 
 ```
 openjev-ultrafast/
-├── jev_ultrafast/         # 主包
-│   ├── agent.py           # Agent loop(pre_execute 链 + 收口)
-│   ├── browser.py         # Runtime
-│   ├── snapshot.js        # 原子快照
-│   ├── model.py           # Decision 入口(provider registry + M1.5 机制 + M18 地板挂点)
-│   ├── skills.py          # M16 确定性技能层 + M18 first-action floor
-│   ├── decider/           # Decision Provider 实现
-│   │   ├── provider.py    # 契约 + registry
-│   │   ├── choose_2b.py   # OpenAI 兼容 provider
-│   │   ├── _http.py       # 共享 HTTP(代理 / 重试 / 兼容垫片)
-│   │   └── action_space.py
-│   ├── policy.py          # Permission
-│   ├── decision_validator.py
-│   ├── runtime_guard.py
-│   ├── confidence_gate.py
-│   ├── step_budget.py / api_budget.py
-│   ├── api_teacher.py
-│   ├── evaluator.py / logger.py / sample_extractor.py
-├── m1/                    # M1 benchmark + 回归 harness
-├── m2/                    # M2 数据飞轮
-├── m4a/                   # M4a/M4b 本地训练(已关闭)
-├── scripts/               # startlux_serve.ps1(决策底座)/ run_task.py / 工具脚本
-├── specs/                 # JSON Schema
-├── docs/                  # 硬约束 + 架构 + 里程碑(03-milestones.md 为阶段权威记录)
-├── reports/               # 实测报告(逐任务运行产物目录不入库,见 .gitignore)
-├── run_baseline_19.ps1    # 基线 runner(一任务一进程 + 逐域预检 + 收尾验证)
-├── run_demo.ps1           # L6 一条命令 demo 入口(StartLux 底座,自启栈+自动供给+只清自家进程)
-└── scripts/run_task.py    # 跑任意任务 + 完成证据校验
+├── jev_ultrafast/          # 主包:agent.py / browser.py / snapshot.js / skills.py / model.py
+│   └── decider/            # provider 契约 + registry、OpenAI 兼容 provider、HTTP 垫片
+├── policy.py / decision_validator.py / runtime_guard.py / confidence_gate.py
+├── step_budget.py / api_budget.py / evaluator.py / logger.py / sample_extractor.py
+├── m1/                     # 基准 runner + 题集(tasks-laya-19.jsonl 等)
+├── m2/                     # 真实站题集与测量工具:run_tasks 之外还有
+│   │                         batch_audit.py(配对/射程审计)、time_split.py(墙钟分解)、
+│   │                         probe_*.py(零模型探针)、make_tasks_100.py(题集生成 + 唯一性断言)
+├── mcp_server.py           # Claude Code / 任意 MCP 客户端入口
+├── scripts/                # startlux_serve.ps1 / run_one.ps1 / run_task.py / smoke.ps1 / ci_local.ps1 / chrome_guard.ps1
+├── tests/                  # 20 个离线套件(不需要浏览器或模型)
+├── reports/                # 实测报告入库;逐任务运行产物目录不入库
+├── docs/                   # 01-hard-rules.md(硬约束全文)、03-milestones.md、00-project-plan.md(L1–L6)
+├── run_baseline_19.ps1     # 19 题冻结 runner(一任务一进程 + 逐域预检 + 收尾验证)
+└── run_demo.ps1            # L6 一条命令入口
 ```
 
-## 硬约束
+## 历史读数与已关闭的线(保留证据,不作当前成绩)
 
-全部硬约束见 `docs/01-hard-rules.md`。
+- **与上游 jev-ultrafast 正面对决**(2026-09-27,旧 decider-2B 底座,`reports/upstream-vs-ours.json`):任务级 wall time **3/4 更快、1/4 更慢**;本框架快在决策输入小(延迟 p50 830–1508ms vs 上游 427–7025ms)与死循环收口(n003 上游 60 步崩死 vs 本框架 3 步正确放弃)。诚实边界:n001 本框架多走一层所以更慢;f004 上游完整提交表单而本框架停在表单页。
+- **M1 四路对照**(2026-10-04):decider-2b 裸 13/17、+adapter_m4b 8/15(基线同批 12/15)、Laya 322M 6/18、agent-jev 0.6B 3/18 ⇒ **模型线关闭**;换底座(M8 起用 StartLux)不等于重开模型线。
+- **训练线关闭**:M4a 951 行 → 6/20、M4b 655 行 → 8/15,两次自训无增益。关闭时写下的方向性修正(确定性求解器 + 环境验证轨迹 + 任务族扩充)在生态项目 jeva 那里有完整实现,若重启先抄它。
+- **M2 数据飞轮**:500 任务轮 309 true_success / 79 correct_abandon / 243 preference pair,验收通过;其唯一产出是训练数据,随训练线关闭而暂停。其中 8 条被旧评估器标为 false_positive 的记录属误标(发生在 DoneGuard 与象限修正之前),不构成硬线反证。
+- **云端口径更正(2026-10-08)**:10-08 Fix N 之前三个入口脚本把 Text Helper 指向云端 Groq,历史 baseline 里实测 56 次云端供值;Fix N 起 helper 默认本机 :8081,此后每轮 `text_helper` 只出现 `null`(技能供值)或本地模型名。基线实测里 helper 几乎不触发——大部分任务的填值由技能层从 goal 字面直接取。
 
 ## 现状
 
 | 阶段 | 状态 |
 |---|---|
-| M-1 可行性评估 | ✅ |
-| M0 接口与指标 | ✅ |
-| M1 最小闭环 | ✅ ACCEPTED(R5 收口轮) |
-| M1.5 结构优化 | ✅(框架增益 +7 PASS 零训练;上游 A/B 3/4 更快) |
-| M2 数据飞轮 | ✅ ACCEPTED(500 任务 / 6044 decisions / 243 c_pairs;随训练线关闭暂停) |
-| M3 Reranker | ⏸ SKIP(M1 probe 无 cap-failure 相关性) |
-| M4a 本地训练诊断 | ✅ COMPLETED(Δtarget_acc +61.4pp,`m4a/eval_result.json`) |
-| M4b 扩数据训练 | ⏸ CLOSED(adapter 8/15 无增益;两次自训均无增益) |
-| **M8 Decision 换底座** | ✅ **StartLux-Decision-2B 接入(2026-10-06),17/17×3 轮(fp=0),成为默认**;"换 Decider 不动其他"验收成立 |
-| M18 探索地板 | ✅ 随 M8 引入(skills.first_action_floor);s005 由 0 步放弃翻成 PASS |
-| M5 Confidence 校准 | ⏸ 架构就位;StartLux 概率输出已逐决策落日志,输入现成 |
-| M6 Benchmark | ✅ 19 任务集两底座冻结轮完成 |
+| M-1 / M0 / M1 / M1.5 / M2 | ✅(M2 随训练线暂停) |
+| M3 Reranker | ⏸ SKIP(probe 无 cap-failure 相关性) |
+| M4a 诊断 ✅ / M4b 扩数据 ⏸ CLOSED | 两次自训无增益,训练线关闭 |
+| M5 Confidence Gate | ⏸ 架构就位,概率信号已逐决策落日志;等"低置信 DONE 误判/高置信 BLOCKED 误放弃"的真实模式出现再动 |
+| M6 Benchmark | ✅ 基准 + 真实站回归都有配对审计工具 |
 | M7 Ultrafast | ⏸ 自用已达标,不做产品 |
+| M8 换底座 | ✅ StartLux-Decision-2B 为默认 |
+| **L1 文档/可复现** | ✅ 本文 + `docs/00-project-plan.md`,数字均可对账 |
+| **L2 真实站鲁棒性** | ✅ **45/50 达标**(b24);残余失败行各有名姓,不再挡里程碑 |
+| **L3 回归体系** | ✅ **100 题 20.7 分钟**、两级闸门 + `ci_local.ps1`、断言拆分;并行被 1.02x 读数判死 |
+| **L4 稳定性** | ✅ 冻结 19/19×3、`fp=0` 全程 |
+| **L5 全本地** | ✅ 栈里没有任何云端调用点(helper 本机化 + 云端默认显式化) |
+| **L6 一条命令** | ✅ `run_demo.ps1` 冷启全绿、自动供给 |
 
-下一步(未动):L2-L6 剩余(真实站点 50 任务、回归 CI 化、helper 本地化)。L6 一条命令入口已完成(2026-10-07:`run_demo.ps1` 冷启全绿,权重/二进制首启自动下载)。
+**未结清单**(都有证据在 `m2/real-log.md`):`chrome-error://` 起点被记成 `failure_mode=decision`,b33 一批吃掉 8 行信号——这是分类层的真缺口;新 50 行里 2 行是我自己的 arXiv 断言写窄了(agent 真走到了合法结果页)、4 行是 JS 注入结果的早读(n004 那一族的延伸),这两件改完必须用见证器重跑核实,**不许为了让分数过线而降断言或删题**;另有地板空点击占拍、`explicit_target` 近似行劫持两条老账。底座侧的下一个小实验是试 StartLux-Decision-4B。
 
 ## License
 

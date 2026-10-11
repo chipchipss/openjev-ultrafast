@@ -6,6 +6,31 @@
 
 ---
 
+## [L2-L3-real-web-and-regression] - 2026-10-11
+
+### Status（阶段级：真实站达标 + 100 行回归体系成立，并补了一条"批形状必须唯一"的硬约束）
+
+**L2 达标**：真实站 50 题拿到 **45/50** 的干净读数（`reports/real-1011-b24-ipc58-1011-015958.json`：`error/crash/unknown=0`、`fp=0`、零云端、与 b20 配对 `LOST=∅`）。
+**L3 达标**：100 行回归集 `m2/tasks_real_100.jsonl` + 两级闸门（`scripts/smoke.ps1`、`scripts/ci_local.ps1`）+ 断言拆分（`--expect-url/--expect-title/--expect-text`，判据改调产品评测器），100 题墙钟 **20.7 分钟**（`reports/real-1011-b33-100-1011-231042.json`，1.96 拍每行、`error=0`、`fp=0`、零云端）。50 题批的墙钟被"任务间先问健康再付复位"从 27.8 压到 **8.2/8.7/9.5 分钟**（b27/b28/b29）。
+
+### Rejected（不是没做，是被自己的读数判死）
+
+**并行 runner 不做**：`m2/probe_wire_parallel.py`（走产品原路 `model.choose_typesafe`）并发 1/2/4 的中位延迟 0.64/1.20/2.46 s、吞吐 1.55/1.57/1.58 决策/秒 ⇒ **加速比 1.02x**。`llama-server --parallel 4` 的槽位不变成吞吐，多开自有 profile 的 worker 只会在同一个共享后端前排队。结论写进 `docs/00-project-plan.md` 的 L3 格：**300 题需要的是更快的决策后端，不是并行的 runner**。瓶颈在 shim 的 HTTP 层还是后端本身**未量到**（对照探针直连 :8081 `/completion` 全 400），按纪律记为未量、不猜。
+
+### Added（约束级）
+
+- **一批只许一个浏览器、一条出口**。`_reset_cdp` 之前重起的是 headed 的另一画像且不带 `--proxy-server`，于是"门控真付过一次复位"的批里第 1 题走代理、后面的题直连——出口 IP 与渲染器一起换，站点反爬跟着换，而这与 agent 的决策无关。**读 b18–b26 的历史读数必须带这条注意事项**；b27（0 次真复位）与 b33 起是单形状。
+- **题号是读数的地址**：`scripts/run_one.ps1 -TaskId` 遇到多文件重号改为**拒绝启动**（先前 `Select-Object -First 1` 会静默量另一道题并且照样打印 PASS）；新 50 行改号 r153–r202，生成器带全仓唯一性断言。
+- **出口预检的取样规则**：负向题的起点（`example.invalid`）设计上就打不开，闸门取样必须跳过 `category=negative`——先前它把 x001 读成"环境阻断"，制造了一份 18/18 的假冻结轮。
+- **`m2/real-log.md` 新增 b33 的七条判据对表**：低分按归责拆到具体那一方（环境 `chrome-error` 6+2 行、n004 早读族 4 行、我自己的 arXiv 断言太窄 2 行、题面太死 2 行、真决策缺口 18 行），**没有为了让新题过线而放宽任何断言**。
+
+### Verification（验证链，全部对得上产物）
+
+失败测试先行：`tests/test_runner_reset_policy.py` 6/7 → **7/7**、`tests/test_runner_egress_gate.py` 4/6 → **6/6**（两案都在改前实测失败）；离线全套 **20 件 / 207 案全绿**；实盘见证：真实复位 8.9 s 后 `:9222` 的浏览器带 `--headless=new --user-data-dir=C:\chrome-cdp-test --proxy-server=…:2080`；`-TaskId r152` 打印 `defined in 2 files -- refusing to guess` 并退出 2；**前置冻结 19/19×3**（`m1-baseline-1011-2251/2258/2304.json`，每轮 x001 6 秒真跑）。作废件一并留档且不引用其分数：`m1-baseline-1011-2235.json`（18/18，闸门误判负向题）、`one-r152-1011-222908.json`（重号导致量错题）。
+
+---
+
+
 ## [fix-c-rejected-done-exit] - 2026-10-07
 
 ### Status（实测，真实站批次 1 的第三个修复：C 类拒绝循环有了出路）
