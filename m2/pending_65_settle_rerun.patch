@@ -1,0 +1,104 @@
+diff --git a/jev_ultrafast/browser.py b/jev_ultrafast/browser.py
+index b2f3fef..0b768c9 100644
+--- a/jev_ultrafast/browser.py
++++ b/jev_ultrafast/browser.py
+@@ -9,6 +9,7 @@ import time
+ from pathlib import Path
+ 
+ from jev_ultrafast.logger import dbg
++from jev_ultrafast.evaluator import EGRESS_ERROR_PREFIXES
+ from browser_harness.admin import ensure_daemon, restart_daemon
+ from browser_harness.helpers import cdp
+ 
+@@ -350,6 +351,15 @@ class Browser:
+     SETTLE_CAPS_MS = {"click": 1500, "select": 800, "fill": 800}
+     SETTLE_QUIET_MS = 120
+ 
++    #: 动作发起的是**整页导航**时的落地等待上限（#65）。出处：`m2/probe_navigation_timing.py`
++    #: 走产品自己 `act()` 的 r195 三连（起点 `stackoverflow.com/tags`，点
++    #: "show questions tagged 'python'"）——`act` 返回用时 610/672/750ms，返回后第一口正文有
++    #: 9706/9803/9883 字符却**不含目标词**，`readyState` 还要再过 1031/1016/2750ms 才落地，
++    #: 目标文本在 +828/953/781ms 出现。2750 是见过的最坏值 ⇒ 取 3000 留 250ms 余量，
++    #: 不是"给慢站多点耐心"，是这批里唯一一次实测的上界。
++    NAV_SETTLE_CAP_MS = 3000
++    NAV_POLL_MS = 50
++
+     def _settle_patch(self) -> None:
+         """装 fetch/XHR 在途计数（幂等）。
+ 
+@@ -375,9 +385,44 @@ class Browser:
+ 
+     def await_action_settle(self, kind: str) -> None:
+         cap_ms = self.SETTLE_CAPS_MS.get(kind)
+-        if cap_ms:
++        if not cap_ms:
++            return
++        if self._await_settle(cap_ms):
++            return
++        # 走到这里 = 那次归静判定**自己**被动作触发的整页导航炸掉了（旧 document 的执行上下文
++        # 没了）。这不是"页面静止了"，是"我没看成"——直接放行就会读到只有导航栏的新页面
++        # （实测 r195：act 返回时正文已 9706 字符，里面却没有要找的词）。
++        dbg("action_settle_context_lost", f"kind={kind} cap_ms={cap_ms}")
++        if self._await_document_ready():
++            # 新 document 落地之后，把**同一条**判据原样再跑一遍：判据没改，上限没改，
++            # 只是终于有机会跑第二次。
+             self._await_settle(cap_ms)
+ 
++    def _await_document_ready(self) -> bool:
++        """等这次导航把新 document 交出来（`readyState==='complete'`）。
++
++        死页要**立刻**退出：`chrome-error://` / `about:neterror` 是"世界不可达"，
++        再等也是白等，而 x001 这类负向题和 b36 的 r129 那种环境行必须保住它们本来的速度形状
++        （这条不是优化，是这一刀不许顺带把环境行拖慢 3 秒）。
++        """
++        deadline = time.monotonic() + self.NAV_SETTLE_CAP_MS / 1000.0
++        while time.monotonic() < deadline:
++            try:
++                url = self.evaluate("document.URL")
++            except Exception:                                   # noqa: BLE001
++                url = ""
++            # 不假设读回来的一定是字符串：桩/异常页面都可能给回 int 或 None，
++            # 而这一条路径的合约是"绝不把降级变成抛出"（test_settle.py 的吞异常案钉着它）。
++            if isinstance(url, str) and url.startswith(EGRESS_ERROR_PREFIXES):
++                return False
++            try:
++                if self.evaluate("document.readyState") == "complete":
++                    return True
++            except Exception:                                   # noqa: BLE001
++                pass                                            # 上下文还在换，下一拍再问
++            time.sleep(self.NAV_POLL_MS / 1000.0)
++        return False
++
+     #: 合成 wheel 的落点等待上限（#47b）。数字是量出来的：`m2/probe_scroll_timing.py`
+     #: 在 django/rust-stable/peps/rfc-editor 上，`Input.dispatchMouseEvent(mouseWheel)`
+     #: 之后用**产品观测的同一条路**（Python 侧 `Runtime.evaluate` 轮询 `window.scrollY`）
+@@ -425,7 +470,13 @@ class Browser:
+             # 导航会销毁执行上下文 —— 后续 observe 的 StalePage 重试负责接住过渡态。
+             dbg("scroll_settle_failed", f"{type(e).__name__}: {str(e)[:120]}")
+ 
+-    def _await_settle(self, cap_ms: int, floor_ms: int = 0, quiet_ms: int | None = None) -> None:
++    def _await_settle(self, cap_ms: int, floor_ms: int = 0, quiet_ms: int | None = None) -> bool:
++        """跑一次"归静"判定。返回**跑成了没有**，不改判据本身。
++
++        False 只有一种含义：这次判定没能执行（多半是动作触发的整页导航把旧 document 的
++        执行上下文销毁了）。改前它和"页面本来就静止"共用同一个 `pass`，于是 #65 那一族
++        在日志里读起来像"等过了"。（b36 的 r187/r195、b35 的 r154/156/157/158）
++        """
+         quiet = self.SETTLE_QUIET_MS if quiet_ms is None else quiet_ms
+         try:
+             self.call(
+@@ -462,9 +513,11 @@ class Browser:
+                 awaitPromise=True,
+                 returnByValue=True,
+             )
+-        except Exception:
+-            # 导航会销毁执行上下文 —— 后续 observe 的 StalePage 重试负责接住过渡态。
+-            pass
++            return True
++        except Exception:                                   # noqa: BLE001
++            # 导航会销毁执行上下文 —— 交给 await_action_settle 决定是等落地还是继续放行，
++            # 后续 observe 的 StalePage 重试仍是最后一道。
++            return False
+ 
+     def reload(self):
+         """整页重载并等 readyState 落地。

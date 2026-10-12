@@ -131,7 +131,7 @@ try {
     Log "Step 2: kill python, clean CDP residue"
     Get-Process python -EA SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object {
         try { $cl = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)" -EA Stop).CommandLine
-              if ($cl -match "decider|run_tasks|serve|uvicorn|jev_service") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
+              if ($cl -match "decider|run_tasks|jev_service|serve_m4b|startlux_decision|test-site|browser_harness\.daemon) { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
     }
     Stop-OwnedChrome
     Start-Sleep 3
@@ -247,7 +247,7 @@ try {
     if ($svcProc -and -not $svcProc.HasExited) { Stop-Process -Id $svcProc.Id -Force -EA SilentlyContinue }
     Get-Process python -EA SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object {
         try { $cl = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)" -EA Stop).CommandLine
-              if ($cl -match "run_tasks|decider|serve|uvicorn|jev_service|browser_harness") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
+              if ($cl -match "run_tasks|decider|jev_service|serve_m4b|browser_harness\.daemon|test-site") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
     }
     Stop-OwnedChrome
     Start-Sleep 7

@@ -4634,7 +4634,7 @@ b35 出现 1 行——也就是这条判据不会把健康的站点吞进环境�
 离线闸门在那一行就死了，只报了前 15 个套件。这条要如实写在我账上：**b35/#72 提交时跑的"离线全套绿"
 是中断的输出，不是全套绿**。修法两步：套件运行期间把 EAP 降回 `Continue`，
 裁决行从**整段输出**里挑最后一处 `k/n passed`（挑不到=FAIL，崩溃也算 FAIL）。
-现在 tier1 跑完 **24 套 / 232 案全绿**。
+现在 tier1 跑完 **24 套 / 233 案全绿**（当时手加少算一案，见下方更正）。
 
 **（b）`run_demo.ps1` 注入的是三个从未赋值的变量名**（体检报告那条"待核"点验为真）。
 Step 0 用 `Resolve-TextHelper` 拿到 `$helper = @{Url;Model;Key;…}` 并写进 `$env:`；
@@ -4685,7 +4685,7 @@ route returned: None
 
 | 环节 | 读数 | 产物 |
 |---|---|---|
-| 离线全套（tier1，修好闸门之后） | **25 套 / 235 案全绿**（含新落地的 `test_debug_channel` 4、`test_logger_smoke` 14、`test_run_demo_helper_wiring` 3） | `scripts/smoke.ps1` 无 `-Live` 那次输出 |
+| 离线全套（tier1，修好闸门之后） | **25 套 / 236 案全绿**（含新落地的 `test_debug_channel` 4、`test_logger_smoke` 14、`test_run_demo_helper_wiring` 3） | `scripts/smoke.ps1` 无 `-Live` 那次输出 |
 | 活体 5 行（tier2，纪律③：动过 skills/browser 就要复测安全位） | s005 / n004 / x001 / x002 / r142 **5/5**，`false_positive=0`，`api_calls` 合计 0 | `reports/smoke-1012-153040-1012-153049.json` |
 | 冻结 r1 | **19/19**，steps 65 / model 96 | `reports/m1-baseline-68r1-1012-153414.json` |
 | 冻结 r2 | **19/19**，steps 63 / model 89 | `reports/m1-baseline-68r2-1012-153826.json` |
@@ -4769,3 +4769,201 @@ b36 之后我要用见证器复探 r187/r195，第一件事是问它的 `--help`
 （`scripts/start_owned_chrome.ps1` 已经有"端口归谁"的判据可以复用），并且写出前把
 "这次有多少行是**因为浏览器不在**而失败"报出来；一条 `--write` 开关比默认落盘安全。
 转成 **#74**。
+
+## #65 落地与 b37 预登记（2026-10-12 16:5x–17:0x，判据写在任何实盘读数之前）
+
+### 先把两把仪器读错的方向纠正过来（这两次都是我自己造成的）
+
+1. **第一版探针把计时起点放在 `Browser(url)` 之后**，于是量到 `t_ready=16-47ms`——那不是导航耗时，
+   是构造函数早就等完之后我第一次轮询的间隔。这一版读数作废（直连见证页那一组全部不作依据）。
+2. 重做：**t0 放在 `act()` 之前**，走产品自己的动作路径。r195 三连（起点 `stackoverflow.com/tags`，
+   点 `show questions tagged 'python'`）：
+
+| 读数 | run1 | run2 | run3 |
+|---|---|---|---|
+| `act()` 返回用时 | 610ms | 672ms | 750ms |
+| 返回后**第一口**正文长度 | 9803 | 9883 | 9706 |
+| 第一口里有没有要找的词 | 无 | 无 | 无 |
+| `readyState` 落地（从返回起算） | 1031ms | 1016ms | **2750ms** |
+| 目标文本出现（从返回起算） | 828ms | 953ms | 781ms |
+
+⇒ 结论与 #65 原本的猜想不同，且更具体：**`SETTLE_CAPS_MS["click"]=1500` 这份预算本来是够的**，
+问题是这次 settle 自己被导航炸掉、落到 `except: pass`，所以"等"整件事没发生；
+而读到的不是空页，是一份**有 9.7k 字符但没有结果行**的过渡页——这解释了为什么 `goal_reached`
+敢在那上面判 DONE。上限取 **3000ms**（实测最坏 2750 + 250 余量），出处写进常量注释里，
+并由测试的第 5 案钉住（注释里没有实测数就红）。
+
+### 改动（`jev_ultrafast/browser.py`，一处判据返回、一处等待、一处留痕）
+
+- `_await_settle()` 现在**报告自己跑没跑成**（`-> bool`），判据文本、cap、quiet 一字未改；
+- `await_action_settle()`：跑砸 ⇒ `dbg("action_settle_context_lost", …)` ⇒ `_await_document_ready()`
+  等新 document 落地 ⇒ 把**同一条**判据在新上下文里再跑一遍；
+- `_await_document_ready()` 里死页（`chrome-error://` / `about:neterror`，判据从 `evaluator.EGRESS_ERROR_PREFIXES`
+  引，不再本地抄一份——#72 的教训）立刻返回，环境行一条也不许多付 3 秒；
+- 全程不抛：三种坏形状（重跑再炸、readyState 永远读不到、URL 读不到）都必须安静收场，
+  且有 6 秒的绝对上限钉在测试里。
+
+失败测试先行：`tests/test_navigation_settle.py` 改前 **2/5**（三案红在真缺口上：settle 只跑一次、
+没有留痕、没有 `NAV_SETTLE_CAP_MS`），改后 **5/5**。
+
+### b37 预登记（同一 `m2/tasks_real_100.jsonl`，与 b36 只差这一支；跑之前写）
+
+这一刀**动的是执行后的等待**，所以既可能涨分也可能把批次拖慢——两条都要判，不许只报涨分。
+
+1. **`summary.error` = 0**；破了 ⇒ 这一刀把降级变成了抛出，回滚。
+2. **`[dbg]` 在批输出里 = 0 次**（`JEV_DEBUG` 不设）：延续 #68 的默认静默契约。
+3. **`false_positive = 0`**（硬线）。
+4. **靶心判据（可证伪的那条）**：`GAIN` 必须包含 docs 搜索族 `r154 / r156 / r157 / r158` 中的 **≥2 行**，
+   或 b36 的两行 LOST（`r187 / r195`）回到 PASS。**`GAIN=[]` 就判这一刀无效**——按 b36 的归因，
+   这两族的成因就是它要修的成因，无效只有两种解释：等待没生效，或成因判断错了。
+   两种都要回炉，不许改判据迁就读数。
+5. **代价判据**：批墙钟 **≤ 30 min**（L3 口径），并且要报 `click` 拍 `executed_ms` 的中位数与
+   b36 的差值。这一刀买的是"读得准"，付的是"每拍多等"；如果它把 100 行拖过 30 分钟，
+   结论就是"不值"，按 #63 的方式判死，而不是把上限调到能过。
+6. **零云端**照旧只由 step 事件 `text_helper ⊆ {null, startlux-decision-2b}` 证明。
+
+环境行（`blocked_by_egress` / `blocked_by_bot_wall`）的条数**只记录、不参与判定**，
+b33/b34/b35/b36 四次的分布已经证明它由站点健康度主导。
+
+### #65 的第一刀被它自己的靶子否掉了（17:0x–17:2x，全部读数在此，改动已回滚）
+
+按预登记写的顺序做完：失败测试（改前 2/5，改后 6/6）→ 离线全套 → 单任务 r154 → 停下来读结果。
+**离线全套先抓到我自己引入的回归**：`_await_document_ready` 假设 `document.URL` 一定回字符串，
+而 `tests/test_settle.py` 的吞异常案里那个桩给回 `int` → `AttributeError` 从我新加的等待路径里
+抛了出去，正好破掉这条路径唯一的合约（只降级、不升级）。现成套件比新写用例更了解这层——
+加上 `isinstance` 守卫后，新写的那一案对着**没有守卫的中间版**实测红/绿各一次（5/6 → 6/6）。
+
+然后是决定性的三步：
+
+1. **单任务 r154（带这一刀）仍然 FAIL**，象限 `correct_abandon`：
+   `url_matches` 这次 **ok=True**（落点正是 `search.html?q=enumerate`），翻车的是 `text_contains`。
+2. **`JEV_DEBUG=1` 重跑同一行：`[dbg]` 出现 0 次** ⇒ 我加的"上下文被炸掉 ⇒ 等新落地 ⇒ 重跑"那条路
+   **根本没触发**。所以第 1 步里 step 2 的 outcome 从 b35 的 `observe_failed` 变成 `url_changed`
+   **不是这一刀的功劳**，是站点当时回得快——这条如果不写下来，就是我给自己记的一笔假账。
+3. **零模型复现产品路径**（起点 `docs.python.org/3/` → 填 e38 → 点 `Go`）：
+
+| 时刻（从 `act` 调用起算） | 观测 |
+|---|---|
+| +781ms | url 已到位、**textlen=654**、不含要找的词 |
+| +1.2 / 1.6 / 2.0 / 2.4 / 2.8 / 3.2 / 3.6s | textlen 一直 **654**，不含词 |
+| **+4.0s** | textlen **1454**，含词 ✅ |
+
+再问"这 4 秒里页面在做什么"，直接落到终点页读 `performance.getEntriesByType('resource')`：
+
+```
+searchindex.js   initiatorType=script  start=198ms  dur=672ms
+zipfile.html     initiatorType=fetch   start=2180ms dur=782ms
+index.html       initiatorType=fetch   start=2359ms dur=2437ms
+```
+
+⇒ **我这一刀的前提是错的，而错得很具体**：结果不是"某一发请求还没结束"这么简单——
+`searchindex.js` 是**`<script>` 标签**加载（不在被补丁的 `fetch`/`XHR` 计数器眼里），
+索引到手之后才轮到那两发 `fetch` 去取正文。而在 +0.9s（脚本落地）到 +2.2s（第一发 fetch 发起）
+之间，页面**本来就归静**：没有 DOM 变更、没有在途 fetch/XHR、没有 running CSSTransition。
+也就是说"`readyState` 落地 + 同一条归静判据再跑一遍"**在数学上不可能**等到结果——
+它等的那个静默是真的。`SETTLE_CAPS_MS["click"]=1500` 里那 1500ms 也早在花完之前就判了静止。
+
+所以这一刀回滚（`git checkout -- jev_ultrafast/browser.py`，工作树里 `dbg` 站点回到 7 处），
+改动留在 `m2/pending_65_settle_rerun.patch`（104 行）与 `tests/test_navigation_settle.py` 的备份里，
+不留在仓里当红测试；**这一支省下的不是那 20 分钟批，是"把一个没动靶子的改动测成有收益"的那笔假账**。
+`m2/probe_navigation_timing.py` 留着（#71 的规矩：探针一个不删），它第一轮那组
+`t_ready=16-47ms` 的读数作废过一回（计时起点放错在 `Browser(url)` 之后），作废原因写在文件头里。
+
+### 下一刀的真实形状（重新登记，不再是猜）
+
+判据得来自 **CDP Network 层**，不是页内计数器：对那一次动作之后开始的所有请求
+（`script` / `fetch` / `img` / `link` 一视同仁）数 `Network.requestWillBeSent` 与
+`Network.loadingFinished` / `loadingFailed` 的差，归零才算"动作发起的请求已结束"。
+可行性有现成先例：同一目标开第二条 WS 会话是合法的，而 `m2/real-log.md` 的 #60 那条
+就是用目标自己的 `webSocketDebuggerUrl` 读到 `Page.javascriptDialogOpening` 的
+（`browser_harness` 的 daemon 自己不 `Page.enable`，事件泵要我们自己做）。
+
+代价必须先算再动：这一族每行要多等 **2.5–3.5 秒**（+0.9s 到 +4.0s 那段是真的在等资源），
+100 行里 docs/rust/numpy/django 这种"索引→正文"两段式搜索族大约有 8–10 行 ⇒
+批墙钟 +25~35 秒，可以接受；但如果把 Network 事件泵做成**每个动作**都开，代价就是另一个量级。
+
+而且光有 Network 计数还不够——今天这组资源时间戳暴露的是**两波请求中间有一段真空**：
+脚本波（`searchindex.js`，+198→870ms）已经结束、正文波（`zipfile.html` / `index.html` 的 fetch，
++2180ms 起）还没发起，这 1.3 秒里"在途请求 = 0"是**真的**。所以这一刀至少还要带一条
+"落点页第一次读到 near-empty 时不许就此定案"的判据（`goal_reached` 现在正是在 +781ms
+那份 654 字符的快照上直接 DONE 的），否则事件泵只是把早读从 0.8 秒推到 1.0 秒。
+
+这一句是今天最贵的一条读数给出的结论：**早读不是"等得不够久"，是"读到一段合法的平静就宣布结束"**。
+所以失败测试要拿今天这组数当夹具：假事件流里让一发 `script` 在 +200ms 开、+4s 结束，
+改前（只有页内判据）必须测出"提前放行"，改后必须等到 `loadingFinished`。
+
+### 更正一条我自己写进文档的数字：离线套件不是 235 案，是 **236 案**（登记，不改写历史）
+
+`821bc43` 里 README / MANIFEST / CHANGELOG / 本节都写了"25 套 / 235 案"，出处是我**手加**每套的案数。
+刚才用 `grep -oE "^\s+ok\s+\S+ +[0-9]+" | awk '{s+=$2}'` 对 `smoke.ps1` 的输出重算，得 **236**；
+逐件列出后手加也对上了 236（3+5+6+9+4+6+4+5+5+14+2+6+12+8+3+6+6+7+9+8+7+7+6+78+10）。
+更早那句"24 套 / 232 案"同样少一案，真值 **233**。
+
+这不是四舍五入级别的问题：项目对"文档数字必须能对回产物"是硬要求，而**手加就是把可对回变成不可对回**。
+记忆里第 23 条早就写过同一条教训（那次是把"最后一行含 passed"当聚合，报出过一个不存在的 146），
+我这次犯的正是它的另一半——绕过 `n/n passed` 行自己去加。三处文档已改为 236/233，git 历史里的
+`821bc43` 不动，按规矩在这张表上登记。
+
+**以后的口径**：套件总数与案数一律由 `smoke.ps1` 的输出机器累加得出，并把那条命令一起写进条目里。
+
+## #69 的安全半场（2026-10-12 18:0x–19:5x）：五处"砍别人的进程"的写法被清掉
+
+普查是只读的，读完就知道这一支不是风格问题：`Stop-Process` 在批路径上有 **16 处**，
+其中三类完全没有归属判据。新落 `tests/test_ps_kill_scope.py`（4 案，纯文本级，离线闸门能跑），
+然后按它逐条改。
+
+### 改掉的三形状（行号是改前的）
+
+| 形状 | 在哪 | 为什么会伤到你 |
+|---|---|---|
+| 按进程名直连砍 | `scripts/startlux_serve.ps1:23` `Get-Process \| Where ProcessName -in "llama-server"`；`run_demo.ps1:215` `Get-Process llama-server \| Stop-Process -Force` | 改前的文件现在写着"这台机器上只有一个 llama-server 是我们起的"。那是运行时事实，不是代码约束——别的仓或你自己起一个同名进程就会被带走 |
+| 一点判据都没有的 Chrome 全清 | `scripts/test_n001.ps1:12 / :35` `-Filter "Name = 'chrome.exe'" \| ForEach Stop-Process` | 这一刀把**本机每个 Chrome** 关掉，包括你正开着的那个。已换成 dot-source `chrome_guard.ps1` 调 `Stop-OwnedChrome` |
+| 按库名 / 裸词砍 | `run_demo.ps1:202`、`run_baseline_19.ps1:209/224/376`、`run_adapter_m4b.ps1:134`、`run_agentjev_19.ps1:121/225`、`run_overnight_laya.ps1:138/256` | `browser_harness` 是**库名**，任何 import 过它的 python 都算（你的 daemon、mcp server、探针）；`serve` / `uvicorn` 更宽，匹配一切 server。收窄到脚本/模块身份：`run_flights_ours`、`browser_harness\.daemon`、`serve_m4b`、`test-site`、`startlux_decision` |
+
+`decider` 这个词留着是因为它就是 `python -m uvicorn decider.serve:app` 那条——所以去掉裸 `uvicorn`
+不损失任何我们要收的进程。**这不是完整归属证明**：daemon 仍按模块名杀，可能碰到你自己起的那个;
+完整解法是 runner 落 pidfile、只杀自己写下的 PID，仍记在 #69 下半场。
+
+### 负例见证：同一份仪器跑 `git show HEAD:<文件>`
+
+```
+文件                            改前(名杀/无归属/裸词)   改后
+run_demo.ps1                    (1, 1, 1)     (0, 0, 0)
+run_baseline_19.ps1             (0, 0, 3)     (0, 0, 0)
+run_adapter_m4b.ps1             (0, 0, 2)     (0, 0, 0)
+run_agentjev_19.ps1             (0, 0, 2)     (0, 0, 0)
+run_overnight_laya.ps1          (0, 0, 2)     (0, 0, 0)
+scripts/startlux_serve.ps1      (1, 1, 0)     (0, 0, 0)
+scripts/test_n001.ps1           (0, 2, 0)     (0, 0, 0)
+scripts/run_one.ps1             (0, 0, 0)     (0, 0, 0)
+合计：改前 16 → 改后 0
+```
+
+见证过程还抓出**我自己仪器的一次漏判**：第一版 `Stop-Process` 的归属回看窗口是 12 行，
+`run_demo.ps1:215` 那条裸杀正好压在另一条带 `CommandLine` 的 ForEach 之后 10 行，于是被判成"有据"——
+`ok` 报出来的就是漏判。修法是按**形状**分派：`Get-Process … | Stop-Process` 这种直连管道
+只看它自己那条管道（上一行以 `|` 结尾的续行算进来），别处再近的 `CommandLine` 都不算；
+`-Id $x` 这种才允许"上文 12 行内的过滤条件"作证据，而且窗口**先剔掉 `Log`/注释行**——
+`run_demo.ps1:211` 那句 `Log "手工清理建议…CommandLine…"` 是打印给人看的，不是这条代码的判据。
+
+同理，`serve|uvicorn` 也出现在 Step 2 的"**别的 decider 在跑吗**"探测里，那条只 Warn/跳过、不砍进程，
+所以裸词判据只审发杀语句附近 6 行——把检测也一起骂，这条规则下次就没人信了
+（`feedback-probe-method-before-verdict` 的同一条规矩，这次是它的"别乱报"半边）。
+
+### 验收（改的是批路径本身，所以证据必须来自真跑）
+
+- 离线全套：**26 件 / 240 案全绿**（`grep` 自 `smoke.ps1` 输出逐件 `n/n passed` 累加；
+  #69 这一支新增 4 案，240 = 前值 236 + 4）。
+- `.ps1` 语法：`scripts/check_all_syntax.ps1` 对全部 PowerShell 报 `syntax OK`。
+  中途我自己把 `run_baseline_19.ps1:209` 的替换串拼丢过一个闭合引号，是这道语法闸门抓的。
+- `run_demo.ps1 -Task wikipedia` 实跑：`status done`、2 步、墙钟 2.67s、
+  终点 `en.wikipedia.org/wiki/Gödel's_incompleteness_theorems`，收尾 `cdp-chrome=0`。
+  这一条同时把 **#71 欠的那笔**（m4a 归档之后 demo 还能不能跑）还上了。
+- `run_baseline_19.ps1 -NoService -SvcPort 8090` 实跑一轮：**PASS=19 FAIL=0 ERROR=0**，
+  收尾打印 `own-cdp-chrome=0 (must be 0), foreign browsers left=12 (never targeted)`
+  —— 收窄 reaper 之后一轮照旧全绿，而且"没碰你的浏览器"这件事仍然由产物自证。
+
+**没做 100 行配对批，理由写在这**：这一支动的全是 runner 的清理与过滤，`jev_ultrafast/*` 一字未改
+（工作树里 `dbg` 站点仍是 7 处、`NAV_SETTLE_CAP_MS` 不存在），
+所以"读数没变"这件事不在它的射程内——冻结 19 轮 + 离线 240 案 + 两条实跑就是它的验收边界。
+以后若把 Chrome/stack 生命周期真正收敛进一份来源（#69 上半场的另一半），那才需要配对批。

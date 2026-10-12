@@ -6,6 +6,56 @@
 
 ---
 
+## [kill-scope-ownership-and-65-falsified] - 2026-10-12
+
+### Status（约束级：杀侧硬线补到剩下三种形状；#65 的第一刀被自己的读数否掉）
+
+1. **"硬线必须在真正发出杀动作的那一层生效"从今天起有仪器**。此前 `Stop-Process` 在批路径上有 16 处，
+   其中三形状完全没有归属判据：按进程名直连砍 llama-server（`startlux_serve.ps1`、`run_demo.ps1`）、
+   **一点判据都没有的 Chrome 全清**（`test_n001.ps1` 两处——那一刀会关掉你自己的浏览器）、
+   以及按**库名/裸词**砍 python（`browser_harness` / `serve` / `uvicorn`，匹配一切 import 过它的进程
+   和一切 server）。现在分别收到脚本名与模块身份上，并由 `tests/test_ps_kill_scope.py`（4 案）钉住。
+   负例见证用同一份仪器跑 `git show HEAD:<文件>`：**改前 16 → 改后 0**。
+2. **新规矩（写进仪器，不写进注释）**：`Get-Process … | Stop-Process` 这种直连管道只看自己那条管道，
+   别处再近的 `CommandLine` 都不算证据；`-Id $x` 才允许同语句上文的过滤条件作证据，
+   且窗口先剔掉 `Log`/注释行——**打印出来的判据不叫判据**（第一版仪器就是被
+   `run_demo.ps1` 里那句打印给用户的"手工清理建议"骗过，把唯一真正的裸杀判成了有据）。
+   裸词判据只审发杀语句附近：`serve|uvicorn` 同时出现在 Step 2 的**探测**里，那条不砍进程，
+   把它一起骂会让整条规则失去可信度。
+3. **daemon 仍按模块名杀**——这不是完整归属证明（共享基础设施）。完整解法是 runner 落 pidfile、
+   只杀自己写下的 PID，留在 #69 下半场。
+
+### Corrected（一支我自己想做成的"修复"，被实测判死）
+
+#65 原本写着"settle 只等 DOM 归静，覆盖不到动作发起的请求"。带刀实现之后（失败测试 2/5→6/6、
+离线全套、单任务 r154），**它没修好靶子，而且前提本身是错的**，三组实测：
+
+- 带刀的 r154 仍 FAIL，且 `JEV_DEBUG=1` 下 `[dbg]` **0 次** ⇒ 那条"上下文被炸掉 ⇒ 重跑"的路径
+  根本没触发；trace 相对 b35 的变化来自站点当时回得快，**不是这一刀**（不许记假账）。
+- 零模型复现产品 `act()`：提交后 +781ms 就已有 9706 字符但**不含目标词**，
+  `+1.2/1.6/2.0/2.4/2.8/3.2/3.6s` 一直是 9706，**+4.0s** 才跳到 1454 并含词。
+- 终点页资源时间戳：`searchindex.js` 是 **`<script>`**（+198→870ms），正文由之后的 fetch 取
+  （+2180ms、+2359ms）。⇒ 脚本波与正文波之间有 **1.3 秒真正的平静**，
+  期间 DOM 静默 / 在途 fetch=0 / 无 transition **三条页内判据同时为真**。
+
+结论写死：**"页内归静 + readyState"在数学上不可能等到这批结果**；早读不是"等得不够久"，
+是"读到一段合法的平静就宣布结束"。改动已回滚（现场在 `m2/pending_65_settle_rerun.patch` 与
+`m2/probe_navigation_timing.py`），下一刀必须来自 **CDP Network 层**的请求收支表，
+并且要再带一条"落点页 near-empty 时不许定案"的判据，否则只是把早读从 0.8s 推到 1.0s。
+
+### Verification
+
+- 离线全套 **26 件 / 240 案全绿**；`scripts/check_all_syntax.ps1` 全部 `syntax OK`
+  （中途我自己在 `run_baseline_19.ps1:209` 拼丢过一个闭合引号，是这道闸门抓的）。
+- `run_demo.ps1 -Task wikipedia` 实跑 `status done` / 2 步 / 2.67s，收尾 `cdp-chrome=0`
+  ——顺带把 #71 欠的"m4a 归档之后 demo 还能不能跑"还上。
+- `run_baseline_19.ps1 -NoService -SvcPort 8090` 实跑一轮 **19/19、error=0**，
+  收尾 `own-cdp-chrome=0, foreign browsers left=12 (never targeted)`。
+- 这一支**没跑 100 行配对批**并在此说明理由：动的全是 runner 清理与过滤，`jev_ultrafast/*` 一字未改，
+  "读数没变"不在其射程内；配对批的要件留给真正收敛生命周期那半件。
+
+---
+
 ## [diagnostics-channel-and-gates] - 2026-10-12
 
 ### Status（约束级：诊断仪器补齐，并且两道闸门被证明曾经不可信）
@@ -39,7 +89,7 @@
    起这条闸门就是坏的；此前 CHANGELOG 里的"离线全套 N 案"出自**逐文件计数**，两者不是一回事，
    那些数字本身不因此作废，但"smoke 全绿"这句话在那之后不能按字面读。
    修法：套件期间把 EAP 降回 `Continue`，裁决行从整段输出里挑最后一处 `k/n passed`，
-   挑不到=FAIL（崩溃也算）。修后 **25 件 / 235 案**跑完。
+   挑不到=FAIL（崩溃也算）。修后 **25 件 / 236 案**跑完。
 2. **`run_demo.ps1` 的 Text Helper 注入是三个从未赋值的变量名**（体检报告"待核"那条点验为真）：
    Step 0 用 `Resolve-TextHelper` 得到 `$helper` 表并写进 `$env:`，Step 3 却写
    `$helperUrl/$helperModel/$helperKey`。PowerShell 未定义变量=$null，而 `Set-Item env:X -Value $null`

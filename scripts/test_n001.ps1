@@ -1,6 +1,8 @@
 # One task n001 single validation against StartLux wire (overnight run).
 $ErrorActionPreference = "Continue"
 $Repo = "C:\Users\Administrator\openjev-ultrafast"
+# Never a bare chrome.exe kill: that closes every browser on the box, the user's included.
+. "$Repo\scripts\chrome_guard.ps1"
 $Stamp = Get-Date -Format "MMdd-HHmmss"
 $TaskFile = "$env:TEMP\single_n001.jsonl"
 $Report   = "$env:TEMP\one_n001_$Stamp.json"
@@ -9,7 +11,7 @@ $LogDir   = "$env:TEMP\one_n001_$Stamp"
 # write the single-task file (no BOM - run_tasks.jsonl parser rejects UTF-8 BOM)
 [IO.File]::WriteAllText($TaskFile, '{"task_id":"n001","domain":"www.python.org","category":"navigate","goal":"Open the Python documentation section from the top navigation.","budget":{"steps":10},"success_assertion":{"type":"all_of","clauses":[{"type":"url_matches","pattern":"docs\\.python\\.org"}]}}')
 
-Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe'" | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+Stop-OwnedChrome
 Start-Sleep 2
 Start-Process "C:\Program Files\Google\Chrome\Application\chrome.exe" "--headless=new --remote-debugging-port=9222 --user-data-dir=C:\chrome-cdp-test --no-first-run --proxy-server=http://127.0.0.1:2080"
 Start-Sleep 5
@@ -32,4 +34,4 @@ print('=== n001 single-task ===')
 print('result:', r.get('result'), '| quadrant:', r.get('quadrant'), '| steps:', m.get('steps'), '| elapsed_ms:', m.get('elapsed_ms'))
 print('final_url:', (r.get('evidence') or {}).get('final_url', ''))
 "
-Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe'" | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+Stop-OwnedChrome

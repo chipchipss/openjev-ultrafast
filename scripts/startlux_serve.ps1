@@ -20,8 +20,9 @@ New-Item -ItemType Directory -Force $LogDir | Out-Null
 
 # --- clean previous instances (BEFORE provisioning: a running llama-server
 # holds file locks on the DLLs Copy-Item must overwrite) ----------------------
-Get-Process | Where-Object { $_.ProcessName -in "llama-server" } -ErrorAction SilentlyContinue |
-    Stop-Process -Force -ErrorAction SilentlyContinue
+Get-CimInstance Win32_Process -Filter "Name = 'llama-server.exe'" -ErrorAction SilentlyContinue |
+    Where-Object { $_.CommandLine -like "*openjev-models*" } |
+    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 Get-CimInstance Win32_Process -Filter "Name = 'python.exe'" |
     Where-Object { $_.CommandLine -like "*gguf_server*" } -ErrorAction SilentlyContinue |
     ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }

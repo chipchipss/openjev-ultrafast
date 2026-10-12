@@ -199,7 +199,7 @@ try {
         Log "Cleanup: stopping CDP Chrome (and the stack if we started it)"
         Get-Process python -EA SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object {
             try { $cl = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)" -EA Stop).CommandLine
-                  if ($cl -match "run_flights|browser_harness") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
+                  if ($cl -match "run_flights_ours|browser_harness\.daemon") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
         }
         Stop-CdpChrome
         Start-Sleep 5
@@ -212,7 +212,9 @@ try {
     }
     if ($startedStack -and -not $KeepService) {
         Log "Cleanup: stopping llama-server + wire we started (use -KeepService to skip)"
-        Get-Process llama-server -EA SilentlyContinue | Stop-Process -Force -EA SilentlyContinue
+        Get-CimInstance Win32_Process -Filter "Name = 'llama-server.exe'" -EA SilentlyContinue |
+            Where-Object { $_.CommandLine -like "*startlux-decision-2b*" } |
+            ForEach-Object { Stop-Process -Id $_.ProcessId -Force -EA SilentlyContinue }
         Get-CimInstance Win32_Process -Filter "Name = 'python.exe'" -EA SilentlyContinue |
             Where-Object { $_.CommandLine -like "*gguf_server*" } |
             ForEach-Object { Stop-Process -Id $_.ProcessId -Force -EA SilentlyContinue }

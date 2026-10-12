@@ -206,7 +206,7 @@ try {
     # "gguf_server"; the -NoService guard is what keeps the external wire alive.
     Get-Process python -EA SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object {
         try { $cl = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)" -EA Stop).CommandLine
-              if (-not $NoService -and $cl -match "decider|run_tasks|serve|uvicorn|jev_service") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
+              if (-not $NoService -and $cl -match "decider|run_tasks|jev_service|serve_m4b|startlux_decision|test-site|browser_harness\.daemon") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
     }
     Stop-CdpChrome
     # msedge/chromium are in the guarded set; the bare kill here used to take the
@@ -221,7 +221,7 @@ try {
     $reaped = 0
     Get-Process python -EA SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object {
         try { $cl = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)" -EA Stop).CommandLine
-              if ($cl -match "browser_harness") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue; $reaped++ } } catch {}
+              if ($cl -match "browser_harness\.daemon") { Stop-Process -Id $_.Id -Force -EA SilentlyContinue; $reaped++ } } catch {}
     }
     if ($reaped) { Log "  reaped $reaped orphaned browser_harness daemon(s)"; Start-Sleep 2 }
     $os = Get-CimInstance Win32_OperatingSystem
@@ -368,12 +368,16 @@ try {
     if ($svcProc -and -not $svcProc.HasExited) { Stop-Process -Id $svcProc.Id -Force -EA SilentlyContinue }
     Get-Process python -EA SilentlyContinue | Where-Object { $_.Id -ne $PID } | ForEach-Object {
         try { $cl = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)" -EA Stop).CommandLine
-              # "serve" matches the EXTERNAL wire (startlux gguf_server). With
-              # -NoService that wire is user-provided infra and must survive
-              # cleanup (same -NoService guard as Step 2); killing it made every
-              # later round die at agent_init_failed until serve was restarted.
+              # Ownership is spelled as OUR script/module names, never as a bare
+              # substring: "serve" and "uvicorn" also appear in processes this repo
+              # does not own (the user's own dev server), and a reaper that matches
+              # them kills them. Each token below is a thing one of these runners started.
+              # "startlux_decision" is the EXTERNAL wire (gguf_server). With -NoService
+              # that wire is user-provided infra and must survive cleanup (same guard as
+              # Step 2); killing it made every later round die at agent_init_failed.
               $ext = $cl -match "gguf_server|startlux"
-              if (($cl -match "run_tasks|decider|serve|uvicorn|jev_service|browser_harness") -and
+              $ours = "run_tasks|decider|jev_service|serve_m4b|startlux_decision|browser_harness\.daemon|test-site"
+              if (($cl -match $ours) -and
                   -not ($NoService -and $ext)) { Stop-Process -Id $_.Id -Force -EA SilentlyContinue } } catch {}
     }
     Stop-CdpChrome
