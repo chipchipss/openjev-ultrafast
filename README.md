@@ -57,10 +57,11 @@ claude mcp add openjev -- python C:\Users\Administrator\openjev-ultrafast\mcp_se
 ### 跑基准与回归
 
 ```powershell
-.\scripts\smoke.ps1                  # 第一级闸门:20 个离线套件必须 n/n 全绿
+.\scripts\smoke.ps1                  # 第一级闸门:26 个离线套件必须 n/n 全绿(现在 240 案)
 .\scripts\smoke.ps1 -Live            # 第二级:5 题代表族(s005/n004/x001/x002/r142),判据读报告不读控制台
-.\scripts\ci_local.ps1 -Tasks 50                     # smoke → 冻结三轮 → 回归批 → 阈值判定(默认阈值是 50 行口径:MinPass 43 / 墙钟 14 分钟)
-.\scripts\ci_local.ps1 -Tasks 100 -MinPass <下限> -MaxWallMinutes 30   # 100 行题集走 m2/tasks_real_100.jsonl,阈值必须自己给,且**跑之前先预登记**
+.\scripts\ci_local.ps1 -Tasks 50                                    # 每改必跑档:smoke → 冻结三轮 → 回归批 → 阈值判定(默认是 50 行口径:MinPass 43 / 墙钟 14 分钟)
+.\scripts\ci_local.ps1 -Tasks 100 -MinPass 59 -MaxWallMinutes 30    # 同档跑 100 行:阈值自己给,且**跑之前先预登记**
+.\scripts\ci_local.ps1 -Tier nightly -Rounds 3                      # 夜间档:同一份 100 行题集跑 N 轮。每轮下限 59 = 五次读数(59/61/68/65/64)的最小值,整夜预算 95 min = 3×观测最坏 20.7 + 复位余量。"300 行"在这台机器上就是 3×100——没有 300 行题集,也不造 200 道没核过的题当读数
 python m2\batch_audit.py reports\<新批>.json --pair reports\<对照批>.json --log logs\<新批目录>
 ```
 

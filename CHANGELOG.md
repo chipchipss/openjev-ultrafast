@@ -6,6 +6,46 @@
 
 ---
 
+## [two-tier-ci-and-same-build-noise] - 2026-10-12
+
+### Status（约束级：L3 的两档编排真的能跑了，而且阈值有出处；同 build 的行级噪声第一次被量出来）
+
+`scripts/ci_local.ps1` 拆成 `-Tier perchange|nightly`。夜间档不是"再跑大一点的分"，是
+**同一份 100 行题集跑 N 轮**（这台机器没有 300 行题集，也不去造 200 道没核过的题当读数），
+看的是漂移与下限。阈值全部有出处：
+
+- 五次同题集读数 `b33=59, b34=61, b35=68, b36=65, nightly-r1=64` ⇒ **每轮下限 = 59 = 观测最小值**。
+  高于它会判红一个没坏的 build（b33 就是 59），低于它这条线形同虚设。
+- 单轮墙钟 30 min = L3 口径本身（观测最坏 20.7）；整夜 95 min = 3 × 20.7 + 复位余量。
+  预算不是判据：单轮超时只记读数，"跑不完"由 blocked 语义（没写报告 = exit 3）兜。
+
+**白送的一条标定**：nightly-r1 与 b36 之间 `jev_ultrafast/` 一字未改（中间那支只动 runner 清理），
+所以它是一对**同 build 配对批**：分数 65 → 64（−1），行级却 GAIN=`[r195]` / LOST=`[r177, r178]`。
+⇒ **没改决策的两次跑之间也会翻三行**。以后任何改动如果只换来 1–3 行 GAIN，必须按这一对归因，
+不许算收益。（`r195` 自己今晚就翻了两次：b35 PASS → b36 FAIL → nightly PASS，而它正是 #65 的早读行。）
+
+### Corrected（我自己在这支里造的三个工具性错误，都由现成的闸门或见证抓回）
+
+1. **PowerShell 变量名大小写不敏感**：局部 `$rounds = @()` 撞上参数 `[int]$Rounds`，
+   报"Object[] 转不成 Int32"。现在注释里钉着这条。
+2. **`Set-Content -Encoding UTF8` 写 BOM**，而我新写的裁决 `reports/ci-*.json` 是要被机器读的——
+   第一份 nightly 产物用 `json.load(..., encoding='utf-8')` 直接炸。记忆里第 8 条的老坑
+   （当年坑题集加载）这次轮到我自己。改成 `Write-JsonNoBom`，两处写裁决都换；
+   用 `-Rounds 0` 走了一遍写文件路径做见证（`reports/ci-1012-1756.json`，`BOM? False`）——
+   **那份是管线见证件，不是读数，不许引它的 0**。
+3. **`nohup … &` 起的长跑批会被这个 shell 收掉**：前两次 nightly 各跑到一半静默消失，
+   我先怀疑批、再怀疑出口闸门，最后才看清父进程。第三次改用受管后台任务才跑到出报告。
+
+### Verification
+
+- 离线全套 **26 件 / 240 案全绿**；`ci_local.ps1` `PARSE OK` 且纯 ASCII（新增的
+  `tests/test_ps_kill_scope.py` 第 4 案会盯编码）。
+- nightly 1 轮实跑：`pass=64 fp=0 error=0 wall=19.7 min`，`total=20.1 min`，`passed=True`，
+  阈值与逐轮读数一起落进 `reports/ci-1012-1731.json`。
+- **3 轮整夜档仍未跑过**：95 min 是由四次观测最坏值推出来的预算，第一次真跑之后才允许被引成读数。
+
+---
+
 ## [kill-scope-ownership-and-65-falsified] - 2026-10-12
 
 ### Status（约束级：杀侧硬线补到剩下三种形状；#65 的第一刀被自己的读数否掉）

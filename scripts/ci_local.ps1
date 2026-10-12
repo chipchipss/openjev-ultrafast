@@ -1,5 +1,20 @@
 param(
-    [switch]$Full,                 # smoke(tier1) + 3 freeze rounds + one real regression batch
+    [switch]$Full,                 # per-change tier: smoke(tier1) + 3 freeze rounds + one regression batch
+    # Two tiers, because one command cannot serve both jobs (L3 re-scope; m2/real-log.md):
+    #   perchange : the ladder a human waits on -- freeze x3 + ONE 100-row batch, <= 30 min
+    #   nightly   : the ladder nobody waits on -- the SAME 100-row corpus over N rounds, thresholds
+    #               per round. "300 rows" on this box means 3 x 100, not a 300-task corpus: there is
+    #               none, and inventing 200 unverified tasks would be a fake reading waiting to happen.
+    [ValidateSet('perchange', 'nightly')][string]$Tier = 'perchange',
+    [int]$Rounds = 3,              # nightly only
+    # Thresholds derived, not chosen. Four readings on m2/tasks_real_100.jsonl:
+    # b33=59, b34=61, b35=68, b36=65 (min 59, median 63, max 68); wall 20.7/20.5/19.4/18.1 min.
+    # A floor ABOVE the observed minimum would fail a build that is not broken -- b33 IS 59.
+    # A floor BELOW it makes the line meaningless. So the floor is the observed MIN.
+    # The +/-1 rule from the 19-task freeze set does NOT transfer to real sites (spread 9).
+    [int]$MinPassPerRound = 59,
+    [double]$MaxRoundMinutes = 30,   # the L3 criterion itself (not measured here): observed worst 20.7
+    [double]$MaxTotalMinutes = 95,   # 3 x observed worst + stack resets; a budget, judged at the end
     [ValidateSet(19, 50, 100)][int]$Tasks = 50,
     [int]$MinPass = 43,            # floor for the 50-row set: b24/b26 = 45/44, b25/b27 = 43/44 -- see m2/real-log.md
     [double]$MaxWallMinutes = 14,  # gated build measured b27 = 9.5 min (b26 = 24.9); over 14 means the gate never skipped or the stack slowed
@@ -31,6 +46,14 @@ $Verdict = "$Repo\reports\ci-$Stamp.json"
 $LogDir = "$Repo\logs\ci-$Stamp"
 New-Item -ItemType Directory -Force $LogDir | Out-Null
 
+function Write-JsonNoBom($path, $obj) {
+    # PS 5.1's `Set-Content -Encoding UTF8` always emits a BOM, and a BOM'd .json breaks
+    # `json.load(open(p, encoding='utf-8'))` -- the same trap that already cost this repo a
+    # batch (m1/run_tasks.py had to start reading tasks with utf-8-sig). The verdict file is
+    # machine-read, so it gets written without one.
+    [IO.File]::WriteAllText($path, $obj, (New-Object Text.UTF8Encoding($false)))
+}
+
 function Die($m, $code) { Write-Host "CI FAIL: $m" -ForegroundColor Red; exit ($(if ($code) { $code } else { 1 })) }
 function Log($m) { Write-Host "[ci] $m" -ForegroundColor Cyan }
 
@@ -39,8 +62,54 @@ Log "smoke tier 1 (offline suites)"
 & "$Repo\scripts\smoke.ps1"
 if ($LASTEXITCODE -ne 0) { Die "smoke tier 1 not green" $LASTEXITCODE }
 
+if ($Tier -eq 'nightly') {
+    # ---------- nightly tier: N rounds of the SAME corpus, thresholds per round ----------
+    # What it looks for is drift and the floor, not a new score: four readings on this corpus already
+    # span 9 points, so a single nightly number means nothing on its own (m2/real-log.md, calibration).
+    if (-not $TasksFile) { $TasksFile = "$Repo\m2\tasks_real_100.jsonl" }
+    if (-not (Test-Path $TasksFile)) { Die "task file missing: $TasksFile" }
+    $t0 = Get-Date
+    $readings = @()        # NOT $rounds: PowerShell names are case-insensitive, and $rounds would
+                            # collide with the [int]$Rounds parameter (array -> Int32 conversion error)
+    for ($r = 1; $r -le $Rounds; $r++) {
+        & "$Repo\scripts\start_owned_chrome.ps1" | Out-Null
+        $Tag = "nightly-$Stamp-r$r"
+        & "$Repo\scripts\run_one.ps1" -TasksFile $TasksFile -Tag $Tag -SvcPort $SvcPort > "$LogDir\round-r$r.log" 2>&1
+        $rep = Get-ChildItem "$Repo\reports\$Tag-*.json" -EA SilentlyContinue | Sort-Object LastWriteTime | Select-Object -Last 1
+        if (-not $rep) { Die "nightly round $r wrote no report -- blocked, not a pass and not a fail" 3 }
+        $b = Get-Content $rep.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+        $pass = @($b.results | Where-Object { $_.result.result -eq 'PASS' }).Count
+        $fp = @($b.results | Where-Object { $_.result.quadrant -eq 'false_positive' }).Count
+        $err = @($b.results | Where-Object { $_.error -or $_.result.error }).Count
+        $wall = 0
+        $fs = @(Get-ChildItem "$Repo\logs\$($rep.BaseName)" -Filter *.jsonl -EA SilentlyContinue)
+        if ($fs.Count -gt 1) {
+            $wall = [math]::Round((($fs | Sort-Object LastWriteTime | Select-Object -Last 1).LastWriteTime - `
+                                  ($fs | Sort-Object LastWriteTime | Select-Object -First 1).LastWriteTime).TotalMinutes, 1)
+        }
+        $readings += [ordered]@{ round = $r; report = $rep.Name; pass = $pass; false_positive = $fp
+                               error_rows = $err; wall_minutes = $wall }
+        Log ("  nightly round {0}: pass={1} fp={2} error={3} wall={4} min  ({5})" -f $r, $pass, $fp, $err, $wall, $rep.Name)
+        if ($fp -ne 0) { Die ("nightly round {0}: false_positive>0 (hard line fp=0)" -f $r) }
+        if ($err -ne 0) { Die ("nightly round {0}: error>0" -f $r) }
+        if ($pass -lt $MinPassPerRound) { Die ("nightly round {0}: pass={1} below the observed-min floor {2}" -f $r, $pass, $MinPassPerRound) }
+        if ($wall -gt $MaxRoundMinutes) { Log ("  round {0} exceeded {1} min -- recorded as a reading; slowness is a link shape, not a verdict" -f $r, $MaxRoundMinutes) }
+    }
+    $total = [math]::Round(((Get-Date) - $t0).TotalMinutes, 1)
+    $v = [ordered]@{ tier = 'nightly'; stamp = $Stamp; corpus = $TasksFile; rounds = $Rounds
+                     thresholds = @{ min_pass_per_round = $MinPassPerRound; max_round_minutes = $MaxRoundMinutes
+                                     max_total_minutes = $MaxTotalMinutes; false_positive = 0; error_rows = 0 }
+                     total_minutes = $total; readings = $readings
+                     passed = ($total -le $MaxTotalMinutes) }
+    Write-JsonNoBom $Verdict ($v | ConvertTo-Json -Depth 5)
+    Log ("nightly verdict -> {0}: {1} round(s), total {2} min (budget {3})" -f $Verdict, $Rounds, $total, $MaxTotalMinutes)
+    if (-not $v.passed) { Die ("nightly exceeded its total budget: {0} min > {1}" -f $total, $MaxTotalMinutes) }
+    Log "nightly green"
+    exit 0
+}
+
 if (-not $Full) {
-    Log "tier 1 green. Pass -Full for the freeze + regression ladder."
+    Log "tier 1 green. -Full = per-change ladder; -Tier nightly = the same corpus over N rounds."
     exit 0
 }
 
@@ -102,7 +171,7 @@ $v = [ordered]@{
     thresholds = @{ min_pass = $MinPass; max_wall_minutes = $MaxWallMinutes; fp = 0; error_rows = 0 }
     passed = ($pass -ge $MinPass -and $fp -eq 0 -and $err -eq 0 -and $wall -le $MaxWallMinutes)
 }
-$v | ConvertTo-Json | Set-Content -Path $Verdict -Encoding UTF8
+Write-JsonNoBom $Verdict ($v | ConvertTo-Json)
 Log ("verdict -> {0}  pass={1}/{2} fp={3} error={4} wall={5} min" -f `
     $Verdict, $pass, $Tasks, $fp, $err, [math]::Round($wall, 1))
 if (-not $v.passed) { Die "regression below thresholds (see $Verdict)" }
