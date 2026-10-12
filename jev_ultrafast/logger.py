@@ -224,18 +224,31 @@ class Logger:
 
     # --- 清理 ---
 
+    #: 有意不落的 step 字段。**加了新 history 字段而不登记在这里，`tests/test_logger_step_fields.py`
+    #: 会红**——字段静默留在内存、丢在磁盘外，是 #59 那类"读日志读不到依据"的成因。
+    STEP_DROP_KEYS = frozenset({"usage"})
+
     @staticmethod
     def _clean_step(h: dict) -> dict:
-        """step 白名单。None 保留（page_changed=None 表示 observe 失败）。"""
+        """step 白名单。None 保留（page_changed=None 表示 observe 失败）。
+
+        `outcome` / `url_from` / `page_fp_before` / `skill` 是后补的：前三个是**到达判据在读的字段**
+        （`agent.py:605-623` 观测归静后结算出来的 outcome、#59 同主机守卫要的出发页、Fix P 的
+        指纹依据），`skill` 记这一拍由哪个地板技能发出。2026-10-11 晚 b33 拆堆时，这四个都不在日志里，
+        结果"结果文本何时出现"只能靠重开浏览器复探——诊断仪器不该缺这个。
+        """
         keys = (
             "step", "action", "kind", "choice", "operation", "target",
             "confidence", "probability", "latency_ms",
             "text", "text_helper", "text_latency_ms",
-            "page_changed", "url", "elapsed_ms", "executed_ms",
+            "page_changed", "url", "url_from", "page_fp_before", "outcome", "skill",
+            "elapsed_ms", "executed_ms",
         )
         out = {k: h[k] for k in keys if k in h}
         if "pre_execute" in h:
             out["pre_execute"] = _to_jsonable(h["pre_execute"])
+        if "outcome" in out:
+            out["outcome"] = _to_jsonable(out["outcome"])
         return out
 
     @staticmethod

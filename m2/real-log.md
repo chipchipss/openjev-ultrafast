@@ -4400,3 +4400,29 @@ Windows PowerShell 5.1 按 ANSI 读，多字节里恰好等于 0x60 的那个字
 顺带一条对账：**健康探测买来的节省远大于它的代价**——它每次 2.35 s × 99 ≈ 3.9 分钟，
 而门控替 50 行批省下的是 24.9→8.2/8.7/9.5 分钟里的大头；这条不是重新讨论门控，是把它的花费也记上账。
 
+
+## #67 落地（2026-10-12 01:5x–02:1x）：step 事件终于带上到达判据在读的字段
+
+外部体检报告核实为真的第一条（存档与逐条点验在 `docs/11-repo-checkup-2026-10-12.md`）。
+`jev_ultrafast/logger.py` 的 `_clean_step` 白名单原来只留 17 个键，而 `agent.py:553` 那次 history 写入
+实际有 21 个键，被静默丢掉四个：`outcome` / `url_from` / `page_fp_before` / `skill`。
+前三者是 #59 到站即停与"起点页 vs 落地页"推理的直接依据，`skill` 记这一拍由哪个地板发出。
+
+**失败测试先行**：新增 `tests/test_logger_step_fields.py`，**改前 0/2**（两个案都红，第一条把四个缺失键
+逐个点名，第二条报 `Logger 没有 STEP_DROP_KEYS`）→ **改后 2/2**。第二案不是装饰：它从 `agent.py` 的
+**写入点**解析出键集合，与白名单求差，差集必须等于显式声明的 `STEP_DROP_KEYS`（现在只有 `usage`，
+理由是 token 用量属于决策层、step 里是重复副本）。以后谁加字段不登记，这条测试直接红，
+不再靠"读代码分得出有意还是静默"。
+
+**实盘见证**（不是单测替活体验收）：`logs/one-s004-1012-120115/s004.jsonl` 的最后一条 step 事件里
+`outcome={'status': 'url_changed', 'page_changed': True, 'url_changed': True}`、
+`url_from=https://en.wikipedia.org/wiki/Python_(programming_language)`、`page_fp_before` 有值、`skill` 有值；
+`usage` 按登记丢弃。同一行 s004 **PASS / 2 步 / 3 次模型调用**，`text_helper` 集合仍然只有本地值。
+
+顺带被自己的新守卫拦了一次：`run_one.ps1 -TaskId s004` 在 `m1/tasks-fix.jsonl`、
+`tasks-harness-repro.jsonl`、`tasks-laya-19.jsonl` 里各有一条 s004，重号守卫直接 exit 2 并列出三个文件
+——那条"单任务读数可以完全错而输出全绿"的路现在真的走不通了。
+
+**离线全套 21 件 / 209 案全绿。** #67 还剩半件没做，登记不藏：`logger.py` 里 `_smoke()` 的夹具
+（约占该文件三分之二）仍待迁进 `tests/`；日志层改动不动决策路径，所以不占冻结三轮，
+但下一次 100 行批（b34）必须报出"新字段齐了 + 配对 `GAIN=LOST=∅`"，两件事一起收。
