@@ -144,7 +144,7 @@ openjev-ultrafast/
 │   │                         probe_*.py(零模型探针)、make_tasks_100.py(题集生成 + 唯一性断言)
 ├── mcp_server.py           # Claude Code / 任意 MCP 客户端入口
 ├── scripts/                # startlux_serve.ps1 / run_one.ps1 / run_task.py / smoke.ps1 / ci_local.ps1 / chrome_guard.ps1
-├── tests/                  # 20 个离线套件(不需要浏览器或模型)
+├── tests/                  # 27 个离线套件(不需要浏览器或模型,244 案)
 ├── reports/                # 实测报告入库;逐任务运行产物目录不入库
 ├── docs/                   # 01-hard-rules.md(硬约束全文)、03-milestones.md、00-project-plan.md(L1–L6)
 ├── run_baseline_19.ps1     # 19 题冻结 runner(一任务一进程 + 逐域预检 + 收尾验证)
