@@ -59,11 +59,10 @@ function Cdp-Alive { try { Invoke-RestMethod "http://127.0.0.1:9222/json/version
 function Wait-Cdp($maxSec = 30) { for ($i=0; $i -lt $maxSec; $i++) { if (Cdp-Alive) { return $true }; Start-Sleep 1 }; return $false }
 # Never kill the user's browser: only Chrome processes whose command line carries
 # our own CDP profile. The old bare Get-Process chrome killed everything.
-function Get-CdpChrome {
-    Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" -EA SilentlyContinue |
-        Where-Object { $_.CommandLine -like "*chrome-cdp-test*" }
-}
-function Stop-CdpChrome { Get-CdpChrome | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -EA SilentlyContinue } }
+# This file already dot-sources chrome_guard.ps1 and THEN re-spelled the same predicate.
+# One table per concept: delegate, and keep the local names for the call sites.
+function Get-CdpChrome { @(Get-OwnedChrome) }
+function Stop-CdpChrome { Stop-OwnedChrome }
 function Start-Chrome {
     Stop-CdpChrome
     Start-Sleep 2

@@ -6,6 +6,61 @@
 
 ---
 
+## [runner-lifecycle-convergence-and-b37] - 2026-10-12
+
+### Status（#69 的下半件落地并用 b37 收了口：runner 的浏览器生命周期只剩一份判据，100 行配对批六条判据全过，分数一分没记在它名下）
+
+上一支 `[kill-scope-ownership-and-65-falsified]` 把**杀侧归属**装上了闸门，但自己在末尾写明
+"这一支没跑 100 行配对批……要件留给真正收敛生命周期那半件"。这支就是那半件，欠的批也还了。
+
+改的是 9 个根目录/`scripts/` runner 的**生命周期**，`jev_ultrafast/*` 一字未改（`git status` 可核）：
+
+| 收之前 | 收之后 |
+|---|---|
+| 各 runner 自己抄一遍"哪个浏览器是我们的"（`-like "*chrome-cdp-test*"`） | 全部 `Stop-CdpChrome { Stop-OwnedChrome }` 一行委托 `scripts/chrome_guard.ps1`；判据只有一份，测试第 5 案守这条 |
+| `Stop-CdpChrome` 只认 `chrome-cdp-test`，`chrome-jev-profile` 靠手工清 | 按 guard 的清单收，暖画像并入常规收尾（**这是故意变的唯一一处行为**） |
+| llama-server 的清理按裸名砍、python 清理含裸 `serve`/`uvicorn` | llama 只认 `*startlux-decision-2b*`；python 只认自己起的命令行签名（闸门从 16 处命中收到 0） |
+| `run_demo.ps1` 自己起停浏览器、helper 配置是散变量 | dot-source guard；`$helper.Url/.Model/.Key`，配置漂移有测试第 3 案管 |
+
+**两处故意不收**（`run_one.ps1:86`、`start_owned_chrome.ps1:15`）：它们问的是"我刚起的那个画像起来
+没有"，不是"这个浏览器是不是我们的"。合并就等于要求它们用一份**更宽**的清单，反而把 P0 那条
+"端口有人应答 ≠ 是我们起的"弄坏。测试第 5 案因此只审**发杀语句附近**的判据，探测侧留窄必须写理由。
+
+### b37 判定（判据跑之前登记在 `m2/real-log.md`）
+
+`reports/real-1012-b37-100-1012-181811.json`，与 b36 只差这一支 runner 收敛，墙钟 18.3 min（每改必跑档 ≤30）：
+
+- 判据 1 `error=0` ✅ ／ 2 `[dbg]` 0 次（`JEV_DEBUG` 不设）✅ ／ 3 `false_positive=0`（硬线）✅
+  ／ 5 零云端：190 条 step 事件 `text_helper = {None:188, startlux-decision-2b:2}` ✅
+- 判据 4 环境行只记录：egress 2 + bot_wall 1 = 3（b36 = 4，nightly-r1 = 3），"显著减少"的怀疑分支不触发。
+- 判据 6 分数不参与：65 vs b36 65 ⇒ **净 0，翻 2 行**。逐行读完 trace 后各自归因：
+  `r195` GAIN 是 `text_contains "python"` 喂进半帧正文（动作、URL、标题逐拍与 b36 相同），
+  `r178` LOST 是滚动停在第几拍不同 ⇒ 同一个 e6 编号指向了别的链接。两条都属**取帧时机**族（#65），
+  和杀侧没有因果路径；**不许记成 #69 的收益**。这两行本来就在翻：CHANGELOG 上一条已记
+  r195 今晚翻过两次，nightly 那对同 build 批的 LOST 里就有 r177/r178。
+
+### 量出来的一个仪器洞（记账为 #75，这支不动手）
+
+`text_contains` 的**输入**从不进 trace：`final_page` 只有 url/title，step 事件的 `text` 是 Text Helper
+要*输入*的串（#68 误读过同一个字段），`page_fp_before` 是不可逆哈希。⇒ 一行因正文取帧翻动时，
+我只能证明"动作与落点相同"，证不到"哪一帧不同"。和 #67 同类：缺的是能区分两种解释的字段。
+
+### Verification（数字都取自产物，非手加）
+
+- 离线全套 **26 件 / 241 案全绿**（`scripts/smoke.ps1` tier1 于 2026-10-12 18:40 实跑，逐件
+  `n/n passed` 由机器相加 = 241；**tier1 在仓里不留产物**——`reports/smoke-*.json` 只有 `-Live`
+  第二级才写，所以这行的凭据是 runner 输出本身，重跑一条命令即可复现。
+  前面两条 2026-10-12 条目里的"240 案"是它们各自 append 时的清点，`test_ps_kill_scope.py` 从 4 案长到 5 案）。
+- 同一份 `jev_ultrafast/*` 上三轮 19/19、`error=0`、`fp=0`：`reports/m1-baseline-1012-1713.json`、
+  `reports/m1-baseline-69guard-1012-180450.json`、`reports/m1-baseline-69final-1012-181250.json`（后两轮跑在收敛后的 runner 上）。
+  "同一份"是可核的：`jev_ultrafast/` 最后一次改动是 16:22 的 `821bc43`（#68），此后该路径工作树干净，
+  三支 runner 改的全在 `.ps1`。两轮收尾都是 `cdp-chrome=0 (must be 0), non-cdp chrome left=0`。
+- `run_demo.ps1 -Task wikipedia` 在收敛后仍 `status done` / 2 步 / 2.65s：`reports/demo-wikipedia-1012-1809.json`。
+- `tests/test_ps_kill_scope.py` **5/5**；第 1/2 案先前对 `git show HEAD` 版本实测会红（16 处裸砍命中），不是空转的闸门。
+
+---
+
+
 ## [two-tier-ci-and-same-build-noise] - 2026-10-12
 
 ### Status（约束级：L3 的两档编排真的能跑了，而且阈值有出处；同 build 的行级噪声第一次被量出来）

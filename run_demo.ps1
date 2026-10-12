@@ -36,6 +36,7 @@ $ChromeExe     = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 $ChromeProfile = "C:\chrome-cdp-test"
 $PythonJev     = "C:\Users\Administrator\miniconda3\envs\jev\python.exe"
 $ServeScript   = "$Repo\scripts\startlux_serve.ps1"
+. "$Repo\scripts\chrome_guard.ps1"
 $Stamp         = Get-Date -Format "MMdd-HHmm"
 $Out           = "$Repo\reports\demo-$Task-$Stamp.json"
 $ProgressLog   = "$Repo\logs\demo-$Task-$Stamp.log"
@@ -59,13 +60,12 @@ function Cdp-Alive { try { Invoke-RestMethod "http://127.0.0.1:9222/json/version
 # Only ever kill Chrome processes that belong to this harness (they carry the
 # CDP profile in their command line). The user's own browser must survive a
 # demo run -- this used to be Stop-Process on every chrome.exe.
-function Get-CdpChrome {
-    Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe'" -EA SilentlyContinue |
-        Where-Object { $_.CommandLine -like "*chrome-cdp-test*" }
-}
-function Stop-CdpChrome {
-    Get-CdpChrome | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -EA SilentlyContinue }
-}
+# Ownership of a browser is decided in ONE place (scripts/chrome_guard.ps1); this script used to
+# keep its own copy of the profile marker -- four of them, in fact, which is how the kill side and
+# the connect side drifted apart everywhere else in this repo. Keep the local names so the call
+# sites below stay readable, but delegate the predicate.
+function Get-CdpChrome { @(Get-OwnedChrome) }
+function Stop-CdpChrome { Stop-OwnedChrome }
 
 function Start-Chrome {
     Stop-CdpChrome

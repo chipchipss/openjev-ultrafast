@@ -5086,3 +5086,99 @@ out_task_driven.txt        <- 仓内没有脚本再写它
 仓内 **19 个文件**、**44 处**引用 `real-log`，全部按**节名**指（"见 #68 一节"那种），
 外加本文内部大量"见上面某节"。分卷要把这 44 处 + 内部指针逐个重连，
 收益只是我自己读文件时省几次 offset 读。⇒ **不分**，读它一律用带 offset 的读法或 grep。
+
+## #69 的下半场：浏览器归属判据收进一个文件（2026-10-12 18:0x–18:1x，实测普查）
+
+先量再说改：（`run_one.ps1`、`run_demo.ps1`、`scripts/start_owned_chrome.ps1`），而 `run_baseline_19.ps1`
+**已经 dot-source 了 `chrome_guard.ps1`，却还再抄一份**——这就是计划书里点过的那种"靠注释对齐"。
+新落一条仪器案（`tests/test_ps_kill_scope.py` 第 5 案）把这件事变成红线：**自己另抄画像判据就红**。
+改前它红了 4 处，其中 2 处是我的仪器乱报（见下），2 处是真副本。
+
+### 两处假红让我把判据的边界写清楚（这次是"别乱报"那一半）
+
+第 5 案第一版把**所有**出现 `*chrome-cdp-test*` 的地方都算副本，于是抓到
+`run_one.ps1:86` 与 `start_owned_chrome.ps1:15`——但那两条回答的是另一个问题：
+**"我刚起的那个画像起来没有"**（P0 的教训就是"端口有人应答"不等于"是我们起的"）。
+把它也算成副本，就等于要求它去用一份**更宽**的清单，反而把连接侧的形状弄坏。
+⇒ 第 5 案改成只审**发杀语句附近**的画像判据；探测侧允许留窄判据，但必须带一句"为什么故意留窄"。
+另外 `start_owned_chrome.ps1:5` 那处确实是副本（它就在杀），已交回 `Stop-OwnedChrome`。
+
+还有一次是我自己写的**编码违规**：给 `.ps1` 注释里塞了中文，第 4 案当场红
+（PS 5.1 无 BOM 按 ANSI 读）。改回英文注释，规则本身没让步。
+
+### 收敛后的形状
+
+| 谁负责 | 在哪 |
+|---|---|
+| "这个浏览器是不是我们的"（杀侧与连侧共用一份清单） | `scripts/chrome_guard.ps1` 的 `$OwnedChromeProfiles` ↔ `jev_ultrafast/browser.py::OWNED_PROFILE_MARKERS` |
+| 各 runner 的 `Stop-CdpChrome` | 全部变成 `Stop-OwnedChrome` 的一行委托（`run_one.ps1`、`run_demo.ps1`、`run_baseline_19.ps1`、`start_owned_chrome.ps1`） |
+| "我刚起的画像起来没有" | 允许各脚本自己留窄判据，且必须写明为什么不合并 |
+
+行为上有一处**是故意的变化**：`Stop-CdpChrome` 现在按 guard 的清单收，
+除了 `chrome-cdp-test` 也会收 `chrome-jev-profile`——记忆里第 25 条写了那个暖画像一直活到
+下一轮、占着 :9222 和 ~400MB，要靠手工 `Stop-OwnedChrome` 才清掉。这次把它并入常规收尾。
+
+### 验收（改的是批路径，所以必须有实跑）
+
+- `tests/test_ps_kill_scope.py` **5/5**；全部 `.ps1` 语法 OK；离线全套重跑见本节末。
+- 收敛后的冻结轮：`reports/m1-baseline-69guard-1012-180450.json` **19/19、error=0**，
+  收尾 `cdp-chrome=0 (must be 0), non-cdp chrome left=0`。
+- 收敛后的 `run_demo.ps1 -Task wikipedia`：`status done`、2 步、2.65s，
+  收尾 `cdp-chrome=0 (the user's own Chrome is never touched)`。
+- 最终 build 的第三轮冻结：见 `reports/m1-baseline-69final-*.json`（写这行时还在跑，跑完补读数）。
+
+### b37 预登记（跑之前写；与 b36/nightly-r1 只差这一支 runner 收敛）
+
+1. `summary.error` **= 0**；破了说明收尾多杀了别的自有画像把下一行的浏览器带走了 ⇒ 回滚收敛。
+2. **`[dbg]` 仍然 0 次**（`JEV_DEBUG` 不设）——延续 #68 的默认静默契约。
+3. **`false_positive = 0`**（硬线）。
+4. **环境行条数只记录不判定**（`blocked_by_egress` / `blocked_by_bot_wall`）。
+   但要报出：如果 b37 的环境行显著少于 b36/nightly-r1，我要先怀疑"多杀画像"改变了站点看到的连接，
+   而不是当成收益。
+5. **零云端**照旧只由 step 事件 `text_helper ⊆ {null, startlux-decision-2b}` 证明。
+6. **分数不参与判定**：同 build 都会翻 3 行（见上），runner 收敛更不该动分；
+   任何 GAIN/LOST 一律逐行归因，归不了因就写"未归因"，不许记成 #69 的收益。
+
+### b37 读数（判据在上一节，先登记的）
+
+产物：`reports/real-1012-b37-100-1012-181811.json`（写盘 18:36:48）、逐行 trace
+`logs/real-1012-b37-100-1012-181811/`。批墙钟 **18.3 分钟**（runner 自己报的，日志目录首末 mtime），
+每改必跑档的上限是 30 分钟。
+
+| # | 判据 | 读数 | 判定 |
+|---|---|---|---|
+| 1 | `summary.error = 0` | `error=0`，批尾 `cdp-chrome=0 (must be 0), non-cdp chrome left=0` | ✅ |
+| 2 | `[dbg]` 仍 0 次（`JEV_DEBUG` 不设） | runner `dbg lines: 0`；对 100 个 trace 再 grep 一次也是 0 | ✅ |
+| 3 | `false_positive = 0`（硬线） | `quadrants = {true_success: 65, correct_abandon: 35}`，没有 `false_positive` 这个键 | ✅ |
+| 4 | 环境行只记录 | b37 egress=2 + bot_wall=1 = **3**；b36 = 3+1 = **4**；nightly-r1 = 2+1 = **3** | 不触发"显著减少"的怀疑分支 |
+| 5 | 零云端只由 `text_helper` 证明 | step 事件 190 条，`text_helper = {None: 188, startlux-decision-2b: 2}` ⊆ 允许集 | ✅ |
+| 6 | 分数不参与判定 | 65 vs b36 的 65 ⇒ 净 0，翻 2 行 | 见下面逐行归因 |
+
+第 4 条的逐行部分：b36 的 r180 是 `blocked_by_egress`（0 步就没进去），b37 同一行**真的进了站**
+（`decision`，3 步）；反过来 b37 的 r127/r129 落在 egress。环境行在两个方向上都会动，
+条数 3↔4 的差别就是这个抖动本身，不是收益。
+
+第 6 条的逐行归因（`m2/batch_audit.py --pair` 报 GAIN=['r195'] LOST=['r178']，两条 trace 都读了）：
+
+- **r195（GAIN）**：两批动作序列**逐拍相同**——scroll、scroll、click e45、DONE，
+  落点 URL 与标题也一模一样（`stackoverflow.com/questions/tagged/python-3.x` /
+  "Newest 'python-3.x' Questions"）。唯一差别是断言 `text_contains "python"`：b36 `ok=false`、
+  b37 `ok=true`。标题里就写着 python，所以 b36 那次喂给断言的正文是不完整的一帧。
+  ⇒ 归因到**观测取帧时机**（#65 那一族），和杀侧收敛没有因果路径。
+- **r178（LOST）**：b36 在 python.org 首页滚了 **3** 拍才点 e6 ⇒ `/about/apps`；
+  b37 只滚了 **2** 拍就点 e6，同一个编号在少滚一拍的下拉里指向
+  `success-stories/deliver-clean-and-safe-code...`（标题含 Applications ⇒ `text_contains` 过、
+  `url_matches` 不过）。差的还是"滚到第几拍停"，那个停止条件由页面指纹变化决定。
+  ⇒ 同一族，**不是** #69。
+
+两条合起来 = 翻 2 行、净 0，落在"同 build 也会翻 ≤3 行"的实测区间内（见上一节五张表的散布）。
+**#69 按 1/2/3/5 判过，收敛保留；分数一分没记在它名下。**
+
+### 顺手量到的一个仪器洞（只记账，今晚不动手）
+
+要证死 r195 这类翻动"当时页面里到底有什么"，需要 trace 里有正文，但没有：
+`task_result.final_page` 只存 `url` 和 `title`，step 事件里有 `page_fp_before`（哈希，不可逆）、
+有 `text`（那是 Text Helper 要**输入**的字符串，和 #68 那次误读是同一个字段），**没有页面正文**。
+⇒ 任何 `text_contains` 断言的输入事后都不可复核：一行从 FAIL 翻到 PASS，我只能说
+"URL 和标题相同、动作相同"，说不出"正文哪一帧不同"。这和 #67（白名单丢字段）是同一类
+——诊断仪器缺的不是日志行数，是**能区分两种解释的那个字段**。

@@ -64,14 +64,10 @@ if ($TaskId) {
     $Label    = $Tag
 }
 
-# Hard rule: never touch the user's own browser. A bare `Get-Process chrome |
-# Stop-Process` closes everything on the box; only our chrome-cdp-test profile
-# is ours to kill (same guard as run_baseline_19.ps1 / run_demo.ps1).
-function Stop-CdpChrome {
-    Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" -EA SilentlyContinue |
-        Where-Object { $_.CommandLine -like "*chrome-cdp-test*" } |
-        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -EA SilentlyContinue }
-}
+# Hard rule: never touch the user's own browser. The predicate for "ours" lives in exactly one
+# file (scripts/chrome_guard.ps1) -- this used to be a fourth copy of it, kept in sync by comments.
+. "$Repo\scripts\chrome_guard.ps1"
+function Stop-CdpChrome { Stop-OwnedChrome }
 
 # Chrome (same options the runner uses, proxy included)
 Stop-CdpChrome

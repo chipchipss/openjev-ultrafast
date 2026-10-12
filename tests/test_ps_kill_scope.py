@@ -197,6 +197,35 @@ def t_ps_files_are_ascii_or_bom():
         "把下一行吞进注释：" + NL + "  " + (NL + "  ").join(bad))
 
 
+@case("浏览器归属判据只许有一份：自己另抄一条画像名过滤 = 迟早和连接侧漂移")
+def t_ownership_predicate_lives_in_one_file():
+    """2026-10-12 实测过：9 个 `.ps1` 里 **8 个**自带 Chrome 生命周期、**3 个**另抄了画像判据
+    （`run_baseline_19.ps1` 甚至一边 dot-source `chrome_guard.ps1` 一边再抄一份），
+    这正是"同一规则写几份、靠注释对齐"的病灶。现在三处都改成委托 `Get-/Stop-OwnedChrome`。
+    """
+    offenders = []
+    for f in TARGETS:
+        if f.name == "chrome_guard.ps1":
+            continue                       # 判据的唯一的家
+        src = strip_comments(f.read_text(encoding="utf-8", errors="replace"))
+        lines = src.split(chr(10))
+        for m in re.finditer(r"-like\s+[\"'][^\"']*chrome-cdp-test[^\"']*[\"']", src):
+            line = src[:m.start()].count(chr(10)) + 1
+            snippet = " ".join(lines[line - 1].split())
+            if snippet.lstrip().startswith(("Log", "Write-Host", "#")):
+                continue                   # 打印给人看的建议不是判据
+            # 只审**发杀附近**的画像判据。"我刚起的那个浏览器在不在 :9222 上"是另一个问题：
+            # 它必须窄到 cdp-test，否则换像活着时它会点头——把探测也算成副本，这条规则就在乱报。
+            # （这条约束不是为了让读数变绿：`start_owned_chrome.ps1` 的杀侧确实交回了 guard。）
+            if not any("Stop-Process" in ln for ln in lines[max(0, line - 7):line + 2]):
+                continue
+            offenders.append(f"{f.name}:{line}  {snippet[:90]}")
+    assert not offenders, (
+        "这些脚本自己写了一遍『哪个浏览器是我们的』。杀侧要改判据时必须和 "
+        "jev_ultrafast/browser.py::OWNED_PROFILE_MARKERS 一起改——两处以上就一定会漂移：\n  "
+        + "\n  ".join(offenders))
+
+
 def main() -> int:
     for stream in (sys.stdout, sys.stderr):
         try:
