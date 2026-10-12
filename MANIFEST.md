@@ -23,7 +23,7 @@ git ls-files | Measure-Object -Line                       # 跟踪文件总数
 git ls-files | ForEach-Object { ($_ -split '/')[0] } | Group-Object | Sort-Object Count -Descending
 ```
 
-**清点快照**（2026-10-12 第八次，`git ls-files` 实测）：跟踪文件 **572**。
+**清点快照**（2026-10-12 第九次，`git ls-files` 实测）：跟踪文件 **573**（含今天补的 `LICENSE`）。
 
 | 顶层 | 数量 | 是什么 |
 |---|---|---|
