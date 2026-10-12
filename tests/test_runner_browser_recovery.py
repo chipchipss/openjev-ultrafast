@@ -189,7 +189,7 @@ def t_other_errors_not_swallowed():
     assert row["result"] == "ERROR" and "ValueError" in row.get("error", ""), row
 
 
-@case("#54④ 自愈路径仍然只许动自有画像，且只认 browser.py 的两个 fail-closed 前缀")
+@case("#54④ 自愈只许动自有画像；口径必须是浏览器类全表（#72），但绝不为了重试放宽 P0")
 def t_ownership_line_intact():
     src = (REPO / "m1" / "run_tasks.py").read_text(encoding="utf-8")
     reset = src[src.index("def _reset_cdp"):src.index("def _run_one")]
@@ -206,7 +206,55 @@ def t_ownership_line_intact():
     assert "no-browser:" in bsrc and "foreign-browser:" in bsrc, \
         "归属守卫的前缀变了，分类器要同步——不许为了重试放宽 P0"
     assert "_BROWSER_LOSS" in src and "_is_browser_loss" in src, \
-        "自愈必须走窄口径分类器（只认那两个前缀），不是 except Exception 兜底"
+        "自愈必须走显式标记表，不是 except Exception 兜底"
+    # #72：这张表**不许**再窄过任务间门控那张——同一件事两把尺子就是两个答案。
+    assert set(RT._BROWSER_LOSS) >= set(RT._BROWSER_CLASS_MARKS), \
+        "自愈表比门控表窄（b34 的 r139 就是这么白丢的）：%s vs %s" % (
+            sorted(RT._BROWSER_LOSS), sorted(RT._BROWSER_CLASS_MARKS))
+
+
+@case("#72⑤ b34 的 r139 原文必须被认成浏览器类并触发重试（改前必须红）")
+def t_stalepage_at_init_recovers():
+    # 死法原文逐字取自 reports/real-1012-b34-100-1012-123659.json 里 r139 的 error 字段。
+    INIT_STALE = "agent_init_failed: StalePage: Document is navigating"
+    assert RT._is_browser_loss(RuntimeError(INIT_STALE)), \
+        "起点 StalePage 认不出来 ⇒ #54 的复位+重试从不触发，整行白丢（b34 日志里 [browser-lost] 0 次）"
+
+    class StaleOnce:
+        n = 0
+        step_budget = 20
+
+        def __init__(self, *a, **kw):
+            type(self).n += 1
+            if type(self).n == 1:
+                raise AG.StalePage("Document is navigating")
+            self.state = {"status": "done", "history": [], "decisions": [],
+                          "page": {"url": "https://example.org/done", "title": "Done",
+                                   "text": "done", "actions": []}}
+
+        def run(self):
+            return iter(())
+
+        def close(self):
+            pass
+
+    monkey = []
+    row, calls = run_one(StaleOnce, monkey)
+    assert calls["reset"] == 1, f"起点 StalePage 没触发画像重起：{row}"
+    assert row["result"] != "ERROR", f"重试没把这一行救回来：{row}"
+
+
+@case("#72⑥ 门控付掉一次复位要在日志留痕（付了看不出来 = 仪器缺观测）")
+def t_paid_reset_is_logged():
+    """b34 复盘时我无法从日志区分"没付复位"与"付了但没打印"——`[cdp-reset]` 只在异常分支里印。"""
+    import re
+    src = (REPO / "m1" / "run_tasks.py").read_text(encoding="utf-8")
+    m = re.search(r"if _needs_reset\([^\n]*\):\n(\s+)(\S[^\n]*)", src)
+    assert m, "批循环里找不到门控分支（`if _needs_reset(...)` 被改掉了？）"
+    head = m.group(2)
+    assert head.startswith("print("), \
+        "门控付复位时第一件事不是留痕（现在是 %r）" % head[:44]
+    assert ("[cdp-boundary]" in head) or ("cdp-reset" in head.lower()), "留痕要能认出这是一次边界复位：" + head[:80]
 
 
 def main():

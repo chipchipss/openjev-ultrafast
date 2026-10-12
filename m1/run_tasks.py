@@ -185,16 +185,19 @@ def _needs_reset(prev, healthy: bool) -> bool:
     return not healthy
 
 
-#: 自有浏览器"没了/不是我们的"这两种 fail-closed 读数（`browser.py::_assert_owned_browser`
-#: 的两个前缀）。b19 实况：批跑到 r120 那一拍 `:9222` 上已经没有浏览器，守卫按设计拒绝
-#: 回退去开别人的浏览器——**守卫是对的，缺的是它后面没有自愈**，于是整行没跑也没 trace
-#: （批目录只有 49 个 jsonl），代价是一行分母 + 一次 28 分钟重跑。
-#: 口径必须是这两个前缀，不是"任何异常都重试"：后者会把真 bug 洗成一次画像重起。
-_BROWSER_LOSS = ("no-browser:", "foreign-browser:")
+#: 上面那个概念的**一张**表（#72）。曾经这里是两张：`_BROWSER_LOSS` 只有
+#: `("no-browser:", "foreign-browser:")`，于是 b34 的 r139（`agent_init_failed: StalePage:
+#: Document is navigating`，b21 的原句）被门控认成坏行、却不被自愈认成浏览器类——
+#: 复位+重试一次的路径从不触发，整行白丢且没有 trace（`[browser-lost]` 在批日志里 0 次）。
+#: 口径仍然**不是**"任何异常都重试"：那会把真 bug 洗成一次画像重起（`tests/test_runner_browser_recovery.py`
+#: 的 ③ 用 ValueError 钉着这条边界）。
+_BROWSER_LOSS = _BROWSER_CLASS_MARKS
 
 
 def _is_browser_loss(exc: BaseException) -> bool:
-    return any(p in str(exc) for p in _BROWSER_LOSS)
+    # 小写比对：标记里有 `document is navigating`，而原文是 `StalePage: Document is navigating`。
+    text = str(exc).lower()
+    return any(p in text for p in _BROWSER_LOSS)
 
 
 def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dict:
@@ -512,8 +515,11 @@ def main() -> int:
         tid = spec["task_id"]
         start_url = _resolve_start_url(spec, args.start_url)
         print(f"[{i}/{len(tasks)}] {tid}  {start_url}")
+        # 付一次复位要在日志里认得出来（#72⑥）：b34 复盘时分不清"没付"与"付了没打印"。
         if i > 1:
             if _needs_reset(results[-1], _cdp_healthy()):
+                print(f"    [cdp-boundary] 上一行 {results[-1].get('task_id')} 的结局属浏览器类或探测不健康"
+                      " —— 付一次完整复位（杀自有画像 + 重起 + daemon 预热）")
                 _reset_cdp()
         try:
             r = _run_one(spec, args.log_dir, start_url, args.screenshots)
