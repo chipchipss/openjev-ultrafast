@@ -4426,3 +4426,101 @@ Windows PowerShell 5.1 按 ANSI 读，多字节里恰好等于 0x60 的那个字
 **离线全套 21 件 / 209 案全绿。** #67 还剩半件没做，登记不藏：`logger.py` 里 `_smoke()` 的夹具
 （约占该文件三分之二）仍待迁进 `tests/`；日志层改动不动决策路径，所以不占冻结三轮，
 但下一次 100 行批（b34）必须报出"新字段齐了 + 配对 `GAIN=LOST=∅`"，两件事一起收。
+
+## #16 预登记（2026-10-12 12:1x，跑之前写下，事后不改）：新增 `failure_mode=blocked_by_egress`
+
+> **先更正我自己写错的时间戳**：上一条 #67 那一节标的是"01:5x–02:1x"，而它的产物写的是
+> `one-s004-1012-120115.json`（12:01）——机器时钟此刻是 10-12 12:18。错在我把 bash `date` 早先的
+> 读数当成了当前时刻，没有再核。登记在案，不改写已提交的那一节（`aac8c93`）。
+
+**用户授权口径**："你自己决定就好" ⇒ 我按下面这个口径做，并把它当成一次**归因变更**而不是分数变更来验收。
+
+### 判据（只有一条，且不用阈值）
+
+最终页 URL 以 `chrome-error://` 或 `about:neterror` 开头 ⇒ `failure_class="system"`、
+`failure_mode="blocked_by_egress"`，与 `blocked_by_bot_wall` 同级。**象限、result、pass/fail 口径一律不动**
+（该 FAIL 还是 FAIL，`correct_abandon` 还是 `correct_abandon`）——这条分支只换"这笔账记在谁头上"。
+`false_positive` 永不豁免（安全硬线不让任何外因替假阳性开脱）。
+
+**例外必须写死**：`category == "negative"` 的题**不适用**。x001 的起点就是 `example.invalid`，
+它的题点是"无论如何都要拒绝"，chrome-error 是它的常态而非环境故障——把它标成环境，
+就等于把一次正确拒绝从 agent 的功劳里划走。（今晚 #67 那条闸门误判是同一个教训的第二次收费。）
+
+### 实测形状（2026-10-12 12:0x，零模型，自有 headless Chrome 经 `:2080`）
+
+| 页 | url | title | text | actions |
+|---|---|---|---|---|
+| `example.invalid` | `chrome-error://chromewebdata/` | `example.invalid` | 106 | 6 |
+| 不存在的 host | `chrome-error://chromewebdata/` | 主机名 | 120 | 6 |
+| `sqlite.org/lang.html`（b33 里落 chrome-error 的那两个起点，现在正常） | 原址 | Query Language Und… | 1342 | 64 |
+
+之所以不需要"薄页阈值"：URL 前缀本身就是判据，b33 的原病（pypi 首页 472 字符 / 12 action 这类
+**又薄又正常**的页）在这条判据下**结构上不可能**被误伤。词表纪律（"名词只收见过的"）在这里体现在
+只收 `chrome-error://` 与 `about:neterror` 两个实测见过的协议位。
+
+### b34 的预期与回滚规则（跑之前定，跑之后只对表）
+
+1. b33 按新口径重算（只作对照登记，**不改 b33 原文**）：环境行 = **8**（老 `r127`/`r129` + 新 `r197`–`r202`）。
+2. 老 50 行：`GAIN=LOST` 相对 b33 应为**空**（这是归因变更，行为没动，任何行翻 PASS/FAIL 都说明我改错了）。
+3. 新 50 行：b33 的 18 行 + arXiv 断言修正的 2 行（`r161`/`r162` 当时真走到了合法结果页）= **20/50**；
+   若低于 18，说明断言修正没生效或来了新因，按下面回滚条款处理，不临时改题。
+4. `failure_mode=blocked_by_egress` 的行数 ≥ 6 且这些行**必须**满足：steps ≤ 1、象限 `correct_abandon`。
+   出现 steps 高、象限 `false_positive` 的行被判成环境 ⇒ 判据过宽，立刻收紧。
+5. 硬线不变：`fp=0`、`error/crash/unknown=0`、零云端（步事件 `text_helper` ⊆ `{null, startlux-decision-2b}`）、
+   墙钟 ≤30 分钟。
+6. **回滚规则**（任一命中就撤这一支，不带回家过夜）：
+   (a) 任何 `category=negative` 题的 `failure_mode` 变成 `blocked_by_egress`；
+   (b) b33 与 b34 在题集相同且行为未变的那些行上出现任何象限漂移；
+   (c) `fp` 从 0 变成非 0。
+
+验证链按法则走：失败测试（改前必须红）→ 离线全套 → x001/x002 活体复测 → 冻结 19/19×3 → b34 全量 → `batch_audit --pair b33`。
+
+## b34 · #16 的收口读数（12:36:59–12:57，`reports/real-1012-b34-100-1012-123659.json`）
+
+同一份 100 行题集、同一台机器、前置冻结 19/19×3（`m1-baseline-1012-1220/1225/1231.json`）。
+这一批同时带着 #67（日志字段）与 #16（归因）两处改动，和题集里 arXiv 那两行的修正。
+
+| 项 | b33 | b34 | 说明 |
+|---|---|---|---|
+| 合计 | 59/100 | **61/100**（`pass=61 fail=38 unknown=0 error=1`） | error 那行见下 |
+| 老 50 行 | 41 | **42** | GAIN=r119/r127/r202（b33 的瞬时环境行这轮正常打开），LOST=r139(仪器)/r193/r196 |
+| 新 50 行 | 18 | **19** | arXiv 修正兑现（r161/r162 双翻 PASS），r193/r196 掉两行、r202 回来 |
+| fp | 0 | **0**（`true_success 61 / correct_abandon 38`，无 false_positive） | 硬线守住 |
+| 零云端 | ✅ | ✅ 183 步 `{None:182, startlux-decision-2b:1}` | 只由步事件证 |
+| 墙钟 | 20.7 min | **20.5 min** | 与 #16 无关，同档 |
+| 象限漂移（两批 result 相同的 92 行） | — | **0** | 这是"归因变更不动象限"的正证明 |
+| `blocked_by_egress` | —（旧口径下是 decision） | **1 行**（`r129`，steps=1，`correct_abandon`） | 负向题被误标 0 行；x001 活体豁免见 `one-x001-1012-121911.json`（它的最终页就是 `chrome-error://`，`failure_mode` 仍为空） |
+| b33 按新口径重算（只作对照，不改原文） | **8 行环境**（`r127 r129 r197–r202`） | — | 与预登记的数字一致 |
+
+**#16 接受**。它改变的是"这笔账记在谁头上"，而 92 个同结果行的象限零漂移证明它没碰判定。
+
+## 我自己两条预登记写错了（登记，不改写原文）
+
+1. **判据 2 写成了"GAIN=LOST 相对 b33 应为空"** —— 与我自己的判据 3 直接矛盾：b34 同时带着 arXiv 题面修正，
+   `r161/r162` **必须**翻 PASS 才算修对。正确写法应是"由 #16 单独引起的变化只能出现在
+   `decision → blocked_by_egress` 这一列；分数变化必须逐行归因到 arXiv 修正 / 站点瞬时 / 仪器"。
+2. **判据 4 写成"环境行 ≥6"** —— 把"瞬时"当成了"稳定"。真瞬时故障**本来就不该复现**：b33 的 8 行里
+   这轮只有 `r129` 复现。这条预测错得有价值：它反过来说明那 8 行确实不是站点属性，也说明
+   "以后每批都要看环境行有几个"这个指标要改成"看有没有"而不是"看够不够多"。
+
+## b34 的行 `r139`：#54 的重试没救它，因为同一个概念在同一个文件里有两份表
+
+`error=1` 破了预登记的"error=0"。死法是 b21 的原句：`agent_init_failed: StalePage: Document is navigating`
+（`m1/run_tasks.py:234` 构造 `Agent` 时抛，`agent.py:191`），而且**没有 trace**（`batch_audit` 报
+"没有 trace 的行=['r139'] ← 仪器丢的行，不算产品读数"）。根因不在 #16、也不在浏览器：
+
+- 任务间门控用的表是 `_BROWSER_CLASS_MARKS`（6 个标记，含 `document is navigating`）⇒ 它认得这一行。
+- #54 的"复位 + 重试一次"用的表是 **`_BROWSER_LOSS = ('no-browser:', 'foreign-browser:')`** ⇒ 它不认。
+  于是 b34 的日志里 `[browser-lost]` 出现 **0 次**：这一行既没重试也没算产品读数。
+
+这就是体检报告说的"同一规则写几份、靠注释对齐"的病灶，只不过发生在**同一个文件的两个常量**里。
+转成 **#72**（小刀：一个概念一张表 + 一条"用 b21 原文构造的异常必须被 `_is_browser_loss` 认出"的失败测试）。
+本批不做第二处行为变更，避免和 #16 混在同一个读数里。
+
+## #67 的批内兑现（预登记的"下一次批要报出字段齐了"）
+
+b34 的 183 条 step 事件里，`outcome` / `url_from` / `page_fp_before` / `skill` 覆盖率 **183/183 = 100%**。
+样例 `r101` 第一拍：`skill=search_type`、`url_from=https://pypi.org/`、
+`outcome={'status':'dom_changed','page_changed':True,'url_changed':False}` —— 也就是从今天起
+"到站即停的同主机守卫"和"这一拍到底动了什么"都能在日志里直接读，不用重开浏览器复探。
+`_smoke()` 夹具迁进 `tests/` 这半件并入 #68（同一支日志卫生工作）。

@@ -48,7 +48,25 @@ SYSTEM_MODES = frozenset({
     "observe_failed",
     "assertion_error",
     "blocked_by_bot_wall",
+    "blocked_by_egress",
 })
+
+#: 浏览器根本没拿到页面的协议位（2026-10-12 实测见过这两个，不收录猜测）。
+EGRESS_ERROR_PREFIXES = ("chrome-error://", "about:neterror")
+
+
+def is_egress_error(final_page: Optional[dict]) -> bool:
+    """起点/终点落在 Chrome 自己的错误页上 = 世界不可达，不是决策失误。
+
+    b33 一批 100 行里有 8 行是这样：`steps` 0 或 1、最终页 `chrome-error://chromewebdata/`，
+    却被记成 `failure_mode=decision`（agent 的错）。事后用自有 Chrome 经代理复探，
+    `sqlite.org/lang.html` 2.3 秒 / 1342 字符正常返回——批内瞬时环境失败。
+
+    判据**只看 URL 前缀，不看"页面薄不薄"**：pypi 首页是 472 字符 / 12 action 这种又薄又正常的页，
+    任何长度阈值都会误伤，而 URL 前缀在结构上碰不到它们。
+    """
+    url = str((final_page or {}).get("url") or "")
+    return url.startswith(EGRESS_ERROR_PREFIXES)
 
 # 反爬/人机验证墙：站点根本没让我们进门，任务不可能"被做对"。真实站批次里
 # r101/r104 这类 FAIL 被记成 agent 决策失败，而决策本身是对的（诚实 BLOCK）。
@@ -359,6 +377,13 @@ def _classify(
         return "system", "observe_failed"
     if quadrant in (None, "true_success", "false_negative"):
         return None, None
+
+    # 世界根本没打开（b33 的 8 行）：换归因，不换象限也不换 result。
+    # **负向题豁免**：x001 的 domain 就是 example.invalid，chrome-error 是它的常态，
+    # 把它记给环境等于把一次正确拒绝从 agent 的功劳里划走（10-11 晚出口闸门踩过同一颗雷）。
+    if (quadrant != "false_positive" and category != "negative"
+            and is_egress_error(final_page)):
+        return "system", "blocked_by_egress"
 
     # 墙页：站点没让我们进门，FAIL 的成因在环境不在决策。象限与 result 一律不动
     # （该 FAIL 还是 FAIL，pass/fail 口径不被这道分支放松），只换归因。
