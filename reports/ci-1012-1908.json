@@ -1,0 +1,41 @@
+{
+    "tier":  "nightly",
+    "stamp":  "1012-1908",
+    "corpus":  "C:\\Users\\Administrator\\openjev-ultrafast\\m2\\tasks_real_100.jsonl",
+    "rounds":  3,
+    "thresholds":  {
+                       "max_round_minutes":  30,
+                       "min_pass_per_round":  59,
+                       "error_rows":  0,
+                       "max_total_minutes":  95,
+                       "false_positive":  0
+                   },
+    "total_minutes":  61.4,
+    "readings":  [
+                     {
+                         "round":  1,
+                         "report":  "nightly-1012-1908-r1-1012-190848.json",
+                         "pass":  66,
+                         "false_positive":  0,
+                         "error_rows":  0,
+                         "wall_minutes":  21
+                     },
+                     {
+                         "round":  2,
+                         "report":  "nightly-1012-1908-r2-1012-193011.json",
+                         "pass":  69,
+                         "false_positive":  0,
+                         "error_rows":  0,
+                         "wall_minutes":  18.6
+                     },
+                     {
+                         "round":  3,
+                         "report":  "nightly-1012-1908-r3-1012-194910.json",
+                         "pass":  65,
+                         "false_positive":  0,
+                         "error_rows":  0,
+                         "wall_minutes":  20.6
+                     }
+                 ],
+    "passed":  true
+}
