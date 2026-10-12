@@ -11,13 +11,24 @@ param(
     [int]$LlamaPort = 8081,
     [int]$PilotCount = 2,
     [switch]$NoService,     # decider already listening on $SvcPort
-    # TypeSafe wire endpoint to point tasks at. Must match where the service
-    # actually listens (default 8000 = decider.serve; 8090 = StartLux gguf_server).
-    [int]$SvcPort = 8000,
+    # TypeSafe wire endpoint to point tasks at. Default 8090 = the StartLux
+    # gguf_server this repo runs on; 8000 was decider.serve, a CLOSED line, and is
+    # now only reachable by naming it (see the guard right below the param block).
+    [int]$SvcPort = 8090,
     # Egress proxy for Chrome AND for the preflight probe. Empty = no proxy.
     [string]$ProxyUrl = "http://127.0.0.1:2080",
     [switch]$AllowUnreachableDomains   # run anyway even if some domains are down
 )
+
+# Fail before ANY side effect (before Die() is even bound, hence Write-Host + exit).
+# Why a refusal instead of a sensible default: with the old default of 8000, a bare
+# invocation did not error. It started the retired decider.serve itself and pointed the
+# tasks at it, so a freeze round still printed 19/19 while a different 2B answered.
+# Connecting to the wrong port = deciding with the wrong model, and the readings hide it.
+if (-not $NoService -and $SvcPort -ne 8000) {
+    Write-Host "FATAL: without -NoService this runner starts the RETIRED decider.serve, which listens on 8000 -- but the tasks would be pointed at $SvcPort (default 8090 = StartLux gguf_server). Pick one: -NoService to reuse the wire already on $SvcPort, or -SvcPort 8000 to mean the closed decider line."
+    exit 1
+}
 
 # NOTE: pure ASCII -- PowerShell 5.1 reads .ps1 as ANSI (GBK) without a BOM.
 #

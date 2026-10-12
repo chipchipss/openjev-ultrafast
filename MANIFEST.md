@@ -23,16 +23,16 @@ git ls-files | Measure-Object -Line                       # 跟踪文件总数
 git ls-files | ForEach-Object { ($_ -split '/')[0] } | Group-Object | Sort-Object Count -Descending
 ```
 
-**清点快照**（2026-10-12 第五次，`git ls-files` 实测）：跟踪文件 **565**。
+**清点快照**（2026-10-12 第六次，`git ls-files` 实测）：跟踪文件 **567**。
 
 | 顶层 | 数量 | 是什么 |
 |---|---|---|
-| `reports/` | 320 | 实测报告，全部入库（逐任务的运行产物目录不入库，见 `.gitignore`） |
+| `reports/` | 321 | 实测报告，全部入库（逐任务的运行产物目录不入库，见 `.gitignore`） |
 | `m2/` | 88 | 真实站题集与测量工具：`tasks_real_100.jsonl`、`batch_audit.py`、`time_split.py`、`probe_*.py`（零模型探针）、`make_tasks_100.py`、`smoke_gate.py`、`real-log.md` |
 | `m4a/` | 36 | M4a/M4b 本地训练线，**已关闭**（两次自训无增益） |
 | `jev_ultrafast/` | 33 | 主包：`agent.py` / `browser.py` / `snapshot.js` / `skills.py`（21 项确定性地板）/ `model.py` / `policy.py` / `decision_validator.py` / `runtime_guard.py` / `confidence_gate.py` / `step_budget.py` / `api_budget.py` / `evaluator.py` / `logger.py` / `sample_extractor.py` / `decider/` |
 | `scripts/` | 28 | `startlux_serve.ps1`（决策底座）、`run_one.ps1`（单题/批）、`run_task.py`（任意任务）、`smoke.ps1` + `ci_local.ps1`（两级闸门）、`chrome_guard.ps1`（杀侧归属）、以及 `probe_*.py` 系列 |
-| `tests/` | 26 | 离线套件（不需浏览器与模型），**241 案**，逐件 `n/n passed` |
+| `tests/` | 27 | 离线套件（不需浏览器与模型），**244 案**，逐件 `n/n passed` |
 | 根目录 | 16 | `README.md`、`CHANGELOG.md`、本文件、`pyproject.toml`、9 个 `run_*.ps1` 入口、`mcp_server.py` |
 | `m1/` | 8 | 19 题基准 runner 与题集（`tasks-laya-19.jsonl` 等） |
 | `docs/` | 8 | `00-project-plan.md`（L1–L6 权威）、`01-hard-rules.md`、`03-milestones.md`、`09-task-success.md`、`10-step-budget.md`、`11-repo-checkup-2026-10-12.md`（外部体检报告原文 + 逐条点验）、m4b 两件 |

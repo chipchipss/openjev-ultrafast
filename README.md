@@ -13,7 +13,7 @@
 | **真实站 100 题回归(L3 吞吐)** | 墙钟 **20.7 分钟**、1.96 拍每行、`error=0`、`fp=0`、零云端;分数 **59/100**(基线,低分已按归责拆成四堆) | `real-1011-b33-100-1011-231042.json` |
 | **50 题批的门控墙钟** | 27.8 → **8.2 / 8.7 / 9.5 分钟**(任务间复位改成"先问健康再付钱") | `real-1011-b27/b28/b29-gate*.json` |
 | **决策延迟** | 单决策中位 **0.64 s**(本机 2B GGUF,走产品原路) | `m2/probe_wire_parallel.py` 的并发 1 档 |
-| **离线测试** | 26 个套件 **241 案全绿**（`scripts/smoke.ps1` tier1 一次跑完，2026-10-12 18:40 实跑；tier1 的证据是 runner 逐件打出的 `n/n passed`，`reports/smoke-*.json` 只有 -Live 第二级才写） | `tests/` |
+| **离线测试** | 27 个套件 **244 案全绿**（`scripts/smoke.ps1` tier1 一次跑完，2026-10-12 19:05 实跑；tier1 的证据是 runner 逐件打出的 `n/n passed`，`reports/smoke-*.json` 只有 -Live 第二级才写） | `tests/` |
 
 **并行不做,是被读数判死的**:并发 1→4 的吞吐 1.55 → 1.58 决策/秒(**加速比 1.02x**),`llama-server --parallel 4` 的槽位没变成吞吐,多开 worker 只会在 wire 前排队。所以 100 题 ≤30 分钟靠串行就已达成(实测 20.7 分钟)。
 
@@ -57,7 +57,7 @@ claude mcp add openjev -- python C:\Users\Administrator\openjev-ultrafast\mcp_se
 ### 跑基准与回归
 
 ```powershell
-.\scripts\smoke.ps1                  # 第一级闸门:26 个离线套件必须 n/n 全绿(现在 241 案)
+.\scripts\smoke.ps1                  # 第一级闸门:27 个离线套件必须 n/n 全绿(现在 244 案)
 .\scripts\smoke.ps1 -Live            # 第二级:5 题代表族(s005/n004/x001/x002/r142),判据读报告不读控制台
 .\scripts\ci_local.ps1 -Tasks 50                                    # 每改必跑档:smoke → 冻结三轮 → 回归批 → 阈值判定(默认是 50 行口径:MinPass 43 / 墙钟 14 分钟)
 .\scripts\ci_local.ps1 -Tasks 100 -MinPass 59 -MaxWallMinutes 30    # 同档跑 100 行:阈值自己给,且**跑之前先预登记**

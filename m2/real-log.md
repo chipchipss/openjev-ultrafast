@@ -5182,3 +5182,64 @@ out_task_driven.txt        <- 仓内没有脚本再写它
 ⇒ 任何 `text_contains` 断言的输入事后都不可复核：一行从 FAIL 翻到 PASS，我只能说
 "URL 和标题相同、动作相同"，说不出"正文哪一帧不同"。这和 #67（白名单丢字段）是同一类
 ——诊断仪器缺的不是日志行数，是**能区分两种解释的那个字段**。
+
+## #69 第 3 条：`:8000` 这个默认值（跑之前先登记判据）
+
+普查表里三条要动的地方，前两条随上一支落了，第三条当时我只改了"另两个入口"就交差——
+`run_baseline_19.ps1:16` 的默认仍是 **8000**。今天补完。
+
+**为什么这条不是洁癖**（改之前先想清楚失败长什么样）：`run_baseline_19.ps1` 忘记传
+`-SvcPort 8090` 时**不会报错**。没有 `-NoService` 它就走到 Step 3 的 else 分支，自己用
+`D:\openjev-models\decider\.venv` 起 uvicorn `decider.serve:app --port 8000`，
+再把 `TYPESAFE_BASE_URL` 指过去。冻结轮照样 19/19，报告照样是那个形状，**答题的却是另一个 2B**。
+连错端口 = 连错模型，而读数对此完全沉默——这条和 A0 那句"底座唯一"是同一件事。
+
+### 判据（跑之前写）
+
+1. 新闸门 `tests/test_wire_port_default.py` 3 案，**改前必须 0/3**（实测已记在下面）；
+2. 默认值换成 8090 之后，"不传 `-NoService` 又用别的端口"必须是**在任何副作用之前**失败：
+   实跑 `run_baseline_19.ps1`（裸调用）⇒ 期望只有 1 行 FATAL、`exit 1`、`llama-server`/wire 的
+   PID 与时间戳不变（没有新东西被起起来）；
+3. **用新默认跑一整轮冻结**：`run_baseline_19.ps1 -NoService`（不传 `-SvcPort`）
+   ⇒ 期望 runner 自己打印 `DECIDER_MODE=typesafe -> 127.0.0.1:8090`、`19/19`、`error=0`、`fp=0`。
+   这一轮是**默认端口的见证件**，不是第四个冻结读数——`jev_ultrafast/*` 自 821bc43 起未动，
+   #69 的判定仍然只看 1/2/3/5 那四条；
+4. `.ps1` 必须仍是纯 ASCII 无 BOM（记忆里那条编码坑，第 4 案会管）；
+5. 离线全套重跑，件数与案数**由机器相加**，不手填。
+
+### 改前读数（失败测试先行）
+
+`tests/test_wire_port_default.py` 对改前的 `run_baseline_19.ps1`：**0/3 passed**。
+三条各自报同一个真实现场（`run_baseline_19.ps1:16 [int]$SvcPort = 8000`），
+对白名单里的退役线（`m4a/`、`run_m1.ps1`、`run_m4b_collect.ps1`、`run_adapter_m4b.ps1`、
+`run_s004_history_test.ps1`、`m1/run_suite.ps1`）**一条不报**——那些脚本自己起 `decider.serve`
+并一致地指着 :8000，它们的病是"这条线已经关了"，不是"端口写错"。
+
+顺带被闸门逮到一处普查表漏的行：`run_s004_history_test.ps1:39` 也把 `TYPESAFE_BASE_URL`
+钉在 :8000。#69 的普查表当时把那行的端口栏记成"—"（漏了）。它属于退役线，进白名单不动它，
+但**表错了**：这条就是更正。
+
+### 读数（五条判据逐条对，跑完之后写）
+
+1. **闸门 0/3 → 3/3**。`tests/test_wire_port_default.py` 改前 0/3（现场见上一节），改后 3/3。
+2. **裸调用在任何副作用之前失败**。`powershell -File run_baseline_19.ps1`（不传 `-NoService`）
+   ⇒ 输出**只有 1 行** FATAL、`exit 1`；当时的驻留进程仍是 b37 之前那一套
+   （`llama-server` PID 14428 @ 18:17:41、wire PID 6112 @ 18:17:45），**没有新进程被起起来**。
+   守卫放在 `param()` 之后、第一个 `Get-CimInstance`/`Start-Process` 之前，
+   且不能调脚本里那个 `Die`——`Die` 的定义在守卫后面，运行时还没绑定，所以用 `Write-Host` + `exit 1`。
+3. **一整轮冻结只靠新默认**：`run_baseline_19.ps1 -NoService`（不传 `-SvcPort`）
+   ⇒ `reports/m1-baseline-1012-1858.json`：**19/19、`error=0`、`false_positive=0`**，6.1 分钟，
+   runner 自己打 `VERDICT: clean sweep (19/19)`，报告里逐行重数也是 `PASS=19 / true_success=19`。
+   这一条为什么算证到了端口：跑完之后 `netstat` 显示 **:8000 没有任何 LISTENING**、
+   `curl :8000/health` 返回 000，而 :8090 是 PID 24664 在听、`/health` 回
+   `{"status":"ok","model":"startlux-decision-2b"}`。`-NoService` 分支会先 `Wait-Svc 10`，
+   默认若还是 8000 就直接 Die——它没 Die，说明指的就是 8090。
+   收尾 `own-cdp-chrome=0 (must be 0), foreign browsers left=17 (never targeted)`。
+   **这轮是默认端口的见证件，不是第四个冻结读数**，不进 #69 的判定。
+4. **编码**：`run_baseline_19.ps1` 仍是纯 ASCII、无 BOM（新闸门的兄弟案 4 在 `test_ps_kill_scope.py` 里管）。
+5. **离线全套重跑**：**27 件 / 244 案全绿**（`scripts/smoke.ps1` tier1，产物
+   `%TEMP%\smoke_full.txt`，mtime 19:05:57，逐件 `n/n passed` 由机器相加；
+   上一轮 18:40 的那次是 26 件 / 241 案，多出来的一件就是这支的 3 案）。
+
+`scripts/ci_local.ps1:134` 一直是显式传 `-SvcPort $SvcPort`（默认 8090），所以夜间档不受这次改动影响。
+`.env.example:9` 那句"run_baseline_19.ps1 默认起 :8000"跟着改了——它描述的就是我刚换掉的默认值。

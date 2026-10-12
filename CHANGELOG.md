@@ -6,6 +6,47 @@
 
 ---
 
+## [wire-port-default-8090] - 2026-10-12
+
+### Status（#69 的第三条也是最后一条：冻结 runner 的默认决策线从退役的 :8000 收到现役的 :8090，而且"忘传参数"这条路现在是响的）
+
+上一支 `[runner-lifecycle-convergence-and-b37]` 收了 9 个 runner 的生命周期，普查表里三条要动的
+地方落了两条，第三条（`run_baseline_19.ps1:16` 的 `[int]$SvcPort = 8000`）当时没动。这支补完。
+
+**为什么"一个默认端口"值得单独一支**：默认值落在没人听的线上时，脚本**不报错**。
+`run_baseline_19.ps1` 不带 `-NoService` 就会自己去起已关闭的 `decider.serve`(:8000)，
+把 `TYPESAFE_BASE_URL` 指过去，然后照样跑出一个 `19/19`——答题的是另一个 2B。
+"底座唯一"这条 A0 硬线当时是靠调用方记得传 `-SvcPort 8090` 来维持的，而读数对连错模型完全沉默。
+
+- 默认改成 **8090**（和 `scripts/run_one.ps1` / `smoke.ps1` / `ci_local.ps1` / `run_demo.ps1` 一致，
+  现役线全仓只剩一个值）；
+- 新增**早退守卫**：`param()` 之后、任何副作用之前，`-NoService` 缺失且端口不是 8000 就
+  `Write-Host` + `exit 1`。不用脚本里的 `Die`——它的定义在守卫后面，运行时还没绑定；
+- 新闸门 `tests/test_wire_port_default.py`（3 案，改前实测 **0/3**，改后 3/3）：活 runner 的默认必须
+  相等、退役端口不许以任何默认值形式复活、守卫必须早于第一个 `Get-CimInstance`/`Start-Process`。
+  退役线（`m4a/`、`run_m1.ps1`、`run_m4b_collect.ps1`、`run_adapter_m4b.ps1`、
+  `run_s004_history_test.ps1`、`m1/run_suite.ps1`）走白名单——它们的病是"这条线关了"，不是"端口写错"。
+
+### Corrected（闸门顺手逮到普查表自己漏的一行）
+
+#69 的普查表把 `run_s004_history_test.ps1` 的端口栏记成"—"，实际 `:39` 就把 `TYPESAFE_BASE_URL`
+钉在 :8000。表错了；脚本本身属退役线，不改它，但这条是**对普查的更正**，不是对新改动的描述。
+
+### Verification
+
+- 裸调用 `run_baseline_19.ps1` ⇒ **1 行 FATAL、exit 1、一个新进程都没起**（驻留的 llama/wire 仍是
+  18:17 那一套的 PID）。
+- **只用新默认**跑整轮冻结：`run_baseline_19.ps1 -NoService` ⇒ `reports/m1-baseline-1012-1858.json`
+  **19/19、`error=0`、`fp=0`**，6.1 分钟；跑完 `netstat` 显示 :8000 无 LISTENING、`curl :8000/health`
+  返回 000，:8090 回 `startlux-decision-2b`——所以这轮证的确实是"默认 = 现役线"。
+  **这支不带 `-SvcPort` 的轮子是默认值的见证件，不是第四个冻结读数**，不进 #69 的判定。
+- 离线全套 **27 件 / 244 案全绿**（`scripts/smoke.ps1` tier1 于 19:05:57 实跑，逐件 `n/n passed`
+  机器相加；上一轮 18:40 是 26 件 / 241 案）。`run_baseline_19.ps1` 仍纯 ASCII 无 BOM。
+- 不受影响的两处已核：`scripts/ci_local.ps1:134` 一直显式传 `-SvcPort`；`.env.example` 里
+  "run_baseline_19.ps1 默认起 :8000"那句随本次改动更新。
+
+---
+
 ## [runner-lifecycle-convergence-and-b37] - 2026-10-12
 
 ### Status（#69 的下半件落地并用 b37 收了口：runner 的浏览器生命周期只剩一份判据，100 行配对批六条判据全过，分数一分没记在它名下）
