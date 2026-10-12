@@ -4593,3 +4593,179 @@ python 搜索——也就是**站点健康度主导的批次**，不是我今晚
 
 （另外把 #16 的 `blocked_by_egress` 在这三批的分布记全：b33 是旧口径没这个标签，b34 出现 1 行、
 b35 出现 1 行——也就是这条判据不会把健康的站点吞进环境类，两批里它都只抓住了真的 chrome-error 行。）
+
+## #68 落地（2026-10-12 16:0x–16:3x）：降级留痕通道 + 三支仪器自己造的假红
+
+这一支只动**观测层**：默认一个字都不出，控制流一字不改。落地内容三件：
+
+1. `jev_ultrafast/logger.py::dbg(site, detail)` —— 只有 `JEV_DEBUG` 非空才往 stderr 写一行
+   `[dbg] <site>: <detail>`；不设开关时批日志与报告格式完全不变。
+2. 七个会改变解释的降级点接上通道：`skills.route()` 的技能异常（tag `skill_raised`）、
+   browser 的 6 处（`daemon_ensure_failed` / `daemon_restart_failed` /
+   `modal_guard_not_installed` / `settle_init_eval_failed` / `settle_init_not_registered` /
+   `scroll_settle_failed`），以及原本用 7 行裸 `print` 打的 `FRESH_MISMATCH` 诊断块
+   （现在 `browser.py` 里 **`print(` 语句 0 处**，`grep` 到的两处是 `fingerprint(` 的子串）。
+3. `logger.py` 的 `_smoke()`（591 行文件里的第 323–591 行，占 2/3）搬进
+   `tests/test_logger_smoke.py`。旧位置**没有任何调用方**——`scripts/smoke.ps1` tier1 只跑
+   `tests/test_*.py`，那 50 项检查一直挂在一个没人执行的 `__main__` 分支上。
+   搬家前后同一份检查数：旧 `python -m jev_ultrafast.logger` 报 `SMOKE OK: 50/50`，
+   新套件报 `checks run: 50`，并且最后一案就是"检查项不少于 50"——缩水会当场红。
+
+### 三条假红全是我自己的仪器造的（法则④的反面教材，逐条记下）
+
+`tests/test_debug_channel.py` 第一次量到"改后 2/4"，两条红都是仪器错，代码当时已经是对的：
+
+| 假红 | 仪器错在哪 | 正确写法 |
+|---|---|---|
+| route 的技能异常"仍然无声" | 正则 `except Exception[^\n]*:\n` 要求冒号紧跟换行，而真实那行是 `except Exception as e:  # noqa: BLE001`——匹配失败后它跳到**文件末尾另一个** except 上，240 字符窗口里当然没有 `dbg(` | 缩进取 except 的块体（`except_block()`），不数窗口 |
+| `MODAL_GUARD_JS` 降级点"无声" | 锚点用 `src.index(site)`，命中的是**常量定义**（第 154 行）而不是安装点（第 177 行），900 字符窗口没盖到第 181 行 | 认各降级点自己的 **tag**，不认常量名出现的位置 |
+| 装了留痕"把降级改成了抛出" | 判据是 `"raise" in block`，而 tag 名 `skill_raised` 里就带 `raise` 子串 | `re.search(r"(?m)^\s*raise\b", block)` |
+
+用 HEAD（#68 之前）的三份文件重跑修好的仪器：**0/4**，且四条各红在各自的真实缺口上
+（`dbg` 不存在 / route 无声 / browser 未接通道 / 留痕点 0 处）。改后 **4/4**。
+`test_debug_channel` 的最后一案还带一条下限断言：扫到 7 处含 `dbg(` 的 except 分支
+（8 个留痕点里 `fresh_mismatch` 是正常分支的诊断行，不属于"降级不许变抛出"这一条）。
+
+### 顺带抓到两支真缺陷：一支让离线闸门中断，一支让 demo 跑在"没有 helper"的形状上
+
+**（a）`scripts/smoke.ps1` tier1 被自己的 `$ErrorActionPreference="Stop"` 打断。**
+`test_runner_egress_gate.py` 把它要验的那句 `[preflight] 样本 …：出口不通（模拟）` 打到 **stderr**，
+而在 `Stop` 下 `2>&1` 会把子进程每一行 stderr 变成**终止性** NativeCommandError——
+离线闸门在那一行就死了，只报了前 15 个套件。这条要如实写在我账上：**b35/#72 提交时跑的"离线全套绿"
+是中断的输出，不是全套绿**。修法两步：套件运行期间把 EAP 降回 `Continue`，
+裁决行从**整段输出**里挑最后一处 `k/n passed`（挑不到=FAIL，崩溃也算 FAIL）。
+现在 tier1 跑完 **24 套 / 232 案全绿**。
+
+**（b）`run_demo.ps1` 注入的是三个从未赋值的变量名**（体检报告那条"待核"点验为真）。
+Step 0 用 `Resolve-TextHelper` 拿到 `$helper = @{Url;Model;Key;…}` 并写进 `$env:`；
+Step 3 起子进程前的 `Set-Env` 写的却是 `$helperUrl / $helperModel / $helperKey`——
+全文件没有任何地方给这三个名字赋过值。PowerShell 里未定义变量展开成 `$null`，
+而 `Set-Item env:X -Value $null` 的语义是**删除**该变量：Step 0 装好的 helper 地址，
+在真正跑 demo 的前一行被抹掉。后果不是崩，是 demo 带着"没有 helper"的形状跑完、
+读数看着正常而填字段那一路其实没走 helper——正是最难发现的那一类。
+
+用 PowerShell 自己的 AST（`Parser::ParseFile` + `VariableExpressionAst` 对比所有定义点）
+独立复核过：改前该文件报 `helperKey helperModel helperUrl startedStack` 四个未定义引用
+（`startedStack` 是 `$script:` 前缀的假阳性，运行时同一作用域），改后只剩那一个。
+失败测试先行：`tests/test_run_demo_helper_wiring.py` 改前 **1/3**（两案红，红在真名字上，
+并把三个幻影变量名打印出来）→ 改后 **3/3**；第三案是跨文件契约（`Resolve-TextHelper`
+必须回 Url/Model/Key，且 startlux 分支必须是 `127.0.0.1`，云端主机名出现即红）。
+
+### #68 的实盘见证（零模型、零浏览器，跑批之前）
+
+`skills.route()` 的技能异常留痕不能用单元测试交差，所以打了一次真通道：
+把 `SKILLS` 临时换成一个必抛 `ValueError` 的探针技能，`JEV_DEBUG=1` 下调用 `route`，stderr 得
+
+```
+[dbg] skill_raised: dbg_probe_skill: ValueError: 探针：技能内部炸一下
+route returned: None
+```
+
+一行留痕 + `route` 照旧返回 `None`（回落模型那条路径一字未动）——这两件事同时成立才算这一支合格。
+
+### b36 预登记（2026-10-12 16:3x，跑之前写；跑完只对表，不改这几个字）
+
+前提说清楚：**#68 不动决策、不动观测内容、不动日志格式**，所以 b36 是一次"证明没变坏"的配对批，
+不是收益批。同一 `m2/tasks_real_100.jsonl`、与 b35 同机器同栈、`JEV_DEBUG` **不设**。只查五项：
+
+1. **`summary.error` = 0**。破了说明 `dbg` 在某个 except 分支里改了控制流 ⇒ 回滚 skills/browser 那两处。
+2. **批 stdout+stderr 里 `[dbg]` 出现次数 = 0**。这条是"默认零输出"的实盘形式：出现 1 次就说明
+   我把开关写反了或者漏了 `JEV_DEBUG` 判空，属于必须回炉的缺陷，不是"多打了一行"的小事。
+3. **零云端**照老规矩只由 step 事件的 `text_helper ⊆ {null, startlux-decision-2b}` 证明，
+   `api_calls` 字段不算证据。
+4. **`false_positive = 0`**（硬线）：四象限里出现 `false_positive` 就停，逐行看是谁把负向题做成了 PASS。
+5. **分数只作归因**：b33/b34/b35 三连已把同题集的噪声带量成 **59/61/68（跨度 9）**，
+   所以这里**不引入 ±1 或 ±2 阈值**——超出即逐行 GAIN/LOST 归因，默认解释是站点健康度而非 #68。
+   判据 5 明确写成"#68 不该带来分数变化"，任何变化都要指出是哪一类行、为什么。
+
+写死一条不许滑的：b36 若五项全绿，#68 的结论就只能写"观测层改动没有代价"，
+**不能**写"留痕让批次变好了"。真正的收益是下一次诊断省下的重开浏览器复探时间，那笔账要等它被用到时再记。
+
+### #68 的验证链中段：离线全套 → 活体 5 行 → 冻结四轮（15:30–15:52）
+
+| 环节 | 读数 | 产物 |
+|---|---|---|
+| 离线全套（tier1，修好闸门之后） | **25 套 / 235 案全绿**（含新落地的 `test_debug_channel` 4、`test_logger_smoke` 14、`test_run_demo_helper_wiring` 3） | `scripts/smoke.ps1` 无 `-Live` 那次输出 |
+| 活体 5 行（tier2，纪律③：动过 skills/browser 就要复测安全位） | s005 / n004 / x001 / x002 / r142 **5/5**，`false_positive=0`，`api_calls` 合计 0 | `reports/smoke-1012-153040-1012-153049.json` |
+| 冻结 r1 | **19/19**，steps 65 / model 96 | `reports/m1-baseline-68r1-1012-153414.json` |
+| 冻结 r2 | **19/19**，steps 63 / model 89 | `reports/m1-baseline-68r2-1012-153826.json` |
+| 冻结 r3 | **17/19 —— 判废**，两条都是站点侧：`n003` 起点落 `chrome-error://chromewebdata/`（评测器按 #16 打成 `blocked_by_egress`，系统类，不是 agent 类），`t001` 读到 `httpbin.org` 的 **502 Bad Gateway** 页（`steps=0 / model_calls=1`） | `reports/m1-baseline-68r3-1012-154232.json` |
+| 冻结 r4（替 r3 重付，一次为限） | **19/19**，steps 64 | `reports/m1-baseline-68r4-1012-154800.json` |
+
+r3 判废的证据不是"我觉得是网络问题"，是这三条同时对上：**同 build 的 r1/r2 里 `n003`、`t001` 都 PASS**
+（r1 落 `https://www.w3.org/standards/`，r2 同）；r3 之后用 `curl -x :2080` 复探 `httpbin.org/forms/post`
+= **200 / 1.98s**、`www.w3.org/` = 200；而 `n003` 的终态是 `chrome-error`（世界没让我们进门，
+按 #16 的口径它连"被做对的机会"都没有）。代码在两分钟里不可能变好又变坏——这是链路的形状，
+不是 build 的形状（记忆里 2026-10-07 那条"同一域名在一轮里既过又挂就是链路"的判据，今晚第二次用上）。
+
+所以冻结口径按 **r1/r2/r4 = 19/19×3** 交付，r3 留档不删（它就是 #66 要处理的"环境行"的样本）。
+另外 r3 那两条各值一笔账：`blocked_by_egress` 第一次在**冻结集**里被抓到（此前只在真实站批次见过），
+说明 #16 的判据不依赖站点类型；而 `t001` 的 502 是 httpbin 自己吐的合法 HTTP 页，评测器没有把它
+错分类成环境——这是对的，502 是站点在回答，只是答案不对。
+
+## b36 · #68 的验收批（2026-10-12 15:52:39–16:10，`reports/real-1012-b36-100-1012-155239.json`）
+
+**65/100**，`error=0`、`unknown=0`，四象限 `{true_success 65, correct_abandon 35}` ⇒ **fp=0**；
+墙钟 **18.1 min**（b33/b34/b35 = 20.7 / 20.5 / 19.4）；`failure_modes`
+= `{decision 31, blocked_by_bot_wall 1, blocked_by_egress 3}`。
+
+### 跑之前登记的那五条，逐条对表
+
+| 判据 | 读数 | 判定 |
+|---|---|---|
+| ① `summary.error` = 0 | **0** | ✅ |
+| ② 批输出里 `[dbg]` = 0 次（`JEV_DEBUG` 不设） | **0**（整份 stdout+stderr `grep -c` 计数） | ✅ 默认零输出这条守住了 |
+| ③ 零云端只由 step 事件证明 | 195 条 step 的 `text_helper` = `{None, startlux-decision-2b}`（None 193 / 本地 2） | ✅ |
+| ④ `false_positive = 0` | 象限里根本没有 `false_positive` | ✅ 硬线没破 |
+| ⑤ 分数只作归因 | 净 **-3**（GAIN=`[]`，LOST=`r129 r187 r195`） | 三条都归了因，见下 |
+
+`GAIN=[]` 是预登记里"#68 不该带来分数变化"的正向半边；**-3 这条负半边同样不能记在 #68 头上**，
+所以逐行查了，而且第一条就把我自己的仪器读错了一次：
+
+- **我先把 `textlen=0` 当成了"页面没文本"**，据此写下"两条 LOST 是全批文本缺失的形状"。
+  一算比例就废了这条：**b35 174/198、b36 171/195 都是 88% 的 step 没有 `text`**——
+  step 事件里的 `text` 是 **Text Helper 给 TYPE_TEXT 填的那个值**，不是页面正文。
+  两批同比例，说明它根本不是 b36 的异常，是我读错了字段（第 N 次证明：仪器读错比不知道更糟）。
+- `r129`：b36 起点落 `chrome-error://chromewebdata/`（b35 同题落 `sqlite.org/json1.html`），
+  评测器按 #16 打成 `blocked_by_egress`。**环境行，不计入能力**。
+- `r187` / `r195`：**同一份 URL、同一份标题**，b35 判 PASS、b36 判 FAIL，翻转的只有
+  `text_contains` 那一条子句（r195 落在 `stackoverflow.com/questions/tagged/python-3.x`，
+  标题里明明有 `python-3.x`，b36 却没通过）。批日志里没有页面快照（记忆里那条"报告只有终态字段"），
+  所以我没法从批产物直接看见那一拍到底有多少文本——**于是用产品评测器本人复探终点页**
+  （零模型，`m2/probe_task_assertions.py::check`，先 `start_owned_chrome.ps1` 把自有浏览器起回来）：
+  `r187` 见证页 **PASS**，text=**3954** 字符 / 33 个动作；`r195` 见证页 **PASS**，
+  text=**2190** 字符 / 58 个动作。⇒ 站点活着、断言可满足，**批里那次 DONE 的快照比见证快照早**，
+  正是 #65 那一族（r154/156/157/158 的邻居）。r195 还多送一个症状：`goal_reached` 在一份
+  还没有正文的快照上发了 DONE——#52 那条"不满足 goal 的页面不许 DONE"的守卫要覆盖的形状，
+  但它属于 #65/#52 的账，不是 #68 的。
+
+所以 b36 的结论按预登记第 5 条的原话写死：**观测层改动没有代价（GAIN=[]、fp=0、`[dbg]` 静默、
+零云端成立、墙钟 18.1 min 还在 30 分钟口径内），而 -3 全部落在环境与 #65 那一族，
+不能写成"#68 让批次变差"，也不能写成"#68 让批次变好"**。
+
+（另外把 #67 的字段覆盖率在这里报第二次，口径写清：195 条 step 里
+`outcome` / `url_from` / `page_fp_before` **195/195**，`skill` **键在 195/195、非空 175/195**——
+那 20 条空的是模型自己决定的拍，地板本来就不该有名字。b34 那条"183/183=100%"说的是**键在**，
+不是"地板每拍都开火"，以后引它的人别按后者读。）
+
+### 一次我自己造出来的破坏（16:1x，登记 + 已恢复，不改写）
+
+b36 之后我要用见证器复探 r187/r195，第一件事是问它的 `--help`。**这个脚本没有 argparse**，
+`--help` 被当成"照跑不误"，于是它在**自有 Chrome 还没起回来**的状态下把整套 82 行候选页全跑了一遍
+（输出里那 20 行 `✗丢` 就是它当时的读数），然后按自己的 `main()` 逻辑**就地重写
+`m2/tasks_l3_verified.jsonl`**：82 行的 `witness_ok` 全被刷成 `false`、`witness_title` /
+`witness_url_real` 全清空。
+
+`git diff` 显示 82 行全变，但字段级比对说清了性质：**223 处差异全部落在 `witness_*` 三个字段上，
+`start_url` / `goal` / `success_assertion` 一处没动**。也就是说题面没有被污染，被污染的是
+"哪些行已被真页面证明过"这份结论——而那份结论正是 `m2/make_tasks_100.py` 的输入。
+
+处置：`git checkout -- m2/tasks_l3_verified.jsonl`（只丢弃我这一支造成的改动；恢复后实测
+82 行、`witness_ok=true` 60 行、c11 的 arXiv 新 pattern 仍在，与 HEAD 一致）。
+复探改成**只 import 模块、只调 `check()`**，不碰 `main()`，所以第二次跑没有再写文件。
+
+这一条要留成一个待办而不是一句道歉：**探针可以不动，但它不许在环境不可用时静默重写题集结论**——
+`m2/probe_task_assertions.py` 该在 `main()` 开头验自有 Chrome 在 `:9222` 上活着
+（`scripts/start_owned_chrome.ps1` 已经有"端口归谁"的判据可以复用），并且写出前把
+"这次有多少行是**因为浏览器不在**而失败"报出来；一条 `--write` 开关比默认落盘安全。
+转成 **#74**。

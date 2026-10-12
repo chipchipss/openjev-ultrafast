@@ -8,6 +8,7 @@ import sys
 import time
 from pathlib import Path
 
+from jev_ultrafast.logger import dbg
 from browser_harness.admin import ensure_daemon, restart_daemon
 from browser_harness.helpers import cdp
 
@@ -93,12 +94,12 @@ def _ensure_daemon() -> None:
     try:
         ensure_daemon(wait=DAEMON_WAIT)
         return
-    except Exception:
-        pass
+    except Exception as e:                              # noqa: BLE001
+        dbg("daemon_ensure_failed", f"{type(e).__name__}: {str(e)[:120]}")
     try:
         restart_daemon()          # 清掉楔死的 daemon（含其 Chrome）
-    except Exception:
-        pass
+    except Exception as e:                              # noqa: BLE001
+        dbg("daemon_restart_failed", f"{type(e).__name__}: {str(e)[:120]}")
     ensure_daemon(wait=DAEMON_WAIT)
 
 
@@ -175,8 +176,9 @@ class Browser:
             self.call("Page.enable", _response_timeout=5)
             self.call("Page.addScriptToEvaluateOnNewDocument", source=MODAL_GUARD_JS,
                       _response_timeout=5)
-        except Exception:
-            pass
+        except Exception as e:                          # noqa: BLE001
+            # 装不上就照旧跑（等价于改前行为），但 #60 那类楔死会静默回来 ⇒ 必须留一行。
+            dbg("modal_guard_not_installed", f"{type(e).__name__}: {str(e)[:120]}")
         self.call("Page.navigate", url=url)
         deadline = time.monotonic() + 15
         while time.monotonic() < deadline:
@@ -301,13 +303,10 @@ class Browser:
             if current != expected:
                 cur_pk = current[0] if isinstance(current, list) and len(current) > 0 else None
                 cur_guard = current[1] if isinstance(current, list) and len(current) > 1 else None
-                print("FRESH_MISMATCH")
-                print("  node:", node)
-                print("  page_key_equal:", cur_pk == expected[0])
-                print("  guard_equal:", cur_guard == expected[1])
-                print("  current_page_key:", cur_pk)
-                print("  expected_page_key:", expected[0])
-                print("  current_guard:", cur_guard)
+                dbg("fresh_mismatch",
+                    f"node={node} page_key_equal={cur_pk == expected[0]} "
+                    f"guard_equal={cur_guard == expected[1]} cur_pk={cur_pk} "
+                    f"exp_pk={expected[0]} cur_guard={cur_guard}")
         return self.evaluate(MARKER_STABLE) == page.get("marker_stable")
 
     def await_dom_settle(self, cap_s: float = 0.25, floor_ms: int = 60) -> None:
@@ -363,16 +362,16 @@ class Browser:
         """
         try:
             self.call("Runtime.evaluate", expression=SETTLE_INIT_JS, returnByValue=True)
-        except Exception:
-            pass
+        except Exception as e:                          # noqa: BLE001
+            dbg("settle_init_eval_failed", f"{type(e).__name__}: {str(e)[:120]}")
         if not getattr(self, "_settle_registered", False):
             try:
                 self.call("Page.enable")
                 self.call("Page.addScriptToEvaluateOnNewDocument", source=SETTLE_INIT_JS)
                 self._settle_registered = True
-            except Exception:
+            except Exception as e:                      # noqa: BLE001
                 # 不支持就该照旧工作：少一份跨导航计数器，等价于改前行为，不能让动作失败。
-                pass
+                dbg("settle_init_not_registered", f"{type(e).__name__}: {str(e)[:120]}")
 
     def await_action_settle(self, kind: str) -> None:
         cap_ms = self.SETTLE_CAPS_MS.get(kind)
@@ -422,9 +421,9 @@ class Browser:
                 awaitPromise=True,
                 returnByValue=True,
             )
-        except Exception:
+        except Exception as e:                          # noqa: BLE001
             # 导航会销毁执行上下文 —— 后续 observe 的 StalePage 重试负责接住过渡态。
-            pass
+            dbg("scroll_settle_failed", f"{type(e).__name__}: {str(e)[:120]}")
 
     def _await_settle(self, cap_ms: int, floor_ms: int = 0, quiet_ms: int | None = None) -> None:
         quiet = self.SETTLE_QUIET_MS if quiet_ms is None else quiet_ms

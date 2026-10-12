@@ -159,8 +159,8 @@ try {
     Log "Step 3: run the demo -> $Out"
     Set-Env @{ "DECIDER_MODE" = "typesafe"; "TYPESAFE_BASE_URL" = "http://127.0.0.1:$SvcPort/v1/systemone";
                "TYPESAFE_API_KEY" = "local"; "PYTHONUTF8" = "1"
-               "TEXT_HELPER_BASE_URL" = $helperUrl; "TEXT_HELPER_MODEL" = $helperModel
-               "TEXT_HELPER_API_KEY" = $helperKey; "HTTPX_PROXY" = $ProxyUrl }
+               "TEXT_HELPER_BASE_URL" = $helper.Url; "TEXT_HELPER_MODEL" = $helper.Model
+               "TEXT_HELPER_API_KEY" = $helper.Key; "HTTPX_PROXY" = $ProxyUrl }
     Set-Location $Repo
     $start = Get-Date
     & $PythonJev m4a\run_flights_ours.py --task $Task --out $Out

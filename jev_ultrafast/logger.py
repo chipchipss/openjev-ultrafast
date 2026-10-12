@@ -22,6 +22,8 @@
 from __future__ import annotations
 
 import json
+import os
+import sys
 import time
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
@@ -39,6 +41,19 @@ EVENT_TEACHER_SHADOW    = "teacher_shadow"
 # ---------------------------------------------------------------------------
 # 序列化
 # ---------------------------------------------------------------------------
+
+def dbg(site: str, detail: str = "") -> None:
+    """`JEV_DEBUG` 才出声的一行留痕（#68）。默认零输出，批日志与报告格式一字不变。
+
+    存在的理由：仓库里有 29 处宽 `except Exception`，其中少数几处**会改变解释**——
+    `skills.route()` 把技能异常吞成 `d = None`，行为正确（回落模型），但没人知道是哪个技能抛了什么；
+    #59 那一轮"技能明明能判达却被读成模型能力问题"就是这个形状。留痕不改控制流：
+    降级照旧降级，只是出事时能在 stderr 看到一行。
+    """
+    if not (os.environ.get("JEV_DEBUG") or "").strip():
+        return
+    sys.stderr.write(f"[dbg] {site}: {detail}" + chr(10))
+
 
 def _to_jsonable(obj: Any) -> Any:
     """dataclass / Enum / 嵌套结构 → JSON 可序列化。"""
@@ -299,278 +314,3 @@ class Logger:
             return _to_jsonable(step_budget.log_entry())
         except Exception:
             return {}
-
-
-# ---------------------------------------------------------------------------
-# Smoke（纯内存，无网络、无浏览器、无 Agent 依赖）
-# ---------------------------------------------------------------------------
-
-def _smoke() -> None:
-    import tempfile
-    from pathlib import Path
-
-    passed = 0
-    total = 0
-
-    def check(name, cond):
-        nonlocal passed, total
-        total += 1
-        if cond:
-            passed += 1
-        else:
-            print(f"FAIL: {name}")
-
-    # --- mock 数据 ---
-    class MockBudget:
-        def __init__(self):
-            self.transitions = []
-
-        def log_entry(self):
-            return {"step": 3, "steps_budget": 20, "steps_ratio": 0.15,
-                    "model_calls": 4, "model_calls_budget": 40,
-                    "model_calls_ratio": 0.10, "budget_state": "normal",
-                    "progress": None}
-
-    def step(n, page_changed=True, with_pre=True):
-        h = {
-            "step": n, "action": f"act{n}", "kind": "click",
-            "choice": f"e{n}", "operation": "CLICK", "target": str(n),
-            "confidence": 0.9, "probability": 0.9, "latency_ms": 100,
-            "text": None, "text_helper": None, "text_latency_ms": 0,
-            "page_changed": page_changed, "url": "https://example.com",
-            "elapsed_ms": n * 500, "executed_ms": n * 400,
-        }
-        if with_pre:
-            h["pre_execute"] = {
-                "step_budget": {"budget_state": "normal"},
-                "validator":   {"valid": True, "code": "ok"},
-                "policy":      {"allow": True, "code": "ok"},
-                "confidence_gate": {"go_teacher": False, "reason": "mode_fixed_high"},
-                "escalation":  None,
-            }
-        return h
-
-    def decision(n):
-        return {
-            "choice": f"e{n}", "operation": "CLICK", "target": str(n),
-            "operation_confidence": 0.9, "target_confidence": 0.9,
-            "confidence": 0.9, "probabilities": {f"e{n}": 0.9},
-            "model": "mock-decider", "latency_ms": 80, "usage": {"total_tokens": 100},
-            "fingerprint": f"fp{n}", "elapsed_ms": n * 500,
-        }
-
-    def text_call(v):
-        return {"model": "mock-helper", "field": "Search", "value": v,
-                "latency_ms": 40, "usage": {"total_tokens": 20}}
-
-    with tempfile.TemporaryDirectory() as tmp:
-        log_dir = Path(tmp) / "logs"
-
-        # --- 1. 空 state ---
-        with Logger("t000", log_dir, flush_every=64) as lg:
-            events = lg.observe({})
-            check("empty state → no events", events == [])
-            check("no file before finalize", not lg.log_path.exists())
-
-        # --- 2. 单步 + 重复 observe ---
-        with Logger("t001", log_dir, flush_every=64) as lg:
-            state = {"history": [step(1)], "decisions": [], "text_calls": []}
-            ev1 = lg.observe(state)
-            check("single step → 1 event", len(ev1) == 1)
-            check("step event type", ev1[0]["event"] == "step")
-            check("step carries pre_execute", "pre_execute" in ev1[0])
-            check("step page_changed True", ev1[0]["page_changed"] is True)
-
-            ev2 = lg.observe(state)
-            check("repeat observe → 0 events", ev2 == [])
-
-        # --- 3. 增量 ---
-        with Logger("t002", log_dir) as lg:
-            state = {"history": [step(1)], "decisions": [decision(1)], "text_calls": []}
-            lg.observe(state)
-            state["history"].append(step(2))
-            state["decisions"].append(decision(2))
-            ev = lg.observe(state)
-            types = [e["event"] for e in ev]
-            check("incremental: 1 step", types.count("step") == 1)
-            check("incremental: 1 decision", types.count("decision") == 1)
-
-        # --- 4. decisions / text_calls ---
-        with Logger("t003", log_dir) as lg:
-            state = {
-                "history": [step(1, with_pre=False)],
-                "decisions": [decision(1)],
-                "text_calls": [text_call("OpenAI"), text_call("hello")],
-            }
-            ev = lg.observe(state)
-            types = [e["event"] for e in ev]
-            check("1 step", types.count("step") == 1)
-            check("1 decision", types.count("decision") == 1)
-            check("2 text_calls", types.count("text_call") == 2)
-            tc = next(e for e in ev if e["event"] == "text_call")
-            check("text_call value", tc["value"] in ("OpenAI", "hello"))
-            check("text_call model", tc["model"] == "mock-helper")
-
-        # --- 5. budget_transition ---
-        with Logger("t004", log_dir) as lg:
-            budget = MockBudget()
-            budget.transitions = [
-                {"event": "budget_transition", "from": "normal", "to": "warn",
-                 "step": 10, "model_calls": 12, "limiting": "steps"},
-                {"event": "budget_transition", "from": "warn", "to": "degrade",
-                 "step": 16, "model_calls": 20, "limiting": "steps"},
-            ]
-            ev = lg.observe({}, step_budget=budget)
-            check("2 transitions extracted", len(ev) == 2)
-            check("transition event type", ev[0]["event"] == "budget_transition")
-            check("transition to warn", ev[0]["to"] == "warn")
-            check("transition limiting", ev[0]["limiting"] == "steps")
-
-            ev2 = lg.observe({}, step_budget=budget)
-            check("transition cursor works", ev2 == [])
-
-            budget.transitions.append(
-                {"event": "budget_transition", "from": "degrade", "to": "abort",
-                 "step": 20, "model_calls": 25, "limiting": "steps"}
-            )
-            ev3 = lg.observe({}, step_budget=budget)
-            check("incremental transition", len(ev3) == 1)
-            check("transition to abort", ev3[0]["to"] == "abort")
-
-        # --- 6. finalize ---
-        from dataclasses import dataclass as _dc
-
-        @_dc
-        class FakeTaskResult:
-            task_id: str
-            result: str
-            quadrant: str | None
-            failure_class: str | None
-            failure_mode: str | None
-            evidence: dict
-            meta: dict
-
-        with Logger("t005", log_dir) as lg:
-            lg.observe({"history": [step(1)], "decisions": [], "text_calls": []})
-            result = FakeTaskResult(
-                task_id="t005", result="PASS", quadrant="true_success",
-                failure_class=None, failure_mode=None,
-                evidence={"final_url": "https://example.com/ok"},
-                meta={"steps": 1, "model_calls": 1, "api_calls": 0, "elapsed_ms": 500},
-            )
-            budget = MockBudget()
-            ev = lg.finalize(result, step_budget=budget,
-                             final_page={"url": "https://example.com/ok", "title": "OK"})
-            check("task_result event type", ev["event"] == "task_result")
-            check("task_result has final_budget", "final_budget" in ev)
-            check("task_result has final_page", "final_page" in ev)
-            check("result.result", ev["result"]["result"] == "PASS")
-            check("final_budget budget_state", ev["final_budget"]["budget_state"] == "normal")
-
-        # --- 7. task_result 是 dict ---
-        with Logger("t006", log_dir) as lg:
-            ev = lg.finalize({"task_id": "t006", "result": "FAIL"})
-            check("dict task_result ok", ev["result"]["result"] == "FAIL")
-            check("dict no final_budget", "final_budget" not in ev)
-
-        # --- 8. JSONL 内容 ---
-        with Logger("t007", log_dir) as lg:
-            lg.observe({"history": [step(1, page_changed=None)],
-                        "decisions": [decision(1)], "text_calls": []})
-            lg.finalize({"task_id": "t007", "result": "UNKNOWN"})
-
-        content = (log_dir / "t007.jsonl").read_text(encoding="utf-8").strip().split("\n")
-        check("JSONL 3 lines", len(content) == 3)
-        import json as _json
-        evs = [_json.loads(line) for line in content]
-        check("line 1 is step", evs[0]["event"] == "step")
-        check("step page_changed None kept", evs[0]["page_changed"] is None)
-        check("line 2 is decision", evs[1]["event"] == "decision")
-        check("line 3 is task_result", evs[2]["event"] == "task_result")
-        check("all have task_id", all(e["task_id"] == "t007" for e in evs))
-        check("all have timestamp", all("timestamp" in e for e in evs))
-
-        # --- 9. flush_every=1 立即落盘 ---
-        lg = Logger("t008", log_dir, flush_every=1)
-        lg.observe({"history": [step(1)], "decisions": [], "text_calls": []})
-        check("flush_every=1 → file exists", lg.log_path.exists())
-        lg.close()
-
-        # --- 10. close 幂等 ---
-        lg = Logger("t009", log_dir)
-        lg.close()
-        lg.close()  # 不应抛
-        check("close idempotent", True)
-
-        # --- 11. 构造参数校验 ---
-        try:
-            Logger("", log_dir)
-            check("empty task_id rejected", False)
-        except ValueError:
-            check("empty task_id rejected", True)
-
-        # --- 12. 未知字段不应进事件 ---
-        with Logger("t010", log_dir) as lg:
-            h = step(1)
-            h["unknown_secret_field"] = "should not appear"
-            lg.observe({"history": [h], "decisions": [], "text_calls": []})
-        line = (log_dir / "t010.jsonl").read_text().strip()
-        check("unknown field excluded", "unknown_secret_field" not in line)
-
-        # --- 13. 非法 state ---
-        with Logger("t011", log_dir) as lg:
-            try:
-                lg.observe("not a dict")
-                check("non-dict state rejected", False)
-            except TypeError:
-                check("non-dict state rejected", True)
-
-        # --- 14. teacher_shadow 抽取 ---
-        def teacher_entry(n):
-            return {
-                "step": n,
-                "local":   {"choice": "e1", "operation": "CLICK", "target": "1",
-                            "operation_confidence": 0.9, "target_confidence": 0.9},
-                "teacher": {"choice": "e2", "operation": "CLICK", "target": "2",
-                            "operation_confidence": 0.95, "target_confidence": 0.95,
-                            "source": "api", "api_model": "mock", "api_confidence": 0.95},
-                "agree": False, "operation_match": True, "target_match": False,
-                "latency_ms": 500, "usage": {"total_tokens": 100},
-                "actions_snapshot": [
-                    {"id": "e1", "kind": "click", "node": 12, "role": "button", "label": "A"},
-                    {"id": "e2", "kind": "click", "node": 42, "role": "button", "label": "B"},
-                ],
-            }
-
-        with Logger("t012", log_dir) as lg:
-            state = {"history": [], "decisions": [], "text_calls": [],
-                     "teacher_decisions": [teacher_entry(0)]}
-            ev = lg.observe(state)
-            check("teacher_shadow event", ev[0]["event"] == "teacher_shadow")
-            check("teacher_shadow has actions_snapshot", "actions_snapshot" in ev[0])
-            check("teacher_shadow agree False", ev[0]["agree"] is False)
-            check("teacher_shadow teacher.api_model", ev[0]["teacher"]["api_model"] == "mock")
-
-            ev2 = lg.observe(state)
-            check("teacher_shadow cursor", ev2 == [])
-
-            state["teacher_decisions"].append(teacher_entry(1))
-            ev3 = lg.observe(state)
-            check("teacher_shadow incremental", len(ev3) == 1)
-            check("teacher_shadow step 1", ev3[0]["step"] == 1)
-
-        # --- 15. JSONL 落盘 ---
-        with Logger("t013", log_dir) as lg:
-            lg.observe({"history": [], "decisions": [], "text_calls": [],
-                        "teacher_decisions": [teacher_entry(0)]})
-        content = (log_dir / "t013.jsonl").read_text().strip().split("\n")
-        ev = json.loads(content[0])
-        check("jsonl teacher_shadow", ev["event"] == "teacher_shadow")
-        check("jsonl actions_snapshot persisted", "actions_snapshot" in ev)
-        check("jsonl actions_snapshot length 2", len(ev["actions_snapshot"]) == 2)
-
-    print(f"SMOKE OK: {passed}/{total}")
-
-
-if __name__ == "__main__":
-    _smoke()

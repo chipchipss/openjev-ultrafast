@@ -42,8 +42,17 @@ if ($busy.Count -gt 0) {
 Log "== tier 1: offline suites (no browser, no model) =="
 $bad = @()
 Get-ChildItem -Path "$Repo\tests" -Filter "test_*.py" | Sort-Object Name | ForEach-Object {
-    $out = & $PythonJev -X utf8 $_.FullName 2>&1 | Select-Object -Last 1
-    $tail = "$out"
+    # A suite may write diagnostics to stderr (test_runner_egress_gate prints the preflight
+    # message it is testing). With 2>&1 and ErrorActionPreference=Stop, PowerShell turns each
+    # native stderr line into a terminating error and kills the whole tier mid-list, and a plain
+    # "last line" would pick up that diagnostic instead of the verdict. So: let the suite own its
+    # streams, then take the last line that IS a verdict. No verdict line = FAIL (crash included).
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $all = @(& $PythonJev -X utf8 $_.FullName 2>&1 | ForEach-Object { "$_" })
+    $ErrorActionPreference = $prevEap
+    $tail = ($all | Where-Object { $_ -match '^(\d+)/(\d+) passed$' } | Select-Object -Last 1)
+    if (-not $tail) { $tail = "$($all | Select-Object -Last 1)" }
     $ok = $false
     if ($tail -match '^(\d+)/(\d+) passed$') { $ok = ([int]$Matches[1] -eq [int]$Matches[2]) }
     if (-not $ok) { $bad += "$($_.Name) -> $tail" }

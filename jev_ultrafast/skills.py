@@ -15,6 +15,7 @@
 env：M16_SKILLS=0 全关；M16_SKILL_<NAME>=0 单关（NAME 大写）。
 """
 from __future__ import annotations
+from jev_ultrafast.logger import dbg
 import os
 import re
 from urllib.parse import parse_qsl, unquote, urlparse as _urlparse
@@ -2148,7 +2149,9 @@ def route(page: dict, goal: str, history: list) -> dict | None:
             continue
         try:
             d = fn(page, goal, history or [])
-        except Exception:
+        except Exception as e:             # noqa: BLE001
+            # 行为一字不改（仍然回落模型），但留下"哪个技能、抛了什么"这一行（#68）。
+            dbg("skill_raised", f"{fn.__name__}: {type(e).__name__}: {str(e)[:120]}")
             d = None                       # 技能内部异常绝不影响主流程
         if not d:
             continue

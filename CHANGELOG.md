@@ -6,6 +6,68 @@
 
 ---
 
+## [diagnostics-channel-and-gates] - 2026-10-12
+
+### Status（约束级：诊断仪器补齐，并且两道闸门被证明曾经不可信）
+
+这一支不涨分，它买的是"下一次诊断不用再猜"。四件事（#67 / #16 / #72 / #68）合起来把
+"日志里看得见什么""环境失败归谁""静默降级要不要留痕""离线闸门是否真跑完"这四条定了下来。
+
+### Added（约束级）
+
+- **step 事件必须带到达判据在读的四个字段**：`outcome` / `url_from` / `page_fp_before` / `skill`
+  （#67）。以前白名单只留 17 个键，把这三件丢在了日志外，于是"这一拍到底动了什么"只能重开浏览器复探。
+  约束由 `tests/test_logger_step_fields.py` 的第 2 案守住：**白名单与 agent 写入点的差集必须恰好等于
+  显式的 `STEP_DROP_KEYS`**——将来 history 再加字段，不写进丢弃清单就当场红，不会再静默漏。
+- **新的系统类失败模式 `blocked_by_egress`**（#16）：起点落在 `chrome-error://` / `about:neterror`
+  的行不再记成 agent 决策失败。负向题豁免（`category=="negative"` 不适用），因为它们**本来就该**进不来。
+- **`JEV_DEBUG` 留痕通道**（#68）：`logger.dbg(site, detail)` 只在环境变量非空时往 stderr 写一行。
+  八个点接上：`skills.route()` 的技能异常（吞成 `d = None` 的那处，#59 整轮误诊的形状）+
+  browser 的六处安装/自愈降级 + `FRESH_MISMATCH` 诊断块。`browser.py` 的裸 `print` 现在 **0 处**。
+  边界写死：**不动控制流、默认零输出、不改日志与报告格式**——`tests/test_debug_channel.py` 第 4 案
+  逐块断言装了 `dbg` 的 except 分支里没有 `raise` 语句。
+- 新落 `tests/test_logger_smoke.py`（`logger.py` 里那 270 行 `_smoke()` 夹具的家；旧位置**没有任何调用方**，
+  50 项检查挂在没人执行的 `__main__` 上）、`tests/test_run_demo_helper_wiring.py`、
+  `tests/test_debug_channel.py`、`tests/test_evaluator_egress_class.py`。
+
+### Corrected（两处"我们以为已经成立"的话，实测不成立）
+
+1. **`scripts/smoke.ps1` 的离线 tier1 会中途死掉，而且死得很安静。** 它跑在
+   `$ErrorActionPreference="Stop"` 下，而 `2>&1` 把子进程每一行 stderr 变成终止错误——
+   `test_runner_egress_gate.py` 恰好把它要验的那句 `[preflight] 出口不通` 打在 stderr 上，
+   于是今晚那次只报出前 **15** 个套件就断了。口径要说清：自 `aae2754`（10-11 晚，出口预检落地的同一提交）
+   起这条闸门就是坏的；此前 CHANGELOG 里的"离线全套 N 案"出自**逐文件计数**，两者不是一回事，
+   那些数字本身不因此作废，但"smoke 全绿"这句话在那之后不能按字面读。
+   修法：套件期间把 EAP 降回 `Continue`，裁决行从整段输出里挑最后一处 `k/n passed`，
+   挑不到=FAIL（崩溃也算）。修后 **25 件 / 235 案**跑完。
+2. **`run_demo.ps1` 的 Text Helper 注入是三个从未赋值的变量名**（体检报告"待核"那条点验为真）：
+   Step 0 用 `Resolve-TextHelper` 得到 `$helper` 表并写进 `$env:`，Step 3 却写
+   `$helperUrl/$helperModel/$helperKey`。PowerShell 未定义变量=$null，而 `Set-Item env:X -Value $null`
+   是**删除**——demo 实际跑在"没有 helper"的形状上，看着正常。失败测试 `1/3 → 3/3`，
+   并用 PowerShell 自己的 AST 独立复核过该文件的未定义引用。
+
+### Verification（验证链，全部对得上产物）
+
+- 失败测试先行，四条各测一次改前红：`test_logger_step_fields` **0/2 → 2/2**、
+  `test_evaluator_egress_class` **2/4 → 4/4**、`test_debug_channel` **0/4 → 4/4**（HEAD 的三份
+  生产文件重跑修好的仪器）、`test_run_demo_helper_wiring` **1/3 → 3/3**。
+- `#16` 的归属核对是配对批做的，不是推理：b34 对 b33 **92/92 行同结果**（象限零漂移），
+  x001 的豁免在实盘里成立。
+- `#68` 的实盘见证：零模型把 `SKILLS` 换成一个必抛的探针技能，`JEV_DEBUG=1` 下
+  `route()` 打印一行 `[dbg] skill_raised: ...` 且**照旧返回 `None`**。
+- 冻结与批次：#68 这一支 **19/19 / 19/19 / [17/19 判废：n003 起点 `chrome-error`、t001 站点 502] / 19/19**
+  （`reports/m1-baseline-68r1..r4-*.json`），活体 5 行 `s005 n004 x001 x002 r142` **5/5、fp=0**
+  （`reports/smoke-1012-153040-1012-153049.json`）；b36 **65/100、error=0、fp=0、`[dbg]` 0 次、
+  零云端 ⊆ {null, 本地}、墙钟 18.1 min**（`reports/real-1012-b36-100-1012-155239.json`）。
+- **真实站 100 行的噪声带是量出来的，不是沿用来的**：同题集三连 b33/b34/b35 = **59 / 61 / 68**（跨度 9），
+  所以 19 题时代的 ±1 法则**不迁移**；#66 夜间档的 `-MinPass` 阈值必须有 ≥3 次同题集读数才能写数字。
+  b36 的 -3 逐行归因（r129 环境；r187/r195 用产品评测器复探终点页 **PASS**、text 3954/2190 字符 ⇒
+  批里那次 DONE 的快照早于页面归静，属 #65 那一族），因此 b36 的结论只能是
+  "观测层改动没有代价"，**不许**写成收益。
+
+---
+
+
 ## [L2-L3-real-web-and-regression] - 2026-10-11
 
 ### Status（阶段级：真实站达标 + 100 行回归体系成立，并补了一条"批形状必须唯一"的硬约束）
