@@ -5058,3 +5058,31 @@ nightly-r1 与 b36 之间 `jev_ultrafast/` **一字未改**（`git diff --stat 8
   阈值随产物一起落进 `reports/ci-1012-1731.json` 的 `thresholds` 字段（下限/单轮/整夜预算都可回查）。
 - **3 轮整夜档仍未跑过**：95 min 这个数是由四次观测的最坏值推出来的预算，
   它第一次真跑之后才允许被引成读数。
+
+## #71 的剩下两半都被自己的测量判死了（2026-10-12，实测，不是"没时间"）
+
+**（a）"可再生的 `out_*.txt` 出仓" —— 前提不成立。** 把仓里 10 个 `out_*.txt` 逐个查生成方：
+
+```
+out_arrival_fixtures.txt   <- 仓内没有脚本再写它
+out_culprit2.txt           <- 仓内没有脚本再写它
+out_dialog_routes.txt      <- 仓内没有脚本再写它
+out_dialog_routes2.txt     <- m2/probe_dialog_routes3.py
+out_download_rawcdp.txt    <- 仓内没有脚本再写它
+out_download_wedge.txt     <- 仓内没有脚本再写它
+out_download_wedge2.txt    <- m2/probe_dialog_routes.py
+out_task_assertions.txt    <- m2/probe_task_assertions.py
+out_task_candidates.txt    <- 仓内没有脚本再写它
+out_task_driven.txt        <- 仓内没有脚本再写它
+```
+
+**7/10 根本没有生成方**——删掉就是销毁那次探针唯一的产物；剩下 3 个虽然能重跑，
+但重跑出来的是**今天**的站点状态，不是当时那份（`out_task_assertions.txt` 里存的是 L3-B
+建题集时 22 行被淘汰的现场，重跑必然不同）。合计才 19 KB，占 `m2/` 的零头。
+⇒ 结论：**不出仓**，这一半作废，理由如上。#71 自己写的"探针一个不删"就是这个意思，
+我差点用它的名义删掉探针的**输出**。
+
+**（b）"real-log 分卷" —— 收益不抵破坏面。** 现值 5057 行 / 412 KB；
+仓内 **19 个文件**、**44 处**引用 `real-log`，全部按**节名**指（"见 #68 一节"那种），
+外加本文内部大量"见上面某节"。分卷要把这 44 处 + 内部指针逐个重连，
+收益只是我自己读文件时省几次 offset 读。⇒ **不分**，读它一律用带 offset 的读法或 grep。
