@@ -6296,3 +6296,37 @@ README 与 MANIFEST 的计数按这次实跑改掉，`git ls-files` 同时重打
 把 `.tar.gz` 解到临时目录，用 `tests/test_no_third_party_pii.py` 里**同一个** `offending()` 谓词扫包内 634 个文件
 ⇒ **命中 0**；再对包内那份 `m2/fixtures/r142_arrival.json` 跑夹具判据 ⇒ **43 条上传链接，非合成名 0 条**。
 ⇒ 可以写的还是那一句："发布产物不含第三方标识"；**历史里那些内容仍在**，`git clone` 的读者看得到。
+
+---
+
+## #70 Tier 3 开工前的预登记（跑任何东西之前写死；纪律⑤）
+
+### 先测量，再决定做什么——两条原计划被我自己的测量**证伪**
+
+| 原计划子项 | 测量 | 结论 |
+|---|---|---|
+| 斩 `agent ↔ skills` 的 import 环 | AST 扫 `jev_ultrafast/*.py` 的 import：`skills.py` **没有任何** `import agent`（只有注释里提到 agent.py 的行号）；`agent.py` 三处 `from . import skills` 是**函数内延迟导入**，不是环 | **没有环可斩**，这条取消（幻影重构） |
+| `state` 改 dataclass | AST 扫 `state[...]` / `state.get/pop/setdefault("…")` 的字面键：`agent.py` 之外只有 `model.py` 碰 3 个键（`prev_node_ids` / `actions` / `visited_fps`），其余文件 0 | 跨模块耦合本来就小，**改 dataclass 是大 diff 换小收益**，本轮不做 |
+| 跨模块私有名 | 全文正则数下来**一共 3 处**：`agent.py:175/200` 调 `_skills._phrases`、`model.py:473` 调 `skills._indexed` | **做**（3 个调用点改成公开名，零行为） |
+| 拆 `goal_reached` | `skills.py` 60 个定义里最长的是 `goal_reached` **175 行**（L352），第二名 `explicit_target` 149 行；`agent.py` 最长 `command` 322 行 | **做**（只拆 `goal_reached`，`command` 太大另议） |
+| `_STUCK` 生命周期 | 它是**模块级字典**、键是页态指纹、跨任务不清。夜间档 r3 实测：111 个不同指纹里 **25 个被 >1 个任务共用**（最多一个指纹 6 个题共用）；但 trace 里**没有**任何"让位/抑制"事件（事件种类只有 step/decision/task_result/text_call） | **可观测性缺失**先补仪器（零行为）；至于"每任务复位"是**行为变更**（会消掉跨题抑制），不进 Tier 3，等仪器有读数之后单开 #83 |
+
+### 验证形状：golden master（比成批对照强，因为它是**逐字节**的）
+
+真实站的 trace 里没有整页 `actions`（#67 只加了 `page_fp_before` 等字段），所以**无法**从日志重放 `route()`。
+⇒ 新探针 `m2/probe_tier3_corpus.py`：零模型，按 `run_tasks._resolve_start_url` 逐题打开起点页、归静、把**整页快照**落
+`m2/corpus/pages.jsonl`（**这个目录进 .gitignore，不入库**——里面是第三方站点正文）。
+新分析器 `m2/golden_tier3.py`：对每页构造 4 个 history 变体（`[]`、起点页、上一页=页内第一个链接、两跳），
+把 `route()` / `goal_reached()` / `explicit_target()` / `link_followed_arrival()` / `first_result()` 的输出
+（**只取 operation / target 序号 / skill 名 / confidence**，不取元素文字 ⇒ 入库件里没有第三方内容）
+写成 `reports/tier3-golden-<stamp>.json`，并给整份输出算一个 sha256 摘要。
+
+### 跑前写死的判据
+
+1. **改前必须先有一份 baseline**（没有 baseline 就不许动代码）。
+2. 每一步改完：`golden_tier3.py` 的 **sha256 摘要一字不动**；动了就是行为变更 ⇒ 当场回滚那一步。
+3. 离线闸门 **35 件 / 290 案**不退（今晚 22:3x 的读数）。
+4. 全部步骤做完：`jev_ultrafast/*` 有改动 ⇒ 按纪律重打**冻结 19/19 × 3** + `x001/x002`。
+5. 最后一道：**一个 100 行批**与今晚三轮同 build 基线对照。判据不是"分数不动"（同 build 本来就抖 6 行），
+   而是 **GAIN ∪ LOST ⊆ {r129, r157, r158, r161, r178, r187}**；出现集合外的任何翻动 ⇒ 回滚并记账。
+6. `false_positive` 恒 0；零云端仍只由步事件 `text_helper` 集合判（新增的仪器事件不许带云端字符串）。
