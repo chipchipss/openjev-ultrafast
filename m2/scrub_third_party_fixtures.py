@@ -23,7 +23,15 @@ import io
 import json
 import os
 import re
+import sys
 import urllib.parse
+
+# 与其它 m2/ 脚本同一惯例：先把 stdout 定成 UTF-8，否则父进程按本地码解码会炸在中文上
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:                                       # noqa: BLE001
+        pass
 
 FIXTURE = 'm2/fixtures/r142_arrival.json'
 HTML = 'm2/tmp_download.html'

@@ -25,28 +25,33 @@ SKIP_PATHS = ("m2/real-log.md", "CHANGELOG.md", "README.md", "MANIFEST.md", "m2/
               "docs/")
 
 
-def main():
-    files = subprocess.run(["git", "ls-files"], capture_output=True, text=True).stdout.split()
-    hits = collections.Counter()
-    names = collections.defaultdict(set)
+def hits(files=None):
+    """返回 {文件: 命中次数}。测试与命令行都走这一个函数，不另造一份判据。"""
+    if files is None:
+        files = subprocess.run(["git", "ls-files"], capture_output=True, text=True).stdout.split()
+    out = {}
     for f in files:
         try:
             data = io.open(f, encoding="utf-8", errors="ignore").read()
         except Exception:                                       # noqa: BLE001
             continue
-        found = {n for n in NAME_RE.findall(data)
-                 if any(m.lower() in n.lower() for m in PRIVATE_MARKS)}
-        if found:
-            hits[f] = sum(1 for n in NAME_RE.findall(data)
-                          if any(m.lower() in n.lower() for m in PRIVATE_MARKS))
-            names[f] = found
+        names = [n for n in NAME_RE.findall(data)
+                 if any(m.lower() in n.lower() for m in PRIVATE_MARKS)]
+        if names:
+            out[f] = len(names)
+    return out
+
+
+def main():
+    files = subprocess.run(["git", "ls-files"], capture_output=True, text=True).stdout.split()
+    h = hits(files)
     print("跟踪文件总数 =", len(files))
-    print("命中文件 =", len(hits), "| 命中次数合计 =", sum(hits.values()))
-    for f, n in hits.most_common(20):
-        print("  %4d  %-46s 样例 %s" % (n, f, sorted(names[f])[:3]))
+    print("命中文件 =", len(h), "| 命中次数合计 =", sum(h.values()))
+    for f, n in sorted(h.items(), key=lambda kv: -kv[1])[:20]:
+        print("  %4d  %s" % (n, f))
     print()
-    print("注意：`m2/fixtures/` 之外的命中才是「跑批会带走的产物」（reports/ 里的 final_title 之类），")
-    print("      以及被 #79 覆盖的 git 历史 —— 本脚本只数【当前工作树】。")
+    print("口径：这里只数【当前工作树的跟踪文件】。「跑批会带走的产物」（reports/）与"
+          "git 历史里的旧内容是两回事，见 m2/real-log.md 的 #79 与 tests/test_no_third_party_pii.py。")
     return 0
 
 
