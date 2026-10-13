@@ -1,0 +1,16 @@
+{
+    "stamp":  "1013-1544",
+    "tasks":  100,
+    "report":  "ci-1013-1544-1013-160343.json",
+    "pass":  65,
+    "false_positive":  0,
+    "error_rows":  0,
+    "wall_minutes":  20.5,
+    "thresholds":  {
+                       "min_pass":  59,
+                       "max_wall_minutes":  30,
+                       "fp":  0,
+                       "error_rows":  0
+                   },
+    "passed":  true
+}

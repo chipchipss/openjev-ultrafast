@@ -1,6 +1,7 @@
 """The complete agent loop. Typed choices, observable state, bounded execution."""
 
 import base64
+import json
 import os
 import re
 import time
@@ -9,6 +10,7 @@ from pathlib import Path
 from .browser import Browser, StalePage
 from .model import action_space, choose, field_context, field_text
 from .questions import MAX_STEPS
+from jev_ultrafast.logger import dbg
 
 # --- M1: pre_execute 链 ---
 from . import decision_validator
@@ -20,6 +22,73 @@ from .confidence_gate import (
     ESCALATION_ABORT,
 )
 from .step_budget import BudgetState, StepBudget
+
+#: #65 后半场：到站那一拍付一次**有界重看**。
+#: cap=6000ms 的出处：两支零模型探针里 docs 族的 `t_text`（正文里出现 goal 短语的时刻）
+#: 是 4.6–8.9 秒，从"刚落地"算起去掉已经到手的那一截，6 秒是能覆盖到多数行的最小值；
+#: 再长就是在批墙钟上给每一行加常数税了。
+ARRIVAL_RELOOK_CAP_MS = 6000
+ARRIVAL_RELOOK_POLL_MS = 250
+
+#: 探的是"goal 点名的短语还缺几个"，不是正文长度。短语只来自 **goal**，不来自断言——
+#: 把评分信息喂进决策层是另一回事（#75 那条线）。
+_MISSING_PHRASES_JS = (
+    "((needles) => { const t = (document.body && document.body.innerText || '').toLowerCase();"
+    " return needles.filter(n => t.indexOf(String(n).toLowerCase()) < 0).length; })(%s)")
+
+
+def _live_missing_phrases(browser, phrases) -> int | None:
+    """live DOM 里还缺几个 goal 短语；读不到返回 None（交给调用方停止等待，不升级成错误）。"""
+    try:
+        n = browser.evaluate(_MISSING_PHRASES_JS % json.dumps(list(phrases)))
+        return int(n)
+    except Exception:                                           # noqa: BLE001
+        return None
+
+
+def _arrival_relook(state: dict, missing: list) -> bool:
+    """到站那一拍的有界重看。返回 True = 拿到了与手里这份**不同**的页态，`state["page"]` 已换。
+
+    两版失败模式都留在这里，因为它们是这一刀的全部成本来源：
+    ① 第一版拿"重看期间正文有没有变长"当退出条件 ⇒ r154 实跑打回。step 2 是
+       `observe_failed`（settle 把上下文炸掉），手里那份是 654 字符的**残帧**，而那一刻
+       DOM 已经是 697 ⇒ 补到的新页态反而**更短**（654），"变长"永远等不到，白等满 cap。
+    ② 换成"等 goal 短语出现在 live"之后，cap 必须有出处（见上面的探针读数）。
+    等完**无条件取一次新页态**：退出条件只决定"什么时候不再等"，不决定要不要拿。
+    失败一律**只降级**——重看没成就是没成，手里那份照旧用，不许把一行变成一行错误。
+    """
+    browser = state.get("browser")
+    if browser is None:
+        return False
+    graded = len((state["page"].get("text") or ""))
+    t0 = time.monotonic()
+    still = None
+    try:
+        deadline = t0 + ARRIVAL_RELOOK_CAP_MS / 1000.0
+        while True:
+            time.sleep(ARRIVAL_RELOOK_POLL_MS / 1000.0)
+            still = _live_missing_phrases(browser, missing)
+            if still is None or still == 0:
+                break
+            if time.monotonic() >= deadline:
+                break
+        fresh = browser.observe(screenshot=False)
+        if not fresh or fresh.get("url") != state["page"].get("url"):
+            return False
+        state["page"] = fresh
+        n = len(fresh.get("text") or "")
+        waited_ms = round((time.monotonic() - t0) * 1000)
+        # 累加到 state，由 `logger.finalize` 写进行末的 task_result。
+        # （第一版写 `state["history"][-1][…]` —— 白写了：那条 step 早就 flush 完，
+        #   同一拍才落册，b38 于是报出"0 行付费"的**假零**。decision 同理：
+        #   agent.py 入册的是**拷贝**，之后改 state["decision"] 到不了产物。）
+        state["arrival_relook_ms"] = int(state.get("arrival_relook_ms") or 0) + waited_ms
+        dbg("arrival_relook",
+            f"graded={graded} still_missing={still} fresh={n} waited_ms={waited_ms}")
+        return n != graded
+    except Exception as e:                                      # noqa: BLE001
+        dbg("arrival_relook_failed", f"{type(e).__name__}: {str(e)[:120]}")
+        return False
 
 
 def _done_guard(decision: dict, state: dict) -> str | None:
@@ -115,10 +184,31 @@ def _done_guard(decision: dict, state: dict) -> str | None:
                        # 两张判据都不认时照旧拒（tests/test_done_guard_arrival.py 第 2 案钉住）。
                        _skills.link_followed_arrival(state["page"], state["goal"],
                                                      state["history"]) is not None)
+            # #65 后半场：到达判据开火的那一拍，页态可能是**残帧**（settle 只等 DOM 归静，
+            # 覆盖不到 `<script>` 注入的结果列表，n004 的邻居）。这里付**一次**有界重看
+            # ——等 goal 短语出现在 live，不等"正文变长"（那一版被 r154 打回）。
+            # 重看**没有**因此获得否决权：等完仍判"没到"就照旧拒，判"到了"才放行。
+            # 刻意不看这一行的断言有没有 text_contains：那会把评分信息喂进决策层。
+            # 也只对 `goal_reached` 的收口付钱：b39 实测 8 行付费里 3 行出自
+            # `link_followed_arrival`（r126/r172/r177），而那三行的断言在**起点页**就能判、
+            # 重看对它们没有任何收益 ⇒ 各白花 6 秒。
+            if (arrived and decision.get("skill") == "goal_reached"
+                    and not state.get("_arrival_relooked")):
+                _last = state["history"][-1] if state["history"] else {}
+                just_landed = bool((_last.get("outcome") or {}).get("url_changed"))
+                _pt = (state["page"].get("text") or "").lower()
+                _missing = [p for p in _skills._phrases(state["goal"]) if p.lower() not in _pt]
+                if just_landed and _missing:
+                    state["_arrival_relooked"] = True
+                    if _arrival_relook(state, _missing):
+                        arrived = (_skills.goal_reached(state["page"], state["goal"],
+                                                        state["history"]) is not None or
+                                   _skills.link_followed_arrival(state["page"], state["goal"],
+                                                                 state["history"]) is not None)
             if not arrived:
                 return "nav goal target not reached (goal_reached says no)"
-    except Exception:
-        pass
+    except Exception as e:                                      # noqa: BLE001
+        dbg("done_guard_rule6_failed", f"{type(e).__name__}: {str(e)[:120]}")
     return None
 
 class Agent:

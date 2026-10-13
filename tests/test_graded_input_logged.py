@@ -1,0 +1,147 @@
+r"""#75：断言吃的那份正文必须进产物——不然一次翻动只能归因到族，证不到帧。
+
+b37 的 r195 从 FAIL 翻到 PASS，动作序列、落点 URL、标题**逐拍相同**，唯一差别是
+`text_contains "python"` 一次 ok=False 一次 ok=True。我想说清"那一次到底读到了什么"，
+却发现 trace 里根本没有：`task_result.final_page` 只有 url + title，step 事件的 `text`
+是 Text Helper 要**输入**的串（#68 那次误读的就是同一个字段），`page_fp_before` 是不可逆哈希。
+⇒ 任何 `text_contains` 的输入事后不可复核。
+
+和 #67 同一类：缺的不是日志行数，是**能区分两种解释的那个字段**。
+
+补的是摘要不是原文：`text_len` 能指出"这是半帧"（docs 族实测 654 → 1454），
+`text_sha16` 能让两次读数对得上"是不是同一份页"；整段正文不进 trace（体积，
+以及第三方页面内容没必要跟着报告一起入库）。
+
+运行：python tests/test_graded_input_logged.py
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import sys
+import tempfile
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO))
+
+from jev_ultrafast.logger import Logger                        # noqa: E402
+
+CASES = []
+
+SHORT = "Python documentation\n\nSearch Docs\n\nnav shell text " * 12
+GROWN = SHORT + "\nResults for enumerate — showing 1-10 of 810\n" + "enumerate entry " * 60
+
+
+def case(name):
+    def deco(fn):
+        CASES.append((name, fn))
+        return fn
+    return deco
+
+
+def page(text, url="https://docs.python.org/3/search.html?q=enumerate",
+         title="Search - Python 3.15.0 documentation"):
+    return {"url": url, "title": title, "text": text, "elements": [], "fingerprint": "f"}
+
+
+def finalize_into(tmp, pg):
+    with Logger("t-graded", Path(tmp) / "logs", flush_every=1) as lg:
+        ev = lg.finalize({"result": "FAIL", "quadrant": "correct_abandon"}, final_page=pg)
+        path = lg.log_path
+    lines = [json.loads(l) for l in Path(path).read_text(encoding="utf-8").splitlines() if l.strip()]
+    return ev, [e for e in lines if e.get("event") == "task_result"][-1]
+
+
+@case("finalize 必须记下断言吃的那份正文：长度 + 16 位摘要")
+def t_graded_snapshot_is_recorded():
+    with tempfile.TemporaryDirectory() as tmp:
+        _ev, disk = finalize_into(tmp, page(SHORT))
+        fp = disk.get("final_page") or {}
+        assert fp.get("text_len") == len(SHORT), \
+            f"final_page 没有可复核的正文长度：{sorted(fp)}"
+        want = hashlib.sha1(SHORT.encode("utf-8", "replace")).hexdigest()[:16]
+        assert fp.get("text_sha16") == want, \
+            f"摘要对不上（{fp.get('text_sha16')} != {want}）——事后无法确认是哪一份页被评了"
+
+
+@case("记摘要不记原文：整段正文不许进 trace")
+def t_raw_text_is_not_logged():
+    with tempfile.TemporaryDirectory() as tmp:
+        _ev, disk = finalize_into(tmp, page(SHORT))
+        blob = json.dumps(disk, ensure_ascii=False)
+        assert "nav shell text" not in blob, "整段页面正文被写进报告了（体积 + 第三方内容）"
+
+
+@case("两次不同帧必须可区分：654 那种半帧 vs 渲染完的那份，长度与摘要都得不同")
+def t_two_frames_are_distinguishable():
+    with tempfile.TemporaryDirectory() as tmp:
+        _e1, one = finalize_into(tmp, page(SHORT))
+        _e2, two = finalize_into(tmp, page(GROWN))
+        a, b = one["final_page"], two["final_page"]
+        assert a.get("text_len") != b.get("text_len"), \
+            "早读与晚读在产物里长得一模一样，r195 那种翻动就还是证不到底"
+        assert a.get("text_sha16") != b.get("text_sha16")
+        assert a["url"] == b["url"], "夹具前提：同一条 URL，只有正文帧不同"
+
+
+@case("#65 的代价必须进产物：task_result.arrival_relook_ms；没付就不写这个键")
+def t_paid_ms_reaches_the_artifact():
+    with tempfile.TemporaryDirectory() as tmp:
+        with Logger("t-paid", Path(tmp) / "logs", flush_every=1) as lg:
+            lg.finalize({"result": "PASS"}, final_page=page(SHORT), state_paid_ms=3438)
+            path = lg.log_path
+        ev = [json.loads(l) for l in Path(path).read_text(encoding="utf-8").splitlines() if l.strip()]
+        tr = [e for e in ev if e.get("event") == "task_result"][-1]
+        assert tr.get("arrival_relook_ms") == 3438, f"付费没进产物：{sorted(tr)}"
+
+        with Logger("t-unpaid", Path(tmp) / "logs2", flush_every=1) as lg2:
+            lg2.finalize({"result": "PASS"}, final_page=page(SHORT))
+            path2 = lg2.log_path
+        ev2 = [json.loads(l) for l in Path(path2).read_text(encoding="utf-8").splitlines() if l.strip()]
+        tr2 = [e for e in ev2 if e.get("event") == "task_result"][-1]
+        assert "arrival_relook_ms" not in tr2, "没付钱的行也被写了计时，批里就数不出真实付费面"
+
+
+@case("同一笔钱必须**穿过评测器的 meta 白名单**进到 reports/*.json（#67 的老形状：白名单丢字段）")
+def t_paid_ms_survives_evaluator_meta():
+    from jev_ultrafast.evaluator import evaluate
+    spec = {"task_id": "r154", "category": "positive",
+            "success_assertion": {"type": "all_of", "clauses": [
+                {"type": "text_contains", "value": "enumerate", "case_sensitive": False}]},
+            "extensions": {}}
+    pg = page("enumerate — Python documentation " + "x" * 40)
+    meta = {"steps": 2, "model_calls": 3, "api_calls": 0, "elapsed_ms": 7803,
+            "arrival_relook_ms": 1875}
+    res = evaluate(spec, pg, [{"kind": "click", "url": pg["url"]}], "done", meta=meta)
+    d = res.to_dict() if hasattr(res, "to_dict") else res
+    got = (d.get("meta") or {}) if isinstance(d, dict) else {}
+    assert got.get("arrival_relook_ms") == 1875, (
+        f"runner 写了钱，评测器的 `_meta` 白名单却只放四件（steps/model_calls/api_calls/elapsed_ms），"
+        f"于是 reports/*.json 里数不到它：meta={got}")
+
+
+def main() -> int:
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:                                       # noqa: BLE001
+            pass
+    failed = 0
+    for name, fn in CASES:
+        try:
+            fn()
+        except AssertionError as e:
+            failed += 1
+            print(f"FAIL  {name}\n      {e}")
+        except Exception as e:                                  # noqa: BLE001
+            failed += 1
+            print(f"ERROR {name}\n      {type(e).__name__}: {e}")
+        else:
+            print(f"ok    {name}")
+    print(f"{len(CASES) - failed}/{len(CASES)} passed")
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

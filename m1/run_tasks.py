@@ -289,6 +289,11 @@ def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dic
         "api_calls":   0,  # M1 fixed_high 恒 0
         "elapsed_ms":  round((time.perf_counter() - started) * 1000),
     }
+    # #65 的代价要能对到 reports/*.json（仓库里的权威工件；logs/ 故意不入库）。
+    # 没付就不写这个键，与 logger 的 task_result 事件同一口径。
+    _paid = agent.state.get("arrival_relook_ms")
+    if _paid:
+        meta["arrival_relook_ms"] = int(_paid)
 
     try:
         task_result = evaluate(
@@ -308,7 +313,8 @@ def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dic
         if task_result is not None:
             logger.finalize(task_result,
                             step_budget=agent.step_budget,
-                            final_page=agent.state.get("page"))
+                            final_page=agent.state.get("page"),
+                            state_paid_ms=agent.state.get("arrival_relook_ms"))
     finally:
         agent.close()
         logger.close()

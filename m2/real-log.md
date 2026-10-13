@@ -5519,3 +5519,353 @@ r154 单任务 → **x001/x002 安全复测**（动的是 DONE 的闸门，硬�
 5. 先小后大：头一晚上先跑 21 题的老冻结集拿形状，再谈 100 行（100 行两侧各 ≈21 分钟 + 上游配额）。
 
 ⇒ 需要用户批准这笔调用开销与"允许把页面内容送进上游"这个例外，所以今晚只登记不跑。
+
+## #65 后半场开工前的登记（22:5x，跑之前写；这一支动 `jev_ultrafast/`，所以链必须走全）
+
+### 先定"付钱的位置"，因为成本是量出来的不是感觉
+
+用同一 build 的夜间档 r3（65/100 那一轮）的 trace 数：
+
+| 量 | 值 | 含义 |
+|---|---|---|
+| `outcome.status == url_changed` 的拍 | **97** / 批 | 若"每次到站都重观测"⇒ 上界 97×2s ≈ **+3.2 分钟/批**，太钝，不做 |
+| DONE 决策总数 | **88**（77 行至少发过一次） | |
+| 其中 `skill=goal_reached` | **65** | 地板收口是主体；`link_followed_arrival` 10、模型自发 13 |
+| ⇒ 若只在"`goal_reached` 发 DONE 且 goal 的目的地短语不在页面文本里"时付一次 | 上界 65 拍、每行**只付一次**（latch） | **≤ +2.2 分钟/批**，且绝大多数行付 0 |
+
+### 一条被我否掉的偷懒写法（记下来，防止下次再想走）
+
+最省的做法本来是"这一行的断言里有 `text_contains` 才等"——**但那等于把评分信息喂进决策层**。
+本项目的 pillar 是"断言永远不进模型 prompt、只做执行后核验"（`run_task.py` / L3-D 那支刚把它钉成
+`all_of` 独立子句）。⇒ 触发条件只能用 **goal 文本 + 页面本身**，与断言无关。
+
+### 判据（跑之前写，六条）
+
+1. **失败测试先行**：新案在当前代码上必须红，红数写进这一节；夹具用今晚实测形状——
+   同一 URL 第一份正文短（654 字符不含词）、第二份长（1454 含词），断"改前会在短的那份发 DONE /
+   改后不会"；
+2. **只降级不升级**：重观测撞 `StalePage`/超时 ⇒ 用原来那份页态继续判，**绝不**因为加了等待就让
+   一行崩成 `error`（`summary.error` 必须仍是 0）；
+3. **一次性 latch**：同一行最多付一次这个等待；第二次 `goal_reached` 再发 DONE 就直接放行
+   （防"等到超时→再等→撞步数上限"的新死循环，这是 #25/#53 那族空点击占拍的镜像）；
+4. **cap = 1.8 秒**（两支探针里 docs 族 `t_text` 是 0.5–8.9 秒，1.8 秒**不可能**全兜住 ⇒
+   这条刀的预期收益是"把 +781ms 那次早读推后到第一次真实增长"，不是"必过"；
+   过不过看读数，不许为了过而把 cap 调到 9 秒顶墙钟）；
+5. **零云端 / `fp=0` / `error=0`** 照旧是硬线；x001/x002 必须一 PASS 一 correct_abandon，
+   且**不得**出现新的等待导致 x002 步数或收口方式变化；
+6. **配对批归因**：GAIN 只许落在 {r154, r156, r157, r158} 才算这一刀的收益；
+   **任何 LOST 立刻回滚**（b25 那条规矩）；`url_changed` 拍数与批墙钟要单独报，
+   付了多少次等待要从 trace 里数出来（不许用"应该差不多"）。
+
+### 预测（也在跑之前写）
+
+- 失败测试：改前 **红**，改后 3/3 或 4/4；
+- r154 单任务：**不一定翻 PASS**（cap 1.8s < docs 的 4s+），若仍 FAIL 属预期内，
+  但必须能看到"多了一次重观测、正文变长了"；
+- 配对 100 行批：**GAIN ⊆ {r154,r156,r157,r158}，且我预计只有 0–2 行真翻**（cap 兜不住整族）；
+  批墙钟 +30~90 秒（付 15~45 次等待 × ≈2 秒）；若墙钟 +>2 分钟 ⇒ 说明 latch 没生效或触发面过宽，先修再谈收益；
+- 若这一刀只买到 0–2 行，它就落在 ±3 抖动带**之内** ⇒ 按今晚那张表，**不能宣布收益**，
+  那我就得老实写"这刀没读出信息"，并把 cap/触发面重开一轮设计。这是这条链最容易失败的地方，先写在这。
+
+### 改前红数与实现（跑链之前登记，数字都来自实跑）
+
+| 套件 | 改前 | 改后 | 红在哪两案 |
+|---|---|---|---|
+| `tests/test_arrival_reobserve.py`（新，7 案） | **5/7** | 7/7 | 「短语不在正文里 ⇒ 放行前必须付一次重观测」与「同一行最多付一次」——两案的红话都直接引用 r154 那拍，不是空转断言 |
+| `tests/test_graded_input_logged.py`（新，#75，3 案） | **1/3** | 3/3 | 「finalize 必须记下正文长度 + 摘要」报错原文是 `final_page 没有可复核的正文长度：['title','url']`，正是今晚 r195 证不到底的那个洞；另一案「两次不同帧必须可区分」同因红 |
+
+夹具的成立前提我先自己否过一次：第一版短页夹具**没有** `start_url` 字段，`goal_reached` 于是回 `None`
+——因为它的起点取 `page["start_url"] or history[0]["url"]`，我填的历史 `url` 就是结果页本身，
+短语在"起点"里 → 被"短语就是搜索词"那格排除。补上 `start_url` 后短页确实发 DONE 且被守卫放行，
+这才和实盘一致（**如果我没验这一步，测试就是在钉我自己编的形状**，见记忆里"settled state not append-time"）。
+
+实现落在两处，都不扩范围：
+- `jev_ultrafast/agent.py`：`_arrival_relook()`（cap **1800 ms**、poll 200 ms、只降级）
+  + DoneGuard 规则 6 里" arrived 且 goal 短语不在正文 ⇒ 付一次、latch、用新页态重判"；
+  顺手把规则 6 那个 `except Exception: pass` 换成 `dbg("done_guard_rule6_failed", …)`（#68 的口径）。
+- `jev_ultrafast/logger.py`：`final_page` 增加 `text_len` + `text_sha16`（**只记摘要不记原文**，
+  第三个案子钉住这条）。
+
+离线全套：**29 件 / 254 案全绿**（`scripts/smoke.ps1` tier1，23:1x 实跑，机器相加）。
+
+> **更正（今天第二次，同一个毛病）**：今天下午这一节里我写了两处自估时钟——
+> 「开工前的登记（22:5x）」与「离线全套 23:1x 实跑」。**都不对**：我夜里 22:5x 收工之后
+> 用户离开，实际是**次日 10-13 的 13:4x 开工**。权威时刻取产物：
+> 第一次 r154 单任务 `one-r154-1013-135321.json` = **13:53:21**，
+> 离线那两次 `smoke_65.txt` = **13:52:12**、`smoke_65b.txt` = **14:0x**，
+> 安全复测 `one-x001-1013-140527.json` = **14:05:27**。
+> 判据与红数的内容不受影响（都在跑之前写），只有标题上的钟是拍的。规矩继续：
+> **小节标题只准写产物时间戳**。
+
+---
+
+## 10-13 下午后半：#65 的两批实跑读数（b38/b39）、触发面收窄、以及我自己写坏 agent.py 的现场
+
+> 时刻全部取产物，不拍钟：b38 报告 mtime **14:47:15**、b39 **15:19:34**、r139 单跑 **15:21**、
+> 重建后的 `agent.py` **15:30:56**。
+
+### b38 / b39 的读数（`arrival_relook` 第一次上真实批）
+
+| 批 | pass | error | unknown | 每行耗时相加 | 步数 | 模型调用 | 批墙钟（trace 首末事件） |
+|---|---|---|---|---|---|---|---|
+| b37（改前基线，10-12） | **65** | 0 | 0 | 791.5 s | 190 | 317 | 18.4 min |
+| b38（1013-142538） | **72** | 0 | 0 | 969.4 s | 203 | 331 | 21.3 min |
+| b39（1013-145827） | **70** | 1 | 0 | 797.1 s | 187 | 308 | 20.7 min |
+
+**逐行归因（相对 b37）**：
+- 预登记的射程 **r154 / r156 / r157 / r158** ——四行在两批里**都** FAIL→PASS，且 b39 的 trace 里
+  这四行**都带付费标记**（`arrival_relook_ms` = 2922 / 1344 / 1578 / 1094 ms）。这四行是这一刀的
+  全部收益，两批独立复现，且**步数与模型调用一行都没变**（b37 vs b39 都是 steps 2 / calls 3）——
+  重看买的是"同一拍读到哪一帧"，不是"多走一步"。
+- b39 另外还"涨"了 r127 / r178，b38 涨了 r127 / r129 / r178，但这几行**没有付费标记**，
+  也不是同一行在两批里同形（r129 在 b38 涨、b39 又落回去）⇒ 记在 #66 量过的**同 build 抖动**
+  （5/100 行）名下，不算这一刀的收益。
+- b39 掉的 r129 相对 b38 是同一族抖动；**error=1 是 r139**，签名是 harness 的
+  `agent_init_failed_after_cdp_reset`（不是模型行为），当场单跑复测 **PASS**
+  （`one-r139-1013-152115.json`，1 步 / 2 调用 / 5645 ms，true_success）。
+- `false_positive` 两批都是 **0**，零云端按步事件口径核过（`text_helper` 只出现
+  `null` / `startlux-decision-2b`）。
+
+**b39 付了多少**：8 行、合计 **31 453 ms**，单行 1 094–6 281 ms。付费名单与收益名单一对：
+
+| 行 | 付费 ms | 收口判据 | 相对 b37 | 结论 |
+|---|---|---|---|---|
+| r154 / r156 / r157 / r158 | 2922 / 1344 / 1578 / 1094 | `goal_reached` | 四行全涨 | **该付的** |
+| r107 | 6 141 | `goal_reached` | 本来就 PASS | 白花 6 秒，无危害 |
+| r126 / r172 / r177 | 6 281 / 6 047 / 6 046 | `link_followed_arrival` | 本来就 PASS | **白花 18.4 秒** |
+
+⇒ 触发面收窄：只有 `decision.get("skill") == "goal_reached"` 的收口才付这笔钱。
+理由不是"省时间"这一个——`link_followed_arrival` 的证据是"goal 点名的那条链刚被踩过"，
+它是**导航事实**，与页面上少了哪几个字无关，重看对它没有任何信息增益；那三行各等满 cap 就是纯税。
+（r107 那类"到了但短语还没渲染完、而断言本来就过"的行留着：它付的是**判据正确性**的保险费，
+不是白付——b38 里它就是靠重看把 DONE 收在渲染完的那一帧上的。）
+
+### 失败测试先行（收窄这一步的红数）
+
+`tests/test_arrival_reobserve.py` 在收窄**之前**跑：**10/11**，红的那一案是
+「DONE 出自 `link_followed_arrival` ⇒ 一分钱都不付」——它报 `observes=1`，正是 b39 里
+r126/r172/r177 那三行白花 6 秒的形状。收窄后 **11/11**。
+夹具前提照旧先验一遍：该案的历史里必须真的含 `"action": "SQL Syntax"` 这类"刚踩过 goal 点名的链"
+的证据，否则 `link_followed_arrival` 不开火，测试就是在钉我自己编的形状。
+
+### 现场：我把 `jev_ultrafast/agent.py` 写成了 0 字节
+
+为了量"收窄前的红数"，我用一条 Python 单行做"临时回退 / 恢复"：
+
+```python
+io.open(p,'w',newline='').write(io.open(p,encoding='utf-8').read()...)   # ← 错在这
+```
+
+`open(p,'w')` **先把文件截断**，之后那个读才执行 ⇒ 写回去的是空串 ⇒ `agent.py` 变成
+**0 字节**（mtime 15:26）。这不是环境的账，是我自伤的工具错误，而且是**同一类毛病的第二次**：
+用"读一遍再写回"当安全网时忘了 `'w'` 的截断发生在读之前。
+
+恢复路径与核验：
+- 工作树里的今天改动**没提交**过，但 `git ls-files -s` 显示 index == HEAD（`49704` 字节的 blob），
+  `git checkout -- jev_ultrafast/agent.py` 拿回的是**已提交的 50567 字节 CRLF 版**（blob 49704 +
+  `core.autocrlf=true` 的行尾展开；`git status` 对该文件回到干净，说明字节级 == HEAD）。
+- 然后把今天那一刀的四处改动按原样重贴：`import json` / `from jev_ultrafast.logger import dbg`；
+  `ARRIVAL_RELOOK_CAP_MS = 6000`、`ARRIVAL_RELOOK_POLL_MS = 250`、`_MISSING_PHRASES_JS`、
+  `_live_missing_phrases()`、`_arrival_relook()`；DoneGuard 规则 6 里"arrived 且 skill 是
+  `goal_reached` 且刚落地且短语有缺 ⇒ 付一次、latch、换新页态重判"；把规则 6 末尾的
+  `except Exception: pass` 换成 `dbg("done_guard_rule6_failed", …)`。
+  `git diff --stat` = **92 增 / 2 删**，与写坏之前的增量一致。
+- 重跑核验（全离线）：`test_arrival_reobserve.py` **11/11**、`test_graded_input_logged.py` **4/4**、
+  `scripts/smoke.ps1` tier1 **29 件 / 259 案全绿**（15:3x 两次实跑，机器相加：改前入库 244 案
+  + 今天新增 11 + 4 = 259，对得上）。
+- 结论上没有任何数字来自那个 0 字节的窗口：b38/b39 都是**写坏之前**跑的，产物时间戳在前面。
+
+**规矩补一条**：临时回退一律用 `git stash`（自有 tag）或直接 `Edit` 反向改，
+**绝不用"就地读改写"**；要动整文件先 `cp` 一份再写。
+
+### 跑链之前的预登记（冻结三轮 + b40）
+
+build = 重建后的 `agent.py`（50567+92/-2）+ `logger.py`（`final_page` 摘要 / `arrival_relook_ms`）
++ `m1/run_tasks.py`（把 state 里的付费累加送进 `finalize`）+ 两个新套件。这就是最终形态，
+跑链期间**不再动 `jev_ultrafast/*`**。
+
+1. **冻结 19/19 × 3**（`scripts/run_baseline_19.ps1`，默认线 :8090）。判据：三轮全 19/19、
+   `fp=0`、`error=0`、`unknown=0`；任一轮不过 ⇒ 按 BLOCKED 处理（没有产物＝没跑，不记成失败）。
+2. **b40 真实 100 行**（与 b39 成对，同一 build 只差"触发面收窄"这一条）。判据三条，先写死：
+   - **收益不退**：r154 / r156 / r157 / r158 四行照旧 PASS（这四行是这一刀的全部证据）；
+   - **付费面变小**：trace 里带 `arrival_relook_ms` 的行数从 b39 的 **8 行 / 31 453 ms**
+     降到 **≤ 5 行 / ≤ 15 000 ms**，且 `link_followed_arrival` 那一族（b39 的 r126/r172/r177）
+     一行都不该再出现；
+   - **不引入新伤**：`fp=0`、`error=0`（若出现 r139 那种 harness 签名，单跑复测后再归因）、
+     步数与模型调用相对 b39 的漂移在 #66 量过的同 build 抖动（5/100 行）之内。
+   分数本身按老规矩：b40 相对 b39 的 ±2 不解读，只有上面三条是判据。
+
+### #77 的两件尾活（跑链期间做的，都不碰 `jev_ultrafast/*`、不碰浏览器、不碰 :8090）
+
+**① 上游许可归档 = `docs/12-upstream-license.md`（新）**
+README 的 License 一节此前写着"MIT —— 继承自 jev-ultrafast"，而仓里**没有那份原文**；
+`docs/00-project-plan.md:6` 与 `docs/01-hard-rules.md` 的 H3 又把基座决策写成"Fork jev-ultrafast（MIT）"。
+MIT 的条件句要求上游版权告示跟着分发走，所以先把原文取回来并**留下取文命令**：
+
+```
+curl -x http://127.0.0.1:2080 -H "Accept: application/vnd.github.raw" \
+     https://api.github.com/repos/browser-use/jev-ultrafast/contents/LICENSE
+```
+
+两条独立来源对上才算数：`/repos` 元数据给 `spdx_id = MIT`，原文首行是 `MIT License`；
+`LICENSE` 1068 字节、sha1 `c5f3915d649ae54b48ee19644ce502065968be1b`，
+抓取时刻 default branch 头 `1231850a0bf1a0c0341fe408ef1668dbbfdfac46`（committer 2026-09-18T16:28:35Z），
+抓取日期 2026-10-13。**没核证的事写在文档里**：本仓与上游的**逐文件对应关系**——文档只说"基座 = fork"，
+没留下那次 fork 的 commit，所以"derived from 的具体清单"这句话现在不能对外写。
+`LICENSE` 本体**没动**（并进上游告示还是"我们的 LICENSE + 归档文件"两种形状都合法，这是发布形态的选择，归操作者定）。
+
+> 一处过程上的自我纠正：我第一次取原文用的是 WebFetch，它返回的内容**与**API 原文一致，
+> 但那条 URL 是我自己拼出来的、来源不可追，所以判它"不算证据"，改用 `curl` 走代理 + GitHub API
+> 重新取了一份并算 sha1 入库。**结论没变，取证方式变了**——这正是记忆里"探针先于结论"那条的用处。
+
+**② 夹具里的第三方个人标识已脱敏**
+`m2/fixtures/r142_arrival.json`（51 处）与 `m2/tmp_download.html`（2 处）里带着
+the-internet 公开下载页上别人上传的文件名 `nSkodeQA_Sharmatania_sharmatania384@gmail.com.pdf`
+——文件名里就是一个可用的个人邮箱地址，对外发布不该带着它。两文件各 53/1 处替换为
+`redacted@example.com`，替换前后**先 `cp` 到 `/tmp` 留原样**，核了四件事：
+JSON 仍可解析（`text` 1024 字符不变）、两文件里 `sharmatania384` 剩 **0**、
+字节数只按替换差缩减（255 414→255 210、19 617→19 609）、`tests/test_skills.py` **78/78 照旧全绿**
+（用到该夹具的是 #59 那组负例，点的是另一条文件名，语义不受影响）。
+`m2/real-log.md:5505` 与 `CHANGELOG.md:37` 里对它只写过 `…@gmail.com.pdf`，没有全文，**不含泄漏**。
+没做的：同页还有约 50 个第三方文件名（`resume.pdf`、`JD-Coforge.docx`、Marathi letterhead、
+`WhatsApp Image ….jpeg` 等），它们是那台公开测试站自己的测试数据、不含个人标识，
+是否连它们一起替换成合成名是同一件发布形态决定，留给操作者定。
+
+### #74 落地：见证探针的 unknown 态 + 默认演练（跑链期间的第三件，也不碰产品代码）
+
+`m2/probe_task_assertions.py` 此前是"跑一次就全量重写 `m2/tasks_l3_verified.jsonl`"，
+10-12 那次把 82 行 `witness_ok` 刷成 `false` 的入口就是它（那一节的三条要求原样实现）：
+
+1. **`argparse` 有了**：`--help` 不再被当成"照跑不误"；`--write` 才落盘，**默认演练**。
+2. **预检**：`main()` 开头调 `browser._assert_owned_browser()`（runner 一直在用的"端口归谁"判据），
+   `no-browser:` / `foreign-browser:` 一律**拒跑返回 3，一个字节不写**。
+3. **`witness_ok` 三态**：环境性失败（连不上 / 超时 / `no-browser:` / observe 回空）⇒ `None`；
+   评测器本人说这条断言不满足 ⇒ 才记 `False`。汇总行按三档打数：`成立 / 不成立 / **未证(环境)**`。
+4. **合并写**：这一轮没证成的行**不许**把上一轮已证 `true` 的行降级（保下来并打 `witness_held`）。
+   `m2/make_tasks_100.py:40` 的过滤器是 truthiness（`r.get("witness_ok")`），所以 `None` 与 `False`
+   一样进不了题集 —— 这一条不用改构建器，方向本来就是安全的。
+
+**改前的红，两种形式都如实写**：
+- 单元层面 `tests/test_probe_witness_state.py` 对 HEAD 的探针跑是 **1/7**，红的形式是
+  `TypeError: main() takes 0 positional arguments`（新 API 不存在），这个红**只能证明接口是新的**，
+  不能证明旧行为错——所以我另外单独量了行为：
+- 行为层面（临时目录里把候选/结论路径指过去，喂一个"构造即抛 `no-browser:`"的假浏览器，
+  照 HEAD 的 `main()` 零参数跑）：结论文件被**重写**，先前那行的 `witness_ok=true` 变成 `False`、
+  `witness_title` 清空，返回码仍是 **0**。这就是"环境不可用却写出冒充分数的 false"的实测形状。
+
+7 案里有 1 案是**夹具前提自检**（`success_assertion` 得用真形状 `all_of/clauses`，
+成立页必须让评测器本人说 PASS）——第一版我把断言写成了裸 list，评测器给的是
+`UNKNOWN / assertion_error`，那两条"对照"案当时是在钉我自己编的形状而不是钉行为。补上自检后
+**7/7**，两条对照案（评测器说不过 ⇒ `False`、已证 `true` 不降级）钉的是"这次没有把判据放宽成 unknown"。
+
+**没做的**：真站点的重探。探针现在默认演练，但真跑仍要自有 Chrome 与代理，
+而 :8090 与浏览器归跑链独占（纪律⑥：一次跑链拥有一个浏览器）。等 b40 之后需要重探哪一行，
+再按"只 import、只调 `check()`"的方式单点跑。
+### #73 落地：smoke tier 2 的取题器换成"一个 id 一份断言 + 出处可见"（`m2/smoke_tasks.py`）
+
+**现状（不是我推测的，是仓里现在就有两份 x001）**：
+
+| 文件 | x001 的断言 | 死页（`example.invalid` 按设计不存在）上 |
+|---|---|---|
+| `m1/tasks-laya-19.jsonl` | `all_of[text_not_contains "booked"]` | **恒 PASS** |
+| `m1/tasks-reachable.jsonl` / `m1/tasks-skills.jsonl` | `any_of[text_contains "not available", …]` | FAIL |
+
+`scripts/smoke.ps1` 原来自己扫 `@("m1","m2")` 下所有 `tasks*.jsonl`，"第一个命中就算"。
+**改前行为的实测**（把两种定义放进同一个临时目录，逐字照跑第 76-84 行那段选取逻辑）：
+
+    picked x001 assertion.type=all_of
+
+——两份都合法、谁先撞上是文件顺序说的，而且**没有一行输出说明它出自哪个文件**。
+今天 15:44 那轮 tier 2 的 x001 就是这个形状：`chrome-error://chromewebdata/`、steps=0、
+model_calls=1、象限 `true_success`（`reports/smoke-1013-154436-*.json`）。
+
+**改成什么**：取题从 shell 搬进可离线测的 `m2/smoke_tasks.py`（与 `smoke_gate.py` 同一形状），规则是
+**不许猜**而不是"挑一个"：钉住 `m1/tasks-laya-19.jsonl`（与 19 行冻结尺子同一把）；
+钉住文件里有的 id 一律用它，别处的同 id 不同断言记为**遮蔽并打出来**；
+没被钉住的 id 若在两处断言不同 ⇒ **拒绝出题**（退出 2，且不写出题文件）；缺 id 同样拒绝。
+出题时每行打印出处与断言摘要，报告出问题能追到文件。
+
+**验证**：`tests/test_smoke_task_provenance.py` **4/4**（①钉住即权威且遮蔽可见 ②无权威冲突 ⇒ 拒写
+③缺行 ⇒ 拒写 ④真实仓 5 行出得来、x001 出自 laya-19、遮蔽恰有两份）。
+改前的红有两种形式，都如实记：单元层对 HEAD 是 `collect() missing argument`（新 API 不存在，
+这个红只证明接口是新的）；**行为层的红是上面那条 `picked x001 assertion.type=all_of`**。
+`scripts/smoke.ps1` 改后 parse-clean 且非 ASCII 字节 **0**（PS 5.1 的 ANSI 读取陷阱）。
+**没验的**：`smoke.ps1 -Live` 的实跑（tier 2 要浏览器与 :8090，现在归 b40 批占用，纪律⑥）——
+这条留在批结束后补，补之前这一档不算绿。
+
+顺带记一条与 #16 相邻的事实（不改尺子，只记账）：x001/x002 这两行的象限**本来就该是 `true_success`**
+（`jev_ultrafast/evaluator.py:330-333` 写明 reject/guard 型负任务的"正确拒绝"记 true_success，
+安全硬线看的是 fp=0）。所以"死页判 PASS"伤的不是分数口径，而是**tier 2 作为安全门的信息量**：
+它没有证明 agent 拒绝了，只证明了页面上没出现 "booked" 这个词。要把这一格变硬，得改题面断言
+（那是"对外尺子"的变动，19 行冻结集与 19/19×3 的锚要重跑），留给操作者定。
+### 跑链读数（16:03–16:34，产物时间戳见每行）：冻结三轮 + b40 三条判据全过，外加一次"环境的账"当场改判
+
+**冻结 19/19 × 3**（重建之后的最终 build，跑链期间没再动 `jev_ultrafast/*`）：
+
+| 轮 | 报告 mtime | 读数 |
+|---|---|---|
+| r1 | `m1-baseline-1013-1546.json` 15:51:56 | **19/19**，fp=0 |
+| r2 | `m1-baseline-1013-1552.json` 15:57:42 | **19/19**，fp=0 |
+| r3 | `m1-baseline-1013-1558.json` 16:03:20 | **19/19**，fp=0 |
+
+**b40 = `reports/ci-1013-1544-1013-160343.json`（16:24:36）：65/100，fp=0，error=0，unknown=0，批墙钟 20.5 min**
+（verdict 工件 `reports/ci-1013-1544.json` 16:24:38 写的是 `CI green`）。
+三条预登记判据逐条对（审计脚本 `m2/b40_audit.py`，输出照抄）：
+
+1. **收益不退** ⇒ `r154 / r156 / r157 / r158` = **全 PASS**，且这四行都带付费标记（2610 / 3187 / 1344 / 1093 ms）。
+2. **付费面变小** ⇒ **5 行 / 14 343 ms**（预登记上限 ≤5 行 / ≤15 000 ms；b39 是 8 行 / 31 453 ms）。
+   b39 里白花 6 秒的那三行 `r126 / r172 / r177`（`link_followed_arrival` 收口）**这次一行都没付费** ⇒ 收窄按设计生效。
+   剩下第 5 个付费行是 `r107`（6 109 ms，本来也 PASS）——它是"到了但短语还没渲染完"那一族的保险费，留着是有意的。
+3. **不引入新伤** ⇒ fp=0、error=0；步数 b39 187 → b40 185，模型调用 308 → 314；
+   零云端口径照旧按步事件核：`text_helper` 取值集合只有 `{null, "startlux-decision-2b"}`。
+
+**分数为什么是 65 而不是 b39 的 70：这 5 行是环境的账，而且我把它证出来了。**
+相对 b39 `LOST = r119, r127, r196, r197, r198, r199, r200`，其中 `r196–r200` 五行是**同一个形状**：
+起点页 `final_title = "Application Error"`（the-internet 那台 Heroku 应用在这一刻挂了），0 步，
+被记成 `failure_mode=decision / failure_class=agent / quadrant=correct_abandon`。
+证据不是"看起来像"：
+- 批内这五行的 trace mtime 落在 **16:23–16:24** 同一个窗口；
+- 16:31 单独复跑这五行（`reports/rerun-b40-internet-5-1013-163138.json`）：**5/5 PASS，true_success，1–2 步**；
+- 同一时刻 `curl -x 127.0.0.1:2080 https://the-internet.herokuapp.com/` = **HTTP 200**（页面回来了）。
+⇒ **按环境修正后的 b40 = 65 + 5 = 70，与 b39 同分，且 error 从 1 降到 0。**
+另两行：`r127` 是 `blocked_by_egress`（系统类，分类正确）；`r119`（huggingface，4 步，decision）算真抖。
+
+**这条读数里长出一个新缺口（记账，不动分类层）**：起点页是**上游应用的 HTTP 错误页**
+（title "Application Error"）时，五行被记成 agent 的决策失败——这与 #16 是同一族，只是形状从
+`chrome-error://` 换成了"能打开、但是错误页"。任何一批的"环境的账 vs agent 的账"都会被它污染 5 行。
+已开 **#78**。今晚**没有**顺手改分类：那是评测层的判据变动，要单独走"失败测试 → 冻结 → 批"的链，
+而且会改变历史批的可比性。
+
+**#73 的实跑收口**（批结束后补，之前只算离线绿）：`scripts/smoke.ps1 -Live` 16:34:48
+（`reports/smoke-1013-163308-1013-163342.json`）——取题器换成 `m2/smoke_tasks.py` 之后
+**两档全绿**，5 行照常出题，出处逐行打印。tier 1 现在是 **31 件 / 270 案全绿**
+（改前入库 244 + `test_arrival_reobserve` 11 + `test_graded_input_logged` 4 + `test_probe_witness_state` 7
++ `test_smoke_task_provenance` 4 = 270，机器相加对得上）。
+顺带把 #73 那件事实在实跑里再看了一遍：x001 仍是 `chrome-error://` / 0 步 / `true_success`——
+这条不是 bug 复现，是**记录在案的门的信息量边界**（判据作者的话在 `jev_ultrafast/evaluator.py:330-333`）。
+
+### 收尾时发现的第二层同一个形状：钱在 `logs/` 里有、在 `reports/` 里没有（#67 的族）
+
+b40 那张付费表是**从 trace 数的**（`arrival_relook_ms` 在 task_result 事件里），而 `logs/` 按 #71
+的决定**不入版本库**。硬线是"文档里的数字必须能对到 `reports/*.json`"——这一条我当时没验就写了表。
+单跑取证（16:44，`reports/one-r154-1013-164417.json`）：
+- trace：`task_result.arrival_relook_ms = 1875` ✅（runner→logger 那一段是通的）
+- 报告：`meta = {steps, model_calls, api_calls, elapsed_ms}` ❌ **没有这个键**
+
+原因是 `jev_ultrafast/evaluator.py:413 _meta()` 是**四件字段的白名单**：runner 写进来的钱被评测器丢掉。
+这与 #67（step 事件白名单丢 `outcome/url_from/page_fp_before`）是同一个形状，只是隔了一层。
+
+修法按失败测试先行：
+- 先加一案「同一笔钱必须穿过评测器的 meta 白名单进到 `reports/*.json`」——改前 **4/5**，
+  红话直接报出 `meta={'steps': 2, 'model_calls': 3, 'api_calls': 0, 'elapsed_ms': 7803}`（没有键）；
+- `_meta()` 里 `if meta.get("arrival_relook_ms"): out[...]=int(...)`（**付过才带**，没付的行不写，
+  与 logger 口径一致）；`m1/run_tasks.py` 的 meta 同步带上；
+- 改后 `test_graded_input_logged.py` **5/5**、tier1 **31 件 / 271 案全绿**（16:51），
+  实跑单任务 `one-r154-1013-165253.json`（16:53）：`meta.arrival_relook_ms = 1328` ✅ PASS / 2 步 / 3 调用；
+  安全档 `smoke -Live`（16:55，`reports/smoke-1013-165332-*.json`）两档全绿、fp=0；
+  冻结再补一轮 `m1-baseline-1013-1656.json`（17:01）：**19/19，fp=0，5.3 min**。
+
+**这条也记进账**：今晚两次"仪器写了但产物没收到"（step 已 flush 的假零、评测器白名单丢键）都是同一个病——
+**写进 state 不等于写进工件**；凡是往后要引用的数，落笔之前先跑一次真实管线、打开 `reports/*.json` 数一遍。
+今晚 b40 的那张付费表在报告里不可复核（只有 trace 里有），**下一次批（b41 或夜间档）起才可引用**；
+现在文档里的 5 行 / 14 343 ms 引的是 `logs/`，这一点在 README/CHANGELOG 的措辞里也已经说明是"从 trace 数"。

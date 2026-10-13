@@ -412,12 +412,18 @@ def _classify(
 
 def _meta(meta: Optional[dict], history: list[dict]) -> dict:
     meta = meta or {}
-    return {
+    out = {
         "steps":       meta.get("steps", len(history)),
         "model_calls": meta.get("model_calls"),
         "api_calls":   meta.get("api_calls"),
         "elapsed_ms":  meta.get("elapsed_ms"),
     }
+    # #67 是同一族：白名单把 runner 写进来的仪器字段丢掉。#65 那一刀的代价只有
+    # reports/*.json 数得到，才算对得起"文档里的数字必须能对到工件"这条硬线，
+    # 所以**付过钱才带上**，没付的行不写这个键。
+    if meta.get("arrival_relook_ms"):
+        out["arrival_relook_ms"] = int(meta["arrival_relook_ms"])
+    return out
 
 
 def _unknown(task_id: str, reason: str, meta: Optional[dict], history: list[dict]) -> TaskResult:

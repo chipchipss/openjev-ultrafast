@@ -21,6 +21,7 @@
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import sys
@@ -181,6 +182,7 @@ class Logger:
         *,
         step_budget=None,
         final_page: Optional[dict] = None,
+        state_paid_ms: Optional[int] = None,
     ) -> dict:
         """写入 task_result 事件并 flush。
 
@@ -203,10 +205,22 @@ class Logger:
         }
         if step_budget is not None:
             event["final_budget"] = self._budget_snapshot(step_budget)
+        # #65：这一行在收口前为重看付了多少毫秒（没付就不写这个键）。
+        # 批里"这一刀花了多少秒"必须是产物里数得出来的，不靠墙钟差猜。
+        _paid = state_paid_ms if state_paid_ms is not None else None
+        if _paid:
+            event["arrival_relook_ms"] = int(_paid)
         if final_page is not None:
+            # #75：评测吃的那份正文必须留下可复核的痕迹。只记**摘要**（长度 + 16 位 sha1）——
+            # 长度足以认出"这是半帧"（docs 族实测 654 → 1454），sha 足以确认两次读数是不是
+            # 同一份页；整段正文不入库（体积，以及第三方页面内容没必要跟着报告一起走）。
+            _txt = final_page.get("text") or ""
             event["final_page"] = {
                 "url":   final_page.get("url"),
                 "title": final_page.get("title"),
+                "text_len": len(_txt),
+                "text_sha16": hashlib.sha1(
+                    _txt.encode("utf-8", "replace")).hexdigest()[:16],
             }
 
         self._buffer.append(event)

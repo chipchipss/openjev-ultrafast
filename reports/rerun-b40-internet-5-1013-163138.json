@@ -1,0 +1,216 @@
+{
+  "summary": {
+    "total": 5,
+    "pass": 5,
+    "fail": 0,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "true_success": 5
+    },
+    "failure_modes": {},
+    "agent_modes": {},
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "r196",
+      "result": {
+        "task_id": "r196",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/context_menu",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "herokuapp\\.com/context_menu$"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Context Menu",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 6998
+        }
+      }
+    },
+    {
+      "task_id": "r197",
+      "result": {
+        "task_id": "r197",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/drag_and_drop",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "drag_and_drop$"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Drag and Drop",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5599
+        }
+      }
+    },
+    {
+      "task_id": "r198",
+      "result": {
+        "task_id": "r198",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/disappearing_elements",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "disappearing_elements$"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Elements",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5720
+        }
+      }
+    },
+    {
+      "task_id": "r199",
+      "result": {
+        "task_id": "r199",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/tables",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "herokuapp\\.com/tables$"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Smith",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 5711
+        }
+      }
+    },
+    {
+      "task_id": "r200",
+      "result": {
+        "task_id": "r200",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/challenging_dom",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "challenging_dom$"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Challenging DOM",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5545
+        }
+      }
+    }
+  ]
+}

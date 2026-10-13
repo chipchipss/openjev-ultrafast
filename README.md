@@ -14,7 +14,7 @@
 | **50 题批的门控墙钟** | 27.8 → **8.2 / 8.7 / 9.5 分钟**(任务间复位改成"先问健康再付钱") | `real-1011-b27/b28/b29-gate*.json` |
 | **3×100 行夜间档(L3 第二档,第一次真跑)** | 三轮 **66 / 69 / 65**,三轮全 `fp=0`、`error=0`,总墙钟 **61.4 分钟**(预算 95);同 build 的行级抖动是 **100 行里只有 5 行反复翻,95 行三轮不动** | `ci-1012-1908.json` + 三份 `nightly-1012-1908-r*.json` |
 | **决策延迟** | 单决策中位 **0.64 s**(本机 2B GGUF,走产品原路) | `m2/probe_wire_parallel.py` 的并发 1 档 |
-| **离线测试** | 27 个套件 **244 案全绿**（`scripts/smoke.ps1` tier1 一次跑完，2026-10-12 22:48 推前复跑；tier1 的证据是 runner 逐件打出的 `n/n passed`，`reports/smoke-*.json` 只有 -Live 第二级才写） | `tests/` |
+| **离线测试** | 31 个套件 **271 案全绿**（`scripts/smoke.ps1` tier1 一次跑完，2026-10-13 16:51 实跑；上一版读数停在 10-12 22:48 的 27 件 / 244 案；tier1 的证据是 runner 逐件打出的 `n/n passed`，`reports/smoke-*.json` 只有 -Live 第二级才写） | `tests/` |
 
 **并行不做,是被读数判死的**:并发 1→4 的吞吐 1.55 → 1.58 决策/秒(**加速比 1.02x**),`llama-server --parallel 4` 的槽位没变成吞吐,多开 worker 只会在 wire 前排队。所以 100 题 ≤30 分钟靠串行就已达成(实测 20.7 分钟)。
 
@@ -58,7 +58,7 @@ claude mcp add openjev -- python C:\Users\Administrator\openjev-ultrafast\mcp_se
 ### 跑基准与回归
 
 ```powershell
-.\scripts\smoke.ps1                  # 第一级闸门:27 个离线套件必须 n/n 全绿(现在 244 案)
+.\scripts\smoke.ps1                  # 第一级闸门:31 个离线套件必须 n/n 全绿(现在 271 案)
 .\scripts\smoke.ps1 -Live            # 第二级:5 题代表族(s005/n004/x001/x002/r142),判据读报告不读控制台
 .\scripts\ci_local.ps1 -Tasks 50                                    # 每改必跑档:smoke → 冻结三轮 → 回归批 → 阈值判定(默认是 50 行口径:MinPass 43 / 墙钟 14 分钟)
 .\scripts\ci_local.ps1 -Tasks 100 -MinPass 59 -MaxWallMinutes 30    # 同档跑 100 行:阈值自己给,且**跑之前先预登记**
@@ -144,7 +144,7 @@ openjev-ultrafast/
 │   │                         probe_*.py(零模型探针)、make_tasks_100.py(题集生成 + 唯一性断言)
 ├── mcp_server.py           # Claude Code / 任意 MCP 客户端入口
 ├── scripts/                # startlux_serve.ps1 / run_one.ps1 / run_task.py / smoke.ps1 / ci_local.ps1 / chrome_guard.ps1
-├── tests/                  # 27 个离线套件(不需要浏览器或模型,244 案)
+├── tests/                  # 31 个离线套件(不需要浏览器或模型,271 案)
 ├── reports/                # 实测报告入库;逐任务运行产物目录不入库
 ├── docs/                   # 01-hard-rules.md(硬约束全文)、03-milestones.md、00-project-plan.md(L1–L6)
 ├── run_baseline_19.ps1     # 19 题冻结 runner(一任务一进程 + 逐域预检 + 收尾验证)
@@ -177,7 +177,7 @@ openjev-ultrafast/
 | **L5 全本地** | ✅ 栈里没有任何云端调用点(helper 本机化 + 云端默认显式化) |
 | **L6 一条命令** | ✅ `run_demo.ps1` 冷启全绿、自动供给 |
 
-**未结清单**(都有证据在 `m2/real-log.md`,2026-10-12 夜刷新):~~`chrome-error://` 起点被记成 `failure_mode=decision`~~ —— **#16 已落地**(`80f6a43`):新增 `failure_mode=blocked_by_egress`,象限一字不动,负向任务显式豁免(x001 的起点域按设计就不通,它不能被重贴环境标签)。真正还开着的是 **#65 的那半件**:"settle 只等 DOM 归静,覆盖不到 XHR 注入的结果列表"——今晚**先量后判**：*CDP Network 层数在途请求*这一半被两次独立读数判死(正文到达前"在途=0"最长只有 31–62 ms,而"归静"在正文可读之后 2.5 秒尾窗里 6 行有 5 行从未满足 ⇒ 起作用的是 cap 不是事件,等于换个层把 2.1 干掉的重睡买回来);剩下的是**到站那一拍先重观测一次、比较正文长度**再决定能不能发 DONE,射程已经数清:`r154/r156/r157/r158` 在同一 build 的三轮夜间档里**全都**卡在"URL 判据已过、文字判据没过",夹具 +4 落在 ±3 抖动带之外,代码未动。另有地板空点击占拍、`explicit_target` 近似行劫持两条老账。StartLux-Decision-4B 是**分数实验**(看那 18 行真决策缺口能不能被更大的模型过掉),不是吞吐路径,且等归因干净了再跑一晚才有意义。
+**未结清单**(都有证据在 `m2/real-log.md`,2026-10-13 傍晚刷新):~~`chrome-error://` 起点被记成 `failure_mode=decision`~~ —— **#16 已落地**(`80f6a43`):新增 `failure_mode=blocked_by_egress`,象限一字不动,负向任务显式豁免(x001 的起点域按设计就不通,它不能被重贴环境标签)。~~**#65 的那半件**~~ —— **也已落地**(`m2/real-log.md` 的 10-13 两节):「CDP Network 层数在途请求」被两次独立读数判死,留下的是**到站那一拍付一次有界重看**(等 goal 点名的短语出现在 live DOM,不等正文变长;cap 6 000 ms 的出处是两支零模型探针里 docs 族的短语出现时刻 4.6–8.9 s)。三批实跑:b38 72/100、b39 70/100、b40 65/100(其中 5 行是 the-internet 那台 Heroku 应用当场挂了,trace 时刻 16:23–16:24、16:31 单跑 5/5 PASS、同时刻 curl 已回到 HTTP 200 ⇒ **按环境修正后 70/100,error 从 1 降到 0**);预登记的四个射程 `r154/r156/r157/r158` 在三批里全部 FAIL→PASS,且**步数与模型调用一行没变**。触发面按 b39 的付费名单收窄过一次(8 行 / 31 453 ms → 5 行 / 14 343 ms,b40 实测),只保留 `goal_reached` 的收口。**现在真正开着的是它长出来的那格(#78)**:起点页是上游应用的 HTTP 错误页(title "Application Error")时,五行被记成 `failure_mode=decision / agent` —— 与 #16 同一族、换了形状,不清掉它任何一批的"环境的账 vs agent 的账"都是混的。另有地板空点击占拍、`explicit_target` 近似行劫持两条老账。StartLux-Decision-4B 是**分数实验**(看那 18 行真决策缺口能不能被更大的模型过掉),不是吞吐路径,且等归因干净了再跑一晚才有意义;对上游的**正面对照**(#76)需要你先批准那笔付费调用开销。
 
 ## 平替水平的证据口径(对外声明时请注意)
 
@@ -187,4 +187,4 @@ openjev-ultrafast/
 
 ## License
 
-MIT —— 见仓库根目录 `LICENSE`(© 2026 chipchipss),与 `pyproject.toml` 的 `license = "MIT"` 一致;此前只有元数据没有文件,2026-10-12 补上。上游 jev-ultrafast 衍生部分的版权按原始许可证一并保留这一项**尚未逐份归档**,对外分发前需要确认(已记入待办)。
+MIT —— 见仓库根目录 `LICENSE`(© 2026 chipchipss),与 `pyproject.toml` 的 `license = "MIT"` 一致;此前只有元数据没有文件,2026-10-12 补上。上游 jev-ultrafast 的 MIT 原文**已于 2026-10-13 逐字归档**在 `docs/12-upstream-license.md`(带取文命令、ref `1231850a`、字节数与 sha1),因为本仓的定位是"fork 基座"(H3),MIT 的条件句要求上游告示跟着分发走。**仍未核证的是逐文件对应关系**——仓内文档只说"基座 = fork",没有留下那次 fork 的 commit,所以对外声明"derived from 的具体清单"这件事现在不能写。

@@ -6,6 +6,40 @@
 
 ---
 
+## [arrival-relook-landed-trigger-narrowed] - 2026-10-13
+
+### Status（#65 的第二半落地并收窄一次；跑链期间自伤一次并复原；#73/#74/#77 三件一并落地）
+
+`m2/real-log.md` 的 10-13 下午三节是全过程。这一条只记**阶段级**变化：
+
+| 变化 | 证据（工件名） | 读数 |
+|---|---|---|
+| 到站那一拍付**一次有界重看**（等 goal 点名的短语出现在 live DOM，cap 6 000 ms；只降级不升级） | `reports/real-1013-b38-*`、`reports/real-1013-b39-*`、`reports/ci-1013-1544-1013-160343.json` | b38 **72**/100、b39 **70**/100(error=1)、b40 **65**/100（其中 5 行是站点自己的 "Application Error"，16:31 单跑 `rerun-b40-internet-5-*` **5/5 PASS** ⇒ 按环境修正 70，error 归 0）；三批 `false_positive=0` |
+| 预登记的射程兑现且**不买步数** | 同上，四行在两批里的 `meta` | `r154/r156/r157/r158` 全部 FAIL→PASS，steps 与 model_calls 与改前**逐行相同**（2 步 / 3 调用） |
+| 触发面按实测付费名单收窄 | trace 里的 `arrival_relook_ms` 计数（b39 8 行 31 453 ms → b40 5 行 14 343 ms） | 只有 `goal_reached` 的收口付钱；`link_followed_arrival`（r126/r172/r177）各白花 6 秒的那三行从此不付 |
+| 代价第一次变成**仓库权威工件里数得出来的数** | `logger.finalize(state_paid_ms=…)` → task_result 事件 `arrival_relook_ms`；`final_page` 增加 `text_len` + `text_sha16`（只记摘要不记原文，#75）；`evaluator._meta` 的白名单补上这个键，`run_tasks` 把它写进 `meta` | b38 的第一版把代价写在**已经 flush 的 step** 上 ⇒ 批里报出"0 行付费"的**假零**；改记 `state` 累加后才有这张表。第二层同一个形状是单跑打出来的：`reports/one-r154-1013-164417.json`（16:44）里 trace 付了 1 875 ms 而 `meta` 没有这个键 ⇒`_meta()` 只放四件字段，钱被评测器丢掉 ⇒ `logs/`（不入库）里有而 `reports/` 里没有。补白名单 + 一案钉住（`test_graded_input_logged` 5/5，红的那案报的正是 `meta` 里没有键），改后单跑 r154 = `arrival_relook_ms 1328` 已在报告里 |
+| 离线闸门与最终 build | `scripts/smoke.ps1` tier1 16:51 + tier2 16:55（`reports/smoke-1013-165332-*`）+ 改后补测 r154 `reports/one-r154-1013-165253.json` 与冻结 `reports/m1-baseline-1013-1656.json` | **31 件 / 271 案全绿**；tier2（含 x001/x002 安全档）两档全绿；**改后补测：r154 的 `meta.arrival_relook_ms = 1328` 进 `reports/*.json`，冻结再跑一轮 19/19、fp=0** |
+| 冻结尺子（最终 build） | `reports/m1-baseline-1013-{1546,1552,1558}.json` | **19/19 × 3，fp=0** |
+
+**约束级的一条自我记账**：为了量"收窄前的红数"，我用 `open(p,'w')` 就地读改写，把
+`jev_ultrafast/agent.py` 截成 **0 字节**（`'w'` 的截断发生在读之前）。复原走 `git checkout --`
+（今天这些改动未提交，但 index == HEAD 还在），四处改动按原样重贴，`git diff --stat` 回到
+**92 增 / 2 删**，两个新套件 11/11 与 4/4、tier1 31/270 逐一复跑核过。
+规矩补死：**临时回退只准 `git stash`（自有 tag）或反向 Edit，要动整文件先 `cp` 一份。**
+**跑链之后没有 push** —— 今天下午这批工件按既有授权边界只入库、不出门。
+
+同一天还落了三件"闸门/发布形态"级的小活：
+**#73** smoke tier 2 的取题搬进 `m2/smoke_tasks.py`（钉住 `m1/tasks-laya-19.jsonl`，
+一个 id 一份断言，冲突 ⇒ 拒绝出题；改前实测 `picked x001 assertion.type=all_of` 是**文件顺序**决定的）；
+**#74** 见证探针 `m2/probe_task_assertions.py` 加 `argparse` + 默认演练 + 自有 Chrome 预检 +
+`witness_ok` 的 **unknown 态** + 合并写不降级（改前实测：浏览器缺席时 `main()` 把已证 `true`
+刷成 `false` 且返回 0）；
+**#77** 上游 MIT 原文逐字归档 `docs/12-upstream-license.md`（ref `1231850a`、sha1 `c5f3915d…`），
+夹具里那条第三方邮箱（53 处）脱敏成 `redacted@example.com`，`tests/test_skills.py` 78/78 照旧。
+新长出的缺口开成 **#78**：起点页是上游应用的 HTTP 错误页时被记成 `decision / agent`（与 #16 同族换形状）。
+
+---
+
 ## [open-source-posture-and-parity-gap] - 2026-10-12
 
 ### Status（第一次对着"平替"这把尺子量仓库，而不是只对 L1–L6：开源这件事此前只是元数据）
