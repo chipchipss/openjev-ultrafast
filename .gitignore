@@ -106,3 +106,4 @@ models/
 
 # #79 的发布快照：产物不入库（sha256 记在 m2/real-log.md，需要时重算）
 dist/
+m2/corpus/

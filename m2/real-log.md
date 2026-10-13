@@ -6330,3 +6330,25 @@ README 与 MANIFEST 的计数按这次实跑改掉，`git ls-files` 同时重打
 5. 最后一道：**一个 100 行批**与今晚三轮同 build 基线对照。判据不是"分数不动"（同 build 本来就抖 6 行），
    而是 **GAIN ∪ LOST ⊆ {r129, r157, r158, r161, r178, r187}**；出现集合外的任何翻动 ⇒ 回滚并记账。
 6. `false_positive` 恒 0；零云端仍只由步事件 `text_helper` 集合判（新增的仪器事件不许带云端字符串）。
+
+### Tier 3 的对照物建好了（baseline 摘要已记，改代码之前）
+
+**语料**（`m2/corpus/`，不入库）：**100 个起点页 + 86 个到站页**，全部零模型采自 100 行题集的起点域；
+再叠上仓里 7 份历史到站夹具（`m2/fixtures/*_arrival.json` 与 pubmed 结果页），
+`m2/golden_tier3.py` 对每页造 4 个 history 变体，跑 6 个确定性函数 ⇒ **193 页 / 772 例**。
+baseline 工件 `reports/tier3-golden-1013-233451.json`：**digest `f7e05f70e6807de9a2b849ef873b285cbbb337ee09eb52efcc1a2a065d105d11`**，
+`route` 触发面 `{explicit_target:244, scroll_to_named_target:173, search_type:96, goal_reached:111, form_submit:9, blocked_dead_page:8}`。
+
+**这份 golden 的覆盖面，按实数说，不含糊**：
+`goal_reached` 非弃权 **111 例**（要拆的就是它，够了）；
+但 `link_followed_arrival` 与 `first_result` 在这一份语料里**非弃权 0 例** ⇒
+**golden 抓不到它们两个的回归**。原因不是它们坏了，是语料形状不对：
+`link_followed_arrival` 读"最后一条历史 = 从 A 页点了标签 L 到 B 页，且 `outcome.url_changed` 为真"，
+而 pass2 落盘时只存了 URL 没存**被点的标签**（脚本里 `next_hop_url` 那个返回值漏了 label ——
+已经补成 `next_hop()` 返回 `(url, label, came_from)`，但**没有重采**，重采会让 baseline 漂，
+所以那 86 页仍按现状用）。这两族的回归保护现在只靠 `tests/test_skills.py`（78 案）与 `test_done_guard_arrival.py`；
+下一轮如果动到它们，先重采一遍带 label 的 hop 页并**重记 baseline**。
+
+**golden 自己先过了一次"能响"的检查**（不是我说它有用）：只改分析器的语料装配方式
+（去掉固定 4 变体、改成按记录返回变体表）之后重跑，digest **一字不动**
+`f7e05f70…` ⇒ 这份摘要对"分析器自己的改动"是稳定的；而它确实会随被测函数输出变化（触发面非零）。
