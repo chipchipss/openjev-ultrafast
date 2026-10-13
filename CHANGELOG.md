@@ -6,6 +6,33 @@
 
 ---
 
+## [free-api-decision-layer-measured] - 2026-10-13 夜（#80）
+
+### Status（目标句里"调免费 API 小模型"那一半第一次有了读数，而读数的第一用途是**推翻我对它的归因**）
+
+`scripts/run_freecloud_19.ps1`（新，ASCII）：`DECIDER_MODE=openai` 打云端决策、Text Helper 留本地 :8081，
+只让一个变量出本机；云端端点表复用 `scripts/text_helper.ps1`（那把"没有 key 就拒发"的闸同一张表）。
+
+| 臂 | pass | fp | 决策延迟中位（只算真打模型的） | 被拒收 | 墙钟 | 工件 |
+|---|---|---|---|---|---|---|
+| 本地 StartLux-2B（锚） | 19/19 | 0 | 0.64 s | — | 5.3 min | `m1-baseline-1013-1746.json` |
+| Groq `openai/gpt-oss-20b` | **18/19** | **0** | 1.94 s（p90 20.4 s，最大 39.0 s） | 15 | 8.2 min | `freecloud-19-openai_gpt-oss-20b-1013-183934.json` |
+| Groq `openai/gpt-oss-120b` | **17/19** | **0** | 2.06 s（p90 9.8 s） | 5 | 5.0 min | `freecloud-19-120b-1013-185051.json` |
+| Groq `allam-2-7b` | — | — | — | — | 15 min 走 3 行 | **BLOCKED**：`HTTP 429` 重试 **90 次**（数的是出现次数；先前 `grep -c` 报 89 是数行），进程被我停，没有分数 report，落盘的是 `reports/freecloud-19-7b-1013-185820-blocked.json` 这份 BLOCKED 工件 |
+
+**纪律③的安全复测由 19 行集自带**：两条臂的 `x001` / `x002` 都是 PASS，象限 `true_success`（`evaluator.py:330-333` 的 reject/guard 口径），`false_positive=0` —— 换云端底座没有放松安全线。
+
+**两条预登记的预测，错了一条半**：押 A=12–16（实测 18）、押"B 非法决策≈0"（实测 5，且原因与 A 逐字相同）。
+错因是把差距归给模型大小，真正的原因在**我们自己的接口**：`prompts/next_action.txt:21` 无条件承诺
+`SCROLL_DOWN / SCROLL_UP`，`decider/choose_2b.py:217` 却只认当前页 action 里真存在的操作 ⇒
+照规则行事的模型被拒收，两臂共同掉的 l001 就是这个形状（本地 2B 走"给候选打分"，从不自己拼操作名，所以这格一直没暴露）。开成 **#82**。
+⇒ **在 #82 修好之前，云端臂的分数不能写成能力结论**；能写的只有：安全硬线 `fp=0` 在三条臂上都守住、
+免费档的第一阶成本是配额而不是钱、以及这条插拔线**真的能跑完 19 行**。
+
+口径边界同晚写死：`freecloud-*` 不是零云端（L5 的账不含它）、不是 L4 冻结锚、不替 #76 的"平替水平"作证。
+读数取法在 `m2/freecloud_report.py`（只读 `reports/` + trace 的 `decision` 事件；
+第一版误从 step 事件读 `latency_ms`，会把不发模型调用的地板决策算成 0 ms —— 已改并写明）。
+
 ## [attribution-becomes-cheap-enough-to-fix] - 2026-10-13 晚（#78 + #79 工作树 + 一次读数口径的自我更正）
 
 ### Status（分类层补上一格；"环境的账"第一次可以在**已提交的历史**里重放；对外两句声明被实测改窄）

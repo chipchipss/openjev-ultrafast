@@ -1,0 +1,14 @@
+{
+  "status": "BLOCKED",
+  "reason": "free-tier throttling: provider answered HTTP 429 to every decision call",
+  "arm": "C",
+  "provider": "groq",
+  "model": "allam-2-7b",
+  "runner": "scripts/run_freecloud_19.ps1",
+  "http_429_retries": 90,
+  "rows_traced_before_stop": 3,
+  "tasks_total": 19,
+  "trace_dir_untracked": "logs/freecloud-19-7b-1013-185820",
+  "no_score_recorded": true,
+  "stopped_by": "agent (operator authorised the cloud run; aborted mid-arm on 429s)"
+}
