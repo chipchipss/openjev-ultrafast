@@ -5876,3 +5876,8 @@ b40 那张付费表是**从 trace 数的**（`arrival_relook_ms` 在 task_result
 而它在 `a2915c0` 之前的历史提交里本来就在（这文件是 10-11 入库的）。
 ⇒ 结论：**发布前如果要对外，"清洗 git 历史 / 换夹具"仍是未结的一件事，不是已经做完的那件**。
 计划书里"Git 历史"本来就在挂起清单上，这次它从"整洁问题"变成"泄漏问题"，权重该重排（#79）。
+> **补：#73 那条"改前实测"是可重跑的。** 上面写的 `picked x001 assertion.type=all_of` 第一次跑的时候
+> 夹具是临时手搓的、没有归档；17:1x 我按仓里两份定义的**断言形状**重搭了一次夹具
+> （`tasks-laya-19.jsonl` 的 `all_of[text_not_contains "booked"]` vs `tasks-reachable.jsonl` 的
+> `any_of[text_contains "not available"]`），逐字重跑 HEAD 那段选取逻辑，读数一模一样：
+> `HEAD picker: picked x001 assertion.type=all_of`。**结论没变，证据现在能复现。**
