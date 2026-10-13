@@ -448,6 +448,9 @@ def _meta(meta: Optional[dict], history: list[dict]) -> dict:
     # 所以**付过钱才带上**，没付的行不写这个键。
     if meta.get("arrival_relook_ms"):
         out["arrival_relook_ms"] = int(meta["arrival_relook_ms"])
+    # #83 前置仪器（`_STUCK` 的跨任务读数）同一族、同一口径：runner 写了才带。
+    if isinstance(meta.get("stuck"), dict):
+        out["stuck"] = meta["stuck"]
     return out
 
 

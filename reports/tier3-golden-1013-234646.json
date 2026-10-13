@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-10-13T23:46:46",
+  "corpus": "m2\\corpus\\pages.jsonl",
+  "pages": 193,
+  "cases": 772,
+  "digest": "f7e05f70e6807de9a2b849ef873b285cbbb337ee09eb52efcc1a2a065d105d11",
+  "route_fired_by_skill": {
+    "blocked_dead_page": 8,
+    "explicit_target": 244,
+    "form_submit": 9,
+    "goal_reached": 111,
+    "scroll_to_named_target": 173,
+    "search_type": 96
+  },
+  "non弃权_例数": {
+    "route": 641,
+    "goal_reached": 111,
+    "link_followed_arrival": 0,
+    "explicit_target": 292,
+    "first_result": 0,
+    "first_action_floor": 192
+  },
+  "fns": [
+    "route",
+    "goal_reached",
+    "link_followed_arrival",
+    "explicit_target",
+    "first_result",
+    "first_action_floor"
+  ],
+  "note": "只含 operation/target 序号/skill 名/置信度；元素 label 与 href 不进这份文件，完整输出在不入库的 m2/corpus/golden-full.json"
+}

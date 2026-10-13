@@ -2131,6 +2131,26 @@ _FIRST_RESULT_RE = re.compile(
 
 _STUCK: dict[str, dict[str, int]] = {}
 
+#: #83 的前置仪器 —— **只数，不改判据**。
+#: 为什么要数：`_STUCK` 是模块级字典、键是页态指纹、**任务之间不清洗**，
+#: 而夜间档 r3 实测一轮 100 题里 111 个不同指纹有 25 个被 >1 个任务共用（最多 6 个题共用一个）
+#: ⇒ 第 N 题写的"让位"笔记可以在第 N+1 题的前两拍把技能按住，这是一条**跨任务通道**。
+#: 今天 trace 里没有任何抑制事件（种类只有 step/decision/task_result/text_call），所以它不可复核。
+#: 为什么是计数器而不是 trace 事件：技能层拿不到 logger（只吃 page/goal/history），
+#: 给 `route()` 加一个事件写出参就是行为变更 —— 所有调用点都要动。
+_STUCK_NOTES = 0
+_STUCK_SUPPRESSED = 0
+
+
+def stuck_counters() -> dict:
+    """公开读数（runner 与测试都走这一个，不许伸手进私有）。
+
+    `entries` = 当前还活着的页态条目数；runner 在**每题开始前**读它，
+    大于 0 就意味着上一题的抑制笔记还在生效 —— 那正是 #83 要拍板的那个量。
+    """
+    return {"notes": _STUCK_NOTES, "suppressed": _STUCK_SUPPRESSED,
+            "entries": len(_STUCK)}
+
 
 #: 技能连着没产生效果时，让位给模型的**拍数**。必须是有界的：自建站点的实测显示，
 #: 永久停用会把"技能本来是对的、只是那一次动作没生效"变成"模型乱撞到放弃"
@@ -2150,6 +2170,8 @@ def note_no_effect(page_fingerprint: str, skill: str | None) -> None:
     """
     if not page_fingerprint or not skill:
         return
+    global _STUCK_NOTES
+    _STUCK_NOTES += 1
     _STUCK.setdefault(page_fingerprint, {})[skill] = _STUCK_TICKS
 
 
@@ -2162,6 +2184,7 @@ def route(page: dict, goal: str, history: list) -> dict | None:
     """
     from .decision_validator import validate as _validate
     # 有界退避：每拍把剩余停用拍数减一，减到 0 就把技能放回来（见 note_no_effect）。
+    global _STUCK_SUPPRESSED
     fp = page.get("fingerprint") or ""
     stuck = _STUCK.get(fp) or {}
     for _name in list(stuck):
@@ -2171,7 +2194,10 @@ def route(page: dict, goal: str, history: list) -> dict | None:
     if not stuck:
         _STUCK.pop(fp, None)
     for fn in SKILLS:
-        if not _enabled(fn.__name__) or stuck.get(fn.__name__, 0) > 0:
+        if not _enabled(fn.__name__):
+            continue
+        if stuck.get(fn.__name__, 0) > 0:
+            _STUCK_SUPPRESSED += 1            # 只数一下（#83 的前置仪器），控制流一字不动
             continue
         try:
             d = fn(page, goal, history or [])

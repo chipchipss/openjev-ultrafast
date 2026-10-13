@@ -6391,3 +6391,15 @@ tier1 **35 件全绿**。所有"实况注释"（s001/s003/s007/s011/r105/r106/r1
 
 顺带删掉一处**死 import**：路径 C 里 `from urllib.parse import urlparse as _urlparse2` 从来没被用过
 （它下面用的是 `_u.netloc`），搬函数时顺手去掉——这不是"顺手清理"，是搬动作用域时它已经不属于这里。
+
+### Tier 3 第三步：`_STUCK` 的跨任务抑制现在是**可数的**了（仪器，零行为）
+
+`skills.stuck_counters()` 给出 `{notes, suppressed, entries}`；`runner` 在**每题开始前**读一次 `entries`
+⇒ 那一格就是"这一题带着上一题的几条笔记进场"的直接读数，也是 #83（要不要每任务复位）唯一缺的东西。
+`evaluator._meta` 的白名单同步放行 `stuck`（**同一族的第二次重犯被测试挡在合入之前**：
+新案⑤ 改 evaluator 之前实测 **4/5 红**，报错原文是 `{'steps':2,...}` 里没有 `stuck`）。
+
+改前红：**1/4**（`stuck_counters` 根本不存在，三条案全 `AttributeError`）；改后 **5/5**。
+零行为的两条独立证据：`m2/golden_tier3.py --compare` ⇒ **digest `f7e05f70…` 一字不动**；
+tier1 **35 件全绿**（现在含新套件 5 案）。
+写计数不动控制流：`route()` 里那一句 `_STUCK_SUPPRESSED += 1` 只出现在原本就要 `continue` 的分支上。

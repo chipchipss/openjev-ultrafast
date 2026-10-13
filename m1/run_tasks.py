@@ -208,10 +208,15 @@ def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dic
     from jev_ultrafast.agent import Agent  # noqa: WPS433
     from jev_ultrafast.api_teacher import APITeacher  # noqa: WPS433
     from jev_ultrafast.api_budget import APIBudget  # noqa: WPS433
+    from jev_ultrafast import skills as _skills  # noqa: WPS433
 
     task_id = spec["task_id"]
     logger = Logger(task_id=task_id, log_dir=log_dir)
     started = time.perf_counter()
+    # #83 的前置仪器：`skills._STUCK` 是模块级、按页态指纹键、跨任务不清，
+    # 而夜间档 r3 实测 111 个指纹里 25 个被 >1 题共用 ⇒ 上一题的"让位"笔记可以按住下一题前两拍。
+    # **每题开始前**的 entries 就是这道跨题通道的直接读数（>0 = 带着上一题的笔记进场）。
+    _stuck_before = _skills.stuck_counters()
 
     # M1.5 teacher shadow（A 档）：TEACHER_SHADOW=1 时接线。触发策略——
     # stall-gated：仅 stale_retry_run>=2（reject 循环已开始烧决策）时 shadow，
@@ -294,6 +299,16 @@ def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dic
     _paid = agent.state.get("arrival_relook_ms")
     if _paid:
         meta["arrival_relook_ms"] = int(_paid)
+    # #83 前置仪器的读数：这一题**进场时**带着几条上一题的抑制笔记、这一题里又写了几条、
+    # 被按住几次。只写非零，避免每行都塞空结构（与 arrival_relook_ms 同一口径）。
+    _stuck_after = _skills.stuck_counters()
+    if _stuck_before["entries"] or _stuck_after["notes"] != _stuck_before["notes"] \
+            or _stuck_after["suppressed"] != _stuck_before["suppressed"]:
+        meta["stuck"] = {
+            "entries_at_start": _stuck_before["entries"],
+            "notes": _stuck_after["notes"] - _stuck_before["notes"],
+            "suppressed": _stuck_after["suppressed"] - _stuck_before["suppressed"],
+        }
 
     try:
         task_result = evaluate(
