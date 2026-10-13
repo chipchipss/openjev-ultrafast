@@ -6371,3 +6371,23 @@ baseline 工件 `reports/tier3-golden-1013-233451.json`：**digest `f7e05f70e680
 agent 伸手进 skills 的私有函数（就是刚才改掉的这 3 个调用点），而 skills 的注释里逐行指着 agent 的行号。
 ⇒ 准确的口径是：**没有 import 环，有依赖耦合，耦合已按最小面拆掉**；
 不要把体检报告那句复述成"曾有一个循环导入"——那是我把两件事说成一件的老毛病。
+
+### Tier 3 第二步：`goal_reached` 从 175 行拆成 43 行 + 四块（golden 摘要一字不动）
+
+拆出来的东西（`ast` 量的行数，不是感觉）：
+
+| 函数 | 行数 | 装的是原来哪一段 |
+|---|---|---|
+| `_arrival_facts` | 55 | 页面事实：path/full-url/title/query 回声/起点/nav·submit·website 三个语气旗标 |
+| `_arrival_hit` | 10 | 原来那个读三个外部局部变量的闭包 `hit()` |
+| `_arrival_by_phrases` | 36 | 路径 A（短语落在 URL+标题）与路径 B（提交类落在含 query 的完整 URL） |
+| `_arrival_by_nav_object` | 49 | 路径 C（C1 连续标题 / C2 头词在 URL / C2b 缩写只在 host） |
+| **`goal_reached`** | **43** | 只剩守卫（0 步、交易类、纯滚动类、填值回声）+ 两次调用 |
+
+证据：`--compare` 对 baseline `reports/tier3-golden-1013-233451.json` ⇒
+**digest `f7e05f70…` 一字不动**（193 页 / 772 例，其中 `goal_reached` 非弃权 111 例——这 111 例每条都过了新的四块）；
+tier1 **35 件全绿**。所有"实况注释"（s001/s003/s007/s011/r105/r106/r114/r115/n001/n003/n004/l002）跟着它们判据一起搬走，
+一条没丢、一条没改写。
+
+顺带删掉一处**死 import**：路径 C 里 `from urllib.parse import urlparse as _urlparse2` 从来没被用过
+（它下面用的是 `_u.netloc`），搬函数时顺手去掉——这不是"顺手清理"，是搬动作用域时它已经不属于这里。

@@ -349,6 +349,164 @@ _HOP_SPAN = r"(?:[^.;]|\.(?=\S))*"
 _ABBREV = {"docs": "documentation", "doc": "documentation"}
 
 
+def _arrival_facts(page: dict, goal: str, hist: list) -> dict:
+    """到达判据共用的一组"页面事实"，一次算清（原来摊在 `goal_reached`  body 里）。
+
+    每一个键都在下面某条路径上用；没有一个是"预备着以后用"。
+    """
+    # 缺陷#40：URL 匹配只用 **path**，不吃 query —— 搜索词会原样出现在 ?q=… 里，
+    # 于是 "Search for 'OpenAI' and open the official OpenAI website" 在**搜索结果页**
+    # 就命中短语 → goal_reached 连发 8 次 DONE（s001 实况，整轮判失败）。
+    # query 只是把搜索词回声出来，不构成"已到达目标"的证据。
+    u = _urlparse(page.get("url") or "")
+    here_url = _flat(_norm_page(u.netloc + u.path))
+    # 带 query 的完整 URL：**提交类**目标的成功判据就在 query 里
+    # （"Search for 'automation' and submit the search form" → 断言 q=automation）。
+    here_full = _flat(_norm_page(u.netloc + u.path + "?" + u.query))
+    here_all = here_url + " " + _flat(_norm_page(page.get("title") or ""))
+    # 当前 URL 的 query：搜索词会被原样回声在这里，也会回声进结果页标题
+    # （"OpenAI - Google Search"）。凡"短语就是搜索词"的一律不算到达目标 ——
+    # 否则 "Search for 'OpenAI' and open the official OpenAI website" 在结果页
+    # 就判完成（s001 实况：连发 8 次 DONE，整轮失败）。
+    query_echo = _flat(_norm_page(u.query))
+    # 起点页：优先用 agent 提供的任务起始 URL。history[0]["url"] 是"动作之后"的
+    # URL——第一步就到达目标时会把它误当起点，导致 goal_reached 永不触发
+    # （s003 实况：一步跳到 /standards/，"standards" 已在"起点"里 → 判据自锁）。
+    start = _flat(_norm_page(page.get("start_url") or hist[0].get("url") or ""))
+
+    # 目标明写是"网站/站点/官网"时，到达判据必须落在 **host** 上：goal 说 "open the
+    # official OpenAI website"，点进任意一条标题含 OpenAI 的新闻结果也算"路径含
+    # openai"，但那不是官网（s001 实况）。维基/RFC 类目标不写 website，仍走路径+标题。
+    # 注意必须带"网站/官网"字样，不能见 "site" 就算：s002 的 goal 是 "Use the site search
+    # on docs.python.org …"——这里 site 指"站内搜索功能"，不是"打开该网站"，按 host 判到达
+    # 会让 URL 已含 asyncio 的结果页判不出到达（s002 实况）。
+    # “homepage/website” 只有作为**目的地**时才算站点目标。r114 实况：goal 是
+    # "From the Django homepage, open the page titled '…part 1'"，那个 homepage
+    # 是**起点**，却被这条判据当成“打开网站” → 到达判据只认 host →
+    # 文档页标题里明明逐字写着目标短语，goal_reached 永远发不出 DONE，
+    # 于是 explicit_target 接手，在已到达的页面上点侧栏下一条（part 2）跑偏。
+    # r115 同一句式。先把 "from the … homepage/website" 这类起点框架涂掉再判。
+    dest = re.sub(r"\bfrom\s+the\s+[\w' -]{0,30}?\b(?:homepage|website|site)\b", "",
+                  goal or "", flags=re.I)
+    return {
+        "here_url": here_url,
+        "here_full": here_full,
+        "here_all": here_all,
+        "query_echo": query_echo,
+        "start": start,
+        "title_norm": _norm_page(page.get("title") or ""),
+        "nav_verb": bool(re.search(r"\b(open|navigate|go to|find|visit|reach|use)\b",
+                                   goal or "", re.I)),
+        "submit_verb": bool(re.search(r"\b(submit|search|type|look up)\b",
+                                      goal or "", re.I)),
+        "website_goal": bool(re.search(
+            r"\b(?:website|web\s*site|homepage|official\s+(?:site|website|page))\b",
+            dest, re.I)),
+        "host_flat": _flat(_norm_page(u.netloc)),
+    }
+
+
+def _arrival_hit(facts: dict, phrase: str, where: str) -> bool:
+    """短语算不算"到达"。原来是 `goal_reached` 里的闭包，读三个外部局部变量。"""
+    pn = _flat(phrase)
+    if not pn or pn in facts["start"]:
+        return False
+    if facts["website_goal"]:
+        return pn.replace(" ", "") in facts["host_flat"].replace(" ", "")
+    # 短语里的空格在 URL 里不存在："RFC 9110" 的 _flat 是 "rfc 9110"，而目标页是
+    # /info/rfc9110/ —— 纯排版差异导致永远判不出到达（n004 实况）。两侧压掉空格再比一次。
+    return pn in where or pn.replace(" ", "") in where.replace(" ", "")
+
+
+def _arrival_by_phrases(goal: str, facts: dict) -> dict | None:
+    """路径 A：显式短语（引号串 / RFC 号）出现在 URL 或标题 → 已到达目标页。
+    路径 B：搜索/提交类，短语落在**含查询串**的完整 URL。"""
+    _idents = set(_repo_ident_phrases(goal))
+    for p in goal_phrases(goal):
+        if p.startswith("/") or len(p.strip()) < 3:
+            continue
+        # 标识档不作到达证据（③）：goal 说 "the Releases page of the pytorch/pytorch
+        # repository"，`/pytorch/pytorch` 只是**仓库根**，URL 里含它就 DONE 会把一个还没
+        # 到 Releases 的页面判成成功（false positive，硬约束直接破）。r105 的到达判据
+        # 留给下一刀的 "Releases" 档；带引号的 id（r106/r119）不走这一格，照旧。
+        if p in _idents:
+            continue
+        # 短语就是搜索词（出现在 ?q= 里）时不算"已到达"—— 但两类例外：
+        #   1) 目标是"打开某个网站"：那种目标只认 host（见 _arrival_hit），query 永远不算证据；
+        #   2) 目标是"提交搜索"：?q= 恰恰就是成功判据本身。
+        # s007 实况：一律排除 query 后 goal_reached 永不触发，搜索已经成功却继续跑，
+        # 模型接手又提交了一次**空**表单 → 终点变成 ?q= → FAIL。
+        # 但 goal 里还有**第二个 hop**（"…and open the first result link"）时，?q= 又不算了：
+        # s011 的断言要的是结果页 articles.html/technology.html，而不是结果列表本身
+        # （实况：搜索成功后 goal_reached 连发 5 次 DONE，断言 url_matches 挂）。
+        # 片段用 _HOP_SPAN 而不是 [^.;]*：r106 实况（2026-10-07）的 hop 目标是
+        # "ggml-org/llama.cpp repository page"，名字里的句点把旧正则截断在 "llama"，
+        # 第二跳没认出来 → 搜索结果页（标题也回声 "llama.cpp"）上连发 7 次 DONE，
+        # 每次都被 _done_guard 规则 2 拒掉 —— 类 C 拒绝循环就是这么形成的。
+        _second_hop = bool(re.search(
+            r"\bopen\b" + _HOP_SPAN + r"\b(result|link|article|item|page)\b",
+            goal or "", re.I))
+        if (_flat(p) and _flat(p) in facts["query_echo"]
+                and (facts["website_goal"] or not facts["submit_verb"] or _second_hop)):
+            continue
+        if facts["nav_verb"] and _arrival_hit(facts, p, facts["here_all"]):
+            return _decision("DONE", None, None, "goal_reached")
+        if facts["submit_verb"] and _arrival_hit(facts, p, facts["here_full"]):
+            return _decision("DONE", None, None, "goal_reached")
+    return None
+
+
+def _arrival_by_nav_object(goal: str, facts: dict) -> dict | None:
+    """路径 C：无引号导航目标——"navigate to the Standards page" 这类。三条判据：
+      C1 目标短语"整段连续"出现在标题里。必须连续（不是"内容词都出现"）：
+         n001 实况——goal 要 docs.python.org，中间页 python.org/doc/ 的标题
+         "Our Documentation | Python.org" 同时含 python+documentation，
+         按词判会误判到达并提前 DONE。
+      C2 目标的头词（末位内容词）出现在当前 URL 里。补 C1 的漏网：
+         n003 实况——目标页标题是 "Standards and guidelines | W3C"，
+         不含连续的 "w3c standards"，但 URL 是 /standards/。
+      C2b 头词的**常见缩写**出现在 URL 里。n001 实况（2026-10-07 隔夜诊断）：
+         goal "Open the Python documentation section"，agent 第 1 步已到
+         docs.python.org/3/，但 C1 标题无 "python documentation"、C2 URL 是
+         **docs**.python.org 不含 "documentation"——已达成却被漏接，agent 又
+         点 logo 跑回 python.org 循环到预算耗尽（correct_abandon）。缩写归一
+         是 laya-browser-agent goal-aware 原则的同类应用：目标词已到达就不该
+         因排版变体而漏判。
+    """
+    if not (facts["nav_verb"] and not facts["website_goal"]):
+        # website 类目标（"open the official X website"）不走这里：它的到达判据只能是
+        # host（见 _arrival_hit），否则点进任意标题含 X 的新闻页都会判到达（s001 实况）。
+        return None
+    m = _NAV_OBJ_RE.search(goal or "")
+    if not m:
+        return None
+    obj = m.group("t")
+    obj_n = " ".join(_tokens(obj))
+    title = facts["title_norm"]
+    start = facts["start"]
+    # obj 必须含**实义词**。_NAV_OBJ_RE 的 "the" 是可选项，"open the page
+    # titled 'X'" 会退化成 obj="the"（实况 r114/r115），而 "the" 几乎出现在
+    # 每个页面标题开头 → C1 在起点首页就判到达，提前 DONE。
+    if obj_n and _content(obj) and obj_n in title and obj_n not in start:
+        return _decision("DONE", None, None, "goal_reached")
+    toks = _content(obj)
+    head = toks[-1] if toks else ""
+    # C2b: goal 用全称、URL 用缩写时展开（documentation → docs/doc）。
+    # 缩写只允许命中 **host**，不允许命中路径——n001 实况：起点站 python.org
+    # 自己就有 /doc/（文档入口页），路径级匹配会把中间页误判为到达（C1 注释
+    # 警告过的原始案例，断言要的是 docs.python.org 域）；而目标站是
+    # docs.python.org，'docs' 在 host 里。C2 原判据对全称仍是全 URL 匹配
+    # （n003 /standards/ 依赖它），只有**展开的缩写**收紧到 host。
+    heads = [head] + [k for k, v in _ABBREV.items() if v == head]
+    if head and head not in start:
+        if re.search(rf"\b{re.escape(head)}\b", facts["here_url"]):
+            return _decision("DONE", None, None, "goal_reached")
+        for h in heads[1:]:
+            if re.search(rf"\b{re.escape(h)}\b", facts["host_flat"]):
+                return _decision("DONE", None, None, "goal_reached")
+    return None
+
+
 def goal_reached(page: dict, goal: str, history: list) -> dict | None:
     hist = history or []
     if not hist:
@@ -390,140 +548,8 @@ def goal_reached(page: dict, goal: str, history: list) -> dict | None:
         _ptext = page.get("text") or ""
         if all(re.search(re.escape(v), _ptext, re.I) for v in _vals):
             return _decision("DONE", None, None, "goal_reached")
-    # 缺陷#40：URL 匹配只用 **path**，不吃 query —— 搜索词会原样出现在 ?q=… 里，
-    # 于是 "Search for 'OpenAI' and open the official OpenAI website" 在**搜索结果页**
-    # 就命中短语 → goal_reached 连发 8 次 DONE（s001 实况，整轮判失败）。
-    # query 只是把搜索词回声出来，不构成"已到达目标"的证据。
-    _u = _urlparse(page.get("url") or "")
-    here_url = _flat(_norm_page(_u.netloc + _u.path))
-    # 带 query 的完整 URL：**提交类**目标的成功判据就在 query 里
-    # （"Search for 'automation' and submit the search form" → 断言 q=automation）。
-    here_full = _flat(_norm_page(_u.netloc + _u.path + "?" + _u.query))
-    here_all = here_url + " " + _flat(_norm_page(page.get("title") or ""))
-    # 当前 URL 的 query：搜索词会被原样回声在这里，也会回声进结果页标题
-    # （"OpenAI - Google Search"）。凡"短语就是搜索词"的一律不算到达目标 ——
-    # 否则 "Search for 'OpenAI' and open the official OpenAI website" 在结果页
-    # 就判完成（s001 实况：连发 8 次 DONE，整轮失败）。
-    query_echo = _flat(_norm_page(_u.query))
-    # 起点页：优先用 agent 提供的任务起始 URL。history[0]["url"] 是"动作之后"的
-    # URL——第一步就到达目标时会把它误当起点，导致 goal_reached 永不触发
-    # （s003 实况：一步跳到 /standards/，"standards" 已在"起点"里 → 判据自锁）。
-    start = _flat(_norm_page(page.get("start_url") or hist[0].get("url") or ""))
-
-    nav_verb = bool(re.search(r"\b(open|navigate|go to|find|visit|reach|use)\b",
-                              goal or "", re.I))
-    submit_verb = bool(re.search(r"\b(submit|search|type|look up)\b", goal or "", re.I))
-
-    # 目标明写是"网站/站点/官网"时，到达判据必须落在 **host** 上：goal 说 "open the
-    # official OpenAI website"，点进任意一条标题含 OpenAI 的新闻结果也算"路径含
-    # openai"，但那不是官网（s001 实况）。维基/RFC 类目标不写 website，仍走路径+标题。
-    # 注意必须带"网站/官网"字样，不能见 "site" 就算：s002 的 goal 是 "Use the site search
-    # on docs.python.org …"——这里 site 指"站内搜索功能"，不是"打开该网站"，按 host 判到达
-    # 会让 URL 已含 asyncio 的结果页判不出到达（s002 实况）。
-    # “homepage/website” 只有作为**目的地**时才算站点目标。r114 实况：goal 是
-    # "From the Django homepage, open the page titled '…part 1'"，那个 homepage
-    # 是**起点**，却被这条判据当成“打开网站” → 到达判据只认 host →
-    # 文档页标题里明明逐字写着目标短语，goal_reached 永远发不出 DONE，
-    # 于是 explicit_target 接手，在已到达的页面上点侧栏下一条（part 2）跑偏。
-    # r115 同一句式。先把 "from the … homepage/website" 这类起点框架涂掉再判。
-    _dest = re.sub(r"\bfrom\s+the\s+[\w' -]{0,30}?\b(?:homepage|website|site)\b", "",
-                   goal or "", flags=re.I)
-    website_goal = bool(re.search(
-        r"\b(?:website|web\s*site|homepage|official\s+(?:site|website|page))\b",
-        _dest, re.I))
-    host_flat = _flat(_norm_page(_u.netloc))
-
-    def hit(phrase: str, where: str) -> bool:
-        pn = _flat(phrase)
-        if not pn or pn in start:
-            return False
-        if website_goal:
-            return pn.replace(" ", "") in host_flat.replace(" ", "")
-        # 短语里的空格在 URL 里不存在："RFC 9110" 的 _flat 是 "rfc 9110"，而目标页是
-        # /info/rfc9110/ —— 纯排版差异导致永远判不出到达（n004 实况）。两侧压掉空格再比一次。
-        return pn in where or pn.replace(" ", "") in where.replace(" ", "")
-
-    # 路径 A：显式短语（引号串 / RFC 号）出现在 URL 或标题 → 已到达目标页
-    _idents = set(_repo_ident_phrases(goal))
-    for p in goal_phrases(goal):
-        if p.startswith("/") or len(p.strip()) < 3:
-            continue
-        # 标识档不作到达证据（③）：goal 说 "the Releases page of the pytorch/pytorch
-        # repository"，`/pytorch/pytorch` 只是**仓库根**，URL 里含它就 DONE 会把一个还没
-        # 到 Releases 的页面判成成功（false positive，硬约束直接破）。r105 的到达判据
-        # 留给下一刀的 "Releases" 档；带引号的 id（r106/r119）不走这一格，照旧。
-        if p in _idents:
-            continue
-        # 短语就是搜索词（出现在 ?q= 里）时不算"已到达"—— 但两类例外：
-        #   1) 目标是"打开某个网站"：那种目标只认 host（见 hit），query 永远不算证据；
-        #   2) 目标是"提交搜索"：?q= 恰恰就是成功判据本身。
-        # s007 实况：一律排除 query 后 goal_reached 永不触发，搜索已经成功却继续跑，
-        # 模型接手又提交了一次**空**表单 → 终点变成 ?q= → FAIL。
-        # 但 goal 里还有**第二个 hop**（"…and open the first result link"）时，?q= 又不算了：
-        # s011 的断言要的是结果页 articles.html/technology.html，而不是结果列表本身
-        # （实况：搜索成功后 goal_reached 连发 5 次 DONE，断言 url_matches 挂）。
-        # 片段用 _HOP_SPAN 而不是 [^.;]*：r106 实况（2026-10-07）的 hop 目标是
-        # "ggml-org/llama.cpp repository page"，名字里的句点把旧正则截断在 "llama"，
-        # 第二跳没认出来 → 搜索结果页（标题也回声 "llama.cpp"）上连发 7 次 DONE，
-        # 每次都被 _done_guard 规则 2 拒掉 —— 类 C 拒绝循环就是这么形成的。
-        _second_hop = bool(re.search(
-            r"\bopen\b" + _HOP_SPAN + r"\b(result|link|article|item|page)\b",
-            goal or "", re.I))
-        if (_flat(p) and _flat(p) in query_echo
-                and (website_goal or not submit_verb or _second_hop)):
-            continue
-        if nav_verb and hit(p, here_all):
-            return _decision("DONE", None, None, "goal_reached")
-        # 路径 B：搜索/提交类，短语落在完整 URL（含查询串）
-        if submit_verb and hit(p, here_full):
-            return _decision("DONE", None, None, "goal_reached")
-
-    # 路径 C：无引号导航目标——"navigate to the Standards page" 这类。三条判据：
-    #   C1 目标短语"整段连续"出现在标题里。必须连续（不是"内容词都出现"）：
-    #      n001 实况——goal 要 docs.python.org，中间页 python.org/doc/ 的标题
-    #      "Our Documentation | Python.org" 同时含 python+documentation，
-    #      按词判会误判到达并提前 DONE。
-    #   C2 目标的头词（末位内容词）出现在当前 URL 里。补 C1 的漏网：
-    #      n003 实况——目标页标题是 "Standards and guidelines | W3C"，
-    #      不含连续的 "w3c standards"，但 URL 是 /standards/。
-    #   C2b 头词的**常见缩写**出现在 URL 里。n001 实况（2026-10-07 隔夜诊断）：
-    #      goal "Open the Python documentation section"，agent 第 1 步已到
-    #      docs.python.org/3/，但 C1 标题无 "python documentation"、C2 URL 是
-    #      **docs**.python.org 不含 "documentation"——已达成却被漏接，agent 又
-    #      点 logo 跑回 python.org 循环到预算耗尽（correct_abandon）。缩写归一
-    #      是 laya-browser-agent goal-aware 原则的同类应用：目标词已到达就不该
-    #      因排版变体而漏判。
-    if nav_verb and not website_goal:
-        # website 类目标（"open the official X website"）不走这里：它的到达判据只能是
-        # host（见 hit），否则点进任意标题含 X 的新闻页都会判到达（s001 实况）。
-        m = _NAV_OBJ_RE.search(goal or "")
-        if m:
-            obj = m.group("t")
-            obj_n = " ".join(_tokens(obj))
-            title = _norm_page(page.get("title") or "")
-            # obj 必须含**实义词**。_NAV_OBJ_RE 的 "the" 是可选项，"open the page
-            # titled 'X'" 会退化成 obj="the"（实况 r114/r115），而 "the" 几乎出现在
-            # 每个页面标题开头 → C1 在起点首页就判到达，提前 DONE。
-            if obj_n and _content(obj) and obj_n in title and obj_n not in start:
-                return _decision("DONE", None, None, "goal_reached")
-            toks = _content(obj)
-            head = toks[-1] if toks else ""
-            # C2b: goal 用全称、URL 用缩写时展开（documentation → docs/doc）。
-            # 缩写只允许命中 **host**，不允许命中路径——n001 实况：起点站 python.org
-            # 自己就有 /doc/（文档入口页），路径级匹配会把中间页误判为到达（C1 注释
-            # 警告过的原始案例，断言要的是 docs.python.org 域）；而目标站是
-            # docs.python.org，'docs' 在 host 里。C2 原判据对全称仍是全 URL 匹配
-            # （n003 /standards/ 依赖它），只有**展开的缩写**收紧到 host。
-            from urllib.parse import urlparse as _urlparse2
-            _host_flat = _flat(_norm_page(_u.netloc))
-            heads = [head] + [k for k, v in _ABBREV.items() if v == head]
-            if head and head not in start:
-                if re.search(rf"\b{re.escape(head)}\b", here_url):
-                    return _decision("DONE", None, None, "goal_reached")
-                for h in heads[1:]:
-                    if re.search(rf"\b{re.escape(h)}\b", _host_flat):
-                        return _decision("DONE", None, None, "goal_reached")
-    return None
+    facts = _arrival_facts(page, goal, hist)
+    return _arrival_by_phrases(goal, facts) or _arrival_by_nav_object(goal, facts)
 
 
 def _same_site(a: str, b: str) -> bool:
