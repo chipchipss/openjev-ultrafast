@@ -23,7 +23,7 @@ git ls-files | Measure-Object -Line                       # 跟踪文件总数
 git ls-files | ForEach-Object { ($_ -split '/')[0] } | Group-Object | Sort-Object Count -Descending
 ```
 
-**清点快照**（2026-10-12 第九次，`git ls-files` 实测）：跟踪文件 **573**（含今天补的 `LICENSE`）。
+**清点快照**（2026-10-13 第十次，`git ls-files` 实测）：跟踪文件 **606**（10-12 的 573 之后新增 4 个测试套件、`m2/smoke_tasks.py`、`m2/b40_audit.py`、`docs/12-upstream-license.md` 与今天的 reports；**外带一条发布前的账**：`m2/fixtures/r142_arrival.json` 的个人邮箱虽已脱敏，但**改动本身的 diff 会把旧内容作为删除行显示**，且历史提交里仍在 ⇒ 对外发布前要不要清洗 git 历史，仍是操作者的决定（#77 的账，已在 real-log 10-13 那节记录）。
 
 | 顶层 | 数量 | 是什么 |
 |---|---|---|
