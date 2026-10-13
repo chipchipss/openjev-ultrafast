@@ -14,7 +14,7 @@
 | **50 题批的门控墙钟** | 27.8 → **8.2 / 8.7 / 9.5 分钟**(任务间复位改成"先问健康再付钱") | `real-1011-b27/b28/b29-gate*.json` |
 | **3×100 行夜间档(L3 第二档,第一次真跑)** | 三轮 **66 / 69 / 65**,三轮全 `fp=0`、`error=0`,总墙钟 **61.4 分钟**(预算 95);同 build 的行级抖动是 **100 行里只有 5 行反复翻,95 行三轮不动** | `ci-1012-1908.json` + 三份 `nightly-1012-1908-r*.json` |
 | **决策延迟** | 单决策中位 **0.64 s**(本机 2B GGUF,走产品原路) | `m2/probe_wire_parallel.py` 的并发 1 档 |
-| **离线测试** | 34 个套件 **285 案全绿**（`scripts/smoke.ps1` tier1 一次跑完，2026-10-13 21:13 实跑；上一版读数停在 10-12 22:48 的 27 件 / 244 案；tier1 的证据是 runner 逐件打出的 `n/n passed`，`reports/smoke-*.json` 只有 -Live 第二级才写） | `tests/` |
+| **离线测试** | **35 个套件 / 290 案全绿**（`scripts/smoke.ps1` tier1，2026-10-13 22:3x 实跑，逐件 `n/n passed` 相加；上一版整套读数停在 21:13 的 34 件 / 285 案，再往前是 10-12 22:48 的 27 件 / 244 案。`reports/smoke-*.json` 只有 -Live 第二级才写，tier1 的证据就是那份逐件输出） | `tests/` |
 
 **并行不做,是被读数判死的**:并发 1→4 的吞吐 1.55 → 1.58 决策/秒(**加速比 1.02x**),`llama-server --parallel 4` 的槽位没变成吞吐,多开 worker 只会在 wire 前排队。所以 100 题 ≤30 分钟靠串行就已达成(实测 20.7 分钟)。
 
@@ -58,7 +58,7 @@ claude mcp add openjev -- python C:\Users\Administrator\openjev-ultrafast\mcp_se
 ### 跑基准与回归
 
 ```powershell
-.\scripts\smoke.ps1                  # 第一级闸门:34 个离线套件必须 n/n 全绿(现在 285 案)
+.\scripts\smoke.ps1                  # 第一级闸门:35 个离线套件必须逐件 n/n 全绿(290 案 @10-13 22:3x)
 .\scripts\smoke.ps1 -Live            # 第二级:5 题代表族(s005/n004/x001/x002/r142),判据读报告不读控制台
 .\scripts\ci_local.ps1 -Tasks 50                                    # 每改必跑档:smoke → 冻结三轮 → 回归批 → 阈值判定(默认是 50 行口径:MinPass 43 / 墙钟 14 分钟)
 .\scripts\ci_local.ps1 -Tasks 100 -MinPass 59 -MaxWallMinutes 30    # 同档跑 100 行:阈值自己给,且**跑之前先预登记**
@@ -144,7 +144,7 @@ openjev-ultrafast/
 │   │                         probe_*.py(零模型探针)、make_tasks_100.py(题集生成 + 唯一性断言)
 ├── mcp_server.py           # Claude Code / 任意 MCP 客户端入口
 ├── scripts/                # startlux_serve.ps1 / run_one.ps1 / run_task.py / smoke.ps1 / ci_local.ps1 / chrome_guard.ps1
-├── tests/                  # 34 个离线套件(不需要浏览器或模型,285 案)
+├── tests/                  # 35 个离线套件(不需要浏览器或模型,290 案 @10-13 22:3x 全绿)
 ├── reports/                # 实测报告入库;逐任务运行产物目录不入库
 ├── docs/                   # 01-hard-rules.md(硬约束全文)、03-milestones.md、00-project-plan.md(L1–L6)
 ├── run_baseline_19.ps1     # 19 题冻结 runner(一任务一进程 + 逐域预检 + 收尾验证)

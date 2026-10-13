@@ -23,16 +23,16 @@ git ls-files | Measure-Object -Line                       # 跟踪文件总数
 git ls-files | ForEach-Object { ($_ -split '/')[0] } | Group-Object | Sort-Object Count -Descending
 ```
 
-**清点快照**（2026-10-13 深夜第十三次，`git ls-files` 实测；前十次的内容被这一次**合并成一张表**，因为上一次编辑在这里留下过**两张重复的表** —— 同一份清单抄两遍正是本仓文档最反对的形状）：跟踪文件 **630**。
+**清点快照**（2026-10-13 深夜第十三次，`git ls-files` 实测；前十次的内容被这一次**合并成一张表**，因为上一次编辑在这里留下过**两张重复的表** —— 同一份清单抄两遍正是本仓文档最反对的形状）：跟踪文件 **634**。
 
 | 顶层 | 跟踪文件 | 是什么 |
 |---|---|---|
-| `reports` | 364 | 实测报告，全部入库（逐任务的 step/decision jsonl 在 `logs/`，不入库，见 `.gitignore`） |
+| `reports` | 368 | 实测报告，全部入库（逐任务的 step/decision jsonl 在 `logs/`，不入库，见 `.gitignore`） |
 | `m2` | 97 | 真实站题集与测量工具：`tasks_real_100.jsonl`、`batch_audit.py`、`b40_audit.py`、`smoke_tasks.py`、`smoke_gate.py`、`make_release_snapshot.py`（#79 的无历史发布快照）、探针（**探针一个不删**） |
 | `m4a` | 36 | M4a/M4b 本地训练线，**已关闭**（两次自训无增益） |
 | `jev_ultrafast` | 33 | 主包：`agent.py` / `browser.py` / `snapshot.js` / `skills.py` / `evaluator.py` / `decider/`（含 `choose_2b.py` 这条 chat→decision 线） |
 | `scripts` | 29 | `startlux_serve.ps1`、`run_one.ps1`（零云端单题/批）、`run_freecloud_19.ps1`（#80 的云端决策实验）、`smoke.ps1`、`ci_local.ps1`、`chrome_guard.ps1`、`text_helper.ps1`（**云端 URL 只在这一个文件里拼写**） |
-| `tests` | 35 | 离线套件 35 件（件数=文件数，实测；**案件数等 tier1 重打后再写**，夜间档在飞时它拒绝启动）；含 `test_no_third_party_pii.py`（#79 的结构闸）、`test_task_id_uniqueness.py`（#81）、`test_prompt_operation_vocabulary.py`（#82）、`test_evaluator_app_error.py`（#78） |
+| `tests` | 35 | 离线套件 **35 件 / 290 案全绿**（`scripts/smoke.ps1` tier1 逐件 `n/n passed` 相加，2026-10-13 22:3x 实跑）；含 `test_no_third_party_pii.py`（#79 的结构闸）、`test_task_id_uniqueness.py`（#81）、`test_prompt_operation_vocabulary.py`（#82）、`test_evaluator_app_error.py`（#78） |
 | `m1` | 8 | 19 题基准 runner 与题集（`tasks-laya-19.jsonl`）+ 100 行题集生成器 |
 | `docs` | 9 | `00-project-plan.md`（L1–L6 权威）、`01-hard-rules.md`、`03-milestones.md`、`09/10/11`、`12-upstream-license.md`（上游 MIT 原文归档） |
 | `根目录` | 17 | `README.md`、`CHANGELOG.md`、`LICENSE`、本文件、`pyproject.toml`、若干 `run_*.ps1`（多数是已关闭训练线的入口） |
