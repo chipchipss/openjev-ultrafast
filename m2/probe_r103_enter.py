@@ -38,7 +38,7 @@ def observe(b, tries=8):
         except StalePage:
             time.sleep(0.4 * (attempt + 1))
             continue
-        if S._indexed(p.get("actions") or []):
+        if S.indexed_actions(p.get("actions") or []):
             return p
         time.sleep(0.5 * (attempt + 1))
     return p
@@ -66,7 +66,7 @@ try:
     if not st:
         print("search_type abstains on the start page -- nothing to replay")
         sys.exit(0)
-    action = next(a for _, a in S._indexed(p.get("actions") or []) if a.get("id") == st["choice"])
+    action = next(a for _, a in S.indexed_actions(p.get("actions") or []) if a.get("id") == st["choice"])
     print("=== fill the header combobox (product act path) ===")
     b.act(action, p, text=st["text"])
     state(b, "after-fill")
@@ -92,13 +92,13 @@ try:
         d = getattr(S, name)(p2, GOAL, hist)
         picked = None
         if isinstance(d, dict):
-            picked = {c: a for c, a in S._indexed(p2.get("actions") or [])}.get(str(d.get("target")))
+            picked = {c: a for c, a in S.indexed_actions(p2.get("actions") or [])}.get(str(d.get("target")))
         print("      %-15s -> %s" % (name, "%s %r %r" % (d.get("operation"), d.get("choice"),
               (picked or {}).get("label")) if isinstance(d, dict) else d))
     print("=== second Enter / wait: does the result list render rows? ===")
     time.sleep(1.5)
     p3 = observe(b)
-    idx = S._indexed(p3.get("actions") or [])
+    idx = S.indexed_actions(p3.get("actions") or [])
     rows = [(a.get("id"), str(a.get("label") or "")[:52]) for _, a in idx
             if a.get("kind") == "click" and (a.get("role") or "") == "link"
             and len(str(a.get("label") or "")) > 25]

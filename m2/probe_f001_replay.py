@@ -44,9 +44,9 @@ try:
             import time
             time.sleep(0.5)
             continue
-        if S._indexed(p.get("actions") or []):
+        if S.indexed_actions(p.get("actions") or []):
             break
-    acts = S._indexed((p or {}).get("actions") or [])
+    acts = S.indexed_actions((p or {}).get("actions") or [])
     print("url=%r title=%r n_indexed=%d" % (
         str((p or {}).get("url") or "")[:40], str((p or {}).get("title") or "")[:30], len(acts)))
     print("---- 页面上的 /forms/ 相关链接 ----")

@@ -470,7 +470,7 @@ def choose(state, goal, history):
         # 黑名单与 DoneGuard 双保险拦住。
         if (result.get("operation") == "BLOCKED"
                 and os.environ.get("M18_FIRST_ACTION_FLOOR", "1") == "1"
-                and skills._indexed(state.get("actions") or [])):
+                and skills.indexed_actions(state.get("actions") or [])):
             floor = skills.first_action_floor(state, goal, history)
             if floor is not None:
                 return floor

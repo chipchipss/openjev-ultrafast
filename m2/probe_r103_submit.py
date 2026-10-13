@@ -41,14 +41,14 @@ def observe(b, tries=8):
         except StalePage:
             time.sleep(0.4 * (attempt + 1))
             continue
-        if S._indexed(p.get("actions") or []):
+        if S.indexed_actions(p.get("actions") or []):
             return p
         time.sleep(0.5 * (attempt + 1))
     return p
 
 
 def dump(b, p, hist, label):
-    idx = S._indexed(p.get("actions") or [])
+    idx = S.indexed_actions(p.get("actions") or [])
     by_choice = {c: a for c, a in idx}
     fills = [(a.get("id"), str(a.get("label") or "")[:36], a.get("role"))
              for _, a in idx if a.get("kind") == "fill"]
@@ -84,7 +84,7 @@ try:
     b = Browser(URL)
     p = observe(b)
     print("=== A. start page ===")
-    print("  _goal_query=%r  _phrases=%r" % (S._goal_query(GOAL), S._phrases(GOAL)))
+    print("  _goal_query=%r  goal_phrases=%r" % (S._goal_query(GOAL), S.goal_phrases(GOAL)))
     rt = dump(b, p, [], "start")
     hist = []
     if not rt:
@@ -92,7 +92,7 @@ try:
         sys.exit(0)
 
     print("=== B. execute the floor decision (tick 2 of the real run) ===")
-    action = next(a for _, a in S._indexed(p.get("actions") or []) if a.get("id") == rt["choice"])
+    action = next(a for _, a in S.indexed_actions(p.get("actions") or []) if a.get("id") == rt["choice"])
     b.act(action, p, text=rt.get("text"))
     p2 = observe(b)
     hist.append({"step": 1, "kind": action["kind"], "action": action.get("label"),
@@ -110,7 +110,7 @@ try:
         if not rt:
             print("  tick %d: route -> None (model takes over)" % tick)
             break
-        action = next(a for _, a in S._indexed(cur.get("actions") or [])
+        action = next(a for _, a in S.indexed_actions(cur.get("actions") or [])
                       if a.get("id") == rt["choice"])
         print("  tick %d: %s %s %r" % (tick, rt.get("skill"), rt.get("operation"),
                                        action.get("label")))

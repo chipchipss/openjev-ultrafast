@@ -34,9 +34,9 @@ def observe(b, tag):
 
 def score_list(page):
     """把 explicit_target 的打分阶梯重放一遍（它就是那些私有 helper 的组合）。"""
-    phrases = S._phrases(GOAL)
+    phrases = S.goal_phrases(GOAL)
     out = []
-    for index, a in S._indexed(page.get("actions") or []):
+    for index, a in S.indexed_actions(page.get("actions") or []):
         if a.get("kind") != "click" or (a.get("role") or "") == "option":
             continue
         lab = (a.get("label") or "").strip().lower()
@@ -75,7 +75,7 @@ def main():
     print(f"url={page['url']}\nactions={len(page['actions'])}")
     rows = [a for a in page["actions"] if "9110" in (a.get("label") or "")]
     print(f"labels containing '9110': {len(rows)} -> {[ (a.get('id'), (a.get('label') or '')[:30]) for a in rows ]}")
-    print(f"\nphrases from goal: {S._phrases(GOAL)}")
+    print(f"\nphrases from goal: {S.goal_phrases(GOAL)}")
     scored = score_list(page)
     print("\nexplicit_target 打分列表（top 12）：")
     for sc, aid, lab, how in scored[:12]:

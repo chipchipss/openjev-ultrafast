@@ -172,7 +172,7 @@ def _done_guard(decision: dict, state: dict) -> str | None:
     _search_then_open = re.search(r"\bsearch\b[^.;]*\bopen\b", state["goal"], re.I)
     try:
         from . import skills as _skills
-        if (not _form_goal and not _search_then_open and _skills._phrases(state["goal"])
+        if (not _form_goal and not _search_then_open and _skills.goal_phrases(state["goal"])
                 and re.search(r"\b(open|navigate|go to|visit|reach)\b", state["goal"], re.I)):
             arrived = (_skills.goal_reached(state["page"], state["goal"], state["history"])
                        is not None or
@@ -197,7 +197,7 @@ def _done_guard(decision: dict, state: dict) -> str | None:
                 _last = state["history"][-1] if state["history"] else {}
                 just_landed = bool((_last.get("outcome") or {}).get("url_changed"))
                 _pt = (state["page"].get("text") or "").lower()
-                _missing = [p for p in _skills._phrases(state["goal"]) if p.lower() not in _pt]
+                _missing = [p for p in _skills.goal_phrases(state["goal"]) if p.lower() not in _pt]
                 if just_landed and _missing:
                     state["_arrival_relooked"] = True
                     if _arrival_relook(state, _missing):

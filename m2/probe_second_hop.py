@@ -74,7 +74,7 @@ for name, url, goal, needle in CASES:
     try:
         p = b.observe(screenshot=False)
         clicks = [(i, str(a.get("label"))[:46], str(a.get("href"))[:52])
-                  for i, a in S._indexed(p.get("actions") or []) if a.get("kind") == "click"]
+                  for i, a in S.indexed_actions(p.get("actions") or []) if a.get("kind") == "click"]
         text = p.get("text") or ""
         m = ROWS_RE.search(text.replace("\n", " | "))
         print("  landed=%s  n_click=%d  %s" % (p.get("url"), len(clicks),
@@ -94,11 +94,11 @@ for name, url, goal, needle in CASES:
         hit = [c for c in clicks if needle.lower().lstrip("/") in c[2].lower()]
         print("  visible clicks carrying the needle: %d -> %s" % (len(hit), hit[:3]))
         if goal != "n/a":
-            print("  phrases=%s" % (S._phrases(goal),))
+            print("  phrases=%s" % (S.goal_phrases(goal),))
             d = S.explicit_target(p, goal, [])
             if d:
                 ci = (d.get("choice") or "").lstrip("e")
-                lab = next((a.get("label") for i, a in S._indexed(p["actions"]) if i == ci), None)
+                lab = next((a.get("label") for i, a in S.indexed_actions(p["actions"]) if i == ci), None)
                 print("  explicit_target -> %s %s (%r)" % (d.get("operation"), d.get("choice"), lab))
             else:
                 print("  explicit_target -> None  (floor abstains here)")

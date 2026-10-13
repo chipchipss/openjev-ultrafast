@@ -75,7 +75,7 @@ def observe_settled(b, tries=6):
         except StalePage:
             time.sleep(0.4 * (attempt + 1))
             continue
-        if S._indexed(p.get("actions") or []):
+        if S.indexed_actions(p.get("actions") or []):
             return p
         time.sleep(0.5 * (attempt + 1))
     return p
@@ -84,7 +84,7 @@ def observe_settled(b, tries=6):
 def indexed_clicks(p):
     host = urlparse(p.get("url") or "").netloc.lower()
     out = []
-    for i, a in S._indexed(p.get("actions") or []):
+    for i, a in S.indexed_actions(p.get("actions") or []):
         if a.get("kind") != "click":
             continue
         h = str(a.get("href") or "")

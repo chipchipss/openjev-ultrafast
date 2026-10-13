@@ -54,7 +54,7 @@ def matched_controls(page, phrases):
     **视口外**（`snapshot.js` 只收录视口内动作，#40/#59 那张老账），所以还得看正文短语。
     """
     hits = []
-    for _idx, a in S._indexed(page.get("actions") or []):
+    for _idx, a in S.indexed_actions(page.get("actions") or []):
         lab = str(a.get("label") or "").strip()
         if not lab:
             continue

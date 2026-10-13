@@ -1,6 +1,6 @@
 """L2 扩题（#51）的可行性探针：候选题目在**发车之前**先量三件事，零模型。
 
-每一行候选问三个问题，全部用产品自己的读法（`skills.explicit_target` / `_phrases`）：
+每一行候选问三个问题，全部用产品自己的读法（`skills.explicit_target` / `goal_phrases`）：
   A 起点页的动作表里**真挂着**那条目标链接吗（curl 不作证：bootstrap 的 docs 首页对 curl
     只有 406 字节、0 个 `<a>`，浏览器里却有整条侧栏；sqlite 首页那条 `lang.html` 的 label
     套了子元素，`<a>…</a>` 正则看不见）。
@@ -195,7 +195,7 @@ def observe(b, tries=8):
         except StalePage:
             time.sleep(0.4 * (attempt + 1))
             continue
-        if S._indexed(p.get("actions") or []):
+        if S.indexed_actions(p.get("actions") or []):
             return p
         time.sleep(0.5 * (attempt + 1))
     return p
@@ -219,7 +219,7 @@ def dump(url, limit=70):
         print("   NO PAGE OBSERVED")
         b.close()
         return
-    for i, a in S._indexed(p.get("actions") or [])[:limit]:
+    for i, a in S.indexed_actions(p.get("actions") or [])[:limit]:
         if a.get("kind") != "click":
             continue
         print("   %-4s %-40s %s" % (i, str(a.get("label") or "")[:40],
@@ -236,7 +236,7 @@ def dump_all(url, limit=60):
         print("   NO PAGE OBSERVED")
         b.close()
         return
-    for i, a in S._indexed(p.get("actions") or [])[:limit]:
+    for i, a in S.indexed_actions(p.get("actions") or [])[:limit]:
         print("   %-4s %-8s %-34s %s" % (
             i, a.get("kind"), str(a.get("label") or a.get("placeholder") or "")[:34],
             str(a.get("href") or a.get("name") or "")[:48]))
@@ -273,10 +273,10 @@ def main():
             print("   A NO PAGE OBSERVED (index empty after retries) -- probe cannot judge")
             b.close()
             continue
-        # `_indexed` 的编号是**按节点去重后的位置号**（`skills.py:53`），不是 `eNN` 的 NN。
+        # `indexed_actions` 的编号是**按节点去重后的位置号**（`skills.py:53`），不是 `eNN` 的 NN。
         # 早先这里用 `idx["e"+target]` 反查，把两个正确落点读成了"抢错行"（e007/e010），
         # 是仪器错，不是产品错——所以 candidates 和 pick 都必须走同一张位置表。
-        pairs = S._indexed(p.get("actions") or [])
+        pairs = S.indexed_actions(p.get("actions") or [])
         idx = dict(pairs)
         hits = [(i, a) for i, a in pairs
                 if frag.lower() in ((a.get("href") or "") + " " + (a.get("label") or "")).lower()]
@@ -290,13 +290,13 @@ def main():
             node = idx.get(t) or {}
             pick = (t, node.get("id"), str(node.get("label") or "")[:30],
                     str(node.get("href") or "")[:42])
-        print("   B phrases=%s" % (S._phrases(goal),))
+        print("   B phrases=%s" % (S.goal_phrases(goal),))
         print("   B explicit_target -> %s   (want frag %s)" % (pick or "None", frag))
         # 弃权时最可能的原因是同一 label 挂了两次（侧栏 + 正文）：位置表里是两个节点、
         # 同分，`top-second < 0.15` 就该弃权。把这个数打出来，弃权才有解释而不是猜测。
         dup = [(ph, sum(1 for _, a in pairs
                         if str(a.get("label") or "").strip().lower() == ph.lower()))
-               for ph in S._phrases(goal)]
+               for ph in S.goal_phrases(goal)]
         print("   B label-dup=%s" % (dup,))
         b.close()
         if not hits:

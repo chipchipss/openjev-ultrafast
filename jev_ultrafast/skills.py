@@ -51,7 +51,7 @@ def _content(s: str) -> list[str]:
     return [t for t in _tokens(s) if t not in STOPWORDS and len(t) > 1]
 
 
-def _indexed(actions: list[dict]) -> list[tuple[str, dict]]:
+def indexed_actions(actions: list[dict]) -> list[tuple[str, dict]]:
     """(index_str, action)，编号规则与 model.action_space / decision_validator 一致。"""
     seen: dict = {}
     out = []
@@ -183,8 +183,8 @@ def page_not_ready(page: dict, goal: str, history: list) -> dict | None:
     if _is_scroll_visible_goal(goal):
         return None
     # 判"没有任何可交互元素"：不能看 page["actions"] 是否为空 —— 快照总会追加合成控件
-    # （scroll/reload/wait），真正空白的是 KIND_TO_OP 里的那些，_indexed 正好按此过滤。
-    if not _indexed(page.get("actions") or []):
+    # （scroll/reload/wait），真正空白的是 KIND_TO_OP 里的那些，indexed_actions 正好按此过滤。
+    if not indexed_actions(page.get("actions") or []):
         # 有正文、零可交互元素 = **内容页**（搜索结果 / JSON 回显 / 文章 / 报错页），
         # 不是"还没渲染"。判据必须看正文，否则表单提交后的回显页会被无限等待：
         # f002 实况——httpbin /post 的 JSON 响应零控件 → 连等 57 拍撞上 60 步上限，
@@ -223,13 +223,13 @@ def first_action_floor(page: dict, goal: str, history: list) -> dict | None:
 
     为什么安全：
       - 有界（MAX_FLOOR_STEPS），且每次都要求世界确实变了；
-      - 只从真实元素里选（_indexed 过滤 scroll/wait/reload 合成控件）；
+      - 只从真实元素里选（indexed_actions 过滤 scroll/wait/reload 合成控件）；
       - 后续安全链不变：Policy 黑名单 / DoneGuard / Validator 照常拦。
     env M18_FIRST_ACTION_FLOOR=0 关闭。
     """
     if os.environ.get("M18_FIRST_ACTION_FLOOR", "1") != "1":
         return None
-    candidates = _indexed(page.get("actions") or [])
+    candidates = indexed_actions(page.get("actions") or [])
     if not candidates:
         return None
     if history:
@@ -378,7 +378,7 @@ def goal_reached(page: dict, goal: str, history: list) -> dict | None:
         # 跑偏到 Wikipedia:Categorizing_redirects，把一个已达成的任务判失败。
         return None
     # 目标里"要填进去的值"全部出现在页面文本上 → 已经达成。
-    # _phrases 故意跳过 "with 'X'" 形式的引号串（当值不当目标），于是
+    # goal_phrases 故意跳过 "with 'X'" 形式的引号串（当值不当目标），于是
     # "Go to /forms/post and fill the comments field with 'hello world', then submit
     # the form." 的证据短语只剩 /forms/post —— 提交后落到 /post，页面永远不含它，
     # 收不了口：f002 实况提交成功（final_url=/post，断言已过）却连等 30 拍撞上
@@ -445,7 +445,7 @@ def goal_reached(page: dict, goal: str, history: list) -> dict | None:
 
     # 路径 A：显式短语（引号串 / RFC 号）出现在 URL 或标题 → 已到达目标页
     _idents = set(_repo_ident_phrases(goal))
-    for p in _phrases(goal):
+    for p in goal_phrases(goal):
         if p.startswith("/") or len(p.strip()) < 3:
             continue
         # 标识档不作到达证据（③）：goal 说 "the Releases page of the pytorch/pytorch
@@ -640,7 +640,7 @@ def link_followed_arrival(page: dict, goal: str, history: list) -> dict | None:
 def _fill_values(goal: str) -> list[str]:
     """goal 里处于「值位置」的引号串：`fill X with 'v'` / `enter 'v' into X`。
 
-    与 _phrases 互补——那里刻意把这类串跳过（值不是目标），但对"是否已完成"
+    与 goal_phrases 互补——那里刻意把这类串跳过（值不是目标），但对"是否已完成"
     而言，用户要求填进去的值出现在页面上恰恰是最强的完成证据。
     只认 "with/into/to" 紧邻的引号串，避免把 'Ada Lovelace' 这类目标名误当值。
     """
@@ -661,7 +661,7 @@ def _fill_values(goal: str) -> list[str]:
 #: goal 把 `org/repo` 型标识**明写成仓库**时才算标识（r105 是全场 101 题里唯一 witness：
 #: "Open the Releases page of the pytorch/pytorch repository."）。
 #: 为什么要语境门：`and/or`、`24/7`、`n/a` 这些英文斜杠词形状完全相同，纯词法认会把
-#: 噪声灌进 `_phrases`/`explicit_target`/`goal_reached` 三条链；按"名词只收见过的"，
+#: 噪声灌进 `goal_phrases`/`explicit_target`/`goal_reached` 三条链；按"名词只收见过的"，
 #: 只收 goal 自己把它称作 repository 的那种。语境词只有 repository/ies 一个见证，
 #: 裸 repo 没见过，不收。
 _REPO_CTX_RE = re.compile(r"\brepositor(?:y|ies)\b", re.I)
@@ -680,7 +680,7 @@ def _repo_ident_phrases(goal: str) -> list[str]:
     return [p for p, _s, _e in _repo_ident_spans(goal)]
 
 
-def _phrases(goal: str) -> list[str]:
+def goal_phrases(goal: str) -> list[str]:
     """goal 里字面写明的目标短语：引号串 / org-repo 标识 / 路径 / RFC 号 / 介词后的名词短语。"""
     out = []
     for m in re.finditer(r"['\"]([^'\"]{2,60})['\"]", goal):
@@ -697,7 +697,7 @@ def _phrases(goal: str) -> list[str]:
             if not any(s <= m.start() < e for _p, s, e in idents)]
     out += [m.group(0) for m in re.finditer(r"\bRFC[\s-]?\d{3,5}\b", goal, re.I)]
     # 介词后的名词短语："Open the Wikipedia article on Gödel's incompleteness theorems."
-    # 三类都不命中（无引号、无路径、无 RFC）→ _phrases 曾返回 []，于是 goal_reached
+    # 三类都不命中（无引号、无路径、无 RFC）→ goal_phrases 曾返回 []，于是 goal_reached
     # 永远不产 DONE，只能由模型提议 DONE 再交 decider 复核（每次 5.7s 且形成提议循环，
     # wiki-laya-v4 实况 22 次哨兵调用 / 229s）。以句号/分号收尾，避免跨句误取。
     m2 = re.search(r"\b(?:on|about|titled|called|named)\s+([^.;]+?)\s*\.?\s*$",
@@ -722,13 +722,13 @@ def _phrases(goal: str) -> list[str]:
 
 
 def explicit_target(page: dict, goal: str, history: list) -> dict | None:
-    phrases = _phrases(goal)
+    phrases = goal_phrases(goal)
     if not phrases:
         return None
     recent = {h.get("choice") for h in (history or [])[-4:]}
     idents = set(_repo_ident_phrases(goal))
 
-    # 单/复数折叠：只在**这一层**做，绝不进 `_phrases` / `_goal_query`（它们喂搜索词，
+    # 单/复数折叠：只在**这一层**做，绝不进 `goal_phrases` / `_goal_query`（它们喂搜索词，
     # 折叠会把 "Downloads" 变成 "Download" 去搜）。证据面：r115 实况，python.org 上
     # goal 写 'Download Python'，导航 label 是 "Downloads"，一个 s 之差 → 全部档位
     # 不认 → 回落 2B → 第 1 拍点了搜索框。别的任务还没有复数标签 witness，
@@ -741,7 +741,7 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
     except Exception:
         _page_host = ""
     scored = []
-    for index, a in _indexed(page.get("actions") or []):
+    for index, a in indexed_actions(page.get("actions") or []):
         if a.get("kind") != "click" or a.get("id") in recent:
             continue
         # 自动补全建议（role=option）是"改查询词"，不是导航目标：s001 里 goal 的引号串
@@ -921,7 +921,7 @@ def goto_path(page: dict, goal: str, history: list) -> dict | None:
 
     recent = {h.get("choice") for h in (history or [])[-3:]}
     hits = []
-    for index, a in _indexed(page.get("actions") or []):
+    for index, a in indexed_actions(page.get("actions") or []):
         if a.get("kind") != "click" or a.get("id") in recent:
             continue
         if (a.get("role") or "") == "option":
@@ -1033,7 +1033,7 @@ def form_fill(page: dict, goal: str, history: list) -> dict | None:
         # goal 没给具体值，断言也只要求提交成功（页面出现确认字样）。把所有**空**文本框
         # 依次填上占位值即可（f007 实况：旧写法直接 None → 模型只填一个 → 提交后无确认）。
         if re.search(r"\bfill\b[^.;]*\ball\b[^.;]*\bfields?\b", goal or "", re.I):
-            for index, a in _indexed(actions):
+            for index, a in indexed_actions(actions):
                 if a.get("kind") != "fill" or (a.get("value") or "").strip():
                     continue
                 label = ((a.get("label") or "") + " " + (a.get("name") or "")).lower()
@@ -1052,7 +1052,7 @@ def form_fill(page: dict, goal: str, history: list) -> dict | None:
         if not field_c:
             continue
         best = None
-        for index, a in _indexed(actions):
+        for index, a in indexed_actions(actions):
             if a.get("kind") != "fill":
                 continue
             lab_t = set(_tokens(a.get("label") or ""))
@@ -1111,7 +1111,7 @@ def select_option(page: dict, goal: str, history: list) -> dict | None:
         return None
 
     opts, groups = [], {}
-    for index, a in _indexed(page.get("actions") or []):
+    for index, a in indexed_actions(page.get("actions") or []):
         if a.get("kind") != "click":
             continue
         if "checked" not in a and (a.get("role") or "") not in ("radio", "checkbox"):
@@ -1167,7 +1167,7 @@ def form_submit(page: dict, goal: str, history: list) -> dict | None:
     # 按 label 词匹配会先撞上导航栏的 "Search" 链接（自建站点 <a href="search.html">Search</a>
     # 实况：form_submit 点了它 → 离开表单页 → 表单丢失 → FAIL）。所以按钮优先，链接仅兜底。
     best = None
-    for index, a in _indexed(page.get("actions") or []):
+    for index, a in indexed_actions(page.get("actions") or []):
         if a.get("kind") != "click":
             continue
         # 非 http(s) 目标永远不可能是表单提交。SUBMIT_WORDS 含 "send"，
@@ -1241,7 +1241,7 @@ def _goal_query(goal: str) -> str | None:
         # 唯一可 fill 的就是它）——比 b16 那一拍空点击更糟。"该填哪个框"是另一刀，
         # 不在读法这一格里夹带。
         _idents = set(_repo_ident_phrases(goal or ""))
-        cand = [p for p in _phrases(goal or "")
+        cand = [p for p in goal_phrases(goal or "")
                 if not p.startswith("/") and p not in _idents]
         if len(cand) == 1:
             query = cand[0]
@@ -1258,7 +1258,7 @@ def search_type(page: dict, goal: str, history: list) -> dict | None:
     # 否则会把 query 重打一遍而不去点结果：n004 实况）
     if any(h.get("kind") == "fill" and (h.get("text") or "").strip() == query for h in hist):
         return None
-    for index, a in _indexed(page.get("actions") or []):
+    for index, a in indexed_actions(page.get("actions") or []):
         if a.get("kind") != "fill" or not _searchbox(a):
             continue
         if (a.get("value") or "").strip() == query or (a.get("id"), query) in done:
@@ -1292,7 +1292,7 @@ def search_submit(page: dict, goal: str, history: list) -> dict | None:
                                 and _DATE_FIELD_RE.search(a.get("label") or ""))
                 if not (want_m[:3] in vals and re.search(rf"\b{want_d}\b", vals)):
                     return None
-            for index, a in _indexed(page.get("actions") or []):
+            for index, a in indexed_actions(page.get("actions") or []):
                 if a.get("kind") != "click" or a.get("id") in done:
                     continue
                 lab = (a.get("label") or "").strip().lower()
@@ -1341,7 +1341,7 @@ def search_submit(page: dict, goal: str, history: list) -> dict | None:
     # 与 form_submit 同理：提交控件是 button，导航项是 link。自建站点的导航栏就有
     # <a href="search.html">Search</a>，先撞上它会直接离开当前页（实况）。
     cands = {"b_exact": None, "b_loose": None, "l_exact": None, "l_loose": None}
-    for index, a in _indexed(page.get("actions") or []):
+    for index, a in indexed_actions(page.get("actions") or []):
         if a.get("kind") != "click":
             continue
         lab = " ".join(_tokens(a.get("label") or ""))
@@ -1364,7 +1364,7 @@ def search_submit(page: dict, goal: str, history: list) -> dict | None:
     # 优先选与刚输入内容最接近的那条，避免把 "openai api" 当成查询提交。
     typed = _norm_label(hist[last_fill].get("text") or "")
     best_opt = None
-    for index, a in _indexed(page.get("actions") or []):
+    for index, a in indexed_actions(page.get("actions") or []):
         if a.get("kind") != "click" or (a.get("role") or "") != "option":
             continue
         lab = _norm_label(a.get("label") or "")
@@ -1398,12 +1398,12 @@ def select_first(page: dict, goal: str, history: list) -> dict | None:
     hist = history or []
     recent = {h.get("choice") for h in hist[-4:]}
     done_labels = {_norm_label(h.get("action")) for h in hist}
-    for index, a in _indexed(page.get("actions") or []):
+    for index, a in indexed_actions(page.get("actions") or []):
         if a.get("id") in recent:
             continue
         if a.get("kind") == "select":
             return _decision("SELECT", f"{index}:1", a, "select_first")
-    for index, a in _indexed(page.get("actions") or []):
+    for index, a in indexed_actions(page.get("actions") or []):
         if a.get("id") in recent:
             continue
         if a.get("kind") != "click" or not re.search(r"radio|checkbox", a.get("role") or "", re.I):
@@ -1454,7 +1454,7 @@ def entity_fill(page: dict, goal: str, history: list) -> dict | None:
         val = values[key]
         if any((h.get("text") or "").strip() == val for h in hist):
             continue                       # 该值已输入过
-        for index, a in _indexed(page.get("actions") or []):
+        for index, a in indexed_actions(page.get("actions") or []):
             if a.get("kind") != "fill":
                 continue
             lab = a.get("label") or ""
@@ -1505,7 +1505,7 @@ def entity_confirm(page: dict, goal: str, history: list) -> dict | None:
     # 机场（Flights v27 实况：目的地被确认为 "London Stansted Airport (STN)"，
     # 而校验要的是城市 "London"）。同一 token 下优先不带 airport/(XXX) 的候选。
     first_any = None
-    for index, a in _indexed(page.get("actions") or []):
+    for index, a in indexed_actions(page.get("actions") or []):
         if a.get("kind") != "click" or (a.get("id"), a.get("label")) in clicked:
             continue
         label = a.get("label") or ""
@@ -1569,7 +1569,7 @@ def _scroll_count(hist: list) -> int:
 def _scroll_ctl(page: dict, direction: str) -> dict | None:
     """按方向取合成滚动控件（"down"/"up"）。
 
-    scroll 不在 KIND_TO_OP 里，_indexed 会把它滤掉，所以这里读原始 actions；
+    scroll 不在 KIND_TO_OP 里，indexed_actions 会把它滤掉，所以这里读原始 actions；
     另外 SCROLL_UP/DOWN 的 target 必须是 None（validator 拒绝带 target 的 scroll），
     因此不需要编号，直接把 action 交给 _decision 让 choice=id。
     """
@@ -1595,7 +1595,7 @@ def date_pick(page: dict, goal: str, history: list) -> dict | None:
     # 缺陷#34：同 entity_confirm —— id 每次观测重排，跨字段撞号会把未点过的目标
     # 误判成"已点过"（日历日格/票种选项都中过这一枪）。用 (id, label) 对去重。
     clicked = {(h.get("choice"), h.get("action")) for h in hist}
-    actions = list(_indexed(page.get("actions") or []))
+    actions = list(indexed_actions(page.get("actions") or []))
 
     # 缺陷#21：日期字段已是目标日期 → 不再动它。
     # 无此守卫时，搜索提交后结果页上的 Departure 字段会让本技能再设一遍，
@@ -1654,7 +1654,7 @@ def date_pick(page: dict, goal: str, history: list) -> dict | None:
         # 目标日在可视区外：Google 的日历一屏约两周（目标 Oct 21，初始可视 Sep 30~Oct 13）。
         # 关键：**按可见日期的早晚决定方向**，只朝下滚会滚过头（实测滚到 Nov~Dec，
         # 目标反而在视野外 → 技能再也找不到 → 回落模型，每次 3~5s 的废调用）。
-        # 注意：scroll 不在 KIND_TO_OP 里，_indexed 会滤掉它，故这里用原始 actions；
+        # 注意：scroll 不在 KIND_TO_OP 里，indexed_actions 会滤掉它，故这里用原始 actions；
         # SCROLL_UP/DOWN 的 target 必须是 None（validator 拒绝带 target 的 scroll）。
         if _scroll_count(hist) < 6:
             want = (_MONTHS.index(month) if month in _MONTHS else 0, day)
@@ -1723,7 +1723,7 @@ def _results_diag(page: dict, hist: list) -> dict:
     return {
         "url": (page.get("url") or "")[:120],
         "n_actions": len(acts),
-        "n_indexed": len(_indexed(acts)),
+        "n_indexed": len(indexed_actions(acts)),
         "flight_hits": sum(1 for x in labels if "flight" in x.lower()),
         "select_flight": sum(1 for x in labels if "Select flight" in x),
         "waits_seen": sum(1 for h in (hist or []) if h.get("kind") == "wait"),
@@ -1749,7 +1749,7 @@ def stop_when_visible(page: dict, goal: str, history: list) -> dict | None:
     if re.search(r"\bscroll", goal or "", re.I) and (history or []):
         if any(h.get("kind") == "scroll" for h in history):
             text = (page.get("text") or "").lower()
-            wants = list(_phrases(goal))
+            wants = list(goal_phrases(goal))
             m_until = re.search(r"until\s+(?P<what>[^.;]{3,60}?)\s+(?:are|is|be)\s+visible",
                                 goal or "", re.I)
             if m_until:
@@ -1831,7 +1831,7 @@ def trip_type(page: dict, goal: str, history: list) -> dict | None:
         "round trip" if _TRIP_ROUND_RE.search(goal or "") else None)
     if not want:
         return None
-    actions = list(_indexed(page.get("actions") or []))
+    actions = list(indexed_actions(page.get("actions") or []))
     for _, a in actions:                       # 已是目标票种 → 不动
         if _TRIP_FIELD_RE.search(a.get("label") or ""):
             text = ((a.get("label") or "") + " " + (a.get("value") or "")).lower()
@@ -1882,7 +1882,7 @@ def scroll_to_target(page: dict, goal: str, history: list) -> dict | None:
     if not (history or []):
         return None                        # 起步就滚没意义，先让页面渲染一拍
     text = (page.get("text") or "").lower()
-    wants = list(_phrases(goal))
+    wants = list(goal_phrases(goal))
     m = re.search(r"until\s+(?P<what>[^.;]{3,60}?)\s+(?:are|is|be)\s+visible",
                   goal or "", re.I)
     if m:
@@ -1929,11 +1929,11 @@ def scroll_to_named_target(page: dict, goal: str, history: list) -> dict | None:
     """
     if _is_scroll_visible_goal(goal) or _AWAY_VERB_RE.search(goal or ""):
         return None
-    # 只接管 goal 里**用引号点名**的目标（r116 的形状）。`_phrases` 还会返回介词尾巴
+    # 只接管 goal 里**用引号点名**的目标（r116 的形状）。`goal_phrases` 还会返回介词尾巴
     # （"… on the site" → "the site"），那种短语在页面上到处都是，为它滚是纯噪声；
     # 路径类短语（/forms/post）已由 goto_path 自带同样的有界滚动，也不重复接管。
     quoted = {m.group(1) for m in re.finditer(r"['\"]([^'\"]{2,60})['\"]", goal or "")}
-    phrases = [p for p in _phrases(goal) if not p.startswith("/") and p in quoted]
+    phrases = [p for p in goal_phrases(goal) if not p.startswith("/") and p in quoted]
     if not phrases:
         return None
     if explicit_target(page, goal, history) is not None:
@@ -2056,7 +2056,7 @@ def first_result(page: dict, goal: str, history: list) -> dict | None:
     first = None                           # 兜底用：搜索框之后的第一个可点标签
     best = None
     best_overlap = 0
-    for index, a in _indexed(page.get("actions") or []):
+    for index, a in indexed_actions(page.get("actions") or []):
         if a.get("kind") == "fill" and _searchbox(a):
             seen_input = True
             continue

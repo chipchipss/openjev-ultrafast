@@ -51,7 +51,7 @@ def capture(tid, url):
             if str((p or {}).get("title") or "").strip() and str((p or {}).get("text") or "").strip():
                 break
             time.sleep(0.6)
-        acts = S._indexed((p or {}).get("actions") or [])
+        acts = S.indexed_actions((p or {}).get("actions") or [])
         title = str((p or {}).get("title") or "")
         text = str((p or {}).get("text") or "")
         path = os.path.join(FIX, "%s_arrival.json" % tid)

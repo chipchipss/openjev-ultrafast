@@ -82,9 +82,9 @@ def main():
             try:
                 b = Browser(url)
                 p, settled = observe_settled(
-                    b, lambda q: bool(S._indexed((q or {}).get("actions") or []))
+                    b, lambda q: bool(S.indexed_actions((q or {}).get("actions") or []))
                     and not re.match(r"^\s*403\s*$", str((q or {}).get("title") or "")))
-                acts = S._indexed((p or {}).get("actions") or [])
+                acts = S.indexed_actions((p or {}).get("actions") or [])
                 text = str((p or {}).get("text") or "")
                 title = str((p or {}).get("title") or "")
                 rows.append({"name": name, "try": k + 1, "title": title[:60],

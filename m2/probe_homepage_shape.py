@@ -129,7 +129,7 @@ for name, url, goal, needle, landed in CASES:
     b = Browser(url)
     try:
         p, looks = observe_like_the_agent(b)
-        acts = S._indexed(p.get("actions") or [])
+        acts = S.indexed_actions(p.get("actions") or [])
         clicks = [(i, str(a.get("label") or "")[:44], str(a.get("href") or ""))
                   for i, a in acts if a.get("kind") == "click"]
         page_host = ""
@@ -172,7 +172,7 @@ for name, url, goal, needle, landed in CASES:
             for s in dom["hitSamples"]:
                 print("    dom e top=%+dpx %r -> %s" % (s["topPx"], s["label"], s["href"]))
 
-        print("  phrases=%s" % (S._phrases(goal),))
+        print("  phrases=%s" % (S.goal_phrases(goal),))
         for fn in ("explicit_target", "goto_path", "first_result"):
             f = getattr(S, fn, None)
             if f is None:

@@ -35,12 +35,12 @@ while time.time() - t0 < 14:
     except StalePage:
         time.sleep(0.5)
         continue
-    acts = S._indexed(p.get("actions") or [])
+    acts = S.indexed_actions(p.get("actions") or [])
     if any(ARTICLE.search(str(a.get("href") or "")) for _, a in acts):
         break
     time.sleep(0.6)
 
-acts = S._indexed((p or {}).get("actions") or [])
+acts = S.indexed_actions((p or {}).get("actions") or [])
 print("tries=%d elapsed=%.1fs n_indexed=%d title=%r" % (
     tries, time.time() - t0, len(acts), str((p or {}).get("title") or "")[:50]))
 arts = [(i, a) for i, a in acts if ARTICLE.search(str(a.get("href") or ""))]

@@ -48,7 +48,7 @@ def observe_settled(b, tries=8):
 
 
 def acts(page):
-    return list(S._indexed(page.get("actions") or []))
+    return list(S.indexed_actions(page.get("actions") or []))
 
 
 def submit_control(page):

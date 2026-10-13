@@ -6352,3 +6352,22 @@ baseline 工件 `reports/tier3-golden-1013-233451.json`：**digest `f7e05f70e680
 **golden 自己先过了一次"能响"的检查**（不是我说它有用）：只改分析器的语料装配方式
 （去掉固定 4 变体、改成按记录返回变体表）之后重跑，digest **一字不动**
 `f7e05f70…` ⇒ 这份摘要对"分析器自己的改动"是稳定的；而它确实会随被测函数输出变化（触发面非零）。
+
+### Tier 3 第一步做完：把两个私有助手改成公开名（golden 摘要一字不动）
+
+`_indexed` → `indexed_actions`（68 处）、`_phrases` → `goal_phrases`（34 处），跨 24 个 .py 文件；
+**旧名残留 0**（`git grep -E "_indexed|_phrases"` 只余 `_repo_ident_phrases` / `_destination_phrases` 这类**别的函数**，
+我的正则用 `(?<![\w.])` 卡住词首，第二遍再单独处理 `.` 后面的调用点 —— 第一遍漏了 43 + 21 处带点调用，
+这就是"改名只改定义处"的经典错法，靠 `git grep` 复核抓回来的）。
+**没留别名、没留兼容 shim**：`skills._phrases` 与 `skills._indexed` 现在直接不存在，引用旧名的代码会 `AttributeError` 大声失败。
+
+验证：`m2/golden_tier3.py --compare reports/tier3-golden-1013-233451.json`
+⇒ **digest `f7e05f70…` 一字不动**（193 页 / 772 例、6 个函数、4 个 history 变体）；
+离线闸门 tier1 **35 件全绿**。⇒ 这一步是零行为变更，有对照物说话。
+
+**顺带更正我自己昨晚写下的一句判词**：预登记那节我写"没有环可斩（幻影重构）"，
+依据是 AST 扫出 `skills.py` 不 import agent。这话对**运行时 import 环**成立，
+但 `docs/11-repo-checkup-2026-10-12.md:58` 那份外部体检说的"双向依赖环"指的是**依赖形状**：
+agent 伸手进 skills 的私有函数（就是刚才改掉的这 3 个调用点），而 skills 的注释里逐行指着 agent 的行号。
+⇒ 准确的口径是：**没有 import 环，有依赖耦合，耦合已按最小面拆掉**；
+不要把体检报告那句复述成"曾有一个循环导入"——那是我把两件事说成一件的老毛病。

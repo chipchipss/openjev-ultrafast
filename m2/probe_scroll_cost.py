@@ -69,14 +69,14 @@ def observe_settled(b, tries=6):
         except StalePage:
             time.sleep(0.4 * (attempt + 1))
             continue
-        if S._indexed(p.get("actions") or []):
+        if S.indexed_actions(p.get("actions") or []):
             return p
         time.sleep(0.5 * (attempt + 1))
     return p
 
 
 def inventory(p):
-    idx = S._indexed(p.get("actions") or [])
+    idx = S.indexed_actions(p.get("actions") or [])
     kinds = {}
     fills = []
     for _, a in idx:
@@ -87,7 +87,7 @@ def inventory(p):
 
 
 def target_state(p, needle, quoted):
-    idx = S._indexed(p.get("actions") or [])
+    idx = S.indexed_actions(p.get("actions") or [])
     lab_hit = []
     for i, a in idx:
         if a.get("kind") != "click":
@@ -143,8 +143,8 @@ for name, url, goal, needle, quoted in CASES:
                 print("     observe FAILED: %s: %s" % (type(e).__name__, e))
                 break
         # does a scroll_top control exist to undo the campaign?
-        # NOTE: `scroll` is NOT in KIND_TO_OP, so `_indexed()` filters the synthetic scroll
-        # controls out (skills.py:53).  Reading them from `_indexed` returns [] on every page
+        # NOTE: `scroll` is NOT in KIND_TO_OP, so `indexed_actions()` filters the synthetic scroll
+        # controls out (skills.py:53).  Reading them from `indexed_actions` returns [] on every page
         # and would have "proved" the campaign is irreversible — measured 2026-10-09, the
         # instrument was wrong, not the page.  Read the RAW actions / `_scroll_ctl` instead.
         tops = [a.get("id") for a in (p.get("actions") or [])

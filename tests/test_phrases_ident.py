@@ -1,14 +1,14 @@
 """Fix V 回归：goal 里**不带引号**的 `org/repo` 标识不能被读成路径 `/pytorch`（r105 实测，2026-10-09）。
 
 病家（`m2/probe_r105_shape.py` 的 D/E 两段，零模型，真页复现；本文件用同形合成页离线复现）：
-  `_phrases("Open the Releases page of the pytorch/pytorch repository.")` 返回 `['/pytorch']`
+  `goal_phrases("Open the Releases page of the pytorch/pytorch repository.")` 返回 `['/pytorch']`
   ——路径正则 `(/[\\w\\-/.]{2,40})` 从**词中间**那个斜杠开始吃。
   后果一（D 段）：仓库搜索结果页上地板点**组织名单元格** `pytorch`（href `/pytorch`，label 与
   短语逐字相同 → 精确档 2.0），而不是仓库行 `pytorch/pytorch`。
   后果二（E 段）：仓库页上 `host_hit` 把站外 `pytorch.org` 抬到 3.0+ → 地板**跳出任务域名**。
 
 四格各管一件事，每一格都有"只做前面几格仍然失败"的实测（见 real-log 的 Fix V 小节）：
-  ① `_phrases`：认标识、并抑制落在标识跨度内的路径读法；
+  ① `goal_phrases`：认标识、并抑制落在标识跨度内的路径读法；
   ② `explicit_target`：这一档短语**只认站内候选**（相对 href 或同 host）——治越域；
   ③ `goal_reached`：这一档短语**不作到达证据**——`/pytorch/pytorch` 只是仓库根，
      goal 还要 `Releases`；少了这一格就会在仓库根提前 DONE（= false positive）；
@@ -78,21 +78,21 @@ RELEASES = page("https://github.com/pytorch/pytorch/releases",
 # --------------------------------------------------------------------------- ①
 @case("① goal 里的 org/repo 读成标识，不读成词中斜杠的路径")
 def t_phrases():
-    got = S._phrases(GOAL)
-    assert got == ["pytorch/pytorch"], f"_phrases={got!r}（修复前 ['/pytorch']）"
+    got = S.goal_phrases(GOAL)
+    assert got == ["pytorch/pytorch"], f"goal_phrases={got!r}（修复前 ['/pytorch']）"
 
 
 @case("① 明写路径的 goal 不受影响（f001/f002/f004/t001 的形状）")
 def t_explicit_path_still_path():
     goal = "Go to /forms/post and fill the customer name field with 'Test User'."
-    got = S._phrases(goal)
-    assert got == ["/forms/post"], f"_phrases={got!r}"
+    got = S.goal_phrases(goal)
+    assert got == ["/forms/post"], f"goal_phrases={got!r}"
 
 
 @case("① 带引号的 id 保持逐字不变（r106/r119 是 PASS 题，一格都不许动）")
 def t_quoted_ids_pinned():
-    assert S._phrases(R106_GOAL) == ["ggml-org/Llama-2-7B-GGUF", "/Llama-2-7B-GGUF"]
-    assert S._phrases(R119_GOAL) == ["bert-base-uncased",
+    assert S.goal_phrases(R106_GOAL) == ["ggml-org/Llama-2-7B-GGUF", "/Llama-2-7B-GGUF"]
+    assert S.goal_phrases(R119_GOAL) == ["bert-base-uncased",
                                      "google-bert/bert-base-uncased",
                                      "/bert-base-uncased"]
 

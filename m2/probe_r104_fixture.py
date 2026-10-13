@@ -43,11 +43,11 @@ def main():
         except StalePage:
             time.sleep(0.5)
             continue
-        acts = S._indexed(p.get("actions") or [])
+        acts = S.indexed_actions(p.get("actions") or [])
         if any(ARTICLE.match(str(a.get("href") or "").strip()) for _, a in acts):
             break
         time.sleep(0.6)
-    acts = S._indexed((p or {}).get("actions") or [])
+    acts = S.indexed_actions((p or {}).get("actions") or [])
     arts = [(i, a) for i, a in acts if ARTICLE.match(str(a.get("href") or "").strip())]
     print("tries=%d elapsed=%.1fs n_indexed=%d article_rows=%d title=%r text_len=%d" % (
         tries, time.time() - t0, len(acts), len(arts),

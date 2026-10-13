@@ -18,7 +18,7 @@ fresh load at y=0 indexes `fills=['Search']`, and b14 solved this task in 2 step
 This probe replays the PRODUCT's exact act sequence — 4x scroll_down then the skill's own
 scroll_top, via `Browser.act`, re-observing the way the agent does — and prints, per tick:
 y/height, the indexed kinds, the indexed fill labels, whether the raw action set carries a
-search-labelled input that `_indexed` dropped, what `_goal_query`/`search_type` return, and
+search-labelled input that `indexed_actions` dropped, what `_goal_query`/`search_type` return, and
 what `skills.route` decides. It also observes TWICE after the undo (immediate, then after a
 quiet wait) because (a) predicts exactly that difference.
 
@@ -51,14 +51,14 @@ def observe(b, tries=6):
         except StalePage:
             time.sleep(0.4 * (attempt + 1))
             continue
-        if S._indexed(p.get("actions") or []):
+        if S.indexed_actions(p.get("actions") or []):
             return p
         time.sleep(0.5 * (attempt + 1))
     return p
 
 
 def report(b, p, history, label):
-    idx = S._indexed(p.get("actions") or [])
+    idx = S.indexed_actions(p.get("actions") or [])
     kinds, fills = {}, []
     for _, a in idx:
         kinds[a.get("kind")] = kinds.get(a.get("kind"), 0) + 1

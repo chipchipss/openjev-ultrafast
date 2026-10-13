@@ -33,14 +33,14 @@ def observe(b, tries=8):
         except StalePage:
             time.sleep(0.4 * (attempt + 1))
             continue
-        if S._indexed(p.get("actions") or []):
+        if S.indexed_actions(p.get("actions") or []):
             return p
         time.sleep(0.5 * (attempt + 1))
     return p
 
 
 def show(b, p, history, label):
-    idx = S._indexed(p.get("actions") or [])
+    idx = S.indexed_actions(p.get("actions") or [])
     by_choice = {c: a for c, a in idx}
     kinds, clicks, fills = {}, [], []
     for _, a in idx:
@@ -59,7 +59,7 @@ def show(b, p, history, label):
     print("      indexed fills    = %s" % (fills or "NONE",))
     print("      RAW fills        = %s" % (raw_fills or "NONE",))
     print("      _goal_query=%r" % (S._goal_query(GOAL),))
-    print("      _phrases=%r" % (S._phrases(GOAL),))
+    print("      goal_phrases=%r" % (S.goal_phrases(GOAL),))
     for fn in list(S.SKILLS) + [S.first_action_floor]:
         name = fn.__name__
         try:
@@ -99,7 +99,7 @@ try:
         print("  no scroll control indexed")
 
     print("=== C. click the header search button: does a fillable box appear? ===")
-    opener = next((a for _, a in S._indexed(p.get("actions") or [])
+    opener = next((a for _, a in S.indexed_actions(p.get("actions") or [])
                    if a.get("kind") == "click"
                    and str(a.get("label") or "").lower().startswith("search or jump")), None)
     hist = [{"skill": "first_action_floor", "kind": "click", "choice": opener.get("id")}] if opener else []

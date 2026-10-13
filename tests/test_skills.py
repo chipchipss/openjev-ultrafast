@@ -230,18 +230,18 @@ def t_wait_budget():
 
 
 # --------------------------------------------------------------------------
-# Wikipedia 实况：_phrases 对"Open the article on X"返回 [] → goal_reached 永不发
+# Wikipedia 实况：goal_phrases 对"Open the article on X"返回 [] → goal_reached 永不发
 # DONE → DONE 只能由模型提议再交 decider 复核（每次 5.7s，且形成 22 次提议循环 /
 # 229s）。修好之后该任务 138s → 1.4s。
 # --------------------------------------------------------------------------
 WIKI_GOAL = "Open the Wikipedia article on Gödel's incompleteness theorems."
 
 
-@case("_phrases 认得'介词后的名词短语'，且不在 flights goal 上误触发")
+@case("goal_phrases 认得'介词后的名词短语'，且不在 flights goal 上误触发")
 def t_phrases_noun_phrase():
-    assert S._phrases(WIKI_GOAL) == ["Gödel's incompleteness theorems"]
+    assert S.goal_phrases(WIKI_GOAL) == ["Gödel's incompleteness theorems"]
     # flights goal 以句号收尾、末尾无 on/about 从句 → 必须仍为空（否则会提前 DONE）
-    assert S._phrases(GOAL) == []
+    assert S.goal_phrases(GOAL) == []
 
 
 @case("goal_reached：到达目标页发 DONE，起点页不发")
@@ -299,7 +299,7 @@ def t_goal_reached_results_page():
 @case("s002：'…about \\'asyncio\\'.' 只产出一个候选短语")
 def t_phrases_dedupes_quotes():
     goal = "Use the site search on docs.python.org to find the page about 'asyncio'."
-    assert S._phrases(goal) == ["asyncio"], S._phrases(goal)
+    assert S.goal_phrases(goal) == ["asyncio"], S.goal_phrases(goal)
     # 唯一 token → search_type 兜底才能命中
     p = page([A(38, "fill", "Quick search", 38, role="searchbox")],
              url="https://docs.python.org/3/")
@@ -677,9 +677,9 @@ def t_first_result_picks_result_row_not_chrome():
              "skill": "search_submit", "outcome": {"url_changed": True}}]
     d = S.first_result(p, goal, hist)
     assert d is not None and d["operation"] == "CLICK", f"结果页没开火：{d}"
-    rows = {i: a for i, a in S._indexed(p["actions"])
+    rows = {i: a for i, a in S.indexed_actions(p["actions"])
             if re.match(r"^/\d{7,9}/?$", (a.get("href") or "").strip())}
-    got = dict(S._indexed(p["actions"])).get(str(d["target"])) or {}
+    got = dict(S.indexed_actions(p["actions"])).get(str(d["target"])) or {}
     assert (got.get("href") or "").strip() in {a["href"].strip() for a in rows.values()}, \
         f"没点引文行：{d} -> {got.get('label')!r} {got.get('href')!r}"
     first_pos = min(rows, key=int)
@@ -1074,7 +1074,7 @@ def t_done_guard_compound_scroll_goal():
 @case("first_action_floor：第 0 拍 BLOCKED 时挑显著性+goal 重合最高的动作（s005/n004 实况）")
 def t_first_action_floor_picks_entry():
     # MDN 首页同构：链接 + 搜索框 + 合成控件。floor 必须选搜索框（textbox > link），
-    # 且绝不选合成控件（SYNTH 里的 scroll/wait/reload 不进 _indexed）。
+    # 且绝不选合成控件（SYNTH 里的 scroll/wait/reload 不进 indexed_actions）。
     p = page([A(1, "click", "Home", 11, role="link"),
               A(2, "fill", "Search MDN", 12, role="searchbox")],
              url="https://developer.mozilla.org/zh-CN/")
@@ -1293,7 +1293,7 @@ def t_explicit_target_matches_on_domain_href_segment():
     assert S.explicit_target(seg, goal, []) is None, "子串匹配会把 'newcomments' 当成目标"
 
     # 折叠只属于打分，不许漏进短语集合/搜索词（否则 r107 会去搜 'newest'）
-    assert S._phrases(goal) == ["newest"], "href 档漏进了短语集合"
+    assert S.goal_phrases(goal) == ["newest"], "href 档漏进了短语集合"
     assert S._goal_query(goal) == "newest", "href 档漏进了搜索词"
 
 
@@ -1341,7 +1341,7 @@ def t_explicit_target_folds_plural_nav_label():
     # 6) 泄漏闸门：折叠只活在 explicit_target 的打分里。要填进搜索框的值、到达判据用的
     #    短语集合都必须还是 goal 的字面量原样。
     assert S._goal_query(goal) == "Download Python", "折叠漏进了搜索词"
-    assert S._phrases(goal) == ["Download Python"], "折叠漏进了短语集合"
+    assert S.goal_phrases(goal) == ["Download Python"], "折叠漏进了短语集合"
 
 
 @case("M 类：goal 里的名词 \"book\" 不该关掉到达判据（r111/r112），守卫本身不许松动")

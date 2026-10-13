@@ -8,7 +8,7 @@ b24 六行的 trace 签名一模一样：第 1 拍 `explicit_target` 到站，�
 题面与到站 URL 一律从产物里取，不手写：
   goal ← `m2/tasks_real.jsonl`，到站 URL ← b24 报告里的 `final_url`。
 每一行打印四件事，全部用产品自己的读法：
-  1) `_phrases(goal)` 抽到的短语；2) 短语在不在 title 里；3) 在不在正文里（几次）；
+  1) `goal_phrases(goal)` 抽到的短语；2) 短语在不在 title 里；3) 在不在正文里（几次）；
   4) 在不在**可点元素**的 label 里（那就是 scroll 永远找不到的东西）。
 只在没有批次在跑时使用（驱动自有 headless Chrome `:9222`）。
 """
@@ -58,8 +58,8 @@ def main():
         goal, url = g.get(tid, ""), u.get(tid, "")
         print("== %s  %s" % (tid, url[:76]))
         print("   goal: %s" % goal[:100])
-        phrases = S._phrases(goal)
-        print("   _phrases = %s" % (phrases,))
+        phrases = S.goal_phrases(goal)
+        print("   goal_phrases = %s" % (phrases,))
         b = None
         try:
             b = Browser(url)
@@ -71,7 +71,7 @@ def main():
                     import time
                     time.sleep(0.5)
                     continue
-                if S._indexed(p.get("actions") or []):
+                if S.indexed_actions(p.get("actions") or []):
                     break
                 import time
                 time.sleep(0.5)
@@ -82,7 +82,7 @@ def main():
             continue
         title = str((p or {}).get("title") or "")
         text = str((p or {}).get("text") or "")
-        labels = [str(a.get("label") or "") for _, a in S._indexed((p or {}).get("actions") or [])]
+        labels = [str(a.get("label") or "") for _, a in S.indexed_actions((p or {}).get("actions") or [])]
         print("   title=%r" % title[:70])
         for ph in phrases:
             in_title = ph.lower() in title.lower()
