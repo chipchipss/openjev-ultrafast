@@ -49,10 +49,16 @@ SYSTEM_MODES = frozenset({
     "assertion_error",
     "blocked_by_bot_wall",
     "blocked_by_egress",
+    "blocked_by_upstream_error",
 })
 
 #: 浏览器根本没拿到页面的协议位（2026-10-12 实测见过这两个，不收录猜测）。
 EGRESS_ERROR_PREFIXES = ("chrome-error://", "about:neterror")
+
+#: 站点的应用自己崩了（Heroku 的 5xx 页）。#78 的形状来自 b34 与 b40 各五行**同一形状**：
+#: `title == "Application Error"`（逐字相等）且 `text` 为空（b40 那五帧的 sha16 =
+#: `da39a3ee5e6b4b0d…`，正是空串的 sha1）。全仓历史扫描里这个标题**只出现在 FAIL 行**（10/10）。
+APP_ERROR_TITLE = "Application Error"
 
 
 def is_egress_error(final_page: Optional[dict]) -> bool:
@@ -67,6 +73,19 @@ def is_egress_error(final_page: Optional[dict]) -> bool:
     """
     url = str((final_page or {}).get("url") or "")
     return url.startswith(EGRESS_ERROR_PREFIXES)
+
+
+def is_upstream_app_error(final_page: Optional[dict]) -> bool:
+    """站点的应用自己没起来（不是浏览器连不上，也不是反爬墙）。
+
+    两条判据必须同时成立，理由与 #16 同源：**精确标题**（子串会撞上任何把这四个字写进
+    `<title>` 的正常文章）+ **页面是空的**（有正文就说明话被说完了，那是 agent 的账）。
+    """
+    if not isinstance(final_page, dict):
+        return False
+    if str(final_page.get("title") or "").strip() != APP_ERROR_TITLE:
+        return False
+    return not str(final_page.get("text") or "").strip()
 
 # 反爬/人机验证墙：站点根本没让我们进门，任务不可能"被做对"。真实站批次里
 # r101/r104 这类 FAIL 被记成 agent 决策失败，而决策本身是对的（诚实 BLOCK）。
@@ -384,6 +403,12 @@ def _classify(
     if (quadrant != "false_positive" and category != "negative"
             and is_egress_error(final_page)):
         return "system", "blocked_by_egress"
+
+    # #78：站点的应用自己 5xx 了（b34 与 b40 各吃掉 5 行，两次形状逐字一致）。
+    # 与上一条同纪律：**只换归因**，result / 象限 / pass 口径一律不动；负向题豁免；fp 永不豁免。
+    if (quadrant != "false_positive" and category != "negative"
+            and is_upstream_app_error(final_page)):
+        return "system", "blocked_by_upstream_error"
 
     # 墙页：站点没让我们进门，FAIL 的成因在环境不在决策。象限与 result 一律不动
     # （该 FAIL 还是 FAIL，pass/fail 口径不被这道分支放松），只换归因。

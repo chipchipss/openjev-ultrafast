@@ -14,7 +14,7 @@
 | **50 题批的门控墙钟** | 27.8 → **8.2 / 8.7 / 9.5 分钟**(任务间复位改成"先问健康再付钱") | `real-1011-b27/b28/b29-gate*.json` |
 | **3×100 行夜间档(L3 第二档,第一次真跑)** | 三轮 **66 / 69 / 65**,三轮全 `fp=0`、`error=0`,总墙钟 **61.4 分钟**(预算 95);同 build 的行级抖动是 **100 行里只有 5 行反复翻,95 行三轮不动** | `ci-1012-1908.json` + 三份 `nightly-1012-1908-r*.json` |
 | **决策延迟** | 单决策中位 **0.64 s**(本机 2B GGUF,走产品原路) | `m2/probe_wire_parallel.py` 的并发 1 档 |
-| **离线测试** | 31 个套件 **271 案全绿**（`scripts/smoke.ps1` tier1 一次跑完，2026-10-13 16:51 实跑；上一版读数停在 10-12 22:48 的 27 件 / 244 案；tier1 的证据是 runner 逐件打出的 `n/n passed`，`reports/smoke-*.json` 只有 -Live 第二级才写） | `tests/` |
+| **离线测试** | 32 个套件 **277 案全绿**（`scripts/smoke.ps1` tier1 一次跑完，2026-10-13 18:18 实跑；上一版读数停在 10-12 22:48 的 27 件 / 244 案；tier1 的证据是 runner 逐件打出的 `n/n passed`，`reports/smoke-*.json` 只有 -Live 第二级才写） | `tests/` |
 
 **并行不做,是被读数判死的**:并发 1→4 的吞吐 1.55 → 1.58 决策/秒(**加速比 1.02x**),`llama-server --parallel 4` 的槽位没变成吞吐,多开 worker 只会在 wire 前排队。所以 100 题 ≤30 分钟靠串行就已达成(实测 20.7 分钟)。
 
@@ -58,7 +58,7 @@ claude mcp add openjev -- python C:\Users\Administrator\openjev-ultrafast\mcp_se
 ### 跑基准与回归
 
 ```powershell
-.\scripts\smoke.ps1                  # 第一级闸门:31 个离线套件必须 n/n 全绿(现在 271 案)
+.\scripts\smoke.ps1                  # 第一级闸门:32 个离线套件必须 n/n 全绿(现在 277 案)
 .\scripts\smoke.ps1 -Live            # 第二级:5 题代表族(s005/n004/x001/x002/r142),判据读报告不读控制台
 .\scripts\ci_local.ps1 -Tasks 50                                    # 每改必跑档:smoke → 冻结三轮 → 回归批 → 阈值判定(默认是 50 行口径:MinPass 43 / 墙钟 14 分钟)
 .\scripts\ci_local.ps1 -Tasks 100 -MinPass 59 -MaxWallMinutes 30    # 同档跑 100 行:阈值自己给,且**跑之前先预登记**
@@ -144,7 +144,7 @@ openjev-ultrafast/
 │   │                         probe_*.py(零模型探针)、make_tasks_100.py(题集生成 + 唯一性断言)
 ├── mcp_server.py           # Claude Code / 任意 MCP 客户端入口
 ├── scripts/                # startlux_serve.ps1 / run_one.ps1 / run_task.py / smoke.ps1 / ci_local.ps1 / chrome_guard.ps1
-├── tests/                  # 31 个离线套件(不需要浏览器或模型,271 案)
+├── tests/                  # 32 个离线套件(不需要浏览器或模型,277 案)
 ├── reports/                # 实测报告入库;逐任务运行产物目录不入库
 ├── docs/                   # 01-hard-rules.md(硬约束全文)、03-milestones.md、00-project-plan.md(L1–L6)
 ├── run_baseline_19.ps1     # 19 题冻结 runner(一任务一进程 + 逐域预检 + 收尾验证)
@@ -177,13 +177,13 @@ openjev-ultrafast/
 | **L5 全本地** | ✅ 栈里没有任何云端调用点(helper 本机化 + 云端默认显式化) |
 | **L6 一条命令** | ✅ `run_demo.ps1` 冷启全绿、自动供给 |
 
-**未结清单**(都有证据在 `m2/real-log.md`,2026-10-13 傍晚刷新):~~`chrome-error://` 起点被记成 `failure_mode=decision`~~ —— **#16 已落地**(`80f6a43`):新增 `failure_mode=blocked_by_egress`,象限一字不动,负向任务显式豁免(x001 的起点域按设计就不通,它不能被重贴环境标签)。~~**#65 的那半件**~~ —— **也已落地**(`m2/real-log.md` 的 10-13 两节):「CDP Network 层数在途请求」被两次独立读数判死,留下的是**到站那一拍付一次有界重看**(等 goal 点名的短语出现在 live DOM,不等正文变长;cap 6 000 ms 的出处是两支零模型探针里 docs 族的短语出现时刻 4.6–8.9 s)。三批实跑:b38 72/100、b39 70/100、b40 65/100(其中 5 行是 the-internet 那台 Heroku 应用当场挂了,trace 时刻 16:23–16:24、16:31 单跑 5/5 PASS、同时刻 curl 已回到 HTTP 200 ⇒ **按环境修正后 70/100,error 从 1 降到 0**);预登记的四个射程 `r154/r156/r157/r158` 在三批里全部 FAIL→PASS,且**步数与模型调用一行没变**。触发面按 b39 的付费名单收窄过一次(8 行 / 31 453 ms → 5 行 / 14 343 ms,b40 实测),只保留 `goal_reached` 的收口。**现在真正开着的是它长出来的那格(#78)**:起点页是上游应用的 HTTP 错误页(title "Application Error")时,五行被记成 `failure_mode=decision / agent` —— 与 #16 同一族、换了形状,不清掉它任何一批的"环境的账 vs agent 的账"都是混的。另有地板空点击占拍、`explicit_target` 近似行劫持两条老账。StartLux-Decision-4B 是**分数实验**(看那 18 行真决策缺口能不能被更大的模型过掉),不是吞吐路径,且等归因干净了再跑一晚才有意义;对上游的**正面对照**(#76)需要你先批准那笔付费调用开销。
+**未结清单**(都有证据在 `m2/real-log.md`,2026-10-13 傍晚刷新):~~`chrome-error://` 起点被记成 `failure_mode=decision`~~ —— **#16 已落地**(`80f6a43`):新增 `failure_mode=blocked_by_egress`,象限一字不动,负向任务显式豁免(x001 的起点域按设计就不通,它不能被重贴环境标签)。~~**#65 的那半件**~~ —— **也已落地**(`m2/real-log.md` 的 10-13 两节):「CDP Network 层数在途请求」被两次独立读数判死,留下的是**到站那一拍付一次有界重看**(等 goal 点名的短语出现在 live DOM,不等正文变长;cap 6 000 ms 的出处是两支零模型探针里 docs 族的短语出现时刻 4.6–8.9 s)。三批实跑:b38 72/100、b39 70/100、b40 65/100(其中 5 行是 the-internet 那台 Heroku 应用当场挂了,trace 时刻 16:23–16:24、16:31 单跑 5/5 PASS、同时刻 curl 已回到 HTTP 200 ⇒ **按环境修正后 70/100,error 从 1 降到 0**);预登记的四个射程 `r154/r156/r157/r158` 在三批里全部 FAIL→PASS,且**步数与模型调用一行没变**。触发面按 b39 的付费名单收窄过一次(8 行 / 31 453 ms → 5 行 / 14 343 ms,b40 实测),只保留 `goal_reached` 的收口。~~#78~~ —— **也已落地（10-13 晚）**：起点页是站点自己的 HTTP 错误页（title 逐字等于 `Application Error` 且正文为空）时改记 `failure_mode=blocked_by_upstream_error / failure_class=system`，result 与象限一字不动、负向题豁免、fp 永不豁免。射程是**扫已提交历史扫出来的两批各 5 行**（b34 的 61/100 里那 5 行当时被记在 agent 头上 —— 历史读数不改写，事实记在 `m2/real-log.md`）；证据两半：`m2/replay_app_error.py` 对这 10 行逐行打印"改前 vs 改后"（四字段一字不动，只换归因），b41（`reports/ci-1013-1732-1013-175147.json`：69/100、fp=0、unknown=0、PASS 行之间象限漂移 0）里这一档**命中 0 行** = 站点健康时它不乱贴。另有地板空点击占拍、`explicit_target` 近似行劫持两条老账，以及一次实跑撞出来的 #81（同一个 task_id 在两套题集里都有定义，`run_one.ps1 -TaskId` 已经会拒绝猜，但重复定义还在）。StartLux-Decision-4B 是**分数实验**(看那 18 行真决策缺口能不能被更大的模型过掉),不是吞吐路径,且等归因干净了再跑一晚才有意义;**对上游的正面对照(#76)的状态从"等你批准开销"改成"等凭据"** —— 本机 `.env` 里 `TYPESAFE_API_KEY` 的值长 5(就是 `local` 占位),付费上游现在**调不到**,"近似前者水平"这句话在拿到 key 之前不能对外写;而目标里"接免费 API 小模型"那一半，代码已经具备（`DECIDER_MODE=openai` 就是 chat→decision 适配器），缺的是真实读数（#80）。
 
 ## 平替水平的证据口径(对外声明时请注意)
 
-本仓库的定位是 **jev-ultrafast 的开源平替**(全本地、模型无关、可观测)。这个定位**当前 build 还没有对照证据**:唯一一份正面对决 `reports/upstream-vs-ours.json` 的时间戳是 **2026-09-27**,跑在旧 decider-2B 底座、4 个任务上(结论:任务级 wall time 3/4 更快、1/4 更慢)。现役底座是 StartLux-Decision-2B,题集已扩到 100 行真实站 ⇒ **那份读数不能当作今天的平替水平证明**,引它时必须带上日期与底座差异。补齐这份对照需要先批准调用付费上游(那笔开销 + 那份读数必须按"非零云端"单独隔离),登记在 `m2/real-log.md`。
+本仓库的定位是 **jev-ultrafast 的开源平替**(全本地、模型无关、可观测)。这个定位**当前 build 还没有对照证据**:唯一一份正面对决 `reports/upstream-vs-ours.json` 的时间戳是 **2026-09-27**,跑在旧 decider-2B 底座、4 个任务上(结论:任务级 wall time 3/4 更快、1/4 更慢)。现役底座是 StartLux-Decision-2B,题集已扩到 100 行真实站 ⇒ **那份读数不能当作今天的平替水平证明**,引它时必须带上日期与底座差异。补齐这份对照现在**卡在凭据而不是批准**:本机没有任何可用的 `TYPESAFE_API_KEY`(`.env` 里那个键的值就是 `local` 占位,长度 5,18:1x 实测),所以"平替水平"在拿到 key 之前**只能写成未证**;那份读数将来也必须按"非零云端"单独隔离,不许混进 L5 的账。登记在 `m2/real-log.md` 与 #76。
 
-**可插拔这件事是已验收的**:`DECIDER_MODE` 支持 typesafe / laya / laya_decider / agentjev,typesafe 走 OpenAI 兼容 wire,`scripts/text_helper.ps1` 里 groq / deepseek 两个云端分支必须显式提名且各自打 `$Cloud` 标记 ⇒ 换一个免费 API 小模型是配置级改动,不需要改代码;代价是那一轮不再算零云端的账。
+**可插拔两层都是代码级的**(10-13 18:3x 逐条核注册表;我上一段把它写窄了,纠正在 `m2/real-log.md` 的 #80 那节):`jev_ultrafast/decider/provider.py` 注册的决策 provider 是 `{agentjev, laya, laya_decider, openai, typesafe}` —— 其中 **`DECIDER_MODE=openai` 就是 chat→decision 的适配器**(`decider/choose_2b.py`:`post_chat` + `response_format=json_object` + 解析后校验重试,base_url / model / api_key 全走环境变量),未知模式大声失败(实测 `ValueError: unknown provider: …` 并列出已注册的名字);Text Helper 层同理,`scripts/text_helper.ps1` 里 groq / deepseek 两个云端分支必须显式提名且各自打 `$Cloud` 标记。⇒ "换一个免费 API 小模型"是配置级改动,**不需要写代码;缺的是读数**:这条决策线至今只有离线 mock 覆盖(`choose_2b.py` 末尾那节 mock `post_chat` 的 smoke),从没拿真的免费 API 当决策层跑过一次 ⇒ 登记为 **#80**(跑它要把那一轮按"非零云端"单独隔离,且不许替 #76 的"平替水平"作证)。唯一**没有**现成路的是付费上游 `typesafe` 那条:本机没有它的凭据。
 
 ## License
 

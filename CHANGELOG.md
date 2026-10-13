@@ -6,6 +6,28 @@
 
 ---
 
+## [attribution-becomes-cheap-enough-to-fix] - 2026-10-13 晚（#78 + #79 工作树 + 一次读数口径的自我更正）
+
+### Status（分类层补上一格；"环境的账"第一次可以在**已提交的历史**里重放；对外两句声明被实测改窄）
+
+这一条不是新功能，是**读数口径**的变化，所以值得单开一节：
+
+| 变化 | 证据 | 读数 |
+|---|---|---|
+| 站点自己的 HTTP 错误页不再记在 agent 头上（#78） | `tests/test_evaluator_app_error.py`（改前 **4/6**）+ `m2/replay_app_error.py` | 新档 `blocked_by_upstream_error/system`；判据=**精确 title `Application Error` + 正文为空**两条同时成立（与 #16 同纪律：子串会撞正常页，只看空页会撞 pypi 那种 472 字符 / 12 action 的薄而正常页）。历史全量扫描该标题 **10 次命中、10 次 FAIL、0 次 PASS** ⇒ 不可能给任何 PASS 换归因 |
+| **我读错了 b34**（同一族，10-12 那次没认出来） | `m2/replay_app_error.py` 对 `real-1012-b34-*` 逐行重放 | b34 的 61/100 里 **r196–r200 五行**当时形状与 b40 逐字一致（title `Application Error`、0 步），却被记成 `decision/agent`，而该批 summary 的环境账只数到 3 行。**历史读数不改写**，只在这里明写：那次对"新 50 行为什么差这么多"的归因偏保守 |
+| 归因-only 的合格证明（b41） | `reports/ci-1013-1732-1013-175147.json`（69/100，fp=0，unknown=0，error=1，21.2 min）+ 冻结 `m1-baseline-1013-{1735,1740,1746}` 三轮 19/19 | **PASS 行之间象限漂移 0**；新档在健康批命中 **0 行**（它不许乱贴）；GAIN 6 / LOST 2 全部逐行有归属（r139 = harness，单跑 `rerun-b41-r139-*` PASS；r174 = `blocked_by_egress` 系统类）。verdict `passed=false` 只因阈值 `error_rows=0` |
+| #65 的代价第一次进**入库工件** | `reports/one-r154-1013-165253.json` 的 `meta.arrival_relook_ms=1328`；`evaluator._meta()` 的四件白名单补上这一键（改前红话直接报出没有键的 `meta`） | 之前钱只在 `logs/`（不入库）里 ⇒ 文档里的付费表对不到 `reports/`。b41 复核：付费 5 行 / 15 063 ms，收益四行照旧全 PASS |
+| 夹具里一个第三方名字都不剩（#79 工作树部分） | `m2/scrub_third_party_fixtures.py`（v2）+ `m2/census_third_party.py` | 清单从工件结构数出来（夹具 43 条 `download/` 链接 / HTML 197 条），两文件共用一张映射表；普查现在报**跟踪文件命中 0**。`test_skills` 78/78、tier1 **32 件 / 277 案** |
+| 对外两句声明被实测改窄 | 见 `m2/real-log.md` 的 #76 前置量与 README 两处改写 | ① "平替水平"（#76）状态从"等批准开销"改成**"等凭据"** —— `.env` 里 `TYPESAFE_API_KEY` 的值长 5，就是 `local` 占位，付费上游现在调不到；② 我先把"换一个免费 API 小模型"改窄成"只对 Text Helper 成立、决策层缺适配器"，**随后逐条核注册表发现是我自己读漏了**：`decider/provider.py` 注册的决策 provider 是 `{agentjev, laya, laya_decider, openai, typesafe}`，其中 `DECIDER_MODE=openai` 就是 chat→decision 适配器（`decider/choose_2b.py` 走 `post_chat` + `json_object` + 校验重试，base_url/model/key 全走环境变量），未知模式实测大声报 `ValueError: unknown provider`；⇒ 可插拔是**配置级、代码已有**，缺的是"真免费 API 当决策层"的**读数**（#80，只有离线 mock 覆盖过）。两次都是同一课：**结论要贴着注册表/源码核，不能贴着我记得的清单** |
+
+**没做的**：git 历史清洗（HEAD 树干净 ≠ 历史干净，那条地址在 `git log -S` 里仍可查到 → #79 剩余部分）；
+`-TaskId` 撞出的 id 重复定义（`run_one.ps1` 已经拒绝猜，但两套题集都定义 `r139` → **#81**）；
+#80 那轮"非零云端"的免费 API 决策层实测（适配器代码已有；**要把页面文本发到第三方并消耗 key 的配额，这一步我停在动手之前**）。
+离线闸门 **32 件 / 277 案全绿**（18:18）。**仍然没有 push。**
+
+---
+
 ## [arrival-relook-landed-trigger-narrowed] - 2026-10-13
 
 ### Status（#65 的第二半落地并收窄一次；跑链期间自伤一次并复原；#73/#74/#77 三件一并落地）

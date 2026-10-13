@@ -5720,15 +5720,14 @@ curl -x http://127.0.0.1:2080 -H "Accept: application/vnd.github.raw" \
 
 **② 夹具里的第三方个人标识已脱敏**
 `m2/fixtures/r142_arrival.json`（51 处）与 `m2/tmp_download.html`（2 处）里带着
-the-internet 公开下载页上别人上传的文件名 `nSkodeQA_Sharmatania_sharmatania384@gmail.com.pdf`
+the-internet 公开下载页上别人上传的文件名 `‹第三方上传名›.pdf`
 ——文件名里就是一个可用的个人邮箱地址，对外发布不该带着它。两文件各 53/1 处替换为
 `redacted@example.com`，替换前后**先 `cp` 到 `/tmp` 留原样**，核了四件事：
-JSON 仍可解析（`text` 1024 字符不变）、两文件里 `sharmatania384` 剩 **0**、
+JSON 仍可解析（`text` 1024 字符不变）、两文件里那个本地部分剩 **0**、
 字节数只按替换差缩减（255 414→255 210、19 617→19 609）、`tests/test_skills.py` **78/78 照旧全绿**
 （用到该夹具的是 #59 那组负例，点的是另一条文件名，语义不受影响）。
 `m2/real-log.md:5505` 与 `CHANGELOG.md:37` 里对它只写过 `…@gmail.com.pdf`，没有全文，**不含泄漏**。
-没做的：同页还有约 50 个第三方文件名（`resume.pdf`、`JD-Coforge.docx`、Marathi letterhead、
-`WhatsApp Image ….jpeg` 等），它们是那台公开测试站自己的测试数据、不含个人标识，
+没做的：同页还有约 50 个第三方文件名（简历类、公司文档类、地方语言信头、聊天工具图片类等形状，**样例不在这里抄原文**），它们是那台公开测试站自己的测试数据、不含个人标识，
 是否连它们一起替换成合成名是同一件发布形态决定，留给操作者定。
 
 ### #74 落地：见证探针的 unknown 态 + 默认演练（跑链期间的第三件，也不碰产品代码）
@@ -5881,3 +5880,135 @@ b40 那张付费表是**从 trace 数的**（`arrival_relook_ms` 在 task_result
 > （`tasks-laya-19.jsonl` 的 `all_of[text_not_contains "booked"]` vs `tasks-reachable.jsonl` 的
 > `any_of[text_contains "not available"]`），逐字重跑 HEAD 那段选取逻辑，读数一模一样：
 > `HEAD picker: picked x001 assertion.type=all_of`。**结论没变，证据现在能复现。**
+### #78 开工：先把"站点的应用错误页"这一族的**历史射程**量清楚，再动分类层
+
+**这一段的读数全部来自对已提交报告的重新扫描**（`for f in reports/real-*.json reports/ci-*.json`，
+逐行比 `evidence.final_title` 恰好等于 `"Application Error"`），不是新跑的批：
+
+| 批 | 命中 | 当时被记成 | 该批 summary 的环境账 |
+|---|---|---|---|
+| b34（`real-1012-b34-100-1012-123659.json`，61/100） | **r196–r200 全中** | `decision / agent`，五行都 0 步 | 只数到 3 行（`blocked_by_bot_wall` 2 + `blocked_by_egress` 1） |
+| b35 / b36 / b37 / b38 / b39 | 0 | —（这五行全 PASS，title `The Internet`） | — |
+| b40（`ci-1013-1544-1013-160343.json`，65/100） | **r196–r200 全中** | `decision / agent`，0 步 / 1 次调用 | 我今晚是用单跑复测才发现的 |
+
+⇒ **两个结论，第二个不太好听**：
+1. 这一族**不是今晚才出现**，是已经发生过两次的稳定形状；它的形状两次完全一致
+   （`title="Application Error"` + `text_len=0`，sha16 `da39a3ee5e6b4b0d…` = 空串的 sha1 前缀）。
+2. **b34 的 61/100 里有 5 行是环境的账，我当时把它读成 agent 的决策失败**，还据此排了后续优先级。
+   这条不改写历史（b34 的产物与读数照旧），但要在这里明写：**b34 那一版对"新 50 行为什么差这么多"的
+   归因偏保守，实际环境吞掉的比 3 行多**。同 build 的 b35/b36/b37 里这五行是 PASS，
+   所以这不是题目坏了，是站点状态。
+
+**判据设计（两条同时成立，与 #16 同纪律）**：精确标题逐字相等 **AND** 正文为空。
+- 只看标题：会撞上任何把这四个字写进 `<title>` 的正常页；
+- 只看空页：会撞上 pypi 首页那种 472 字符 / 12 action 的"薄而正常"页（#16 已否决过一次）；
+- 历史扫描给出的安全边界：这个标题**10 次命中、10 次 FAIL、0 次 PASS** ⇒ 这道分支不可能给任何
+  一次 PASS 换归因，也不可能放松 pass/fail（象限与 `result` 一律不动）。
+
+**跑链之前的预登记（b41 = 与 b39/b40 成对，判据先写死）**：
+1. `false_positive=0`、`unknown=0`、`error=0`、零云端按步事件口径（`text_helper ⊆ {null, startlux-decision-2b}`）；
+2. **归因只许变严不许变松**：与 b40 逐行比，`result` 与 `quadrant` 的行数差**必须为 0**
+   （若有 1 行不同，就要当场指出是哪行、什么形状，说不清就回滚）；
+3. `blocked_by_upstream_error` 在 b41 里的命中数**预期 0**（站点 17:1x 实测 HTTP 200，
+   且这是"它不该乱贴"的负向判据，不是"它坏掉了"）；
+4. 这一档真正生效的证据在离线重放：**b34/b40 的 5+5 行，改前 `decision` ⇒ 改后
+   `blocked_by_upstream_error / system`**，四字段（result/quadrant/steps/model_calls）一字不动；
+5. 分数本身照旧不作判据（b40 相对 b39 的抖动已量过：同 build 5/100 行）。
+
+**改前的红**：`tests/test_evaluator_app_error.py` 对 HEAD 是 **4/6**，红的两案是实盘形状那一案
+（`failure_class=agent`，就是 b40 吞掉五行信号的那一格）与档位没进 `SYSTEM_MODES`。
+②③④⑥ 是边界对照案，改前改后都必须绿（它们钉的是"这次没有把判据放宽"）。
+
+> **普查把自己也抓出来了（同一条纪律，登记不删）**：`m2/census_third_party.py` 扫跟踪文件里的第三方文件名时，
+> 命中 3 处发生在 **`m2/real-log.md` 自己身上** —— 我在 #77 那一节里为了说清"文件名里带个人邮箱"，
+> 把那个地址**原文抄了一遍**（1 处，含本地部分与域名）。工作树里已改成
+> `‹第三方上传名›.pdf`；**它同样进了刚才那两个 commit 的历史**，
+> 所以这条只减小暴露面、不消除暴露。教训与 #77 同一条：**记"形状"不要抄"值"**——
+> 以后凡引用第三方内容，写掩码 + 数量 + 出处，不写原文。
+
+### #76 的前置量过了：**付费上游根本没有凭据可用**，而"免费 API 小模型"那一半有现成钥匙（等批跑完再动）
+
+跑链期间做的都是只读核证，没碰浏览器与 :8090：
+
+| 问题 | 命令/依据 | 读数 |
+|---|---|---|
+| 调得到付费 JEv 吗 | 只看环境变量与 `.env` 的**键名与值长度**（不打印值）：`TYPESAFE_API_KEY` | 仓内 `.env` 里 `TYPESAFE_API_KEY` 的值长 5 = `"local"` 占位；**没有真凭据** ⇒ `jev_ultrafast/model.py:267` 那条 `https://api.typesafe.ai/v1/systemone` 现在打不出去 |
+| 有没有别的 keyfile | `glob("~/.typesafe*")` | 无 |
+| "免费 API 小模型"那一半缺什么 | 同上扫键 | 环境里 **`GROQ_API_KEY`（长度 56）与 `DEEPSEEK_API_KEY`（长度 35）有值** ⇒ 目标里"调用 API 免费小模型也能接上"这半句**可以实测**，不需要新开通任何东西 |
+
+⇒ **#76（对上游正面对照）的状态从"等批准开销"改成"等凭据"**：没有 `TYPESAFE_API_KEY` 就量不出"近似前者水平"，
+这一条不是我能在本地补的。
+**替代路径我先自己走**：同一把尺子的另一半（"可插拔到免费 API 小模型"）现在就能证 ——
+用 19 行冻结集走 deepseek/groq 的 OpenAI 兼容线跑一轮，**那一轮明确按"非零云端"隔离记账**，
+不混进 L5 的零云端账，也不拿它替 #76 作证（它证的是可插拔，不是平替水平）。
+### #78 落地的读数：冻结三轮 + b41 逐行核过，新档位在一个健康批里命中 0 行
+
+**冻结 19/19 × 3**（带 `blocked_by_upstream_error` 的 build）：`m1-baseline-1013-1735`（17:3x）、
+`-1740`、`-1746`，全 fp=0。
+
+**b41 = `reports/ci-1013-1732-1013-175147.json`（18:1x）：69/100，fp=0，unknown=0，error=1，墙钟 21.2 min。**
+verdict 工件 `reports/ci-1013-1732.json` 写的是 `passed=false`，**只因 `error_rows=1` 这一条阈值**（69 远高于地板 59）。
+
+预登记的五条逐条对：
+
+| 判据 | 读数 |
+|---|---|
+| fp=0 / unknown=0 / 零云端 | fp=0、unknown=0；步事件 `text_helper` 取值集合仍只有 `{null, "startlux-decision-2b"}` |
+| 归因只许变严不许变松（逐行 vs b40） | **PASS 行之间象限漂移 = 0 行**；GAIN 6 行 = `r119`(决策档自己回到 PASS) + `r196–r200`(站点回来了)；LOST 2 行 = `r139`(harness error) + `r174`(`blocked_by_egress`，**系统类，分类正确**) |
+| 新档位在健康批命中 0 行 | **0 行** ⇒ 这道分支不会在站点正常时乱贴 |
+| 真正的生效证据（离线重放） | `m2/replay_app_error.py`：b34 与 b40 那 5+5 行，改前 `decision/agent` ⇒ 改后 `blocked_by_upstream_error/system`，**result / 象限 / steps 一字不动**（每行都打印出来对照，脚本可重跑） |
+| 分数不作判据 | 69 是本题集迄今最高读数之一（与夜间档 r2 的 69 同高），但我不用它作证 |
+
+**error=1 是 r139，同一个签名、同一个处置**：`agent_init_failed_after_cdp_reset: StalePage: Document is navigating`，
+18:17 单跑复测 **PASS**（`reports/rerun-b41-r139-1013-181718.json`，1 步 / 2 调用）。这已经是 b39、b41 两次同一行同一签名
+⇒ **#54/#72 那族"起点观测穿过在途导航"还没根治**，只是每批最多咬一行。记下：r139 三次(10-12 b34? 未见) 出现在 b39/b41 两批。
+
+**顺带一个新发现（仪器形状，不是分数）**：`scripts/run_one.ps1 -TaskId r139` **拒绝出题**，
+因为 `r139` 同时在 `m2/tasks_real.jsonl` 与 `m2/tasks_real_100.jsonl` 里定义 ——
+这正是 #73 消灭的那种"同 id 两份定义"，只不过这次发生在**单任务入口**。它拒得很干脆（列文件、退出），
+所以没有读数风险；但和 #73 同源，值得在 19 行/50 行/100 行三套题集里做一次 id 唯一性清点（#81）。
+
+### #79 的工作树部分做完了：夹具里**一个第三方名字都不剩**（历史仍在，等决定）
+
+两次尝试，第一次的错法留在脚本头部注释里：
+- **v1 错在按"扩展名形状"整页替换** ⇒ 报出 8 657 处 / 250 个名字，把页面上每个 JS/CSS/图片资源名都当成
+  "别人上传的文件"改掉了。尺子读错了，不是发现。
+- **v2 从工件自己的结构数清单**：`the-internet` 下载页把每个上传列成 `href="download/<名>"`，
+  夹具里就是 `actions[].href` 以 `download/` 开头的那些 ⇒ **夹具 43 条 / HTML 197 条**，两文件共用一张映射表，
+  合成名 `third-party-NNN.<原扩展名>`，保扩展名、保条数、保清单形状；
+  站点自带/测试点名的 `download-fae92529-…txt` 等保留；脚本幂等（第二次跑"已经是合成名，不改动"）。
+
+核验：`tests/test_skills.py` **78/78**（用到这份夹具的是 #59 那组负例，点的是站点自己的 `File Download`
+与那条保留名）、tier1 **32 件 / 277 案全绿**、普查脚本 `m2/census_third_party.py` 现在报
+**跟踪文件里的第三方命中 = 0**（它一开始还把我自己写进 `m2/real-log.md` 的例子抓出来 4 处，已掩码——
+教训：**记"形状"不要抄"值"**）。
+
+**没做也不擅自做的**：`git filter-repo`/历史重写、把 `LICENSE` 并进上游告示、发布推送。
+事实边界写清楚：**HEAD 的树现在是干净的；历史里那条地址仍在**（`git log -S` 可查到），
+所以"能不能公开"取决于是否从干净树重新出一份快照（或洗历史），那是发布形态的决定，不是技术活。
+### 同一天第二次口径更正：我把"可插拔"写窄了（#80 的定性随之改写）——**登记方向是反的也要登记**
+
+18:2x 我写 README 时把"换一个免费 API 小模型"改成"只有 Text Helper 层成立、决策层缺一个 chat→decision 适配器"。
+依据是我记得的 `DECIDER_MODE` 清单（typesafe / laya / laya_decider / agentjev，README 里也是这么写的）。
+18:3x 为了起 #80（写那个"缺的适配器"）我先去核源码，发现自己漏了一个：
+
+```
+python -c "from jev_ultrafast import model as M; print(M.list_providers())"
+已注册的决策 provider: ['agentjev', 'laya', 'laya_decider', 'openai', 'typesafe']
+未知模式 ⇒ 大声失败: ValueError unknown provider: 'typo-mode'. registered: [...]
+```
+
+`DECIDER_MODE=openai`（`jev_ultrafast/model.py:385 _openai_provider` → `decider/choose_2b.py`）
+**就是那个 chat→decision 适配器**：`post_chat` + `response_format={"type":"json_object"}` + 解析后校验重试，
+base_url / model / api_key 全走环境变量；仓库自己的 `.env` 里那三行 `DECIDER_2B_*` 就是它的配置位。
+⇒ **#80 不是"缺代码"，是"缺读数"**：这条决策线至今只有 `choose_2b.py` 末尾那节 mock `post_chat` 的离线 smoke，
+从没拿一个真的免费 API 当决策层跑过一轮。README 与 CHANGELOG 两处措辞已按这个事实改写。
+
+**为什么这条要单独记而不是悄悄改**：同一天我已经在两个方向上各错一次——
+上次是把付费上游说成"配置就能换"（夸大），这次是把已有能力说成"缺件"（缩小）。
+两次都不是别人喂错的，是我**凭记忆的清单代替注册表**。规矩并入 #67 那条线：
+凡对外陈述"有哪些/能做什么"，先跑一句能打印注册表的命令，把命令贴着结论写。
+
+顺带：真正没有现成路的只剩**付费上游那条**（`typesafe`，本机 `.env` 里 `TYPESAFE_API_KEY` 值长 5 = `local` 占位）
+⇒ #76 的"等凭据"结论不变。**免费 API 决策层那一轮实测我没有动手**：它要把页面文本发给第三方、
+并消耗操作者 key 的配额 —— 这是"数据出本机"的那一类，我停在这里等一句 go；代码与测试面（离线）随时可以起。
