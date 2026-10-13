@@ -9,6 +9,18 @@
 # The runners that use this predate the StartLux stack and some of them load
 # their own model onto the GPU, so there is no safe default: the endpoint has to
 # be named on the command line.
+# Cloud choices live in ONE place: the switch below. tests/test_runner_zero_cloud.py reads
+# those branch lines to prove {startlux, local} stay loopback and {groq, deepseek} stay cloud,
+# so the URLs are spelled exactly once. Resolve-CloudEndpoint (used by the #80 cloud-decider
+# runner) reads that same table instead of growing a second copy -- and a runner may not spell
+# out a cloud URL at all (tests/test_runner_safety.py whitelists only this file).
+function Resolve-CloudEndpoint {
+    param([string]$Choice)
+    $h = Resolve-TextHelper -Choice $Choice
+    if (-not $h.Cloud) { throw "'$Choice' is not a cloud choice -- refusing to treat it as a cloud decider" }
+    return @{ Url = $h.Url; Key = $h.Key; Cloud = $true }
+}
+
 function Resolve-TextHelper {
     param([string]$Choice, [int]$LlamaPort = 8081, [int]$OllamaPort = 11434)
     $out = @{ Url = ""; Model = ""; Key = ""; Cloud = $false; Health = "" }

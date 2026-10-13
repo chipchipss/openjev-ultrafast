@@ -213,8 +213,12 @@ def _map_choice(
     if operation in controls:
         return controls[operation]["id"], None
 
+    # 拒收字符串会原样进 trace（`decisions[].rejected`），是事后唯一能看出"模型当时有哪些可选"的地方：
+    # #80 两条云端臂各被拒收 15 / 5 次，却只能数次数、看不出模型为什么挑它。
+    # 所以这里把当页的合法名一起报出来（也是给模型的下一拍重试留的提示）。
     raise ValueError(
-        f"unknown operation {operation!r}"
+        f"unknown operation {operation!r}; available: "
+        + ", ".join(sorted([*targets, *controls, *SENTINELS]))
     )
 
 

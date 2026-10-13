@@ -18,8 +18,8 @@ Respond with one JSON object only:
 {"operation": <string>, "target": <string|null>, "operation_confidence": <number>, "target_confidence": <number|null>}
 
 Rules:
-- operation is one of: CLICK, TYPE_TEXT, SELECT, SCROLL_DOWN, SCROLL_UP, WAIT, DONE, BLOCKED
+- operation is one of the operations listed under 'Available operations' for the CURRENT page -- that list is the only source of valid names, so never invent or reuse an operation the page did not list.
 - CLICK / TYPE_TEXT / SELECT require a target (element index string, or "index:option" for SELECT).
-- Control operations (SCROLL_* / WAIT) and sentinels (DONE / BLOCKED) MUST have target null.
+- Page control operations (scroll/wait/reload, as listed) and sentinels (DONE / BLOCKED) MUST have target null.
 - operation_confidence and target_confidence are numbers in [0, 1]. Use target_confidence only when target is not null.
 - No explanations, no code, no markdown. Only the JSON object.

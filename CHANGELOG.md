@@ -6,6 +6,39 @@
 
 ---
 
+## [prompt-vocabulary-was-the-ceiling] - 2026-10-13 夜（#82）
+
+### Status（#80 那条"云端臂分数被污染"的口径解除；解除的方式是先让测试证明污染在哪）
+
+`DECIDER_MODE=openai` 两条臂共同掉 l001 的原因不是模型大小，是**我们自己的两处不一致**：
+静态提示词无条件承诺 `SCROLL_DOWN / SCROLL_UP`（`prompts/next_action.txt:21`），
+校验器只认当页真存在的操作（`decider/choose_2b.py:_map_choice` 抛 `unknown operation`），
+而每一次拒收按缺陷#5 还**计入一次真实模型调用** —— 于是模型照规则行事却被自己的框架烧预算。
+
+改后同一把 19 行、同一个 `gpt-oss-20b`：
+
+| 判据（跑前写死） | 改前 | 改后 |
+|---|---|---|
+| `unknown operation 'SCROLL_DOWN'` 次数 | 11 | **0**（总拒收 15 → 1，剩那 1 次是 provider 的 HTTP 400） |
+| l001 步数 | 9（FAIL） | **2**（仍 FAIL，但成因换成"模型在长页上不选滚动控件就弃权"） |
+| pass / fp | 18 / 0 | **18 / 0**（没靠放松断言换分） |
+| 本地冻结（`jev_ultrafast/*` 有改动，按纪律重打） | 19/19 | **19/19、fp=0**（`m1-baseline-1013-1920.json`） |
+| 离线闸门 | 32 件 / 277 案 | **33 件 / 281 案**（新套件 `tests/test_prompt_operation_vocabulary.py` 改前 **2/4**） |
+| 免费档配额 | — | 这一轮仍 32 次 `HTTP 429`；延迟中位被退避顶到 2 915 ms，**不能读成"模型变慢"** |
+
+⇒ **#80 的对外口径更正**：可以写"免费 20B = 18/19、120B = 17/19、`false_positive=0`"，
+剩下的 1–2 行差距是干净的能力读数；不能再拿它说"接口没问题"，也不能说"云端一定不行"。
+
+顺带两处工程账（都是**门闸先响**）：
+① 我第一版把云端 URL 抄进新 runner，被 `test_runner_safety`（"runner 不许拼写云端 URL"）打回；
+   第二版想把 `Resolve-TextHelper` 的表搬走，又被 `test_runner_zero_cloud`（它**读那张表的文本**）打回
+   ⇒ 最终 `Resolve-CloudEndpoint` 去**读**同一张表：URL 仍只拼写一次，runner 里没有云字符串。
+② 我用 Python 字符串往 .ps1 里写 `. "$Repo\scripts	ext_helper.ps1"` 时 `	` 被吃成制表符，
+   路径成了 `$Repo\scripts<TAB>xt_helper.ps1` —— **同一类"就地写文件不加 r 前缀"的第三次**（前两次：
+   0 字节的 `agent.py`、报告名插值字面量）。这次由离线套件在 20 秒内抓到，没有进任何读数。
+③ `MANIFEST.md` 上一次编辑被我写出**两张重复的表**，这次合并成一张并把每目录计数重新 `git ls-files` 实测
+   （**626 个跟踪文件 / reports 364 / tests 33**）。
+
 ## [free-api-decision-layer-measured] - 2026-10-13 夜（#80）
 
 ### Status（目标句里"调免费 API 小模型"那一半第一次有了读数，而读数的第一用途是**推翻我对它的归因**）

@@ -28,20 +28,15 @@ $ErrorActionPreference = "Stop"
 $Repo = "C:\Users\Administrator\openjev-ultrafast"
 $PythonJev = "C:\Users\Administrator\miniconda3\envs\jev\python.exe"
 
-# ---- 1) endpoint table: reuse the one place that names cloud providers ----------
-# text_helper.ps1 already holds {groq, deepseek} -> base_url + key env name, and it is the
-# file that fails closed on a cloud choice with no key. Re-implementing that table here
-# would be a second copy of a safety predicate (see #69 / #72: one concept, one table).
+# ---- 1) endpoint: resolve through the ONE table in scripts/text_helper.ps1 -------------
+# tests/test_runner_safety.py allows a cloud URL to be spelled out in exactly one file
+# (text_helper.ps1) -- that gate is what keeps "no runner defaults to cloud" true.
+# This runner is deliberately cloud-only, so it must not grow its own copy of the URLs.
 . "$Repo\scripts\text_helper.ps1"
-switch ($Provider) {
-    "groq"     { $BaseUrl = "https://api.groq.com/openai/v1";   $Key = $env:GROQ_API_KEY }
-    "deepseek" { $BaseUrl = "https://api.deepseek.com/v1";      $Key = $env:DEEPSEEK_API_KEY }
-    default    { Write-Host "unknown -Provider '$Provider' (groq | deepseek)"; exit 2 }
-}
-if (-not $Key) {
-    Write-Host "REFUSING: -Provider $Provider is a CLOUD decision layer and its API key is unset." -ForegroundColor Red
-    exit 2
-}
+try { $ep = Resolve-CloudEndpoint -Choice $Provider }
+catch { Write-Host "REFUSING: $($_.Exception.Message)" -ForegroundColor Red; exit 2 }
+$BaseUrl = $ep.Url
+$Key = $ep.Key
 
 # ---- 2) task file ---------------------------------------------------------------
 $Full = if ([System.IO.Path]::IsPathRooted($TasksFile)) { $TasksFile } else { Join-Path $Repo $TasksFile }

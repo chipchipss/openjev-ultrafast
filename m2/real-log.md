@@ -6108,3 +6108,48 @@ l001 是滚动族的一行：A 在它上面烧到 9 步 FAIL，B 烧到 5 次调
 ② 分析器第一版从 step 事件读 `latency_ms`，而技能/地板决策不发模型调用（记 0 ms），
 本地底座会被算成"中位 0 ms"——改成只统计 `event=decision` 且 `skill` 为空、`latency_ms>0` 的那些；
 `rejected` 同批核对：b41 前 40 个 trace 里 decision 事件 122 条、rejected 0 条，说明这格在本地路径确实没被触发。
+### #82 动手：先预登记判据，再改词表（改的是 `jev_ultrafast/*`，所以本地冻结要重打一轮）
+
+两处改动，都只碰**聊天式决策线**（`DECIDER_MODE=openai`）：
+- `jev_ultrafast/prompts/next_action.txt:21/23`：静态 Rules 不再无条件列 `SCROLL_DOWN / SCROLL_UP`，
+  改为"操作名只能来自当前页那份 **Available operations**"；
+- `jev_ultrafast/decider/choose_2b.py:_map_choice`：`unknown operation` 的报错现在带上**当页可选列表**
+  （这条字符串会原样进 trace，是事后唯一能看出"模型当时有哪些选择"的地方；今晚之前三批都只能数次数）。
+
+**先跑的红（改前）：`tests/test_prompt_operation_vocabulary.py` 2/4** ——
+①红话原文引用的就是那句 `operation is one of: CLICK, TYPE_TEXT, SELECT, SCROLL_DOWN, SCROLL_UP, WAIT, DONE, BLOCKED`，
+③红在拒收信息里没有可选列表；②④是对照（动态表按页正确、本页给了控件时照常放行），改前改后都必须绿。
+改后 **4/4**，离线全套 **33 件 / 281 案全绿**（19:5x）。
+
+**跑之前写死的判据（这一轮是 #82 的验证，不是新的分数）**：
+1. 本地锚不受影响：`typesafe` 那条线用的是 `questions.py:NEXT_ACTION`（本次未动），
+   但仍按纪律重打**冻结一轮 19/19、fp=0**（因为 `jev_ultrafast/*` 有改动）。
+2. 云端臂 A（`gpt-oss-20b`）重跑同一把 19 行：**`unknown operation 'SCROLL_DOWN'` 这类拒收次数从 11 降到 0**
+   （HTTP 400 那 4 次不算在本判据里，它是 provider 侧 JSON 校验，另记）；
+3. l001 的 `steps` 从 9 明显下降（我预期 ≤4），且 `pass` 不低于改前的 18/19 —— **不许用放松断言换分数**，
+   象限分布里出现任何 `false_positive` ⇒ 直接回滚；
+4. 免费档配额：若这一轮又全程 429，就按 BLOCKED 处理（没有 report 就不是读数），不拿墙钟说事。
+### #82 的验证读数（同一把 19 行、同一个 20B 底座，改前 vs 改后）
+
+| 判据（跑前写死） | 改前（A 臂 18:39） | 改后（`freecloud-82-20b-1013-192616.json`，19:26–19:3x） |
+|---|---|---|
+| ① 本地冻结不受影响 | 19/19 fp=0（1013-1746） | **19/19、fp=0、error=0**（`m1-baseline-1013-1920.json`，19:25） |
+| ② `unknown operation 'SCROLL_DOWN'` 拒收次数 | **11 次** | **0 次**（总拒收 15 → 1，剩那 1 次是 provider 的 HTTP 400 `json_validate_failed`，不是词表） |
+| ③ l001 的步数 / pass 不退 | l001 = **9 步** FAIL；pass 18/19 | l001 = **2 步 / 3 次调用** FAIL；pass **18/19 不退**，`fp=0` |
+| ④ 配额 | — | 32 次 `HTTP 429` 重试仍跑完 19 行；决策延迟中位被退避顶到 2 915 ms（不是模型变慢，是配额） |
+
+**接口污染消除了，但 l001 还是没过——这次的成因换了，而且必须写清楚**：
+trace 里 `step1 = first_action_floor CLICK 144`（url_changed）→ `step2 = CLICK 1`（url_changed，落到 `argmin.net` 首页）→
+BLOCKED；断言唯一没过的条款是 `history_has_kind: scroll`。也就是说：**词表修好后模型不再被拒收，
+但它在长页上没选那个滚动控件就认输了** —— 这才是"云端小模型与本地 2B 的真实差距"，
+而本地 2B 在 l001 上是 PASS（19/19 里的一行）。改前那个 9 步 FAIL 里混着接口污染，
+现在这 2 步 FAIL 是干净的能力读数。⇒ **#80 那条"分数被污染"的口径到此解除**：
+可以写"免费 20B 在同一把 19 行上是 18/19、fp=0"，剩下的一行差距归模型本身。
+
+**过程账（同一类毛病第三次，必须记）**：我给 `run_freecloud_19.ps1` 打补丁时，用 Python 字符串写 PS 代码，
+`"$Repo\scripts\text_helper.ps1"` 里的 `\t` 被 Python 当成制表符吃掉，写出来的路径成了
+`$Repo\scripts<TAB>xt_helper.ps1` —— **同一个"就地写文件不加 r 前缀"的家**。
+这次是离线套件先抓到：`test_runner_safety` 报 `resolver lost branches: ['local','startlux']`
+（dot-source 那行没匹配上）。另外我第一版把云端 URL 抄进新 runner、又想把 `Resolve-TextHelper` 的表搬走，
+被 `test_runner_zero_cloud` 一枪打回（**那张表的唯一一份拼写就在 helper 里，测试是读它文本的**），
+最后改成 `Resolve-CloudEndpoint` 去**读**同一张表。两条门闸各自的作用都当场演示了一遍。
