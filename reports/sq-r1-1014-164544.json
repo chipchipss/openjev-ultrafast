@@ -1,0 +1,173 @@
+{
+  "summary": {
+    "total": 4,
+    "pass": 4,
+    "fail": 0,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "true_success": 4
+    },
+    "failure_modes": {},
+    "agent_modes": {},
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "r129",
+      "result": {
+        "task_id": "r129",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/json1.html",
+          "final_title": "JSON Functions And Operators",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/json1\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2768,
+          "final_page": {
+            "url": "https://www.sqlite.org/json1.html",
+            "title": "JSON Functions And Operators",
+            "text_len": 1052,
+            "text_sha16": "323a65a6233dc809"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r128",
+      "result": {
+        "task_id": "r128",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/faq.html",
+          "final_title": "SQLite Frequently Asked Questions",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/faq\\.html"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Frequently Asked"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2396,
+          "final_page": {
+            "url": "https://www.sqlite.org/faq.html",
+            "title": "SQLite Frequently Asked Questions",
+            "text_len": 2340,
+            "text_sha16": "dc74fda24291d266"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r127",
+      "result": {
+        "task_id": "r127",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/lang_select.html",
+          "final_title": "SELECT",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang_select\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2747,
+          "final_page": {
+            "url": "https://www.sqlite.org/lang_select.html",
+            "title": "SELECT",
+            "text_len": 287,
+            "text_sha16": "b16f52038a57831f"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r126",
+      "result": {
+        "task_id": "r126",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/lang.html",
+          "final_title": "Query Language Understood by SQLite",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2510,
+          "final_page": {
+            "url": "https://www.sqlite.org/lang.html",
+            "title": "Query Language Understood by SQLite",
+            "text_len": 1342,
+            "text_sha16": "4c679e7564bb0a35"
+          }
+        }
+      }
+    }
+  ]
+}

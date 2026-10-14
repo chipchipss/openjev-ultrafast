@@ -1,0 +1,178 @@
+{
+  "summary": {
+    "total": 4,
+    "pass": 2,
+    "fail": 2,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "true_success": 2,
+      "correct_abandon": 2
+    },
+    "failure_modes": {
+      "blocked_by_egress": 2
+    },
+    "agent_modes": {},
+    "system_modes": {
+      "blocked_by_egress": 2
+    }
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "r126",
+      "result": {
+        "task_id": "r126",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/lang.html",
+          "final_title": "Query Language Understood by SQLite",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3515,
+          "final_page": {
+            "url": "https://www.sqlite.org/lang.html",
+            "title": "Query Language Understood by SQLite",
+            "text_len": 1342,
+            "text_sha16": "4c679e7564bb0a35"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r127",
+      "result": {
+        "task_id": "r127",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "system",
+        "failure_mode": "blocked_by_egress",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.sqlite.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang_select\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3998,
+          "final_page": {
+            "url": "chrome-error://chromewebdata/",
+            "title": "www.sqlite.org",
+            "text_len": 83,
+            "text_sha16": "7806091bd2a55e2c"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r128",
+      "result": {
+        "task_id": "r128",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/faq.html",
+          "final_title": "SQLite Frequently Asked Questions",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/faq\\.html"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Frequently Asked"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2861,
+          "final_page": {
+            "url": "https://www.sqlite.org/faq.html",
+            "title": "SQLite Frequently Asked Questions",
+            "text_len": 2340,
+            "text_sha16": "dc74fda24291d266"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r129",
+      "result": {
+        "task_id": "r129",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "system",
+        "failure_mode": "blocked_by_egress",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.sqlite.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/json1\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2613,
+          "final_page": {
+            "url": "chrome-error://chromewebdata/",
+            "title": "www.sqlite.org",
+            "text_len": 83,
+            "text_sha16": "7806091bd2a55e2c"
+          }
+        }
+      }
+    }
+  ]
+}

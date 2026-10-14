@@ -24,6 +24,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import sys
 import time
 from dataclasses import asdict, is_dataclass
@@ -75,22 +76,35 @@ def _to_jsonable(obj: Any) -> Any:
 # Logger
 # ---------------------------------------------------------------------------
 
+#: Chrome 自己的网络错误码名（#85）。只提这个 token，本地化文案一概不留进产物。
+_ERR_CODE_RE = re.compile(r"ERR_[A-Z][A-Z0-9_]{2,}")
+
+
 def page_digest(page: Optional[dict]) -> dict:
     """#75：**评测吃的那份正文**的可复核摘要 —— 只有一个来源，runner 与 logger 都从这里取。
 
-    只带四件：url / title / 正文长度 / 正文 16 位 sha1。整段正文不入库（体积，以及第三方页面内容
-    没必要跟着报告走）；长度足以认出"这是半帧"（docs 族实测 654 → 1454），
-    sha1 足以确认两次读数是不是同一份页。
+    带四件：url / title / 正文长度 / 正文 16 位 sha1；另加**一件稀疏的**：错误页的码名。
+    整段正文不入库（体积，以及第三方页面内容没必要跟着报告走）；长度足以认出"这是半帧"
+    （docs 族实测 654 → 1454），sha1 足以确认两次读数是不是同一份页。
+
+    `err`（#85）只在正文里出现 Chrome 自己的 `ERR_*` 码名时才写：批里那些
+    `chrome-error://` 行以前只有 `text_len=83`，归因只能写成"环境"而写不出**哪一种**环境
+    （10-14 的 sqlite 探针第一次把它抓成 `ERR_SSL_PROTOCOL_ERROR` = 本地代理的 TLS 隧道断）。
+    提的是码名不是文案 —— 本地化句子不进仓，且健康页不写这个键（与 `arrival_relook_ms` 同一口径）。
     """
     if not isinstance(page, dict):
         return {}
     txt = page.get("text") or ""
-    return {
+    out = {
         "url":   page.get("url"),
         "title": page.get("title"),
         "text_len": len(txt),
         "text_sha16": hashlib.sha1(txt.encode("utf-8", "replace")).hexdigest()[:16],
     }
+    m = _ERR_CODE_RE.search(txt)
+    if m:
+        out["err"] = m.group(0)
+    return out
 
 
 class Logger:

@@ -159,6 +159,45 @@ def t_single_source_for_the_digest():
     assert page_digest(None) == {}, "没有页时不许造一个假摘要"
 
 
+@case("错误页要把**错误码**带进摘要：批里那 83 字符的 chrome-error 页今天只有长度，没有码")
+def t_error_page_carries_the_code_not_the_body():
+    # 现场：10-14 的 sqlite 探针抓到失败帧正文是
+    #   此网站无法提供安全连接 / www.sqlite.org 发送的响应无效。 / ERR_SSL_PROTOCOL_ERROR / 重新加载
+    # 批工件里它一直是 `text_len=83` —— 归因写成了"环境"，但**哪种环境**没有字段可读。
+    from jev_ultrafast.logger import page_digest
+    err_txt = ("此网站无法提供安全连接\nwww.sqlite.org 发送的响应无效。\n"
+               "尝试运行 Windows 网络诊断。\nERR_SSL_PROTOCOL_ERROR\n重新加载")
+    pg = {"url": "chrome-error://chromewebdata/", "title": "www.sqlite.org",
+          "text": err_txt, "elements": [], "fingerprint": "e"}
+    d = page_digest(pg)
+    assert d.get("err") == "ERR_SSL_PROTOCOL_ERROR", (
+        f"错误码没进摘要，egress 行还是只能写成'环境'而不能写成哪一种环境：{d}")
+    blob = json.dumps(d, ensure_ascii=False)
+    assert "无法提供安全连接" not in blob and "响应无效" not in blob, \
+        "错误页正文整段进了产物 —— 只许提码名（Chrome 自己的字符串），本地化文案不进仓"
+
+
+@case("码名只在真有码时出现，且必须穿过 _meta 白名单到 reports/*.json")
+def t_err_key_is_sparse_and_whitelisted():
+    from jev_ultrafast.evaluator import evaluate
+    from jev_ultrafast.logger import page_digest
+    healthy = page_digest(page(SHORT))
+    assert "err" not in healthy, f"健康页也被写了 err 键，批里就数不出真实错误面：{healthy}"
+
+    err_pg = {"url": "chrome-error://chromewebdata/", "title": "example.invalid",
+              "text": "This site can’t be reached\nERR_NAME_NOT_RESOLVED", "fingerprint": "e"}
+    spec = {"task_id": "x001", "category": "negative",
+            "success_assertion": {"type": "all_of", "clauses": [
+                {"type": "url_matches", "pattern": "example\\.invalid"}]},
+            "extensions": {}}
+    meta = {"steps": 0, "model_calls": 1, "api_calls": 0, "elapsed_ms": 1200,
+            "final_page": page_digest(err_pg)}
+    res = evaluate(spec, err_pg, [], "blocked", meta=meta)
+    fp = (res.meta or {}).get("final_page") or {}
+    assert fp.get("err") == "ERR_NAME_NOT_RESOLVED", (
+        f"runner 写了码，报告白名单只放四件 ⇒ 又是 #67/#65/#83 那一族：meta.final_page={fp}")
+
+
 def main() -> int:
     for stream in (sys.stdout, sys.stderr):
         try:
