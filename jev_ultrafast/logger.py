@@ -75,6 +75,24 @@ def _to_jsonable(obj: Any) -> Any:
 # Logger
 # ---------------------------------------------------------------------------
 
+def page_digest(page: Optional[dict]) -> dict:
+    """#75：**评测吃的那份正文**的可复核摘要 —— 只有一个来源，runner 与 logger 都从这里取。
+
+    只带四件：url / title / 正文长度 / 正文 16 位 sha1。整段正文不入库（体积，以及第三方页面内容
+    没必要跟着报告走）；长度足以认出"这是半帧"（docs 族实测 654 → 1454），
+    sha1 足以确认两次读数是不是同一份页。
+    """
+    if not isinstance(page, dict):
+        return {}
+    txt = page.get("text") or ""
+    return {
+        "url":   page.get("url"),
+        "title": page.get("title"),
+        "text_len": len(txt),
+        "text_sha16": hashlib.sha1(txt.encode("utf-8", "replace")).hexdigest()[:16],
+    }
+
+
 class Logger:
     def __init__(
         self,
@@ -211,17 +229,9 @@ class Logger:
         if _paid:
             event["arrival_relook_ms"] = int(_paid)
         if final_page is not None:
-            # #75：评测吃的那份正文必须留下可复核的痕迹。只记**摘要**（长度 + 16 位 sha1）——
-            # 长度足以认出"这是半帧"（docs 族实测 654 → 1454），sha 足以确认两次读数是不是
-            # 同一份页；整段正文不入库（体积，以及第三方页面内容没必要跟着报告一起走）。
-            _txt = final_page.get("text") or ""
-            event["final_page"] = {
-                "url":   final_page.get("url"),
-                "title": final_page.get("title"),
-                "text_len": len(_txt),
-                "text_sha16": hashlib.sha1(
-                    _txt.encode("utf-8", "replace")).hexdigest()[:16],
-            }
+            # #75：评测吃的那份正文必须留下可复核的痕迹。**算法只有一份**（`page_digest`），
+            # runner 往 reports/*.json 写的也是它 —— 两处各抄一遍迟早漂。
+            event["final_page"] = page_digest(final_page)
 
         self._buffer.append(event)
         self.flush()

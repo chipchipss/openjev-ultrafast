@@ -121,6 +121,44 @@ def t_paid_ms_survives_evaluator_meta():
         f"于是 reports/*.json 里数不到它：meta={got}")
 
 
+@case("同一份正文摘要必须活到 reports/*.json 的 meta（logs/ 不入库，报告才是权威工件）")
+def t_digest_reaches_the_report_meta():
+    # 2026-10-14 量的现状：`task_result` 事件里有 final_page，但 499 行 reports 的 meta
+    # 只有 steps/model_calls/api_calls/elapsed_ms ⇒ 一次 text_contains 翻动在**可分享的工件**里仍不可复核。
+    # 这与 #65/#67/#83 是同一族：白名单只放旧的四件，新仪器字段静默被丢。
+    from jev_ultrafast.evaluator import evaluate
+    from jev_ultrafast.logger import page_digest
+    spec = {"task_id": "r195", "category": "positive",
+            "success_assertion": {"type": "all_of", "clauses": [
+                {"type": "text_contains", "value": "810", "case_sensitive": False}]},
+            "extensions": {}}
+    pg = page(GROWN)
+    meta = {"steps": 3, "model_calls": 4, "api_calls": 0, "elapsed_ms": 900,
+            "final_page": page_digest(pg)}
+    res = evaluate(spec, pg, [{"kind": "click", "url": pg["url"]}], "done", meta=meta)
+    got = res.meta or {}
+    fp = got.get("final_page") or {}
+    assert fp.get("text_len") == len(GROWN), f"报告里没有正文长度，翻动还是证不到帧：meta={sorted(got)}"
+    assert fp.get("text_sha16") == hashlib.sha1(GROWN.encode("utf-8", "replace")).hexdigest()[:16]
+    blob = json.dumps(fp, ensure_ascii=False)
+    assert "nav shell text" not in blob and "enumerate entry" not in blob, \
+        "白名单把整段正文放进了报告（只许过 url/title/长度/摘要四件）"
+
+
+@case("摘要只有一个来源：logger 与 runner 不许各抄一份算法")
+def t_single_source_for_the_digest():
+    from jev_ultrafast.logger import page_digest
+    pg = page(SHORT)
+    d = page_digest(pg)
+    assert set(d) == {"url", "title", "text_len", "text_sha16"}, d
+    assert d["text_len"] == len(SHORT)
+    with tempfile.TemporaryDirectory() as tmp:
+        _ev, disk = finalize_into(tmp, pg)
+        assert disk["final_page"] == d, \
+            "task_result 里的摘要与 page_digest() 算出来的不是一份 ⇒ 两份算法迟早漂"
+    assert page_digest(None) == {}, "没有页时不许造一个假摘要"
+
+
 def main() -> int:
     for stream in (sys.stdout, sys.stderr):
         try:

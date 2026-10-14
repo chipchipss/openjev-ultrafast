@@ -74,7 +74,7 @@ if ($MinPass -eq 0) {
     $MinPass = $(if ($Tasks -ge 100) { 59 } else { 43 })
 }
 if ($MaxWallMinutes -eq 0) {
-    # The threshold follows the task count; one number for both ladders measures 100 rows with a 50-row ruler.
+    # The threshold follows the task count; one number for both ladders measures 100 rows with a 50-row ruler.
     $MaxWallMinutes = $(if ($Tasks -ge 100) { 30 } else { 14 })
 }
 
@@ -130,9 +130,13 @@ if (-not $Full) {
 }
 
 if (-not $TasksFile) {
+    # The 50-row set used to be "$env:TEMP\tasks_b19_50.jsonl" (created 10-10 15:31, never
+    # committed) -- every 44/50 and 43/50 reading in real-log cited that file, so a temp clean
+    # would have made them unreproducible. Pinned as m2/tasks_real_50.jsonl (sha1 457dea2e...):
+    # byte-identical copy, 50 ids, and object-for-object the first 50 rows of tasks_real_100.
     $TasksFile = switch ($Tasks) {
         19  { "$Repo\m1\tasks-laya-19.jsonl" }
-        50  { "$env:TEMP\tasks_b19_50.jsonl" }
+        50  { "$Repo\m2\tasks_real_50.jsonl" }
         100 { "$Repo\m2\tasks_real_100.jsonl" }
     }
 }

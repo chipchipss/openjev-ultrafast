@@ -28,7 +28,7 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from jev_ultrafast.evaluator import evaluate          # noqa: E402
-from jev_ultrafast.logger import Logger               # noqa: E402
+from jev_ultrafast.logger import Logger, page_digest  # noqa: E402
 
 
 def _load_tasks(path: Path) -> list[dict]:
@@ -317,6 +317,12 @@ def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dic
             "suppressed": _stuck_after["suppressed"] - _stuck_before["suppressed"],
             "cross_task": _stuck_cross,
         }
+
+    # #75 的后半：断言吃的那份正文的摘要要跟着进 **reports/*.json**（`logs/` 不入库）。
+    # 一份算法：`logger.page_digest`，与 task_result 事件里那个字段同源，不另抄。
+    _fp = page_digest(agent.state.get("page"))
+    if _fp.get("text_sha16"):
+        meta["final_page"] = _fp
 
     try:
         task_result = evaluate(

@@ -6547,3 +6547,177 @@ r140 自己的 `entries_at_start = 0` ⇒ 它写、它吃，**跨题抑制 = 0 �
 **顺带：`#81` 的守卫在真实场景里又拦了一次**——`run_one.ps1 -TaskId r139` 直接拒绝出题
 （`r139` 同时定义在 `m2/tasks_real.jsonl` 与 `m2/tasks_real_100.jsonl`），要我显式给 `-TasksFile`。
 这正是 10-11 那次"按文件顺序猜题"的洞；这次它让我差点用了错的题集。
+
+## #84 的阈值：先用真实页面量，再写判据（10-14 12:5x，跑批间隙的只读测量）
+
+**为什么先量**：#84 要加的是"到站那一拍是空壳页"这条归因分支。
+仓里已有的两条同族分支（`is_bot_wall`、`is_upstream_app_error`）的词表和阈值都来自实测快照，
+不是猜的；这条也一样——阈值必须从**真实页面的分布**里挑，否则又会发生"把 r120 那种薄但真实的页扫进来"。
+
+**样本 A**（`m2/corpus/` 是 git-ignored 的本地快照，所以下表就是可审计的产物）：
+10-13 23:14 抓的 100 份起点页 + 23:32 抓的 86 份一跳页，共 **186 份**，零模型、自有 `chrome-cdp-test`。
+
+```
+python -c "import json;R=[json.loads(l) for f in ('m2/corpus/pages.jsonl','m2/corpus/pages-hop.jsonl') for l in open(f,encoding='utf-8') if l.strip()];T=sorted((len(r['page'].get('text') or ''), r['task_id'], len((r['page'].get('title') or '').strip()), len(r['page'].get('actions') or [])) for r in R);print('pages:',len(R));[print(x) for x in T[:16]]"
+```
+
+`text_len` 最小的 **16 行**（= 全样本的下沿，其余 170 行都 ≥ 240）；"titl" 是标题字符数，"nact" 是 action 数：
+
+| task | 种类 | text_len | titl | nact | 标题 |
+|---|---|---|---|---|---|
+| r104 | 起点 | 13  | 3  | 2  | `403` |
+| r189 | 一跳 | 42  | 20 | 3  | news.ycombinator.com |
+| r139 | 一跳 | 43  | 12 | 5  | The Internet |
+| r197 | 一跳 | 47  | 12 | 3  | The Internet |
+| r140 | 一跳 | 61  | 12 | 4  | The Internet |
+| r143 | 一跳 | 62  | 12 | 5  | The Internet |
+| r101 | 一跳 | 82  | 16 | 6  | Client Challenge |
+| r191 | 一跳 | 82  | 16 | 6  | Client Challenge |
+| r190 | 一跳 | 87  | 18 | 6  | www.rfc-editor.org |
+| r103 | 一跳 | 179 | 23 | 20 | Log In - Stack Overflow |
+| r195 | 一跳 | 179 | 23 | 20 | Log In - Stack Overflow |
+| **r120** | 起点 | **181** | **0** | **18** | **（全样本唯一标题为空的一行）** |
+| r141 | 一跳 | 187 | 12 | 7  | The Internet |
+| r198 | 一跳 | 195 | 12 | 8  | The Internet |
+| r196 | 一跳 | 237 | 12 | 3  | The Internet |
+| r106 | 起点 | 240 | 52 | 17 | Hugging Face … |
+
+`text_len` 中位数 1116；nact 全样本最小 2、中位数 40。
+
+**读数（两份样本，一份负样本一份正样本）**：
+
+*负样本 A —— 186 份快照页*：标题为空只发生 **1/186**（r120，`text_len=181`）。
+`text_len ≤ 100` 的有 9 份，全部**标题非空**（`403` / `news.ycombinator.com` / `The Internet` / `Client Challenge` /
+`www.rfc-editor.org`）⇒ 单看"文本薄"会扫进这 9 份真实页，**标题项是唯一救回它们的东西**；
+这条判据最薄的地方就在这里，注释里要写明白，不许假装余量很大。
+
+*负样本 B + 正样本 —— 1066 行真实跑完并落了摘要的 task_result*（`python m2/arrival_digest_scan.py logs`，
+10-14 新增的只读探针；摘要字段由 `logger.page_digest` 写进 trace，10-13 起就有）：
+- 标题为空的行 **26** 行，按 `(text_len, sha16, url)` 分组后**只有两种形状**：
+  - `text_len=14`、`sha16=39ce487272af599e`、`url=https://arxiv.org/search/physics` —— **4 行**，
+    全部在同一批 `tier3-100-1014-105704`，task 为 `r102 / r161 / r162 / r187`，
+    现在全记成 `FAIL / correct_abandon / agent / decision`。**这就是 #84 的正样本**：
+    同一批、同一个 sha、四个不同任务 ⇒ 一次上游episode 吃掉 4 行，不是四次独立决策失误。
+    （上一节把 r162 的翻动归给"arXiv 间歇性空壳"时只有 1 行旁证；现在有 4 行同摘要。）
+  - `text_len ≥ 181` 的 httpbin 页（`/post` 与 `/forms/post`，标题本来就空）—— **22 行，全部 PASS**。
+    ⇒ 阈值 100 的两侧余量是 **14 vs 181（13 倍）**，不是贴着写的。
+- 判据 `title 空 ∧ text_len ≤ 100` 在这 1066 行上**命中 4 行、误伤 0 行**；在同一份判据扫 186 快照页也是 0 命中。
+- `text_len ≤ 200` 的行一共 142 行，其中 `0`（10 行 = #78 的 Application Error，正文为空串）、
+  `13`（10 行 = r104 的 `403`）、`14`（4 行 = 本次空壳）、其余 100+ 行都是**有标题的薄真实页**
+  （43/47/61/62/83/106/107/122/187/195…）。⇒ 阈值不能只看长度，**必须与"标题为空"合取**。
+
+**第三个词（`action ≤ 3`）不要**：摘要四键里没有 action 数，1066 行**无法回溯核对**这一项；
+而两条合取已经在两份样本上 0 误伤。加一个不能被工件检验的词等于加一个装饰（#70 Tier 3 的同一把尺子）。
+
+**r104 不进射程**：`403` / 13 字符 / 2 action 的 PubMed 页标题**非空**，实测两批里都是
+`FAIL / correct_abandon / agent / decision`（`reports/ci-1014-1142-1014-120105.json`）——
+诚实放弃，归因本来就对。⇒ 一条分支只认一种形状（#78 的教训），并进来会把正确放弃改成环境的功劳。
+
+**84b（有界重看）的形状也测了**：那批里 arXiv 的时间线（unix 秒，取整方便读）——
+
+| 相对 t | task | text_len | sha | 结果 |
+|---|---|---|---|---|
+| 0 | r102 | 14 | 39ce4872 | FAIL |
+| +483 | r149 | 3954 | ba46c9b9 | PASS |
+| +591 | r161 | 14 | 39ce4872 | FAIL |
+| +599 | r162 | 14 | 39ce4872 | FAIL |
+| +957 | r187 | 14 | 39ce4872 | FAIL |
+| +974 | r188 | 3840 | 95bd0ea6 | PASS |
+| +1165 | r202 | 4083 | 9e287729 | PASS |
+
+⇒ 空壳**不是一个连续 outage 窗口**，是**逐次请求交替**：`+957` 给浏览器 14 字符空壳，`+974`（17 秒后）
+同一站点就给了 3840 字符的健康页。所以"到站那一拍是空壳就再等一等重看"在形状上是有希望的。
+**但这还不是收益**：17 秒是两个**不同任务**的完成时刻之差，空壳实际持续多久没测到（可能几秒，也可能 17 秒里
+大部分时间）；而且这 4 行的 `meta` 里**没有** `arrival_relook_ms`——同一批的 r116/r154/r156/r157/r158/r176 有，
+说明 #65 的重看机制存在，但空壳那一拍没触发它。⇒ 84b 落笔前要先把"空壳持续多久"测出来，
+否则 6 秒的重看预算是拍的。
+
+**可审计性（这一条必须说）**：`logs/` 是 git-ignored 的，`reports/tier3-100-1014-105704.json` 里这 4 行的
+`meta` **没有** `final_page`（#75 的白名单今天才放行）。⇒ 上面那 4 行的直接工件不在仓里，
+**本节这张表就是审计记录**（批名 / task / text_len / sha16 / url 逐字抄自 trace）。
+从 #75 合入之后的批起，同样的读数会进 `reports/*.json`，不再依赖本地 `logs/`。
+
+**84a 的收益是算得出的（不是"更干净"这种话）**：拿 10:57 那批与同题集的另一份 100 行报告
+（`reports/nightly-1012-1731-r1-1012-173149.json`）逐行对这 4 个 task：
+
+| task | 10:57 批 | 那份基线 | 差 |
+|---|---|---|---|
+| r102 | FAIL/correct_abandon/agent/decision，终页 = 14 字符空壳 | 同 FAIL | 无 |
+| r161 | FAIL/correct_abandon/**agent/decision**，终页 = 同一空壳 | **PASS**/true_success | 失分 |
+| r162 | FAIL/correct_abandon/**agent/decision**，终页 = 同一空壳 | **PASS**/true_success | 失分 |
+| r187 | FAIL/correct_abandon/agent/decision，终页 = 同一空壳 | 同 FAIL | 无 |
+
+⇒ 这 4 行的**成因**是同一个 14 字符空壳（sha16 逐字相同），其中 r161/r162 两行是相对那份基线的失分。
+`m2/tier3_batch_audit.py` 按 `failure_class` 分家 ⇒ 84a 合入后这类行会落在"环境"那一堆，
+不再挤进"非环境翻动 ⊆ 同 build 抖动集合"的判据。
+**#70 结案时把集合外的 `r162` 读成"arXiv 间歇性给浏览器一份空壳"——现在有直接工件了**（同一批 4 行同 sha），
+而当时我只能靠重放与两次批读数的巧合来支撑这个说法。
+
+**对账口径要说清**：上面这份对照**不是** #70 判据用的那份（判据用的是同 build 的夜间基线三轮），
+我换了一份 10-12 的 100 行报告，所以这张表读的是"这 4 行的成因"，不是"判据会怎么变"。
+同 build 抖动集合 `{r129, r157, r158, r161, r178, r187}` 里有 r161/r187 但没有 r162——
+这一点不能被空壳判据"事后解释"：那三行的抖动各自有各自的成因，别并成一笔。
+
+**顺序（据此定）**：84a 现在就做（判据有工件、命中集合已知、验证链走完再收）；84b 挂着，
+重看预算等有"同一任务连续两拍摘要"的读数再定。本轮 `ci_local -Tasks 50`（`logs/ci-t75.log`）
+产出的批报告每行会带 `meta.final_page`——84a 合入后要用它复算一次命中数（预期 0：本轮没有 arXiv episode）。
+
+
+## #75 的验证阶梯读数 + 一把量出来的"题集只在 %TEMP% 里"（10-14 12:45–13:2x）
+
+**阶梯（`logs/ci-t75.log`，build = `95dc415` + 未提交的 #75 三件：`logger.py` 12:37:21 / `evaluator.py` 12:37:30 / `m1/run_tasks.py`，此后 `jev_ultrafast/*` 一字未动）**：
+
+| 段 | 读数 | 工件 |
+|---|---|---|
+| tier 1（离线全套） | 绿 | `logs/ci-t75.log` |
+| live smoke 两级 | **5/5**，且 **5/5 行带 `meta.final_page`（四键齐）** | `reports/smoke-1014-124611-1014-124652.json` |
+| 冻结三轮 | **19/19 × 3，全 fp=0**（5.4 / 5.3 / 5.1 分钟） | `reports/m1-baseline-1014-1248 / 1254 / 1259.json` |
+| 50 行回归批 | **42/50，fp=0，error=0，unknown=0，墙钟 8.6 分钟**，**50/50 行带 `meta.final_page`** | `reports/ci-1014-1245-1014-130517.json` |
+| 闸门裁决 | **`CI FAIL`**：`pass=42 < MinPass=43` | `reports/ci-1014-1245.json` |
+
+⇒ **#75 的工件侧成立**：`final_page` 在 smoke 与 50 行批的 `reports/*.json` 里都在（1014 行摘要之外的新增读数，
+不再依赖 git-ignored 的 `logs/`）。报告里没有正文，只有 `url/title/text_len/text_sha16`（同一把尺子复查过）。
+
+**闸门为什么红（一条行，且是环境的行）**：`python m2/tier3_batch_audit.py reports/ci-1014-1245-1014-130517.json`
+⇒ GAIN 0，LOST **1 = `r129`**，象限 `correct_abandon`、`failure_class=system`、`failure_mode=blocked_by_egress`，
+终页 `chrome-error://chromewebdata/`（`text_len=83`）；`r129` 在同 build 抖动集合里（夜间档 r1/r2 就是 egress）。
+非环境翻动 0 行 ⇒ **判据通过**，`meta.stuck` 顺带读数是 `notes=1 suppressed=1 cross_task=0`（12/50 行带值）。
+CDP 复探（不是 curl）13:17 单跑：**r129 PASS / 1 步 / 落到 `sqlite.org/json1.html`**（`reports/one-r129-1014-131731.json`）
+⇒ 批里那一行是批内瞬时出口失败，行本身现在健康。
+
+**新量到的一条仪器隐患（顺手钉死）**：`ci_local.ps1 -Tasks 50` 用的题集是
+`$env:TEMP\tasks_b19_50.jsonl`——**10-10 15:31 生成、从未入库**，而 real-log 里 b18/b19/b20/b22…直到这两轮
+50 行阶梯的"同一题集配对"全都引用它。一次磁盘清理就会让所有这些读数无法复算。
+现在钉进仓：`m2/tasks_real_50.jsonl`（sha1 `457dea2e75cf56325fd4582b276ff15f5bb5f445`，与 TEMP 那份**逐字节相同**），
+并核对过它是 `m2/tasks_real_100.jsonl` **前 50 行、逐对象相等**（50/50，字段零差异），所以这不换题集、不改读数；
+`ci_local.ps1` 的 50 行分支改指仓内路径。与 `run_one.ps1` 里"单任务报告别再落 %TEMP%"是同一颗雷的第二半。
+
+**配对复跑（起跑前登记，13:2x）**：同一 build、同一题集（现在指向 `m2/tasks_real_50.jsonl`），只重跑这一批，不加刀。
+- 预期：`r129` 回到 PASS ⇒ **43–44/50**；`fp=0`、`error=0`、`unknown=0`；`meta.final_page` 仍 50/50。
+- 判据：非环境翻动仍须 ⊆ 抖动集合。**若又是 42**（`r129` 再次 egress）⇒ 不改 `MinPass`，
+  记成"50 行档的下沿被一行环境行连续压穿两次"，#75 仍按"工件侧成立 + 判据通过"结案，分数闸门另立账。
+- 顺带复算 84a 的判据在新批上的命中数：预登记 **0**（本轮没有 arXiv episode）。实测新批最薄的三行
+  `r101`(28 字符, 标题 `Client Challenge`) / `r103`(0, `Just a moment...`) / `r104`(13, `403`) **全部标题非空**，
+  加上 `r129` 的 83 字符 `chrome-error` 页也是非空标题 ⇒ 两条合取在这批命中 0，与 1066 行的历史读数一致。
+
+## 配对复跑的读数：43/50 过下沿，但我预登记的机制**错了**（10-14 13:18–13:3x）
+
+同一 build、同一题集（这次是仓内 `m2/tasks_real_50.jsonl`），只重跑这一批：
+**43/50，`error=0`、`unknown=0`、`fp=0`（43 true_success + 7 correct_abandon），`meta.final_page` 50/50 行齐**
+（`reports/ci2-1014-1320-1014-131826.json`，trace `logs/ci2-1014-1320-1014-131826/`）。
+审计：GAIN 1 = `r127[FAIL→PASS 基线档 blocked_by_egress]`，LOST 1 = `r129[同形]`，**非环境翻动 0 行** ⇒ 判据通过；
+`meta.stuck` 与上一批一字不差（12/50 行带值、`notes=1 suppressed=1 cross_task=0`）。
+
+**登记在册的落空**：我写的预期是"`r129` 回到 PASS ⇒ 43–44"。实际 **`r129` 这批又是 `chrome-error://`（83 字符，`system/egress`）**，
+分数是从**另一行**（`r127`）补回来的。⇒ "42 → 43"不是 r129 复原，别看错因果。
+
+**新的一条候选成因（写下但**未证**）**：`r127` 与 `r129` 是**同一个站点（sqlite.org）的相邻两行**，
+这批 `r127` PASS（287 字符）、`r129` 落 `chrome-error://`；而 13:17 `r129` **单跑 PASS / 1 步**（`reports/one-r129-1014-131731.json`）。
+这与 [[benchmark-infra-gotchas]] 里"同一 host 被连续打就会锁"的形状一致——**批内相邻两行同域**可能是
+sqlite 那两行反复抖的一个机制，不是"随机站点抖动"。要证它需要按域间隔重排题集做配对批，本轮不做，只登记。
+
+**#75 的结案口径**（写死，免得下次含糊）：#75 要证的是"**评测吃的那份正文的可复核痕迹进了 `reports/*.json`**"。
+证据 = smoke 5/5 + 冻结 19/19×3 fp=0 + 两批各 50/50 行带 `final_page`（四键，无正文）+
+`tests/test_graded_input_logged.py` 改前 **5/7** 改后 **7/7** + 实盘见证 `reports/one-r142-1014-124259.json`。
+**分数闸门那轮是红的（42 < 43）且不改写它**（`reports/ci-1014-1245.json` 原样留仓），
+配对复跑 43/50 过下沿；两批的共同点是非环境翻动 0 行 ⇒ #75 是仪器改动，不动分数口径这一条在两批里都成立。

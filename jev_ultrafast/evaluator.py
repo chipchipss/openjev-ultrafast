@@ -451,6 +451,14 @@ def _meta(meta: Optional[dict], history: list[dict]) -> dict:
     # #83 前置仪器（`_STUCK` 的跨任务读数）同一族、同一口径：runner 写了才带。
     if isinstance(meta.get("stuck"), dict):
         out["stuck"] = meta["stuck"]
+    # #75 的后半：断言吃的那份正文的**摘要**必须活到 reports/*.json —— `logs/` 不入库，
+    # 报告才是可分享的权威工件（2026-10-14 实测量过：499 行的 meta 里只有四件，
+    # 于是 `text_contains` 翻动在报告里仍然证不到帧）。
+    # 白名单的意义就是"只过这四件"：正文本身不许跟着进来。
+    fp = meta.get("final_page")
+    if isinstance(fp, dict) and fp.get("text_sha16"):
+        out["final_page"] = {k: fp.get(k) for k in
+                             ("url", "title", "text_len", "text_sha16")}
     return out
 
 
