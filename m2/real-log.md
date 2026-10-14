@@ -6868,3 +6868,11 @@ href 的 0.88，抬门槛会顺手把未来的低档一起禁掉，那是把两�
 2. **bash 与 PowerShell 的重定向符号混用会静默毁掉一次起跑**（`*>` 被 bash 当作 `*` 展开 + `>` 重定向，
    文件名塞进参数位）⇒ `ci_local` 在参数转换上退出，**没有报告 = BLOCKED**。
    规则：给 `powershell -File` 传东西时只用 bash 的 `> log 2>&1`。
+
+## push（10-14 15:0x，操作者口头"push"）
+
+`git push origin main` ⇒ **`95dc415..753ecdd`（三个 commit：`2426bc8` #75、`c27b5b8` #84a、`753ecdd` #46）**，快进推送、无 force。
+对账：`git ls-remote origin refs/heads/main` = `753ecddb48c3d78d3d665e7e909890267c8bdc95` = 本地 HEAD（`git status -sb` 已无 ahead/behind）。
+推前的范围扫描（范围 `95dc415..HEAD` 的新增行）：密钥形状 **0 条**；邮箱形状除合成名外 **0 条**；
+松的长 base64/hex 规则命中 3 条，逐条对账都是已知的非密钥：jev 环境的 python 路径、题集 sha1 `457dea2e…`、golden 摘要 `f7e05f70…`。
+跟踪文件的结构 PII 闸在推前跑过一遍：**5/5**。
