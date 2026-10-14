@@ -779,7 +779,7 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
         if not lab:
             continue
         lab_n = " ".join(_tokens(lab))
-        lab_c, lab_t, lt = _content(lab), set(_tokens(lab)), _tokens(lab)
+        lt = _tokens(lab)
         # 链接地址的 host（快照新增 href / site 字段）：结果页里目标词会出现在**多条**
         # 标题里，只有域名能区分"官方站点"——"Search for 'OpenAI' and open the official
         # OpenAI website" 只看 label 会点到任意一条新闻结果（s001 实况）。
@@ -868,16 +868,27 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
                 # 页面（"Downloads" + "Download" 同时挂链接）差 0.05 < 0.15 → 照旧弃权，
                 # 不赌位置。
                 label_score = 0.95 + min(len(pn), 40) / 1000.0
-            else:
-                pc = _content(p)
-                if pc:
-                    ratio = sum(1 for t in pc if t in lab_t) / len(pc)
-                    if ratio >= 0.75:
-                        label_score = 0.75 + ratio / 10
+            # （这里原来还有一档"词重叠 ≥0.75 ⇒ 0.75+ratio/10"，#46 把它删了。）
+            # 删的理由不是它误点了 r113，而是**两条离线读数说它是死档**：
+            # ① `m2/probe_near_miss_tier_attribution.py` 在 186 份真实页上数 `explicit_target` 的
+            #    71 次非弃权命中，档位分布是 精确 50 / 前缀 6 / 包含 8 / 片段 3 / 折叠 1 / 其它 3，
+            #    词重叠档 **0 次** —— 没有任何一次正确的命中靠它；
+            # ② 测量时把门槛抬到刚好压过它（`top[0] ≥ 0.86`，这一版**没进产品**）之后
+            #    `m2/golden_tier3.py --compare` 在 193 页 / 772 例上**摘要一字不动**（`f7e05f70…`）
+            #    ⇒ 这一档在语料上是死档；进产品的改动是**删档**，门槛保持 0.75
+            #    （剩下的最低 label 档是 href 的 0.88，抬门槛会顺手禁掉未来的低档，那是两件事混成一件）。
+            # 而它单独开火的代价是实测的：peps 滚一格时页面只有 `Style Guide for C Code`
+            # （goal 引号串是 `Style Guide for Python Code`，缺 `python` 这个词 = 3/4 = 0.825），
+            # 候选只有一个时 `second = 0`，0.825 自己就过门槛 ⇒ 那一拍点向 `pep-0007/`，
+            # 一页**没被 goal 点名**的页。改前改后 r113 都是 3 步 / 4 次模型调用 ⇒ **这一刀不买步数，
+            # 买的是"不在错页上开火"**（`reports/one-r113-1014-142145.json` 与批内
+            # `logs/ci-1014-1423-1014-144253/r113.jsonl` 同一形状）。形状与判据都在
+            # `tests/test_explicit_target_near_miss.py`。
             if not label_score and href_segs and not p.startswith("/"):
-                # 0.88 故意压在 0.9（从头对齐片段）之下、词重叠档（≤0.825）之上：页面上
-                # 只要还有别的 label 信号，差值就 <0.15 → 照旧弃权，这一档**只在 href 是
-                # 唯一线索时**开火。明写路径的短语（"/forms/post"）仍归 goto_path 管。
+                # 0.88 故意压在 0.9（从头对齐片段）之下：页面上只要还有别的 label 信号，
+                # 差值就 <0.15 → 照旧弃权，这一档**只在 href 是唯一线索时**开火。
+                # 明写路径的短语（"/forms/post"）仍归 goto_path 管。
+                # （它原先还压在词重叠档之上，那一档已按 #46 删除，见上面的注释。）
                 for _seg in href_segs:
                     if " ".join(_tokens(_seg)) == pn:
                         label_score = 0.88 + min(len(pn), 40) / 1000.0

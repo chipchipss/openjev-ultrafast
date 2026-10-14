@@ -61,6 +61,9 @@ def main() -> int:
     ap.add_argument("--goal", required=True)
     ap.add_argument("--came-from", default="")
     ap.add_argument("--via-label", default="")
+    ap.add_argument("--scroll", type=int, default=0,
+                    help="在首次观测之后按产品自己的 scroll 路径滚 N 次（每次都重新观测）。"
+                         "#46 要的正是**滚动后**那一页：r113 的错点在 tick 2，起点页上根本复现不出来。")
     ap.add_argument("--force", action="store_true")
     args = ap.parse_args()
 
@@ -74,6 +77,16 @@ def main() -> int:
         b = Browser(args.url)
         b.await_dom_settle()
         page = observe_settled(b)
+        for i in range(args.scroll):
+            # 用页面自己给出的 scroll_down 候选，不造 delta：这条路径与批内一致（含 Fix U 的偏移等待）。
+            cand = next((a for a in (page.get("actions") or [])
+                         if a.get("kind") == "scroll" and "down" in str(a.get("id") or "")), None)
+            if cand is None:
+                print("STOP: 第 %d 次滚动没有 scroll_down 候选，抓到的是滚之前那页" % (i + 1),
+                      file=sys.stderr)
+                break
+            b.act(cand, page)
+            page = observe_settled(b)
     finally:
         if b is not None:
             try:
@@ -85,8 +98,10 @@ def main() -> int:
         return 5
     rec = {"page": page, "goal": args.goal, "came_from": args.came_from,
            "via_label": args.via_label, "history": None,
-           "snapshot_note": ("零模型当场抓的页；title=%r actions=%d text_len=%d"
-                             % (str(page.get("title") or "")[:40],
+           "scrolls": args.scroll,
+           "snapshot_note": ("零模型当场抓的页；scrolls=%d title=%r actions=%d text_len=%d"
+                             % (args.scroll,
+                                str(page.get("title") or "")[:40],
                                 len(page.get("actions") or []),
                                 len(str(page.get("text") or ""))))}
     json.dump(rec, io.open(sys.stdout.fileno(), "w", closefd=False, encoding="utf-8"),

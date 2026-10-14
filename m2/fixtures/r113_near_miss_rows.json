@@ -1,0 +1,130 @@
+{
+ "note": "形状逐字段抄自 m2/probe_r113_scroll_ladder.py 当场抓的两页（peps.python.org，滚一格 y=560 只有 pep-0007 那行；滚两格 y=1120 两行都在）。只保留 url/title/scroll 与点得动的行（kind=scroll 或 pep-0007/pep-0008 或 label 含 Style Guide），正文一律不带 —— 与 #79 那条线一致：入库件里不许有第三方正文。",
+ "goal": "Open PEP 8, 'Style Guide for Python Code'.",
+ "pages": [
+  {
+   "url": "https://peps.python.org/",
+   "title": "PEP 0 – Index of Python Enhancement Proposals (PEPs) | peps.python.org",
+   "scroll": {
+    "y": 560,
+    "height": 49432
+   },
+   "actions": [
+    {
+     "id": "e47",
+     "node": 47,
+     "kind": "click",
+     "role": "link",
+     "label": "7",
+     "href": "pep-0007/",
+     "value": ""
+    },
+    {
+     "id": "e48",
+     "node": 48,
+     "kind": "click",
+     "role": "link",
+     "label": "Style Guide for C Code",
+     "href": "pep-0007/",
+     "value": ""
+    },
+    {
+     "id": "scroll_down",
+     "kind": "scroll",
+     "label": "Scroll down",
+     "delta": 560
+    },
+    {
+     "id": "scroll_up",
+     "kind": "scroll",
+     "label": "Scroll up",
+     "delta": -560
+    },
+    {
+     "id": "scroll_bottom",
+     "kind": "scroll",
+     "label": "Scroll to bottom",
+     "delta": 48092
+    },
+    {
+     "id": "scroll_top",
+     "kind": "scroll",
+     "label": "Scroll to top",
+     "delta": -560
+    }
+   ],
+   "tick": 1
+  },
+  {
+   "url": "https://peps.python.org/",
+   "title": "PEP 0 – Index of Python Enhancement Proposals (PEPs) | peps.python.org",
+   "scroll": {
+    "y": 1120,
+    "height": 49432
+   },
+   "actions": [
+    {
+     "id": "e8",
+     "node": 47,
+     "kind": "click",
+     "role": "link",
+     "label": "7",
+     "href": "pep-0007/",
+     "value": ""
+    },
+    {
+     "id": "e9",
+     "node": 48,
+     "kind": "click",
+     "role": "link",
+     "label": "Style Guide for C Code",
+     "href": "pep-0007/",
+     "value": ""
+    },
+    {
+     "id": "e10",
+     "node": 49,
+     "kind": "click",
+     "role": "link",
+     "label": "8",
+     "href": "pep-0008/",
+     "value": ""
+    },
+    {
+     "id": "e11",
+     "node": 50,
+     "kind": "click",
+     "role": "link",
+     "label": "Style Guide for Python Code",
+     "href": "pep-0008/",
+     "value": ""
+    },
+    {
+     "id": "scroll_down",
+     "kind": "scroll",
+     "label": "Scroll down",
+     "delta": 560
+    },
+    {
+     "id": "scroll_up",
+     "kind": "scroll",
+     "label": "Scroll up",
+     "delta": -560
+    },
+    {
+     "id": "scroll_bottom",
+     "kind": "scroll",
+     "label": "Scroll to bottom",
+     "delta": 47532
+    },
+    {
+     "id": "scroll_top",
+     "kind": "scroll",
+     "label": "Scroll to top",
+     "delta": -1120
+    }
+   ],
+   "tick": 2
+  }
+ ]
+}
