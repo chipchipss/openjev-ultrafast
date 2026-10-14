@@ -6,6 +6,42 @@
 
 ---
 
+## [l2-repin-attempt-failed-and-the-freeze-gate-was-blind] - 2026-10-14 深夜（L2 重钉没钉上，顺带量到阶梯自己缺一条判据）
+
+**为什么跑**：计划书 L2 那格的凭证是 b24（10-11）的 45/50，而 b24 之后落了 #84a/#46/#85 三刀 ——
+三条都能改批读数，所以"当前 build 达成 L2"这句话当时**没有工件支撑**。判据起跑前钉在 `m2/real-log.md`
+（≥45 才换绑；`error=0` 是硬线；非环境翻动必须 ⊆ 抖动集合）。
+
+**读数（`reports/ci-1014-2119.json` + `reports/ci-1014-2119-1014-214129.json`，墙钟 12 分钟 / 预算 14）**：
+批 **42/50、fp=0、unknown=0、error=1**；冻结 **17/19、19/19、19/19**（三轮 fp 都是 0）；
+零云端守住（49 份 trace 的 82 个 step 事件 `text_helper` 全是 `null`）；
+浏览器归属守住（收尾打印 `own-cdp-chrome=0`、`foreign browsers left=15 (never targeted)`，
+机上那 15 个 Chrome 进程逐条查过全是操作者默认画像）。
+5 行 `agent/decision` 与 b24 的失败集合**一字不差**（`r102 r103 r104 r105 r122`）⇒ 非环境翻动 ∅；
+2 行 `system`（`r101` bot 墙、`r127` 带 `ERR_SSL_PROTOCOL_ERROR` 且**重跑第二次仍失败** `recovered:false`）；
+1 行 `error`（`r139` = `agent_init_failed_after_cdp_reset: StalePage: Document is navigating`，两次都在 `agent.py:281`）。
+⇒ **判据 1 落在后一档：L2 继续由 b24 持有**；当前 build 最干净的一读仍是 17:36 那批的 **43/50（error=0）**。
+
+**顺带量到的闸门缺陷（开新账 #88）**：`scripts/ci_local.ps1:159–161` 的冻结档只 Die 在"没写报告"与 `fp≠0`，
+**从不检查 `$pass == 19` 或 `summary.total == 19`** ⇒ 今晚这一轮少了两行还被当绿轮往下跑。
+那两行不是崩的：出口预检按设计拒跑（`reports/baseline-1014-2122/failed/btask_n001_err.log` 逐字
+`[preflight] 样本 https://www.python.org：起点页落在 chrome-error://chromewebdata/（出口/代理不通） —— 不跑批、不写报告`，
+n002 同一条换成 `developer.mozilla.org`，而同一轮 21:23–21:28 的其余各域正常 ⇒ #16/#74 那一族的又一次"同轮内异域不通"链路读数）。
+**纪律②（同一 build 上 19/19×3 冻结在先）脚本没替我守**，这是本轮真正的收获。
+另记一笔仪器边界：这类拒跑原文只在**不入库**的 `reports/baseline-*/` 分片里 ⇒ 已把原文抄进 `m2/real-log.md`。
+
+**同场补的两笔记账（都是"仓里没有"这类）**：`docs/00-project-plan.md` 第五节的「真实站点任务 | 未开始」是旧表残留，
+与同文件第四节 L2 行的 ✅ 打架，已换成带工件的双读数；**#86 在此之前只挂在任务列表、`m2/real-log.md` 一条没有**
+（`grep -rn "#86"` 全仓 0 命中），已登记它的已知/已证伪/未量三部分，并就地纠正我自己写歪的一句话
+——"密度上去概率上去"按**行次**口径重算是 0% / 16.7% / 12.5%，不单调，那句话只在"按臂"口径下成立。
+
+**为什么不再碰运气重跑**：本轮链路正在抖（冻结轮被两域拒、批里同一码重跑仍挂），
+再开一批只是同一台 :2080 的第二个样本，而 #86 已写明代理侧日志拿不到。要重钉 L2 得先等链路稳，或在 #86 的分层实验里一并量。
+
+离线全套没动（本轮零代码改动，39 件 / 321 案是 21:20 tier1 实测）；跟踪文件 **739**
+（reports 457 / m2 109 / tests 39 / m4a 36 / `jev_ultrafast` 33 / scripts 29 / docs 9 / m1 8）——
+比傍晚那一版多 6 份，全是今晚这条阶梯的工件（verdict + 批报告 + 三份冻结轮 + 一份 live smoke）。
+
 ## [coded-egress-row-gets-one-retry] - 2026-10-14 傍晚（#85 的第二刀：50 行阶梯因此第一次绿）
 
 ### 先量回收率，再决定要不要多跑一行
