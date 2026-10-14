@@ -23,16 +23,16 @@ git ls-files | Measure-Object -Line                       # 跟踪文件总数
 git ls-files | ForEach-Object { ($_ -split '/')[0] } | Group-Object | Sort-Object Count -Descending
 ```
 
-**清点快照**（2026-10-14 午间第十四次，`git ls-files` 实测；第十三次那次编辑留下过**两张重复的表**，已真删成一张 —— 同一份清单抄两遍正是本仓文档最反对的形状）：跟踪文件 **661**。
+**清点快照**（2026-10-14 下午第十五次，`git ls-files` 实测；第十三次那次编辑留下过**两张重复的表**，已真删成一张 —— 同一份清单抄两遍正是本仓文档最反对的形状）：跟踪文件 **679**（上一版 10-14 午间是 661）。
 
 | 顶层 | 跟踪文件 | 是什么 |
 |---|---|---|
-| `reports` | 389 | 实测报告，全部入库（逐任务的 step/decision jsonl 在 `logs/`，不入库，见 `.gitignore`） |
-| `m2` | 102 | 真实站题集与测量工具：`tasks_real_100.jsonl`、`batch_audit.py`、`b40_audit.py`、`smoke_tasks.py`、`smoke_gate.py`、`make_release_snapshot.py`（#79 的无历史发布快照）、Tier 3 的三件对照工具（`probe_tier3_corpus.py` 采语料、`golden_tier3.py` 逐字节摘要、`replay_two_builds.py` 判「是我还是站点」）、`tier3_batch_audit.py`、探针（**探针一个不删**） |
+| `reports` | 404 | 实测报告，全部入库（逐任务的 step/decision jsonl 在 `logs/`，不入库，见 `.gitignore`） |
+| `m2` | 104 | 真实站题集与测量工具：`tasks_real_100.jsonl`、**`tasks_real_50.jsonl`（#75 那天从 `%TEMP%` 钉进仓：50 行档的闸门一直读一份从未入库的 temp 题集）**、`batch_audit.py`、`b40_audit.py`、`smoke_tasks.py`、`smoke_gate.py`、`make_release_snapshot.py`（#79 的无历史发布快照）、Tier 3 的三件对照工具（`probe_tier3_corpus.py` 采语料、`golden_tier3.py` 逐字节摘要、`replay_two_builds.py` 判「是我还是站点」）、`tier3_batch_audit.py`、**`arrival_digest_scan.py`（#84 的阈值来自这里：扫所有带 `final_page` 摘要的 `task_result`）**、探针（**探针一个不删**） |
 | `m4a` | 36 | M4a/M4b 本地训练线，**已关闭**（两次自训无增益） |
 | `jev_ultrafast` | 33 | 主包：`agent.py` / `browser.py` / `snapshot.js` / `skills.py` / `evaluator.py` / `decider/`（含 `choose_2b.py` 这条 chat→decision 线） |
 | `scripts` | 29 | `startlux_serve.ps1`、`run_one.ps1`（零云端单题/批）、`run_freecloud_19.ps1`（#80 的云端决策实验）、`smoke.ps1`、`ci_local.ps1`、`chrome_guard.ps1`、`text_helper.ps1`（**云端 URL 只在这一个文件里拼写**） |
-| `tests` | 36 | 离线套件 **36 件 / 297 案全绿**（`scripts/smoke.ps1` tier1 逐件 `n/n passed` 相加，2026-10-14 12:3x 实跑；上一版是 10-13 22:3x 的 35 件 / 290 案）；含 `test_stuck_counters.py`（#83 的仪表，两条案专测「跨题按住」）、 `test_no_third_party_pii.py`（#79 的结构闸）、`test_task_id_uniqueness.py`（#81）、`test_prompt_operation_vocabulary.py`（#82）、`test_evaluator_app_error.py`（#78） |
+| `tests` | 37 | 离线套件 **37 件 / 308 案全绿**（`scripts/smoke.ps1` tier1 逐件 `n/n passed` 相加，2026-10-14 14:0x 实跑；上一版是 10-14 12:3x 的 36 件 / 297 案）；含 `test_evaluator_arrival_shell.py`（#84a 的新档，正样本是 1066 行摘要里那 4 行同 sha 的 arXiv 空壳）、 `test_stuck_counters.py`（#83 的仪表，两条案专测「跨题按住」）、 `test_no_third_party_pii.py`（#79 的结构闸）、`test_task_id_uniqueness.py`（#81）、`test_prompt_operation_vocabulary.py`（#82）、`test_evaluator_app_error.py`（#78） |
 | `m1` | 8 | 19 题基准 runner 与题集（`tasks-laya-19.jsonl`）+ 100 行题集生成器 |
 | `docs` | 9 | `00-project-plan.md`（L1–L6 权威）、`01-hard-rules.md`、`03-milestones.md`、`09/10/11`、`12-upstream-license.md`（上游 MIT 原文归档） |
 | `根目录` | 17 | `README.md`、`CHANGELOG.md`、`LICENSE`、本文件、`pyproject.toml`、若干 `run_*.ps1`（多数是已关闭训练线的入口） |

@@ -50,6 +50,7 @@ SYSTEM_MODES = frozenset({
     "blocked_by_bot_wall",
     "blocked_by_egress",
     "blocked_by_upstream_error",
+    "blocked_by_upstream_shell",
 })
 
 #: 浏览器根本没拿到页面的协议位（2026-10-12 实测见过这两个，不收录猜测）。
@@ -103,6 +104,32 @@ _WALL_TEXT = (
 )
 _WALL_MAX_TEXT = 400
 _WALL_MAX_ACTIONS = 12
+
+#: #84：站点把 url 给了、但页面是空的（既不是协议位错误，也不是墙，也不是应用 5xx）。
+#: 阈值两侧都有余量，出处是 `python m2/arrival_digest_scan.py logs`（10-14）：
+#:   正样本 4 行 —— 同一批 `tier3-100-1014-105704` 的 r102/r161/r162/r187，
+#:                  `url=arxiv.org/search/physics`、`title=''`、`text_len=14`、
+#:                  **`text_sha16` 四行逐字相同（39ce487272af599e）** ⇒ 一次上游 episode 吃掉 4 行，
+#:                  当时全记成 `agent/decision`。
+#:   负样本 —— 空标题却**真实**的 22 行全是 httpbin 的 `/post`、`/forms/post`（`text_len ≥ 181`，全 PASS），
+#:              另有 186 份快照页里唯一空标题的 r120（181 字符）。⇒ 14 与 181 之间是 13 倍。
+#: **两条必须合取**：单看"正文薄"会扫进 9 份真实薄页（`403` / `The Internet` / `Client Challenge` /
+#: `www.rfc-editor.org` / `news.ycombinator.com`，13–87 字符，标题都非空）；单看"标题空"会扫进那 22 行 PASS。
+#: 第三条 `action ≤ 3` **不加**——摘要里没有 action 数，1066 行无法回溯核对它，而两条合取已 0 误伤。
+_SHELL_MAX_TEXT = 100
+
+
+def is_arrival_empty_shell(page: Optional[dict]) -> bool:
+    """到站那一拍浏览器拿到的是空壳页（url 对、标题空、正文薄）。"""
+    if not isinstance(page, dict):
+        return False
+    # 必须是一份**观测**（带 text 字段），否则"根本没有页"会被读成"页是空的"——
+    # 摘要形状（text_len/text_sha16）与空 dict 都不在此处换归因。
+    if "text" not in page:
+        return False
+    if str(page.get("title") or "").strip():
+        return False
+    return len(str(page.get("text") or "")) <= _SHELL_MAX_TEXT
 
 
 def is_bot_wall(page: Optional[dict]) -> bool:
@@ -415,6 +442,13 @@ def _classify(
     # false_positive 永不豁免——假阳性是安全硬线，任何外因都不能替它开脱。
     if quadrant != "false_positive" and is_bot_wall(final_page):
         return "system", "blocked_by_bot_wall"
+
+    # #84：站点给了 url 但页面是空壳（arXiv 那一次同一 sha 吃掉一批 4 行）。
+    # 排在墙之后：带墙标记的薄页仍归墙（更具体的那一族）。同一条纪律——只换归因，
+    # result / 象限 / pass 口径一律不动；负向题豁免；false_positive 永不豁免。
+    if (quadrant != "false_positive" and category != "negative"
+            and is_arrival_empty_shell(final_page)):
+        return "system", "blocked_by_upstream_shell"
 
     if status == "budget_exceeded":
         return "agent", "budget_exceeded"
