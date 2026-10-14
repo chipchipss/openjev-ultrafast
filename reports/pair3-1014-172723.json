@@ -1,0 +1,93 @@
+{
+  "summary": {
+    "total": 2,
+    "pass": 2,
+    "fail": 0,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "true_success": 2
+    },
+    "failure_modes": {},
+    "agent_modes": {},
+    "system_modes": {}
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "r126",
+      "result": {
+        "task_id": "r126",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/lang.html",
+          "final_title": "Query Language Understood by SQLite",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2440,
+          "final_page": {
+            "url": "https://www.sqlite.org/lang.html",
+            "title": "Query Language Understood by SQLite",
+            "text_len": 1342,
+            "text_sha16": "4c679e7564bb0a35"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r127",
+      "result": {
+        "task_id": "r127",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/lang_select.html",
+          "final_title": "SELECT",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang_select\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3100,
+          "final_page": {
+            "url": "https://www.sqlite.org/lang_select.html",
+            "title": "SELECT",
+            "text_len": 287,
+            "text_sha16": "b16f52038a57831f"
+          }
+        }
+      }
+    }
+  ]
+}
