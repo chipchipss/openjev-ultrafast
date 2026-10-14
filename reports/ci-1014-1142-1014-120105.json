@@ -1,0 +1,3876 @@
+{
+  "summary": {
+    "total": 100,
+    "pass": 69,
+    "fail": 30,
+    "unknown": 0,
+    "error": 1,
+    "quadrants": {
+      "correct_abandon": 30,
+      "true_success": 69
+    },
+    "failure_modes": {
+      "blocked_by_bot_wall": 1,
+      "decision": 27,
+      "blocked_by_egress": 2
+    },
+    "agent_modes": {
+      "decision": 27
+    },
+    "system_modes": {
+      "blocked_by_bot_wall": 1,
+      "blocked_by_egress": 2
+    }
+  },
+  "acceptance": {
+    "passed": false,
+    "notes": [
+      "FAIL: 1 tasks missing TaskResult: ['r139']"
+    ]
+  },
+  "results": [
+    {
+      "task_id": "r101",
+      "result": {
+        "task_id": "r101",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "system",
+        "failure_mode": "blocked_by_bot_wall",
+        "evidence": {
+          "final_url": "https://pypi.org/search/?q=flask",
+          "final_title": "Client Challenge",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "pypi\\.org/project/[Ff]lask"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 7,
+          "model_calls": 8,
+          "api_calls": 0,
+          "elapsed_ms": 6764
+        }
+      }
+    },
+    {
+      "task_id": "r102",
+      "result": {
+        "task_id": "r102",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://arxiv.org/search/advanced",
+          "final_title": "Advanced Search | arXiv e-print repository",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/abs/1706\\.03762"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 7,
+          "model_calls": 10,
+          "api_calls": 0,
+          "elapsed_ms": 100166
+        }
+      }
+    },
+    {
+      "task_id": "r103",
+      "result": {
+        "task_id": "r103",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://stackoverflow.com/questions",
+          "final_title": "Newest Questions - Stack Overflow",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "stackoverflow\\.com/questions/\\d+"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "slice"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 18003
+        }
+      }
+    },
+    {
+      "task_id": "r104",
+      "result": {
+        "task_id": "r104",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://pubmed.ncbi.nlm.nih.gov/",
+          "final_title": "403",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "pubmed\\.ncbi\\.nlm\\.nih\\.gov/\\d{7,8}"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 3413
+        }
+      }
+    },
+    {
+      "task_id": "r105",
+      "result": {
+        "task_id": "r105",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://github.com/",
+          "final_title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub · GitHub",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "github\\.com/pytorch/pytorch/releases"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 12713
+        }
+      }
+    },
+    {
+      "task_id": "r106",
+      "result": {
+        "task_id": "r106",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://huggingface.co/ggml-org/Llama-2-7B-GGUF",
+          "final_title": "ggml-org/Llama-2-7B-GGUF · Hugging Face",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/ggml-org/Llama-2-7B-GGUF/?$"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 13907
+        }
+      }
+    },
+    {
+      "task_id": "r107",
+      "result": {
+        "task_id": "r107",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://news.ycombinator.com/newest",
+          "final_title": "New Links | Hacker News",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "news\\.ycombinator\\.com/newest"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 10436,
+          "arrival_relook_ms": 6093
+        }
+      }
+    },
+    {
+      "task_id": "r108",
+      "result": {
+        "task_id": "r108",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://simple.wikipedia.org/wiki/Photosynthesis",
+          "final_title": "Photosynthesis - Simple English Wikipedia, the free encyclopedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "simple\\.wikipedia\\.org/wiki/Photosynthesis(?![\\w(])"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 6971
+        }
+      }
+    },
+    {
+      "task_id": "r109",
+      "result": {
+        "task_id": "r109",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.openstreetmap.org/search?query=Zurich&zoom=4&minlon=-145.01953125000003&minlat=9.275622176792112&maxlon=-46.58203125000001&maxlat=58.7682001592396#map=4/38.03/-80.42",
+          "final_title": "OpenStreetMap",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "openstreetmap\\.org/search\\?query=Zurich"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 11044
+        }
+      }
+    },
+    {
+      "task_id": "r110",
+      "result": {
+        "task_id": "r110",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/stable/book/ch04-00-understanding-ownership.html",
+          "final_title": "Understanding Ownership - The Rust Programming Language",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "ch04-00-understanding-ownership"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 5828
+        }
+      }
+    },
+    {
+      "task_id": "r111",
+      "result": {
+        "task_id": "r111",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+          "final_title": "Travel | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "books\\.toscrape\\.com/catalogue/category/books/travel_2/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5530
+        }
+      }
+    },
+    {
+      "task_id": "r112",
+      "result": {
+        "task_id": "r112",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html",
+          "final_title": "Tipping the Velvet | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "books\\.toscrape\\.com/catalogue/tipping-the-velvet_999/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 3200
+        }
+      }
+    },
+    {
+      "task_id": "r113",
+      "result": {
+        "task_id": "r113",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://peps.python.org/pep-0008/",
+          "final_title": "PEP 8 – Style Guide for Python Code | peps.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "peps\\.python\\.org/pep-0008/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 9651
+        }
+      }
+    },
+    {
+      "task_id": "r114",
+      "result": {
+        "task_id": "r114",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.djangoproject.com/en/6.1/intro/tutorial01/",
+          "final_title": "Writing your first Django app, part 1 | Django documentation | Django",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.djangoproject\\.com/en/[0-9.]+/intro/tutorial01"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 7,
+          "model_calls": 8,
+          "api_calls": 0,
+          "elapsed_ms": 14592
+        }
+      }
+    },
+    {
+      "task_id": "r115",
+      "result": {
+        "task_id": "r115",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.python.org/downloads/",
+          "final_title": "Download Python | Python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "www\\.python\\.org/downloads/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5264
+        }
+      }
+    },
+    {
+      "task_id": "r116",
+      "result": {
+        "task_id": "r116",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/stable/cargo/index.html",
+          "final_title": "Introduction - The Cargo Book",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/(?:stable/)?cargo/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 6319
+        }
+      }
+    },
+    {
+      "task_id": "r117",
+      "result": {
+        "task_id": "r117",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Photosynthesis",
+          "final_title": "Photosynthesis - Wikipedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "en\\.wikipedia\\.org/wiki/Photosynthesis(?![\\w(])"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 6080
+        }
+      }
+    },
+    {
+      "task_id": "r119",
+      "result": {
+        "task_id": "r119",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://huggingface.co/google-bert/bert-base-uncased",
+          "final_title": "google-bert/bert-base-uncased · Hugging Face",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/google-bert/bert-base-uncased"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 8197
+        }
+      }
+    },
+    {
+      "task_id": "r120",
+      "result": {
+        "task_id": "r120",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://httpbin.org/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "httpbin\\.org/post"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "jev"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 5750
+        }
+      }
+    },
+    {
+      "task_id": "r121",
+      "result": {
+        "task_id": "r121",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.selenium.dev/downloads/",
+          "final_title": "Downloads | Selenium",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "www\\.selenium\\.dev/downloads/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5604
+        }
+      }
+    },
+    {
+      "task_id": "r122",
+      "result": {
+        "task_id": "r122",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.rfc-editor.org/",
+          "final_title": "RFC Editor",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "www\\.rfc-editor\\.org/rfc/rfc9110"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 11825
+        }
+      }
+    },
+    {
+      "task_id": "r123",
+      "result": {
+        "task_id": "r123",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://numpy.org/doc/stable/user/absolute_beginners.html",
+          "final_title": "NumPy: the absolute basics for beginners — NumPy v2.5 Manual",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "numpy\\.org/doc/stable/user/absolute_beginners\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 7936
+        }
+      }
+    },
+    {
+      "task_id": "r124",
+      "result": {
+        "task_id": "r124",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://numpy.org/doc/stable/reference/index.html",
+          "final_title": "NumPy reference — NumPy v2.5 Manual",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "numpy\\.org/doc/stable/reference/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4244
+        }
+      }
+    },
+    {
+      "task_id": "r125",
+      "result": {
+        "task_id": "r125",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://numpy.org/doc/stable/building/index.html",
+          "final_title": "Building from source — NumPy v2.5 Manual",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "numpy\\.org/doc/stable/building/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4618
+        }
+      }
+    },
+    {
+      "task_id": "r126",
+      "result": {
+        "task_id": "r126",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/lang.html",
+          "final_title": "Query Language Understood by SQLite",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4998
+        }
+      }
+    },
+    {
+      "task_id": "r127",
+      "result": {
+        "task_id": "r127",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "system",
+        "failure_mode": "blocked_by_egress",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.sqlite.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang_select\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4090
+        }
+      }
+    },
+    {
+      "task_id": "r128",
+      "result": {
+        "task_id": "r128",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/faq.html",
+          "final_title": "SQLite Frequently Asked Questions",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/faq\\.html"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Frequently Asked"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2678
+        }
+      }
+    },
+    {
+      "task_id": "r129",
+      "result": {
+        "task_id": "r129",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "system",
+        "failure_mode": "blocked_by_egress",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.sqlite.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/json1\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3787
+        }
+      }
+    },
+    {
+      "task_id": "r130",
+      "result": {
+        "task_id": "r130",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/cargo/reference/index.html",
+          "final_title": "Cargo Reference - The Cargo Book",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/cargo/reference/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3719
+        }
+      }
+    },
+    {
+      "task_id": "r131",
+      "result": {
+        "task_id": "r131",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/cargo/getting-started/first-steps.html",
+          "final_title": "First Steps with Cargo - The Cargo Book",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/cargo/getting-started/first-steps\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3732
+        }
+      }
+    },
+    {
+      "task_id": "r132",
+      "result": {
+        "task_id": "r132",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/cargo/guide/dependencies.html",
+          "final_title": "Dependencies - The Cargo Book",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/cargo/guide/dependencies\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2601
+        }
+      }
+    },
+    {
+      "task_id": "r133",
+      "result": {
+        "task_id": "r133",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/tutorial/index.html",
+          "final_title": "The Python Tutorial — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/tutorial/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5004
+        }
+      }
+    },
+    {
+      "task_id": "r134",
+      "result": {
+        "task_id": "r134",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/library/index.html",
+          "final_title": "The Python standard library — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/library/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4409
+        }
+      }
+    },
+    {
+      "task_id": "r135",
+      "result": {
+        "task_id": "r135",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/installing/index.html",
+          "final_title": "Installing Python modules — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/installing/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4207
+        }
+      }
+    },
+    {
+      "task_id": "r136",
+      "result": {
+        "task_id": "r136",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/builtins/index.html",
+          "final_title": "Python built-ins reference — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/builtins/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4018
+        }
+      }
+    },
+    {
+      "task_id": "r137",
+      "result": {
+        "task_id": "r137",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/howto/index.html",
+          "final_title": "Python HOWTOs — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/howto/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4092
+        }
+      }
+    },
+    {
+      "task_id": "r138",
+      "result": {
+        "task_id": "r138",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/search.html?q=itertools",
+          "final_title": "Search — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/search\\.html\\?q=itertools"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 4892
+        }
+      }
+    },
+    {
+      "task_id": "r139",
+      "result": "ERROR",
+      "error": "agent_init_failed_after_cdp_reset: StalePage: Document is navigating",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 246, in _run_one\n    agent = Agent(url=start_url, goals=spec[\"goal\"], task_spec=spec,\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 281, in __init__\n    raise StalePage(\"Document is navigating\")\njev_ultrafast.browser.StalePage: Document is navigating\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\m1\\run_tasks.py\", line 264, in _run_one\n    agent = Agent(url=start_url, goals=spec[\"goal\"], task_spec=spec,\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Administrator\\openjev-ultrafast\\jev_ultrafast\\agent.py\", line 281, in __init__\n    raise StalePage(\"Document is navigating\")\njev_ultrafast.browser.StalePage: Document is navigating\n"
+    },
+    {
+      "task_id": "r140",
+      "result": {
+        "task_id": "r140",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/add_remove_elements/",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "the-internet\\.herokuapp\\.com/add_remove_elements/?$"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Add/Remove Elements"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 9351,
+          "stuck": {
+            "entries_at_start": 0,
+            "notes": 1,
+            "suppressed": 1,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r141",
+      "result": {
+        "task_id": "r141",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/disappearing_elements",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "the-internet\\.herokuapp\\.com/disappearing_elements$"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5103,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r142",
+      "result": {
+        "task_id": "r142",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/download",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "the-internet\\.herokuapp\\.com/download$"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5408,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r143",
+      "result": {
+        "task_id": "r143",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/checkboxes",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "the-internet\\.herokuapp\\.com/checkboxes$"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5841,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r144",
+      "result": {
+        "task_id": "r144",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://git-scm.com/docs/git-commit",
+          "final_title": "Git - git-commit Documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "git-scm\\.com/docs/git-commit"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5433,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r145",
+      "result": {
+        "task_id": "r145",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://git-scm.com/docs/giteveryday",
+          "final_title": "Git - giteveryday Documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "git-scm\\.com/docs/giteveryday"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3531,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r146",
+      "result": {
+        "task_id": "r146",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://git-scm.com/docs/gitignore",
+          "final_title": "Git - gitignore Documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "git-scm\\.com/docs/gitignore"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2837,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r147",
+      "result": {
+        "task_id": "r147",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Getting_started",
+          "final_title": "Getting started modules - Learn web development | MDN",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "developer\\.mozilla\\.org/en-US/docs/Learn_web_development/Getting_started/?$"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4567,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r148",
+      "result": {
+        "task_id": "r148",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core",
+          "final_title": "Core learning modules - Learn web development | MDN",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "developer\\.mozilla\\.org/en-US/docs/Learn_web_development/Core/?$"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3623,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r149",
+      "result": {
+        "task_id": "r149",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://arxiv.org/list/cs.CL/new",
+          "final_title": "Computation and Language",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/list/cs\\.CL/new"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Computation and Language"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4150,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r150",
+      "result": {
+        "task_id": "r150",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/std/prelude/index.html",
+          "final_title": "std::prelude - Rust",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/std/prelude/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5477,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r151",
+      "result": {
+        "task_id": "r151",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/category/books/fantasy_19/index.html",
+          "final_title": "Fantasy | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "books\\.toscrape\\.com/catalogue/category/books/fantasy_19/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3802,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r153",
+      "result": {
+        "task_id": "r153",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://wiki.python.org/python/Py3kStrUniTests.html",
+          "final_title": "Py3kStrUniTests",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/search\\.html\\?q=list"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "list",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 6,
+          "api_calls": 0,
+          "elapsed_ms": 14981,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r154",
+      "result": {
+        "task_id": "r154",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/search.html?q=enumerate",
+          "final_title": "Search — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/search\\.html\\?q=enumerate"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "enumerate",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 6161,
+          "arrival_relook_ms": 1625,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r155",
+      "result": {
+        "task_id": "r155",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://typing.python.org/en/latest/",
+          "final_title": "Static Typing with Python — typing documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/search\\.html\\?q=typing"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "typing",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4972,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r156",
+      "result": {
+        "task_id": "r156",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/search.html?q=asyncio",
+          "final_title": "Search — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/search\\.html\\?q=asyncio"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "asyncio",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 9612,
+          "arrival_relook_ms": 4515,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r157",
+      "result": {
+        "task_id": "r157",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/search.html?q=memoryview",
+          "final_title": "Search — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/search\\.html\\?q=memoryview"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "memoryview",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 5671,
+          "arrival_relook_ms": 1375,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r158",
+      "result": {
+        "task_id": "r158",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/search.html?q=itertools",
+          "final_title": "Search — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/search\\.html\\?q=itertools"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "itertools",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 5816,
+          "arrival_relook_ms": 1094,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r159",
+      "result": {
+        "task_id": "r159",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/stable/std/result/index.html",
+          "final_title": "std::result - Rust",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/stable/std/\\?search=Result"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Result",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 6522,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r160",
+      "result": {
+        "task_id": "r160",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/stable/std/string/struct.String.html",
+          "final_title": "String in std::string - Rust",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/stable/std/\\?search=String"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "String",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 6499,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r161",
+      "result": {
+        "task_id": "r161",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://arxiv.org/search/physics?query=large+language+models&searchtype=all&abstracts=show&order=-announced_date_first&size=50",
+          "final_title": "Search | arXiv e-print repository",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/search/[^\\s]*\\?query="
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "language",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 7437,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r162",
+      "result": {
+        "task_id": "r162",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://arxiv.org/search/physics?query=quantization&searchtype=all&abstracts=show&order=-announced_date_first&size=50",
+          "final_title": "Search | arXiv e-print repository",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/search/[^\\s]*\\?query="
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "quantization",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 8539,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r163",
+      "result": {
+        "task_id": "r163",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://huggingface.co/",
+          "final_title": "Hugging Face – The AI community building the future.",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/models\\?search="
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "llama",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 6,
+          "api_calls": 0,
+          "elapsed_ms": 7557,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r164",
+      "result": {
+        "task_id": "r164",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://huggingface.co/wikipediapagecreations",
+          "final_title": "wikipediapagecreations (Wikipedia page creations)",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/datasets\\?search="
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "wikipedia",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 4206,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r165",
+      "result": {
+        "task_id": "r165",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://github.com/",
+          "final_title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub · GitHub",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "github\\.com/search\\?q=pytorch"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "pytorch",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 13042,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r166",
+      "result": {
+        "task_id": "r166",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://numpy.org/doc/stable/",
+          "final_title": "NumPy documentation — NumPy v2.5 Manual",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "numpy\\.org/doc/stable/search\\.html\\?q=broadcast"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "broadcast",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 7,
+          "api_calls": 0,
+          "elapsed_ms": 8113,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r167",
+      "result": {
+        "task_id": "r167",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/category/books_1/index.html",
+          "final_title": "Books | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "books\\.toscrape\\.com/catalogue/page-3\\.html"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Books",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 5485,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r168",
+      "result": {
+        "task_id": "r168",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/page-2.html",
+          "final_title": "All products | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "books\\.toscrape\\.com/catalogue/page-3\\.html"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Science Fiction",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 8732,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r169",
+      "result": {
+        "task_id": "r169",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+          "final_title": "Travel | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "category/books/travel_2"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Travel",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2504,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r170",
+      "result": {
+        "task_id": "r170",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/category/books/classics_6/index.html",
+          "final_title": "Classics | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "classics_6"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Classics",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3198,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r171",
+      "result": {
+        "task_id": "r171",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/status_codes",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "status_codes$"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Status Codes",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 8102,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r172",
+      "result": {
+        "task_id": "r172",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/lang.html",
+          "final_title": "Query Language Understood by SQLite",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang\\.html"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "SQLite",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5398,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r173",
+      "result": {
+        "task_id": "r173",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/cli.html",
+          "final_title": "Command Line Shell For SQLite",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/cli\\.html"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "sqlite3",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3842,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r174",
+      "result": {
+        "task_id": "r174",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/pragma.html#toc",
+          "final_title": "Pragma statements supported by SQLite",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/pragma\\.html"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "PRAGMA",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2897,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r175",
+      "result": {
+        "task_id": "r175",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/stable/cargo/index.html",
+          "final_title": "Introduction - The Cargo Book",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/cargo/"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Cargo",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 4700,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r176",
+      "result": {
+        "task_id": "r176",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/stable/rustc/index.html",
+          "final_title": "What is rustc? - The rustc book",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/rustc/"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "rustc",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 7041,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r177",
+      "result": {
+        "task_id": "r177",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/stable/edition-guide/index.html",
+          "final_title": "Introduction - The Rust Edition Guide",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "edition-guide"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Edition",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 6049,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r178",
+      "result": {
+        "task_id": "r178",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.python.org/success-stories/zama-concrete-ml-simplifying-homomorphic-encryption-for-python-machine-learning/",
+          "final_title": "Zama Concrete ML: Simplifying Homomorphic Encryption for Python Machine Learning | Our Success Stories | Python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "python\\.org/about/apps"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Applications",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 5,
+          "model_calls": 6,
+          "api_calls": 0,
+          "elapsed_ms": 13338,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r179",
+      "result": {
+        "task_id": "r179",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.python.org/jobs/",
+          "final_title": "Python Job Board | Python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "python\\.org/jobs/"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Jobs",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4119,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r180",
+      "result": {
+        "task_id": "r180",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://peps.python.org/pep-0001/#pep-editors",
+          "final_title": "PEP 1 – PEP Purpose and Guidelines | peps.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "peps\\.python\\.org/pep-0000/"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "PEP",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 12758,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r181",
+      "result": {
+        "task_id": "r181",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://peps.python.org/",
+          "final_title": "PEP 0 – Index of Python Enhancement Proposals (PEPs) | peps.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "pep-0008/"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "PEP 8",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 18081,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r182",
+      "result": {
+        "task_id": "r182",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.djangoproject.com/community/",
+          "final_title": "Django 社区 | Django",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "djangoproject\\.com/community/"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Community",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 11728,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r183",
+      "result": {
+        "task_id": "r183",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.djangoproject.com/weblog/2026/sep/08/call-for-volunteers-fundraising-working-group/",
+          "final_title": "Call for volunteers: Fundraising Working Group | Weblog | Django",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "djangoproject\\.com/fundraising"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Django",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 8,
+          "model_calls": 11,
+          "api_calls": 0,
+          "elapsed_ms": 24735,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r184",
+      "result": {
+        "task_id": "r184",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.selenium.dev/documentation/",
+          "final_title": "The Selenium Browser Automation Project | Selenium",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "selenium\\.dev/documentation/"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Documentation",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 6173,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r185",
+      "result": {
+        "task_id": "r185",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.selenium.dev/",
+          "final_title": "Selenium",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "selenium-ide"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Selenium IDE",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 5,
+          "model_calls": 6,
+          "api_calls": 0,
+          "elapsed_ms": 12329,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r186",
+      "result": {
+        "task_id": "r186",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://git-scm.com/docs",
+          "final_title": "Git - Reference",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "git-scm\\.com/docs"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "git",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 13270,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r187",
+      "result": {
+        "task_id": "r187",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://arxiv.org/list/cs.CL/new",
+          "final_title": "Computation and Language",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/list/cs\\.CL/new"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Computation and Language",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 33547,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r188",
+      "result": {
+        "task_id": "r188",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://arxiv.org/list/cs.LG/new",
+          "final_title": "Machine Learning",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/list/cs\\.LG/new"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Machine Learning",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 14757,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r189",
+      "result": {
+        "task_id": "r189",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://news.ycombinator.com/",
+          "final_title": "Hacker News",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "news\\.ycombinator\\.com/best"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Hacker News",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 8192,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r190",
+      "result": {
+        "task_id": "r190",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.rfc-editor.org/info/rfc9110/",
+          "final_title": "RFC 9110: HTTP Semantics | RFC Editor",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "rfc-editor\\.org/rfc/rfc9110\\.html"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "HTTP",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 18241,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r191",
+      "result": {
+        "task_id": "r191",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://pypi.org/",
+          "final_title": "PyPI · The Python Package Index",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "pypi\\.org/project/click/"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "click",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 5,
+          "model_calls": 6,
+          "api_calls": 0,
+          "elapsed_ms": 15733,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r192",
+      "result": {
+        "task_id": "r192",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://huggingface.co/models",
+          "final_title": "Models – Hugging Face",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/models$"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Models",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 6349,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r193",
+      "result": {
+        "task_id": "r193",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://huggingface.co/spaces",
+          "final_title": "Spaces - Hugging Face",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/spaces"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Spaces",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4134,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r194",
+      "result": {
+        "task_id": "r194",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://github.com/",
+          "final_title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub · GitHub",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "github\\.com/topics"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Topics",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 5,
+          "model_calls": 6,
+          "api_calls": 0,
+          "elapsed_ms": 22221,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r195",
+      "result": {
+        "task_id": "r195",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://stackoverflow.com/questions/tagged/python-3.x",
+          "final_title": "Newest 'python-3.x' Questions - Stack Overflow",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "questions/tagged/python"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "python",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 11961,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r196",
+      "result": {
+        "task_id": "r196",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/context_menu",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "herokuapp\\.com/context_menu$"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Context Menu",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5470,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r197",
+      "result": {
+        "task_id": "r197",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/drag_and_drop",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "drag_and_drop$"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Drag and Drop",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5656,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r198",
+      "result": {
+        "task_id": "r198",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/disappearing_elements",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "disappearing_elements$"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Elements",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5628,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r199",
+      "result": {
+        "task_id": "r199",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/tables",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "herokuapp\\.com/tables$"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Smith",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 5654,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r200",
+      "result": {
+        "task_id": "r200",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/challenging_dom",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "challenging_dom$"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Challenging DOM",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5596,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r201",
+      "result": {
+        "task_id": "r201",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/page-4.html",
+          "final_title": "All products | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "catalogue/page-5\\.html"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Books",
+                "case_sensitive": false
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 7871,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r202",
+      "result": {
+        "task_id": "r202",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://arxiv.org/list/cs.CV/new",
+          "final_title": "Computer Vision and Pattern Recognition",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/list/cs\\.CV/new"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Computer Vision",
+                "case_sensitive": false
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 8978,
+          "stuck": {
+            "entries_at_start": 1,
+            "notes": 0,
+            "suppressed": 0,
+            "cross_task": 0
+          }
+        }
+      }
+    }
+  ]
+}

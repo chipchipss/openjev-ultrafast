@@ -36,7 +36,9 @@ SAME_BUILD_CHURN = {"r129", "r157", "r158", "r161", "r178", "r187"}
 def results_of(path):
     """返回 {task_id: 内层 result}；内层才是 evaluator 的 TaskResult。"""
     d = json.load(io.open(path, encoding="utf-8"))
-    return {r["task_id"]: (r.get("result") or {}) for r in d["results"]}, d
+    # error 行的 result 是字符串 "ERROR"（不是 TaskResult），原样留着，由调用方分辨。
+    return {r["task_id"]: (r.get("result") if isinstance(r.get("result"), dict)
+                           else (r.get("result") or "")) for r in d["results"]}, d
 
 
 def main() -> int:
@@ -67,7 +69,13 @@ def main() -> int:
         return 2
 
     gain, lost, env, outside = [], [], [], []
+    broken = []
     for tid, r in cur.items():
+        if not isinstance(r, dict):
+            # error 行的 `result` 是字符串 "ERROR"（r139 那族 `agent_init_failed_after_cdp_reset`），
+            # 不是 TaskResult。第一版在这里直接 AttributeError —— 审计崩掉比读数错更难看。
+            broken.append((tid, r))
+            continue
         vals = {name: (br.get(tid) or {}).get("result") for name, br in bases.items()}
         now = r.get("result")
         if all(v == now for v in vals.values()):
@@ -90,19 +98,22 @@ def main() -> int:
     show("GAIN", gain)
     show("LOST", lost)
     print("其中**环境类**（基线全是 system 档，成败随站点/代理，不记在代码头上）：%s" % (env or "无"))
+    print("error 行（result 不是 TaskResult）：%s" % ([b[0] for b in broken] or "无"))
     print("非环境翻动 %d 行，其中不在同 build 抖动集合里的：%s"
           % (len(gain) + len(lost) - len(env), outside or "无"))
 
     # #83 的第一份读数
     carry = [(tid, (r.get("meta") or {}).get("stuck")) for tid, r in cur.items()
-             if (r.get("meta") or {}).get("stuck")]
+             if isinstance(r, dict) and (r.get("meta") or {}).get("stuck")]
     with_entries = [c for c in carry if c[1].get("entries_at_start", 0) > 0]
     notes = sum(c[1].get("notes", 0) for c in carry)
     supp = sum(c[1].get("suppressed", 0) for c in carry)
+    cross = sum(c[1].get("cross_task", 0) for c in carry)
     print("meta.stuck 有值的行：%d/%d；进场带笔记的行：%d（最多 %d 条）；"
-          "本批 notes=%d suppressed=%d"
+          "本批 notes=%d suppressed=%d cross_task=%d"
           % (len(carry), len(cur), len(with_entries),
-             max([c[1]["entries_at_start"] for c in with_entries], default=0), notes, supp))
+             max([c[1]["entries_at_start"] for c in with_entries], default=0),
+             notes, supp, cross))
     print("  （只登记读数。复位是行为变更，归 #83。）")
 
     if outside:

@@ -16,8 +16,16 @@ param(
     [double]$MaxRoundMinutes = 30,   # the L3 criterion itself (not measured here): observed worst 20.7
     [double]$MaxTotalMinutes = 95,   # 3 x observed worst + stack resets; a budget, judged at the end
     [ValidateSet(19, 50, 100)][int]$Tasks = 50,
-    [int]$MinPass = 43,            # floor for the 50-row set: b24/b26 = 45/44, b25/b27 = 43/44 -- see m2/real-log.md
-    [double]$MaxWallMinutes = 14,  # gated build measured b27 = 9.5 min (b26 = 24.9); over 14 means the gate never skipped or the stack slowed
+    # Same class of bug as the wall budget: one number cannot serve both ladders.
+    # 43 is the 50-row floor (b24/b26 = 45/44, b25/b27 = 43/44); the 100-row observed minimum is 59
+    # (b33=59, b34=61, b35=68, b36=65) -- applying 43 to a 100-row batch would let a broken build pass.
+    # 0 = "pick by -Tasks".
+    [int]$MinPass = 0,
+    # Wall budget follows the TASK COUNT, it is not one number for both ladders:
+    # 14 min is the 50-row reading (b27 = 9.5); a 100-row batch on the same box measured
+    # 18.1-24.1 min (b33-b41 + the nightly bank), so the same 14 would fail a healthy build.
+    # 0 = "pick by -Tasks" (100 -> 30 = the L3 per-change criterion itself; 50 -> 14).
+    [double]$MaxWallMinutes = 0,
     [int]$SvcPort = 8090,
     [string]$TasksFile = ""
 )
@@ -61,6 +69,14 @@ function Log($m) { Write-Host "[ci] $m" -ForegroundColor Cyan }
 Log "smoke tier 1 (offline suites)"
 & "$Repo\scripts\smoke.ps1"
 if ($LASTEXITCODE -ne 0) { Die "smoke tier 1 not green" $LASTEXITCODE }
+
+if ($MinPass -eq 0) {
+    $MinPass = $(if ($Tasks -ge 100) { 59 } else { 43 })
+}
+if ($MaxWallMinutes -eq 0) {
+    # The threshold follows the task count; one number for both ladders measures 100 rows with a 50-row ruler.
+    $MaxWallMinutes = $(if ($Tasks -ge 100) { 30 } else { 14 })
+}
 
 if ($Tier -eq 'nightly') {
     # ---------- nightly tier: N rounds of the SAME corpus, thresholds per round ----------
