@@ -89,6 +89,37 @@ def t_instrument_does_not_change_outputs():
     assert (d_clean or {}) .get("skill") == (d2 or {}).get("skill"), (d_clean, d2)
 
 
+@case("⑥ 跨任务的抑制要能单独数出来：A 题写的笔记把 B 题按住 ⇒ cross_task +1")
+def t_cross_task_is_counted():
+    # 这是 #83 唯一需要的量：**"上一题的笔记按住这一题"发生了几次**。
+    # 今天已有的读数数不出它 —— entries_at_start 数的是整张表非空，
+    # 100 行那批里 61 行进场时表非空，但真正被按住的那一次发生在**写笔记的同一题里**。
+    p = page("unitfp-cross")
+    S.set_current_task("task-A")
+    S.note_no_effect("unitfp-cross", "explicit_target")
+    S.set_current_task("task-B")
+    before = S.stuck_counters()
+    S.route(p, "Open the 'Downloads' page.", [{"url": "https://elsewhere.invalid/",
+                                               "kind": "click", "page_changed": True,
+                                               "outcome": {"url_changed": True}}])
+    after = S.stuck_counters()
+    assert after["cross_task"] >= before["cross_task"] + 1, (before, after)
+
+
+@case("⑦ 同一题里的抑制不算跨题：owner 与当前任务相同时 cross_task 不动")
+def t_same_task_is_not_cross():
+    p = page("unitfp-sametask")
+    S.set_current_task("task-C")
+    S.note_no_effect("unitfp-sametask", "explicit_target")
+    before = S.stuck_counters()
+    S.route(p, "Open the 'Downloads' page.", [{"url": "https://elsewhere.invalid/",
+                                               "kind": "click", "page_changed": True,
+                                               "outcome": {"url_changed": True}}])
+    after = S.stuck_counters()
+    assert after["suppressed"] >= before["suppressed"] + 1, (before, after)
+    assert after["cross_task"] == before["cross_task"], (before, after)
+
+
 @case("⑤ 仪器字段必须活到 reports/*.json：evaluator._meta 的白名单不许把它丢掉")
 def t_meta_whitelist_carries_stuck():
     # #67/#65 同一族教训：runner 写进 meta 的仪器字段被 evaluator._meta 的白名单静默丢弃，

@@ -81,7 +81,9 @@ def report(b, p, history, label):
     print("             search_type -> %s" % ((st or {}).get("skill") or "None"))
     print("             route      -> skill=%s op=%s choice=%s"
           % ((rt or {}).get("skill"), (rt or {}).get("operation"), (rt or {}).get("choice")))
-    print("             _STUCK=%s" % ({k: dict(v) for k, v in S._STUCK.items()} or "{}"))
+    # 走公开读接口：内层形状变了（{"task":…,"ticks":{…}}），手抄形状的打印下一次就会静默读到空
+    print("             _STUCK=%s counters=%s" % ({k: S.stuck_ticks(k) for k in list(S._STUCK)},
+                                                  S.stuck_counters()))
     return rt
 
 

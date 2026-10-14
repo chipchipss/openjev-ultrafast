@@ -777,7 +777,10 @@ def t_rejected_skill_done_benches_the_skill():
             confidence_gate=ConfidenceGate(ConfidenceGate.MODE_FIXED_HIGH),
             api_teacher=None, api_budget=None, screenshots=False)
 
-    orig_stuck, orig_skills = dict(S._STUCK), S.SKILLS
+    # 深拷回来路要正：内层现在是 {"task":…, "ticks":{…}}，`dict(S._STUCK)` 只拷外层，
+    # 还原时会把被 route() 改过的内层一起带回去 ⇒ 用例之间不再隔离。
+    orig_stuck = json.loads(json.dumps(S._STUCK))
+    orig_skills = S.SKILLS
     try:
         S._STUCK.clear()
         rejected = False
@@ -786,13 +789,15 @@ def t_rejected_skill_done_benches_the_skill():
         except StalePage:
             rejected = True
         assert rejected, "结果页 + 导航目标的 DONE 必须照旧被拒（出路不改口径）"
-        assert S._STUCK.get(fp, {}).get("goal_reached"), "被拒的技能来源 DONE 没进停用通道"
+        assert S.stuck_ticks(fp).get("goal_reached"), "被拒的技能来源 DONE 没进停用通道"
 
         # 出路：停用期内 route() 不再重发同一决策，让模型接手；两拍后技能回来。
         # 用假技能固定住"这一页必然产 DONE"，验证的是通道本身而非 goal_reached。
         # 函数名必须就叫 goal_reached —— _STUCK 是按技能名索引的。
+        # 走公开写入口，不手抄内层形状（note_no_effect 就是把拍数设成 _STUCK_TICKS）
         S._STUCK.clear()
-        S._STUCK[fp] = {"goal_reached": S._STUCK_TICKS}
+        S.set_current_task("unit-skill-c")
+        S.note_no_effect(fp, "goal_reached")
 
         def goal_reached(_p, _g, _h):
             return dict(done, skill="goal_reached")
@@ -813,6 +818,7 @@ def t_rejected_skill_done_benches_the_skill():
     finally:
         S._STUCK.clear()
         S._STUCK.update(orig_stuck)
+        S.set_current_task("")
         S.SKILLS = orig_skills
 
 

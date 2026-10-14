@@ -2129,27 +2129,54 @@ _FIRST_RESULT_RE = re.compile(
     r"(?:result|link|article|item|question)\b",
     re.I)
 
-_STUCK: dict[str, dict[str, int]] = {}
+#: 一页态的停用记录：`{"task": 写笔记那一题的标签, "ticks": {技能名: 剩余拍数}}`。
+#: `task` 与 `ticks` 在**同一张表里**（#72 的教训：一个概念一张表；两张表一定会漂开）。
+_STUCK: dict[str, dict] = {}
 
 #: #83 的前置仪器 —— **只数，不改判据**。
 #: 为什么要数：`_STUCK` 是模块级字典、键是页态指纹、**任务之间不清洗**，
 #: 而夜间档 r3 实测一轮 100 题里 111 个不同指纹有 25 个被 >1 个任务共用（最多 6 个题共用一个）
 #: ⇒ 第 N 题写的"让位"笔记可以在第 N+1 题的前两拍把技能按住，这是一条**跨任务通道**。
-#: 今天 trace 里没有任何抑制事件（种类只有 step/decision/task_result/text_call），所以它不可复核。
+#: 100 行批（`reports/tier3-100-1014-105704.json`）的第一份读数把两件事分开了：
+#: **带进场**（`entries_at_start>0`）= 61/100 行，但**被按住**（`suppressed>0`）= 1 行，
+#: 而那唯一一次发生在写笔记的同一题（r140）里 ⇒ "进场"不等于"受害"，#83 要的是后者。
+#: 所以这里再数一个 `cross_task`：抑制发生时，笔记不是本题写的。
 #: 为什么是计数器而不是 trace 事件：技能层拿不到 logger（只吃 page/goal/history），
 #: 给 `route()` 加一个事件写出参就是行为变更 —— 所有调用点都要动。
 _STUCK_NOTES = 0
 _STUCK_SUPPRESSED = 0
+_STUCK_CROSS_TASK = 0
+_STUCK_TASK = ""
+
+
+def set_current_task(task_id: str) -> None:
+    """runner 每题开始时告知技能层"现在是谁"，用来把跨题抑制数出来。
+
+    这只影响计数标签，不影响任何判据：`route()` 的产出与这行调不调用**无关**。
+    """
+    global _STUCK_TASK
+    _STUCK_TASK = task_id or ""
 
 
 def stuck_counters() -> dict:
     """公开读数（runner 与测试都走这一个，不许伸手进私有）。
 
-    `entries` = 当前还活着的页态条目数；runner 在**每题开始前**读它，
-    大于 0 就意味着上一题的抑制笔记还在生效 —— 那正是 #83 要拍板的那个量。
+    - `entries`：还活着的页态条目数（runner 在每题**进场前**读 ⇒ 大于 0 = 带着上一题的笔记进场）；
+    - `suppressed`：抑制发生了多少次（不管笔记是谁写的）；
+    - `cross_task`：其中有多少次的笔记**不是本题写的** —— 这一格才是 #83 的决策量。
     """
     return {"notes": _STUCK_NOTES, "suppressed": _STUCK_SUPPRESSED,
-            "entries": len(_STUCK)}
+            "cross_task": _STUCK_CROSS_TASK, "entries": len(_STUCK)}
+
+
+def stuck_ticks(page_fingerprint: str) -> dict:
+    """这一页态上还剩谁的停用拍数。**读接口**：测试与探针从这里读，不许再手抄内层形状。
+
+    为什么要单开这个函数（今天现演的一次）：把内层从 `{技能: 拍数}` 改成
+    `{"task":…, "ticks":{…}}` 时，`tests/test_skills.py` 里那处直接塞字典的用例立刻 77/78 红 ——
+    那就是"伸手进私有形状"的代价。有了读接口，形状归形状，用例走用例。
+    """
+    return dict((_STUCK.get(page_fingerprint) or {}).get("ticks") or {})
 
 
 #: 技能连着没产生效果时，让位给模型的**拍数**。必须是有界的：自建站点的实测显示，
@@ -2172,7 +2199,9 @@ def note_no_effect(page_fingerprint: str, skill: str | None) -> None:
         return
     global _STUCK_NOTES
     _STUCK_NOTES += 1
-    _STUCK.setdefault(page_fingerprint, {})[skill] = _STUCK_TICKS
+    entry = _STUCK.setdefault(page_fingerprint, {"task": "", "ticks": {}})
+    entry["task"] = _STUCK_TASK            # 谁写的笔记：跨题抑制就靠这一格判
+    entry["ticks"][skill] = _STUCK_TICKS
 
 
 def route(page: dict, goal: str, history: list) -> dict | None:
@@ -2184,9 +2213,10 @@ def route(page: dict, goal: str, history: list) -> dict | None:
     """
     from .decision_validator import validate as _validate
     # 有界退避：每拍把剩余停用拍数减一，减到 0 就把技能放回来（见 note_no_effect）。
-    global _STUCK_SUPPRESSED
+    global _STUCK_SUPPRESSED, _STUCK_CROSS_TASK
     fp = page.get("fingerprint") or ""
-    stuck = _STUCK.get(fp) or {}
+    entry = _STUCK.get(fp)
+    stuck = (entry or {}).get("ticks") or {}
     for _name in list(stuck):
         stuck[_name] -= 1
         if stuck[_name] <= 0:
@@ -2197,7 +2227,9 @@ def route(page: dict, goal: str, history: list) -> dict | None:
         if not _enabled(fn.__name__):
             continue
         if stuck.get(fn.__name__, 0) > 0:
-            _STUCK_SUPPRESSED += 1            # 只数一下（#83 的前置仪器），控制流一字不动
+            _STUCK_SUPPRESSED += 1            # 只数（#83 的前置仪器），控制流一字不动
+            if _STUCK_TASK and (entry or {}).get("task") not in ("", _STUCK_TASK):
+                _STUCK_CROSS_TASK += 1        # 笔记不是本题写的 —— 这才是 #83 要的那一格
             continue
         try:
             d = fn(page, goal, history or [])

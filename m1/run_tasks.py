@@ -216,7 +216,11 @@ def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dic
     # #83 的前置仪器：`skills._STUCK` 是模块级、按页态指纹键、跨任务不清，
     # 而夜间档 r3 实测 111 个指纹里 25 个被 >1 题共用 ⇒ 上一题的"让位"笔记可以按住下一题前两拍。
     # **每题开始前**的 entries 就是这道跨题通道的直接读数（>0 = 带着上一题的笔记进场）。
+    # 上一批（`reports/tier3-100-1014-105704.json`）把两件事混成一个数了：进场 61/100 行，
+    # 但真正被按住只有 1 行，而且那 1 次是本题自己写的笔记 ⇒ "进场"不等于"受害"。
+    # 所以这里报出任务归属，`cross_task` 那一格才是 #83 的决策量。
     _stuck_before = _skills.stuck_counters()
+    _skills.set_current_task(task_id)
 
     # M1.5 teacher shadow（A 档）：TEACHER_SHADOW=1 时接线。触发策略——
     # stall-gated：仅 stale_retry_run>=2（reject 循环已开始烧决策）时 shadow，
@@ -301,13 +305,17 @@ def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dic
         meta["arrival_relook_ms"] = int(_paid)
     # #83 前置仪器的读数：这一题**进场时**带着几条上一题的抑制笔记、这一题里又写了几条、
     # 被按住几次。只写非零，避免每行都塞空结构（与 arrival_relook_ms 同一口径）。
+    # 上一批把两件事混成一个数了（进场 61/100 行，真正被按住只有 1 行，而那 1 次是本题自己写的笔记），
+    # 所以 `cross_task` 才是 #83 的决策量：笔记**不是本题写的**抑制发生了几次。
     _stuck_after = _skills.stuck_counters()
-    if _stuck_before["entries"] or _stuck_after["notes"] != _stuck_before["notes"] \
-            or _stuck_after["suppressed"] != _stuck_before["suppressed"]:
+    _stuck_cross = _stuck_after["cross_task"] - _stuck_before["cross_task"]
+    if (_stuck_before["entries"] or _stuck_after["notes"] != _stuck_before["notes"]
+            or _stuck_after["suppressed"] != _stuck_before["suppressed"] or _stuck_cross):
         meta["stuck"] = {
             "entries_at_start": _stuck_before["entries"],
             "notes": _stuck_after["notes"] - _stuck_before["notes"],
             "suppressed": _stuck_after["suppressed"] - _stuck_before["suppressed"],
+            "cross_task": _stuck_cross,
         }
 
     try:
