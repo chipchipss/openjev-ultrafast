@@ -200,6 +200,49 @@ def _is_browser_loss(exc: BaseException) -> bool:
     return any(p in text for p in _BROWSER_LOSS)
 
 
+#: #85：一次"代理 TLS 瞬时失败"的行级重试。
+#: 判据只有两条，且第二条是硬线：**没有错误码就不许重跑**。
+#: 码名由 #85 的仪表（`logger.page_digest` 的稀疏 `err`）第一次带进工件，
+#: 回收率也先量过才写的这一刀（`m2/real-log.md` 的 #85 那节：块跑 4 轮，失败行 2 次，
+#: 立刻再跑一次 **2/2 回收**；同一行单独访问 8/8 全过）。
+#: 为什么不看 `failure_mode` 就重跑：那会把"我们自己的改动把导航弄坏了"洗成 PASS。
+def _should_retry_egress(r: dict) -> bool:
+    inner = r.get("result") if isinstance(r, dict) else None
+    if not isinstance(inner, dict) or inner.get("result") != "FAIL":
+        return False                                  # PASS 行永不重跑（x001 的终页也带码）
+    if inner.get("failure_mode") != "blocked_by_egress":
+        return False                                  # 墙页重跑没有意义
+    meta = inner.get("meta") or {}
+    fp = meta.get("final_page") or {}
+    return bool(isinstance(fp, dict) and fp.get("err"))
+
+
+def _run_one_with_egress_retry(spec: dict, log_dir, start_url: str, screenshots: bool,
+                               run=None) -> dict:
+    """跑一行；若它以"带错误码的 egress 失败"收口，就**再跑一次**（只一次，不循环）。
+
+    痕迹写进重跑那行的 `meta.egress_retry`，由 `_meta` 白名单带进 `reports/*.json` ——
+    重试必须看得见，否则就是在洗分（#85 的仪表与判死同一条纪律）。
+    """
+    run = run or _run_one
+    r = run(spec, log_dir, start_url, screenshots)
+    if not _should_retry_egress(r):
+        return r
+    first = ((r.get("result") or {}).get("meta") or {}).get("final_page") or {}
+    first_err = first.get("err")
+    print(f"    [egress-retry] {spec.get('task_id')}: 终页 {first_err} "
+          f"(url={str(first.get('url'))[:40]}) —— 代理瞬时失败，重跑一次")
+    r2 = run(spec, log_dir, start_url, screenshots)
+    inner = r2.get("result") if isinstance(r2, dict) else None
+    if isinstance(inner, dict) and isinstance(inner.get("meta"), dict):
+        inner["meta"]["egress_retry"] = {
+            "attempts": 2,
+            "first_err": first_err,
+            "recovered": inner.get("failure_mode") != "blocked_by_egress",
+        }
+    return r2
+
+
 def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dict:
     """运行单个 task。返回 {task_id, result, error?}。
 
@@ -372,9 +415,19 @@ def _summarize(results: list[dict]) -> dict:
         "failure_modes": {},
         "agent_modes": {},
         "system_modes": {},
+        # #85：这一批里有几行是被"带码的 egress 重跑"救回来的 —— 分数里必须看得见这件事，
+        # 否则阈值没动而读者以为什么都没发生。
+        "egress_retried": 0,
+        "egress_recovered": 0,
     }
     for r in results:
         raw = r.get("result")
+        if isinstance(raw, dict):
+            tag = (raw.get("meta") or {}).get("egress_retry")
+            if isinstance(tag, dict):
+                summary["egress_retried"] += 1
+                if tag.get("recovered"):
+                    summary["egress_recovered"] += 1
         if not isinstance(raw, dict):
             # init 失败（result="ERROR" 字符串）或 runner 异常（无 result）都计入 error
             summary["error"] += 1
@@ -557,7 +610,8 @@ def main() -> int:
                       " —— 付一次完整复位（杀自有画像 + 重起 + daemon 预热）")
                 _reset_cdp()
         try:
-            r = _run_one(spec, args.log_dir, start_url, args.screenshots)
+            r = _run_one_with_egress_retry(spec, args.log_dir, start_url,
+                                    args.screenshots)
         except Exception as e:
             r = {"task_id": tid, "error": f"runner_exception: {e}",
                  "traceback": traceback.format_exc()}

@@ -1,0 +1,191 @@
+{
+  "summary": {
+    "total": 4,
+    "pass": 3,
+    "fail": 1,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "true_success": 3,
+      "correct_abandon": 1
+    },
+    "failure_modes": {
+      "blocked_by_egress": 1
+    },
+    "agent_modes": {},
+    "system_modes": {
+      "blocked_by_egress": 1
+    },
+    "egress_retried": 2,
+    "egress_recovered": 1
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "r126",
+      "result": {
+        "task_id": "r126",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/lang.html",
+          "final_title": "Query Language Understood by SQLite",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2809,
+          "final_page": {
+            "url": "https://www.sqlite.org/lang.html",
+            "title": "Query Language Understood by SQLite",
+            "text_len": 1342,
+            "text_sha16": "4c679e7564bb0a35"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r127",
+      "result": {
+        "task_id": "r127",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/lang_select.html",
+          "final_title": "SELECT",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang_select\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3301,
+          "final_page": {
+            "url": "https://www.sqlite.org/lang_select.html",
+            "title": "SELECT",
+            "text_len": 275,
+            "text_sha16": "8922fb129d05734c"
+          },
+          "egress_retry": {
+            "attempts": 2,
+            "first_err": "ERR_SSL_PROTOCOL_ERROR",
+            "recovered": true
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r128",
+      "result": {
+        "task_id": "r128",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/faq.html",
+          "final_title": "SQLite Frequently Asked Questions",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/faq\\.html"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Frequently Asked"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2722,
+          "final_page": {
+            "url": "https://www.sqlite.org/faq.html",
+            "title": "SQLite Frequently Asked Questions",
+            "text_len": 2340,
+            "text_sha16": "dc74fda24291d266"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r129",
+      "result": {
+        "task_id": "r129",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "system",
+        "failure_mode": "blocked_by_egress",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.sqlite.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/json1\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3924,
+          "final_page": {
+            "url": "chrome-error://chromewebdata/",
+            "title": "www.sqlite.org",
+            "text_len": 83,
+            "text_sha16": "7806091bd2a55e2c",
+            "err": "ERR_SSL_PROTOCOL_ERROR"
+          },
+          "egress_retry": {
+            "attempts": 2,
+            "first_err": "ERR_SSL_PROTOCOL_ERROR",
+            "recovered": false
+          }
+        }
+      }
+    }
+  ]
+}

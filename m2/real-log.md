@@ -7053,3 +7053,31 @@ powershell -File scripts/run_one.ps1 -TasksFile logs/sqlite_r.jsonl -Tag sq-r1  
 
 两份输入是 `m2/tasks_real_50.jsonl` 里第 25–28 行的原序与反序，**题面一字未改**；
 读数为真：P 臂 `r127/r129 FAIL(blocked_by_egress)`、R 臂 4/4 PASS（工件名即上面两条）。
+
+## #85 的第二刀（行级 egress 重跑）：先量回收率，再写代码（10-14 17:2x–18:0x）
+
+**动手前的三个读数**（决定"这一次重试值不值"）：
+| 实验 | 结果 |
+|---|---|
+| `r127` 单跑 ×8 | **8/8 PASS**（同一行在批里是 17/36 失败）⇒ 失败来自上下文，不是这一行 |
+| 两行臂 `[r126, r127]` ×3 | r127 失败 **1/3** ⇒ 密度上去一点，概率上去一点（不是确定性相邻）|
+| 四行块 ×4 + 失败行立刻再跑一次 | 失败 2 行，**2/2 回收** |
+
+⇒ 这才允许我写代码。**产品路径的实盘见证**（`reports/wretry1-1014-173345.json`）：
+`r127` egress 失败 → 重跑 → **PASS（recovered:true）**；同一轮 `r129` **两次都失败** →
+照实留 `FAIL / blocked_by_egress` 并记 `recovered:false`。
+**合并回收率 = 3/4（不是 100%）** —— 这个数以后每次引用都按 3/4 说，不许捡好的那半说成"全救回来"。
+
+**判据的形状（四条硬线，每条一案钉住，见 `tests/test_egress_retry.py`）**：
+1. 只有 `failure_mode=blocked_by_egress` **且** `meta.final_page.err` 非空的**失败行**才重跑
+   —— **没有错误码就不许重跑**，否则"我们自己的改动弄坏导航"会被重试洗成 PASS；
+2. 只一次，不循环；再失败就照实留着，痕迹里写 `recovered:false`；
+3. **PASS 行永不碰**：`x001` 的终页今天起也带 `err=ERR_CONNECTION_CLOSED`（它按设计不可达且它 PASS），
+   这一案就是防"仪器反过来咬负向题"；
+4. 痕迹必须穿过 `_meta` 白名单进 `reports/*.json`，并且 `summary` 里加 `egress_retried / egress_recovered` 两格
+   —— 阈值没动而分数变了，读者必须看得见"为什么变"（白名单丢仪器字段这族的**第 5 次**，所以先写测试）。
+
+失败测试先行：新档 **1/6**（只有那条读工件的反空转案绿）⇒ 实现后 **6/6**；离线全套 **39 件 / 321 案**绿。
+阶梯与它自己的判据在下面（跑之前登记）：`pass` 允许因回收而上移，但 `fp=0`、`error=0`、`unknown=0` 一条不让，
+非环境翻动仍须 ⊆ 抖动集合；`summary.egress_retried` 与 `egress_recovered` 必须与逐行痕迹数得上，
+**若一批里 `recovered:false` 的行数 ≥ 基线抖动集合大小，说明代理真出事了**，那就不该指望重试，按 #85 的账走。
