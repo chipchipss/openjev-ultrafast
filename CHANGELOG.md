@@ -6,6 +6,69 @@
 
 ---
 
+## [tier3-zero-behavior-with-golden-master] - 2026-10-14（#70 关掉；顺带立了一件新工具）
+
+### 这一刀真正新增的不是重构，是**判据的形状**
+
+`#70 Tier 3` 原计划四件事，**测量之后有两件被证伪**（写进 `m2/real-log.md` 的预登记，不偷偷缩小范围）：
+
+| 原计划 | 测量 | 结论 |
+|---|---|---|
+| 斩 `agent ↔ skills` 的 import 环 | AST 扫 import：`skills.py` **根本不 import agent**，`agent.py` 那三处是函数内延迟导入 | 没有环可斩 ⇒ 但 `docs/11` 那份体检说的"双向依赖"指的是**依赖形状**（agent 伸进 skills 私有三处 + skills 注释逐行指着 agent 行号），那部分照做 |
+| `state` 改 dataclass | AST 扫 `state[...]`/`.get("…")` 的字面键：`agent.py` 之外只有 `model.py` 碰 3 个键 | 大 diff 换小收益 ⇒ **不做** |
+| 跨模块私有名 | 全文数：一共 **3 处** | 做：`_indexed`→`indexed_actions`(68 处)、`_phrases`→`goal_phrases`(34 处)，**不留别名、不留 shim** |
+| 拆 `goal_reached` | `skills.py` 60 个定义里它最长：**175 行** | 做：**175 → 43 行** + `_arrival_facts`/`_arrival_hit`/`_arrival_by_phrases`/`_arrival_by_nav_object`，实况注释跟着判据搬走 |
+| `_STUCK` 生命周期 | 模块级、按页态指纹键、跨任务不清；夜间档 r3 实测 **111 个指纹有 25 个被 >1 题共用** | 只装**仪表**（复位是行为变更 ⇒ #83） |
+
+**为什么不用"再跑一批看分数"当判据**：同 build 的 100 行批本来就抖 6 行（`m2/real-log.md` 的夜间档那节），
+一次静默的行为漂移完全可能落在噪声里。所以新建了**逐字节**的对照物：
+
+- `m2/probe_tier3_corpus.py` —— 零模型采 **100 个起点页 + 86 个到站页**（`m2/corpus/`，**不入库**：里面是第三方站点正文）。
+  第二跳由**探针自己分词打分**挑，不借 `skills` 的函数（否则语料形状依赖被测代码，改了行为时对照物自己会动）。
+- `m2/golden_tier3.py` —— 193 页 / 772 例 × 6 个确定性函数，入库件只记 `operation/target 序号/skill 名/置信度`，
+  label 与 href 留在不入库那份。baseline：`reports/tier3-golden-1013-233451.json`，
+  **digest `f7e05f70e6807de9a2b849ef873b285cbbb337ee09eb52efcc1a2a065d105d11`**。
+  三步改完各自 `--compare` ⇒ **摘要一字不动**；`route` 触发面 `{explicit_target:244, scroll_to_named_target:173, search_type:96, goal_reached:111, form_submit:9, blocked_dead_page:8}`。
+- **这份 golden 的覆盖面按实数写**：`link_followed_arrival` 与 `first_result` 在语料里**非弃权 0 例**
+  ⇒ golden 抓不到它们两个的回归（原因：pass2 落盘时没存"被点的标签"，而 `link_followed_arrival` 读的就是那个标签）。
+  那两族现在只靠 `tests/test_skills.py` + `test_done_guard_arrival.py` 保护；要动它们先重采带 `via_label` 的 hop 页**并重记 baseline**。
+  同理，`_STUCK` 那步的退避逻辑改动 golden 也抓不到（语料里没有抑制事件）——那次由单测守。
+  **对照物不是万能的，覆盖面要逐函数报数，不能只报一句"摘要没变"。**
+
+### 收口读数（两步各自完整跑过一遍阶梯，因为 `jev_ultrafast/*` 改了两次）
+
+| 判据 | 第一轮（拆 `goal_reached` 之后） | 第二轮（加了归属计数之后） |
+|---|---|---|
+| 冻结 19/19 × 3，fp=0 | **19/19 × 3**（`m1-baseline-1013-2352` / `1014-0000` / `1014-0007`） | **19/19 × 3**（`1014-1145` / `1150` / `1156`） |
+| live smoke（含 x001/x002） | 5/5，x001 `true_success`、x002 `correct_abandon` | 5/5 |
+| 100 行批 | 68/100、fp=0、error=0、零云端、20.0 min | **69/100、fp=0、unknown=0、error=1**、21.8 min |
+| 预登记的翻动判据 | 集合外 1 行（`r162`）⇒ 审计如实报"应当回滚"，**归因后用新工具判定不是本次改动** | **非环境翻动 6 行全在抖动集合内 ⇒ 通过** |
+| #83 的那一格 | 进场带笔记 61/100、`notes=1 / suppressed=1` | **`cross_task=0`**（`suppressed=1` 证明它有事件可分）⇒ 两批 200 行里没有一次跨题按住 ⇒ **不复位，等它咬到人** |
+
+`r162` 的归因是这次最值钱的一步：新工具 `m2/replay_two_builds.py` 把**当场抓的那一页**分别在
+改前 build（`git show 53aa033~1:…skills.py`，整包复制进临时目录、只换那一个文件、两个 build 各起子进程）与 HEAD 上跑一遍
+六个确定性函数 ⇒ **逐字段一致**；配上零模型重看（同页 `title='' / 2 个元素 / querySelectorAll('a,button,input')=0`，
+同一时刻同一代理 `curl` 却是 **200 / 16,272 字节**，一分钟后同一个探针又读到 34 个元素）
+⇒ 站点间歇性给浏览器空壳，**不回滚**，另开 **#84**（到站空壳：归因 + 有界重看，是 #16/#78 之后的第三种形状）。
+
+### 两条仪器/闸门自己的错（当场修，不改旧工件）
+
+1. `m2/tier3_batch_audit.py` 第一版忘了剥 `{"task_id","result"}` 包装 ⇒ `failure_class` 一律读到 `None`，
+   把 `r127`（基线三轮全是 `blocked_by_egress`，这批 sqlite.org 通了）当成"代码改动造成的翻动"。
+   判据本身没动，改的是仪器：**翻动先按 `failure_class` 分家，系统类不记在代码头上**。error 行（`result` 是字符串）也不再崩。
+2. `scripts/ci_local.ps1` 的 `MinPass=43 / MaxWallMinutes=14` 是 **50 行**那把尺子，`-Tasks 100` 沿用它 ⇒
+   第二轮的 `passed=false` 里"墙钟 21.8 > 14"是**假的**。现在两个阈值都按 `-Tasks` 选（100→59/30、50→43/14）。
+   旧 verdict 工件 `reports/ci-1014-1142.json` 不改（它是当时脚本的真实产物），校正后重算只剩 `error=1` 这一条真失败，
+   而它是 `r139` 的 `agent_init_failed_after_cdp_reset` **第三次**出现（b39、b41、本批），单跑 PASS
+   （`reports/one-r139-1014-122552.json`，1 步 / 2 调用）⇒ 仍归 #54/#72 那族，每批最多咬一行。
+
+### 文档数字按实跑重打（离线闸门第三次涨）
+
+**36 件 / 297 案全绿**（12:3x 实跑，逐件 `n/n passed` 相加）；跟踪文件 **661**（reports 389 / m2 102 / tests 36）。
+另记一次我自己的口误更正：`docs/11` 那句"双向依赖环"被我复述成"曾有一个循环导入"，实际从来没有 —— 见上表第一行。
+
+---
+
 ## [release-form-closed] - 2026-10-13 深夜（#79 选路 + #76 结案）
 
 ### #79 —— 历史里的第三方内容：选"闸门 + 无历史快照"，不选改写历史
