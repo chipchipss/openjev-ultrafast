@@ -7081,3 +7081,9 @@ powershell -File scripts/run_one.ps1 -TasksFile logs/sqlite_r.jsonl -Tag sq-r1  
 阶梯与它自己的判据在下面（跑之前登记）：`pass` 允许因回收而上移，但 `fp=0`、`error=0`、`unknown=0` 一条不让，
 非环境翻动仍须 ⊆ 抖动集合；`summary.egress_retried` 与 `egress_recovered` 必须与逐行痕迹数得上，
 **若一批里 `recovered:false` 的行数 ≥ 基线抖动集合大小，说明代理真出事了**，那就不该指望重试，按 #85 的账走。
+
+### push #3（10-14 傍晚，操作者"推"）
+
+`75def38..a1a96ef`（`c308097` #85 仪表、`6359884` #85 重试、`a1a96ef` 实验工件）快进推送。
+推前：范围 `75def38..HEAD` 的密钥形状 **0**、第三方邮箱形状 **0**、松规则命中 1 条 = jev 环境的 python 路径（不是凭据）；
+结构 PII 闸 5/5；离线全套 39 件 / 321 案绿。推后 `git ls-remote origin refs/heads/main` = 本次 HEAD。
