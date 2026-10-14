@@ -64,6 +64,9 @@ function Write-JsonNoBom($path, $obj) {
 
 function Die($m, $code) { Write-Host "CI FAIL: $m" -ForegroundColor Red; exit ($(if ($code) { $code } else { 1 })) }
 function Log($m) { Write-Host "[ci] $m" -ForegroundColor Cyan }
+# #88: the freeze stage's completeness rule lives in its own file so a stored report can be
+# fed back as a witness (scripts/ci_freeze_gate.ps1) and the offline suite reads the same thing.
+. "$Repo\scripts\ci_freeze_gate.ps1"
 
 # ---------- tier 1 ----------
 Log "smoke tier 1 (offline suites)"
@@ -159,6 +162,28 @@ for ($r = 1; $r -le 3; $r++) {
     $fp = @($v.results | Where-Object { $_.result.quadrant -eq "false_positive" }).Count
     Log ("  round {0}: {1}/19 PASS, fp={2}  ({3})" -f $r, $pass, $fp, $rep.Name)
     if ($fp -ne 0) { Die "round $r produced a false_positive (hard line fp=0)" }
+
+    # #88: a round that wrote FEWER ROWS than the task set is BLOCKED (exit 3) -- not a pass,
+    # not a score. Before this the stage only died on "no report at all" and on fp != 0, so the
+    # 17-row round of 2026-10-14 21:19 (two rows refused by the egress preflight) ran on as green.
+    # A present-but-FAIL row is deliberately NOT handled here: that is a score red and must stay
+    # readable as one (m2/real-log.md, #16/#78/#84a are the reason the two endings stay apart).
+    $part = "$Repo\reports\" + ($rep.BaseName -replace '^m1-', '')
+    $gap = Get-FreezeRowGap -ReportPath $rep.FullName -TaskSetPath "$Repo\m1\tasks-laya-19.jsonl" -PartDir $part
+    if ($gap) {
+        $blocked = [ordered]@{
+            stamp = $Stamp; stage = 'freeze'; round = $r
+            rows = $gap.rows; expected = $gap.expected
+            missing_ids = $gap.missing_ids; missing_causes = $gap.missing_causes
+            passed = $false
+            reason = 'freeze round wrote fewer rows than the task set -- BLOCKED, not a pass and not a score'
+        }
+        Write-JsonNoBom $Verdict ($blocked | ConvertTo-Json -Depth 6)
+        $why = ($gap.missing_causes.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ','
+        $msg = "freeze round {0}: {1}/{2} rows written; missing {3} ({4}) -- BLOCKED (verdict: {5})" -f `
+               $r, $gap.rows, $gap.expected, ($gap.missing_ids -join ','), $why, $Verdict
+        Die $msg 3
+    }
 }
 
 Log "regression batch ($Tasks tasks)"

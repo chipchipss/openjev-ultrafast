@@ -7203,3 +7203,94 @@ n002 同一条，样本换成 `https://developer.mozilla.org`。⇒ 与 #16/#74 
 `scripts/chrome_guard.ps1::Stop-OwnedChrome` 关的，前后各打一次计数
 （`before: owned=8 foreign=15` → `after: owned=0 port9222=0`）⇒ **他那 15 个 Chrome 进程一条没碰**；
 `llama-server`（pid 15044）保留在跑。
+
+## #88（冻结档少行必须判 BLOCKED）：设计与判据先登记（10-14 22:1x，动手前）
+
+**要修的 defect 是有工件的**：`scripts/ci_local.ps1:159–161` 的冻结档只对两件事 Die —— "没写报告"（`if (-not $rep)`）
+与 `fp -ne 0`。今晚 21:19 那条阶梯的第 1 轮合并报告只有 **17 行**（`reports/m1-baseline-1014-2122.json`，
+`summary.total = 17`，缺 `n001`/`n002`，拒跑原文在不入库的 `reports/baseline-1014-2122/failed/` 里），
+日志照常打印 `round 1: 17/19 PASS, fp=0` 然后继续跑第二轮与批 ⇒ **纪律②"同一 build 上 19/19×3"没有脚本守**。
+
+**这一刀的边界（先写死，免得我顺手把分数语义也改了）**：
+- **少行 = BLOCKED（exit 3）**：既不算过也不算失败，与 #74/#85 的"没写报告"同一族；
+- **少分 ≠ BLOCKED**：19 行齐全但有 FAIL 是**分数红**，这一刀**不动**它。理由不是"以后再说"，是
+  把两种结局混成一档会让"环境吃掉两行"和"能力掉一分"在工件里长得一样 —— 正是 #16/#78/#84a 一路在拆的反面。
+  所以判据里明确钉住：触发条件必须数**行数**（`@($v.results).Count` / `summary.total`），不许写成 `$pass -ne 19`。
+
+**要落的四件事（每条一案钉住，测试 `tests/test_ci_freeze_gate.py`）**：
+1. 冻结循环里存在"行数 ≠ 19 ⇒ Die 3"的判定，且位置在 fp 检查**之后、循环内**（只对最后一轮生效不算过）；
+2. 缺行必须**逐行列名 + 分因**：从当轮分片目录的 `failed/btask_<id>_err.log` 读，含 `[preflight]` 的记 `preflight`，
+   否则记 `crash_or_unknown` —— 不许笼统写"丢了"；
+3. Die 之前必须先把 blocked 写进 verdict JSON（`$Verdict` 里要能看见 `stage=freeze`、缺的 id、分因、`passed=false`），
+   否则"为什么没跑完"这件事又没有工件；
+4. 反向守卫两条：`MinPass/MaxWallMinutes` 的 50/100 映射一字不动（这刀不碰阈值），
+   且真实工件必须支持这个形状 —— `reports/m1-baseline-1014-2122.json` 读到 17 行、缺的正是 `n001`/`n002`；
+   同时今晚那份 19 行的 `m1-baseline-1014-2135.json` 不许被这条判据判成 blocked。
+
+**验证链与预登记读数（跑之前钉住，跑完不许改判据）**：
+1. 失败测试先行：`tests/test_ci_freeze_gate.py` 改前必须红，改前逐案数写在这里（跑出来填，不猜）；
+2. 离线全套：tier1 从 39 件 / 321 案 → **40 件 / 321 + 新案数**；
+3. **不重跑整条阶梯**：这一刀改的是判据本身，能证它的最好工件是**拿今晚那两份报告直接喂**——
+   17 行那份必须 blocked（exit 3）、19 行那份必须不 blocked；
+4. 真跑**一轮 19 任务冻结**（约 6 分钟，实测出处见上）证"闸门在健康链路上不误跳"；
+   若这一轮恰好又被出口预检拒了行 ⇒ 那正是新判据该响的场景，按 BLOCKED 记录，不许当成误跳。
+5. 硬线照旧：`fp=0`、零云端按 step 事件 `text_helper` 证、只动自有画像；`.ps1` 注释保持 ASCII（PS 5.1 ANSI 陷阱）。
+
+## #88 落地：冻结档少行 = BLOCKED（10-14 22:0x–22:5x，两半都在仓里）
+
+**改的形状**：判据独立成 `scripts/ci_freeze_gate.ps1` 里的纯函数 `Get-FreezeRowGap`
+（19 题集的 `task_id` 与合并报告的 `results[].task_id` **求差**，不是数 `pass`），
+`scripts/ci_local.ps1` 的冻结循环在 fp 检查之后调用它；**少行 ⇒ 先把
+`stage/round/rows/expected/missing_ids/missing_causes/passed=false` 写进 verdict JSON，再 `Die … 3`**。
+分因三档 `preflight / crash_or_unknown / no_dump` 是从当轮分片目录的 `failed/btask_<id>_err.log` 读的
+（那些分片**不入库**，所以这是唯一还能读到拒跑原文的地方，读到就把结论留在账上）。
+
+**验证链与每条的出处**：
+1. **失败测试先行**：`tests/test_ci_freeze_gate.py` 改前 **3/8**（缺闸门文件那 3 案直接 ERROR、
+   "ci_local 未调用"与"无 blocked 工件"那 2 案 FAIL；阈值反向守卫 + 两份真报告那 3 案改前就绿 ——
+   它们钉的是"判据必须有工件"和"这一刀不许碰阈值"），改后 **8/8**。
+   **一处我自己的测试写歪了要记着**：第 5 案最初在整个循环里找第一条 `Die`，
+   结果撞上改前就存在的"没写报告 ⇒ Die 3"那条 ⇒ 假红；把作用域收到 `if ($gap)` 分支内才是本意。
+   **这是把断言指对位置，不是放松**（放松是删掉"先写工件再退出"那半句，我没删）。
+2. **直接喂已入库报告（行为见证，逐字）**：
+   `17-row report -> rows=17 expected=19 missing=n001,n002` / `cause n001=preflight` / `cause n002=preflight`；
+   `19-row report (m1-baseline-1014-2135.json) -> NULL (not blocked, correct)`；`round2 (2129) -> NULL (correct)`。
+3. **离线全套**：tier1 **40 件 / 329 案全绿**（321 + 新增 8，逐件 `n/n passed` 相加，
+   `scripts/smoke.ps1` 的 tier1 不写仓内工件，证据就是那份逐件输出）。
+4. **PS 层两道自检**（都是本仓踩过的坑）：两份 `.ps1` 非 ASCII 字节 **0**、
+   `[Parser]::ParseFile` 错误 **0**。
+5. **活体：完整阶梯重跑**（`reports/ci-1014-2225.json` verdict + `reports/ci-1014-2225-1014-224810.json`，
+   墙钟 12.1 分钟 / 预算 14）：**冻结三轮全 19/19、fp=0** ⇒ 新闸门在 `ci_local` 里被执行了 3 次、**零误跳**。
+   **要说清的边界**：这一轮的链路没有少行，所以**拦截那一支没有被活体触发** ——
+   它的证据是上面第 2 条（真报告直接喂）与结构案，不是"看它响过一次"。
+
+**这批顺带拿到的第三个 L2 样本（产品码本轮未动：`git status` 里只有 `scripts/`、`tests/` 与文档）**：
+**43/50、fp=0、unknown=0、error=1**、`egress_retried=1 / recovered=1`（那一行是 `r129`：
+`{attempts:2, first_err:ERR_SSL_PROTOCOL_ERROR, recovered:true}` ⇒ 结果 PASS）。
+- `r139` **又是** `agent_init_failed_after_cdp_reset: StalePage: Document is navigating` —— 连续两批同一行同一签名，
+  这不再是单次事故。控制台的顺序是 `[browser-lost] r139: Document is navigating -- reset owned CDP, retry once`
+  ⇒ 复位付了、**重跑那一次也死在同一个地方**，然后下一行按 `[cdp-boundary]` 又付了一次完整复位。
+  ⇒ #57 的下半场从此有**两次独立见证**：`Agent.__init__` 的退避在"复位之后第一次观测"这个位置上撑不过
+  the-internet 的起点页（6 秒边界，`agent.py:281`）。要不要为它加第二次复位后的重看，是另一刀，**今晚不动**。
+- 失败集合比傍晚那批**少了一行 decision**：`r103` 这次记的是 `blocked_by_bot_wall / system`（stackoverflow 的墙，
+  先例是 #26 那条"墙时好时坏，不许当站点属性带着走"）⇒ decision 族 4 行（`r102 r104 r105 r122`）。
+- 距 L2 的 45 还差 2 行，现在有名有姓：**两道墙（`r101` pypi、`r103` stackoverflow）+ 那一行 `error`（`r139`）**。
+  换句话说：**在当前 build 上想读到 ≥45，需要墙那天不开、且 `r139` 的复位后首观测别再死**；
+  这两件都不是把阈值调低能换来的。⇒ **L2 的凭证仍由 b24 持有**，当前 build 三个样本 `43 / 42 / 43`（其中 43 那份 `error=0`）。
+- 顺带记一笔仪器的老坑：批控制台日志是 PS 重定向写的 **UTF-16**，`grep` 直接读会"什么都没匹配"——
+  我第一遍就是这么错的，改用 python `decode('utf-16')` 才看见上面那两行。
+
+**#88 结案口径**：判据已落地、离线与真报告双证、活体零误跳；**拦截支的活体见证欠着**，
+等下一次冻结轮真少行时它会自动响（那一轮的 `reports/ci-*.json` 就是它的见证）。
+
+**过程自记（同一类错今晚连着两次，方向相反）**：给 CHANGELOG 顶部插新条目时，
+① 我先用 Edit 在旧 heading 前插，结果多出一对 `---`（重复分隔符）；
+② 再用一段"顺手规范化分隔符"的 python 脚本去修，脚本的判断写错，把整份文件的 `---` 从 32 行推到 66 行、
+到处出现连续分隔符 —— 这一次不是"吞掉结构"而是**批量增生结构**。
+补救：把坏文件留档（`%TEMP%/changelog_broken.md`），`git show HEAD:CHANGELOG.md` 取回基线，
+按 heading 从坏文件里**抽出我今天写的两条条目**再插回基线；抽出时没注意 **HEAD 里已经有 l2-repin 那一条**
+（它随 `5fe31f3` 提交过），于是变成两条同 heading 的重复条目，再删重复、再收分隔符。
+最终核对用的还是那条老规矩：**数标记**（`^## ` 34→35、`^---$` 31→32、相邻/空行相隔的 `---` 对 = 0），
+外加 `git diff --stat` 只该有 **+40 行 insertion**、`git diff | grep '^[+-]## '` 只该出现那一条新 heading。
+**规矩要改的是我自己的动作顺序**：文档结构类改动一律"从 HEAD 取基线 + 只插入 + 立刻用上面的三项计数核对"，
+不写"顺手规范化"的脚本 —— 那类脚本一次就能污染整份文件，而我今晚就是靠 git 基线才收回来的。

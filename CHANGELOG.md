@@ -6,6 +6,49 @@
 
 ---
 
+## [freeze-round-missing-rows-is-blocked] - 2026-10-14 深夜（#88：冻结轮少行从此判 BLOCKED，不再是绿轮）
+
+### 为什么这一刀值得存在
+
+`scripts/ci_local.ps1` 的冻结档只对两件事 Die："没写报告"与 `fp≠0`。2026-10-14 21:19 那条阶梯的第 1 轮
+只合并了 **17 行**（`reports/m1-baseline-1014-2122.json`，缺 `n001`/`n002`，是出口预检按设计拒跑的），
+脚本照旧打印 `round 1: 17/19 PASS, fp=0` 然后继续跑第二轮和 50 行批 ⇒ **纪律②"同一个 build 上 19/19×3
+冻结在先"从来没有脚本守着**。
+
+### 形状与边界
+
+- 判据独立成 `scripts/ci_freeze_gate.ps1`::`Get-FreezeRowGap`：拿 19 题集的 `task_id` 与合并报告的
+  `results[].task_id` **求差** —— 数的是**行数**，不是 `pass`；
+- **少行 = BLOCKED（exit 3）**：先把 `stage/round/rows/expected/missing_ids/missing_causes/passed=false`
+  写进 verdict JSON，再退出（BLOCKED 也要有工件）；
+- **少分 ≠ BLOCKED**：19 行齐全但有 FAIL 仍是分数红，这一刀**不碰**它 —— 把两种结局并档，就等于让
+  "链路吃掉两行"和"能力掉一分"在工件里长得一样，正是 #16/#78/#84a 一路在拆的反面；
+- 缺的每一行**分因**成 `preflight / crash_or_unknown / no_dump` 三档（读当轮分片目录的
+  `failed/btask_<id>_err.log`；那些分片不入库，所以只有这里还留得下拒跑原文）；
+- `MinPass` 的 59/43 与 `MaxWallMinutes` 的 30/14 **一字未动**，并有反向守卫钉住。
+
+### 验证链
+
+失败测试 `tests/test_ci_freeze_gate.py` 改前 **3/8**（缺文件那 3 案 ERROR、未调用与无工件那 2 案 FAIL）
+⇒ 改后 **8/8**；行为见证是**直接把两份已入库报告喂给闸门**：
+`17 行那份 → rows=17 expected=19 missing=n001,n002，两条因都是 preflight`；
+`19 行那两份 → NULL（不误跳）`。离线全套 **40 件 / 329 案**全绿；两份 `.ps1` 非 ASCII 字节 0、
+`[Parser]::ParseFile` 错误 0（本仓的两个老坑，先堵）。
+完整阶梯重跑（`reports/ci-1014-2225.json`）：**冻结三轮全 19/19、fp=0 ⇒ 活体零误跳**；
+诚实的边界：**拦截那一支这一轮没有活体触发**（链路恰好没少行），它的证据是上面那两份真报告。
+
+### 顺带拿到的第三个 L2 样本（产品码本轮未动）
+
+**43/50、fp=0、unknown=0、error=1**、`egress_retried=1 / recovered=1`（`r129` 被重试救回 PASS）：
+`r139` **连续两批**同一签名 `agent_init_failed_after_cdp_reset: StalePage`（控制台先 `[browser-lost] … reset, retry once`，
+重跑那次仍死在 `agent.py:281`）⇒ #57 的下半场现在有两次独立见证；`r103` 这次是 `blocked_by_bot_wall`（墙时好时坏，
+不带进下一批当站点属性）。距 45 的缺口从此有名有姓：**两道墙 + 那一行 error** ⇒
+**当前 build 三个样本 43 / 42 / 43，L2 的凭证仍由 b24 持有**。
+
+跟踪文件 **747**（reports 463 / m2 109 / tests 40 / m4a 36 / `jev_ultrafast` 33 / scripts 30 / 根 17 / docs 9 / m1 8）；
+产品码本轮零改动。
+---
+
 ## [l2-repin-attempt-failed-and-the-freeze-gate-was-blind] - 2026-10-14 深夜（L2 重钉没钉上，顺带量到阶梯自己缺一条判据）
 
 **为什么跑**：计划书 L2 那格的凭证是 b24（10-11）的 45/50，而 b24 之后落了 #84a/#46/#85 三刀 ——
