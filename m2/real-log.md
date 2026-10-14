@@ -6428,3 +6428,40 @@ tier1 **35 件全绿**（现在含新套件 5 案）。
 5. 零云端仍只由步事件 `text_helper` 集合判：必须 ⊆ {null, startlux-decision-2b}；
 6. 顺带出 **#83** 的 100 行口径读数：`meta.stuck` 的 `entries_at_start > 0` 行数、`notes`、`suppressed`。
    50 行那批是 11/50、notes=1、suppressed=1。这一轮只登记，不改复位语义。
+
+## 11:0x–11:2x：判据 5 的读数，以及它为什么**没有**触发回滚
+
+批 `reports/tier3-100-1014-105704.json`（题集 `m2/tasks_real_100.jsonl`，100 行全覆盖，
+墙钟 20.0 分钟，步事件 181 条 `text_helper` 全是 `null` ⇒ 零云端）：
+**pass=68 / fp=0（象限只有 `true_success:68`+`correct_abandon:32`）/ error=0 / unknown=0**。
+
+对照夜间档三轮（69/69/70）的翻动（`m2/tier3_batch_audit.py`）：
+
+| 行 | 方向 | 基线档 | 在不在同 build 抖动集合里 |
+|---|---|---|---|
+| r157 / r158 / r178 | FAIL/PASS→PASS | `decision` | **在** |
+| r129 | FAIL/PASS→FAIL | `blocked_by_egress` | 在（且是环境） |
+| r161 / r187 | FAIL/PASS→FAIL | `decision` | 在 |
+| **r162** | **PASS→FAIL** | 无（三轮全 PASS） | **不在 ⇒ 判据 5 报了"应当回滚"** |
+
+**判据报了，我不静默放宽，也不照抄执行——先归因，归因靠重放，不靠话术**：
+
+1. 这一行今天的 trace 是 `step1 first_action_floor CLICK 7 'Search'` → 落地页 `final_title=''`、
+   `steps=1`，第二拍模型 `BLOCKED conf=0.735`；昨晚同一行同一拍**页是齐的**（`search_type` 填 target 10、
+   `search_submit` 点 target 12 ⇒ 那页当时有 ≥12 个元素）。页指纹 `6bf125f75ff5` 两边一模一样。
+2. 零模型当场重看 `https://arxiv.org/search/physics`：**第一次拍 title='' text_len=14 actions=2**，
+   再等 6 秒还是 2 个元素，`document.querySelectorAll('a,button,input').length = 0`；
+   而同一时刻同一代理下 `curl` 拿到的却是 **HTTP 200 / 16,272 字节**；
+   一分钟后我用同一个探针重跑，同页 **34 个元素、title='Search | arXiv e-print repository'**。
+   ⇒ arXiv 这个页在**间歇性给浏览器一份空壳**，浏览器渲染不出东西，与代码无关。
+3. 决定性的一条：把今天这份页快照（34 元素那份）拿去**两个 build 各跑一遍确定性层**
+   （`m2/replay_two_builds.py --old-rev 53aa033~1`，整包复制进临时目录、只用 `git show` 换掉 `skills.py`，
+   两个 build 各自起子进程，不动工作树）⇒
+   `route / goal_reached / link_followed_arrival / explicit_target / first_result / first_action_floor`
+   **六个函数逐字段一致**（`route = search_type TYPE_TEXT conf=1.0`，其余全弃权，两边同）。
+   加上 golden 的 772 例摘要一字不动与冻结 19/19×3 ⇒ **Tier 3 不是这一行的原因，不回滚**。
+
+**这一行仍然是一个真的能力缺口，另开 #84 记账**：到站那一拍页是空壳时，我们只做了一次观测就交模型，
+模型在 2 个元素的页面上 BLOCKED。#65 的有界重看只在 `goal_reached` 那一档付费，
+这一族（**到站但渲染空壳**）没有覆盖 —— 它和 #16（egress）、#78（上游 5xx 错误页）是同一族的第三种形状，
+现在只有 trace + 探针证据，没有判据，所以先记账不动刀。
