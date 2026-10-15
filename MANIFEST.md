@@ -27,7 +27,7 @@ git ls-files | ForEach-Object { ($_ -split '/')[0] } | Group-Object | Sort-Objec
 
 | 顶层 | 跟踪文件 | 是什么 |
 |---|---|---|
-| `reports` | 471 | 实测报告，全部入库（逐任务的 step/decision jsonl 在 `logs/`，不入库，见 `.gitignore`） |
+| `reports` | 477 | 实测报告，全部入库（逐任务的 step/decision jsonl 在 `logs/`，不入库，见 `.gitignore`） |
 | `m2` | 111 | 真实站题集与测量工具：`tasks_real_100.jsonl`、**`tasks_real_50.jsonl`（#75 那天从 `%TEMP%` 钉进仓：50 行档的闸门一直读一份从未入库的 temp 题集）**、`batch_audit.py`、`b40_audit.py`、`smoke_tasks.py`、`smoke_gate.py`、`make_release_snapshot.py`（#79 的无历史发布快照）、Tier 3 的三件对照工具（`probe_tier3_corpus.py` 采语料、`golden_tier3.py` 逐字节摘要、`replay_two_builds.py` 判「是我还是站点」）、`tier3_batch_audit.py`、**`arrival_digest_scan.py`（#84 的阈值来自这里：扫所有带 `final_page` 摘要的 `task_result`）**、**#85 的两件：`probe_sqlite_reachability.py`（目标页单飞双臂可达性）与 `probe_sqlite_batch_context.py`（复现批内顺序并抓出 `ERR_SSL_PROTOCOL_ERROR`）**、**#46 的两件：`probe_r113_scroll_ladder.py`（逐格往下滚、每格当场重放地板，量出近似行劫持发生在哪一页）与 `probe_near_miss_tier_attribution.py`（186 页 × 71 次非弃权命中的档位分布，词重叠档 0 次）**、探针（**探针一个不删**） |
 | `m4a` | 36 | M4a/M4b 本地训练线，**已关闭**（两次自训无增益） |
 | `jev_ultrafast` | 33 | 主包：`agent.py` / `browser.py` / `snapshot.js` / `skills.py` / `evaluator.py` / `decider/`（含 `choose_2b.py` 这条 chat→decision 线） |

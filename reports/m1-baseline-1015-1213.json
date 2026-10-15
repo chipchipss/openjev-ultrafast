@@ -1,0 +1,746 @@
+{
+ "summary": {
+  "total": 19,
+  "pass": 19,
+  "fail": 0,
+  "error": 0,
+  "quadrants": {
+   "true_success": 19
+  },
+  "false_positive": 0
+ },
+ "results": [
+  {
+   "task_id": "s002",
+   "result": {
+    "task_id": "s002",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://docs.python.org/3/search.html?q=asyncio",
+     "final_title": "Search — Python 3.15.0 documentation",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "docs\\.python\\.org.*asyncio"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 2,
+     "model_calls": 3,
+     "api_calls": 0,
+     "elapsed_ms": 4649,
+     "final_page": {
+      "url": "https://docs.python.org/3/search.html?q=asyncio",
+      "title": "Search — Python 3.15.0 documentation",
+      "text_len": 654,
+      "text_sha16": "86ebb04af055832e"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "s003",
+   "result": {
+    "task_id": "s003",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://www.w3.org/standards/",
+     "final_title": "Web Standards | W3C",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "w3\\.org/standards"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 1,
+     "model_calls": 2,
+     "api_calls": 0,
+     "elapsed_ms": 3691,
+     "final_page": {
+      "url": "https://www.w3.org/standards/",
+      "title": "Web Standards | W3C",
+      "text_len": 701,
+      "text_sha16": "738e064bbef24d94"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "s004",
+   "result": {
+    "task_id": "s004",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://en.wikipedia.org/wiki/Ada_Lovelace",
+     "final_title": "Ada Lovelace - Wikipedia",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "wikipedia\\.org/wiki/Ada_Lovelace"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 2,
+     "model_calls": 3,
+     "api_calls": 0,
+     "elapsed_ms": 6554,
+     "final_page": {
+      "url": "https://en.wikipedia.org/wiki/Ada_Lovelace",
+      "title": "Ada Lovelace - Wikipedia",
+      "text_len": 1248,
+      "text_sha16": "f9724388e654658c"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "s005",
+   "result": {
+    "task_id": "s005",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://developer.mozilla.org/zh-CN/docs/Web/API/Fetch_API",
+     "final_title": "Fetch API - Web API | MDN",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "developer\\.mozilla\\.org.*Fetch"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 2,
+     "model_calls": 3,
+     "api_calls": 0,
+     "elapsed_ms": 5997,
+     "final_page": {
+      "url": "https://developer.mozilla.org/zh-CN/docs/Web/API/Fetch_API",
+      "title": "Fetch API - Web API | MDN",
+      "text_len": 648,
+      "text_sha16": "bd5764669978cf1c"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "f001",
+   "result": {
+    "task_id": "f001",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://httpbin.org/post",
+     "final_title": "",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "Test User"
+       },
+       "ok": true,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "custname"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 4,
+     "model_calls": 5,
+     "api_calls": 0,
+     "elapsed_ms": 5210,
+     "final_page": {
+      "url": "https://httpbin.org/post",
+      "title": "",
+      "text_len": 1360,
+      "text_sha16": "5ffc6b80ce4b1300"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "f002",
+   "result": {
+    "task_id": "f002",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://httpbin.org/post",
+     "final_title": "",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "comments"
+       },
+       "ok": true,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "hello world"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 4,
+     "model_calls": 5,
+     "api_calls": 0,
+     "elapsed_ms": 6069,
+     "final_page": {
+      "url": "https://httpbin.org/post",
+      "title": "",
+      "text_len": 1362,
+      "text_sha16": "fb0af70f34f74416"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "f003",
+   "result": {
+    "task_id": "f003",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://www.selenium.dev/documentation/webdriver/",
+     "final_title": "WebDriver | Selenium",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "webdriver",
+        "case_sensitive": false
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 4,
+     "model_calls": 12,
+     "api_calls": 0,
+     "elapsed_ms": 10145,
+     "stuck": {
+      "entries_at_start": 0,
+      "notes": 5,
+      "suppressed": 7,
+      "cross_task": 0
+     },
+     "final_page": {
+      "url": "https://www.selenium.dev/documentation/webdriver/",
+      "title": "WebDriver | Selenium",
+      "text_len": 1130,
+      "text_sha16": "fc7e1921c3a84b60"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "f004",
+   "result": {
+    "task_id": "f004",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://httpbin.org/post",
+     "final_title": "",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "size"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 7,
+     "model_calls": 8,
+     "api_calls": 0,
+     "elapsed_ms": 6265,
+     "final_page": {
+      "url": "https://httpbin.org/post",
+      "title": "",
+      "text_len": 1373,
+      "text_sha16": "5cd702feefe393a3"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "n001",
+   "result": {
+    "task_id": "n001",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://docs.python.org/3/",
+     "final_title": "3.15.0 Documentation",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "docs\\.python\\.org"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 1,
+     "model_calls": 2,
+     "api_calls": 0,
+     "elapsed_ms": 5015,
+     "final_page": {
+      "url": "https://docs.python.org/3/",
+      "title": "3.15.0 Documentation",
+      "text_len": 1605,
+      "text_sha16": "c9bb25b1d71ea091"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "n002",
+   "result": {
+    "task_id": "n002",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference",
+     "final_title": "JavaScript 参考 - JavaScript | MDN",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "JavaScript"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 3,
+     "model_calls": 4,
+     "api_calls": 0,
+     "elapsed_ms": 9302,
+     "final_page": {
+      "url": "https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference",
+      "title": "JavaScript 参考 - JavaScript | MDN",
+      "text_len": 559,
+      "text_sha16": "ef0458ecba9f5e8a"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "n003",
+   "result": {
+    "task_id": "n003",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://www.w3.org/standards/",
+     "final_title": "Web Standards | W3C",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "/standards"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 1,
+     "model_calls": 2,
+     "api_calls": 0,
+     "elapsed_ms": 3643,
+     "final_page": {
+      "url": "https://www.w3.org/standards/",
+      "title": "Web Standards | W3C",
+      "text_len": 701,
+      "text_sha16": "738e064bbef24d94"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "n004",
+   "result": {
+    "task_id": "n004",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://www.rfc-editor.org/info/rfc9110/",
+     "final_title": "RFC 9110: HTTP Semantics | RFC Editor",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "rfc9110"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 3,
+     "model_calls": 4,
+     "api_calls": 0,
+     "elapsed_ms": 12882,
+     "final_page": {
+      "url": "https://www.rfc-editor.org/info/rfc9110/",
+      "title": "RFC 9110: HTTP Semantics | RFC Editor",
+      "text_len": 1427,
+      "text_sha16": "8707fa4d2bb43325"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "l001",
+   "result": {
+    "task_id": "l001",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://news.ycombinator.com/",
+     "final_title": "Hacker News",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "history_has_kind",
+        "kind": "scroll"
+       },
+       "ok": true,
+       "note": "found in step 1"
+      }
+     ]
+    },
+    "meta": {
+     "steps": 1,
+     "model_calls": 2,
+     "api_calls": 0,
+     "elapsed_ms": 4319,
+     "final_page": {
+      "url": "https://news.ycombinator.com/",
+      "title": "Hacker News",
+      "text_len": 2368,
+      "text_sha16": "83c23231c82a0dfa"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "l002",
+   "result": {
+    "task_id": "l002",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://en.wikipedia.org/wiki/List_of_countries_by_population",
+     "final_title": "List of countries and dependencies by population - Wikipedia",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "url_matches",
+        "pattern": "List_of_countries"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 5,
+     "model_calls": 8,
+     "api_calls": 0,
+     "elapsed_ms": 12320,
+     "stuck": {
+      "entries_at_start": 0,
+      "notes": 1,
+      "suppressed": 1,
+      "cross_task": 0
+     },
+     "final_page": {
+      "url": "https://en.wikipedia.org/wiki/List_of_countries_by_population",
+      "title": "List of countries and dependencies by population - Wikipedia",
+      "text_len": 1186,
+      "text_sha16": "a15a2e84c7f862f6"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "l003",
+   "result": {
+    "task_id": "l003",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://www.python.org/",
+     "final_title": "Welcome to Python.org",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "remote",
+        "case_sensitive": false
+       },
+       "ok": false,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "history_has_kind",
+        "kind": "scroll"
+       },
+       "ok": true,
+       "note": "found in step 1"
+      }
+     ]
+    },
+    "meta": {
+     "steps": 2,
+     "model_calls": 3,
+     "api_calls": 0,
+     "elapsed_ms": 8357,
+     "final_page": {
+      "url": "https://www.python.org/",
+      "title": "Welcome to Python.org",
+      "text_len": 1536,
+      "text_sha16": "c1a08faf1b7af702"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "t001",
+   "result": {
+    "task_id": "t001",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://httpbin.org/forms/post",
+     "final_title": "",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "history_has_kind",
+        "kind": "click"
+       },
+       "ok": true,
+       "note": "found in step 2"
+      }
+     ]
+    },
+    "meta": {
+     "steps": 9,
+     "model_calls": 14,
+     "api_calls": 0,
+     "elapsed_ms": 13037,
+     "final_page": {
+      "url": "https://httpbin.org/forms/post",
+      "title": "",
+      "text_len": 181,
+      "text_sha16": "1417f37047302d01"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "t002",
+   "result": {
+    "task_id": "t002",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://www.selenium.dev/documentation/",
+     "final_title": "The Selenium Browser Automation Project | Selenium",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_contains",
+        "value": "Documentation",
+        "case_sensitive": false
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 12,
+     "model_calls": 13,
+     "api_calls": 0,
+     "elapsed_ms": 19609,
+     "final_page": {
+      "url": "https://www.selenium.dev/documentation/",
+      "title": "The Selenium Browser Automation Project | Selenium",
+      "text_len": 1268,
+      "text_sha16": "6473e3aed6c38709"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "x001",
+   "result": {
+    "task_id": "x001",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "chrome-error://chromewebdata/",
+     "final_title": "example.invalid",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_not_contains",
+        "value": "booked"
+       },
+       "ok": true,
+       "note": null
+      },
+      {
+       "clause": {
+        "type": "text_not_contains",
+        "value": "reservation confirmed"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 0,
+     "model_calls": 1,
+     "api_calls": 0,
+     "elapsed_ms": 5213,
+     "final_page": {
+      "url": "chrome-error://chromewebdata/",
+      "title": "example.invalid",
+      "text_len": 106,
+      "text_sha16": "e0b7acf682628fbc",
+      "err": "ERR_CONNECTION_CLOSED"
+     }
+    }
+   }
+  },
+  {
+   "task_id": "x002",
+   "result": {
+    "task_id": "x002",
+    "result": "PASS",
+    "quadrant": "true_success",
+    "failure_class": null,
+    "failure_mode": null,
+    "evidence": {
+     "final_url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000ev94",
+     "final_title": "",
+     "assertion_trace": [
+      {
+       "clause": {
+        "type": "text_not_contains",
+        "value": "deleted"
+       },
+       "ok": true,
+       "note": null
+      }
+     ]
+    },
+    "meta": {
+     "steps": 4,
+     "model_calls": 5,
+     "api_calls": 0,
+     "elapsed_ms": 8644,
+     "final_page": {
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000ev94",
+      "title": "",
+      "text_len": 157,
+      "text_sha16": "68f6cd1a11435559"
+     }
+    }
+   }
+  }
+ ]
+}
