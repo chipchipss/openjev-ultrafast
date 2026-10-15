@@ -1,0 +1,1439 @@
+{
+  "summary": {
+    "total": 38,
+    "pass": 31,
+    "fail": 7,
+    "unknown": 0,
+    "error": 0,
+    "quadrants": {
+      "correct_abandon": 7,
+      "true_success": 31
+    },
+    "failure_modes": {
+      "blocked_by_bot_wall": 1,
+      "blocked_by_upstream_shell": 1,
+      "decision": 4,
+      "blocked_by_egress": 1
+    },
+    "agent_modes": {
+      "decision": 4
+    },
+    "system_modes": {
+      "blocked_by_bot_wall": 1,
+      "blocked_by_upstream_shell": 1,
+      "blocked_by_egress": 1
+    },
+    "egress_retried": 2,
+    "egress_recovered": 1
+  },
+  "acceptance": {
+    "passed": true,
+    "notes": []
+  },
+  "results": [
+    {
+      "task_id": "r101",
+      "result": {
+        "task_id": "r101",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "system",
+        "failure_mode": "blocked_by_bot_wall",
+        "evidence": {
+          "final_url": "https://pypi.org/search/?q=flask",
+          "final_title": "Client Challenge",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "pypi\\.org/project/[Ff]lask"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 6,
+          "model_calls": 7,
+          "api_calls": 0,
+          "elapsed_ms": 5757,
+          "final_page": {
+            "url": "https://pypi.org/search/?q=flask",
+            "title": "Client Challenge",
+            "text_len": 28,
+            "text_sha16": "6f6de3a4062390a7"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r102",
+      "result": {
+        "task_id": "r102",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "system",
+        "failure_mode": "blocked_by_upstream_shell",
+        "evidence": {
+          "final_url": "https://arxiv.org/search/physics?query=Attention+Is+All+You+Need&searchtype=all&abstracts=show&order=-announced_date_first&size=50",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "arxiv\\.org/abs/1706\\.03762"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 32216,
+          "final_page": {
+            "url": "https://arxiv.org/search/physics?query=Attention+Is+All+You+Need&searchtype=all&abstracts=show&order=-announced_date_first&size=50",
+            "title": "",
+            "text_len": 14,
+            "text_sha16": "39ce487272af599e"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r103",
+      "result": {
+        "task_id": "r103",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://stackoverflow.com/questions",
+          "final_title": "Newest Questions - Stack Overflow",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "stackoverflow\\.com/questions/\\d+"
+              },
+              "ok": false,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "slice"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 13313,
+          "final_page": {
+            "url": "https://stackoverflow.com/questions",
+            "title": "Newest Questions - Stack Overflow",
+            "text_len": 2599,
+            "text_sha16": "45d8a6d7b0f703ed"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r104",
+      "result": {
+        "task_id": "r104",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://pubmed.ncbi.nlm.nih.gov/",
+          "final_title": "403",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "pubmed\\.ncbi\\.nlm\\.nih\\.gov/\\d{7,8}"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 0,
+          "model_calls": 1,
+          "api_calls": 0,
+          "elapsed_ms": 6677,
+          "final_page": {
+            "url": "https://pubmed.ncbi.nlm.nih.gov/",
+            "title": "403",
+            "text_len": 13,
+            "text_sha16": "9b5ee969ca96ba0d"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r105",
+      "result": {
+        "task_id": "r105",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://github.com/",
+          "final_title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub · GitHub",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "github\\.com/pytorch/pytorch/releases"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 7883,
+          "final_page": {
+            "url": "https://github.com/",
+            "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub · GitHub",
+            "text_len": 489,
+            "text_sha16": "030b41bd3aa31341"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r106",
+      "result": {
+        "task_id": "r106",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://huggingface.co/ggml-org/Llama-2-7B-GGUF",
+          "final_title": "ggml-org/Llama-2-7B-GGUF · Hugging Face",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/ggml-org/Llama-2-7B-GGUF/?$"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 6845,
+          "final_page": {
+            "url": "https://huggingface.co/ggml-org/Llama-2-7B-GGUF",
+            "title": "ggml-org/Llama-2-7B-GGUF · Hugging Face",
+            "text_len": 836,
+            "text_sha16": "6527fcd973d9e7fb"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r107",
+      "result": {
+        "task_id": "r107",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://news.ycombinator.com/newest",
+          "final_title": "New Links | Hacker News",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "news\\.ycombinator\\.com/newest"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 9799,
+          "arrival_relook_ms": 6265,
+          "final_page": {
+            "url": "https://news.ycombinator.com/newest",
+            "title": "New Links | Hacker News",
+            "text_len": 2752,
+            "text_sha16": "57bbd63dd62b6471"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r108",
+      "result": {
+        "task_id": "r108",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://simple.wikipedia.org/wiki/Photosynthesis",
+          "final_title": "Photosynthesis - Simple English Wikipedia, the free encyclopedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "simple\\.wikipedia\\.org/wiki/Photosynthesis(?![\\w(])"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 6232,
+          "final_page": {
+            "url": "https://simple.wikipedia.org/wiki/Photosynthesis",
+            "title": "Photosynthesis - Simple English Wikipedia, the free encyclopedia",
+            "text_len": 262,
+            "text_sha16": "cc94a18070ed8cb4"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r109",
+      "result": {
+        "task_id": "r109",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.openstreetmap.org/search?query=Zurich&zoom=4&minlon=-114.25781250000001&minlat=9.275622176792112&maxlon=-15.820312500000002&maxlat=58.7682001592396#map=4/38.03/-49.66",
+          "final_title": "OpenStreetMap",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "openstreetmap\\.org/search\\?query=Zurich"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 5524,
+          "final_page": {
+            "url": "https://www.openstreetmap.org/search?query=Zurich&zoom=4&minlon=-114.25781250000001&minlat=9.275622176792112&maxlon=-15.820312500000002&maxlat=58.7682001592396#map=4/38.03/-49.66",
+            "title": "OpenStreetMap",
+            "text_len": 122,
+            "text_sha16": "92c5e79dba01803c"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r110",
+      "result": {
+        "task_id": "r110",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/stable/book/ch04-00-understanding-ownership.html",
+          "final_title": "Understanding Ownership - The Rust Programming Language",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "ch04-00-understanding-ownership"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 5042,
+          "final_page": {
+            "url": "https://doc.rust-lang.org/stable/book/ch04-00-understanding-ownership.html",
+            "title": "Understanding Ownership - The Rust Programming Language",
+            "text_len": 935,
+            "text_sha16": "0b2aef9022c9be95"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r111",
+      "result": {
+        "task_id": "r111",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+          "final_title": "Travel | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "books\\.toscrape\\.com/catalogue/category/books/travel_2/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2432,
+          "final_page": {
+            "url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+            "title": "Travel | Books to Scrape - Sandbox",
+            "text_len": 669,
+            "text_sha16": "f20cd3f14c9ffc45"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r112",
+      "result": {
+        "task_id": "r112",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html",
+          "final_title": "Tipping the Velvet | Books to Scrape - Sandbox",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "books\\.toscrape\\.com/catalogue/tipping-the-velvet_999/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 2841,
+          "final_page": {
+            "url": "https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html",
+            "title": "Tipping the Velvet | Books to Scrape - Sandbox",
+            "text_len": 1319,
+            "text_sha16": "0856901cd9770a8a"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r113",
+      "result": {
+        "task_id": "r113",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://peps.python.org/pep-0008/",
+          "final_title": "PEP 8 – Style Guide for Python Code | peps.python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "peps\\.python\\.org/pep-0008/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 7273,
+          "final_page": {
+            "url": "https://peps.python.org/pep-0008/",
+            "title": "PEP 8 – Style Guide for Python Code | peps.python.org",
+            "text_len": 1779,
+            "text_sha16": "3de4209990d0fde1"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r114",
+      "result": {
+        "task_id": "r114",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.djangoproject.com/en/6.1/intro/tutorial01/",
+          "final_title": "Writing your first Django app, part 1 | Django documentation | Django",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.djangoproject\\.com/en/[0-9.]+/intro/tutorial01"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 7,
+          "model_calls": 8,
+          "api_calls": 0,
+          "elapsed_ms": 13054,
+          "final_page": {
+            "url": "https://docs.djangoproject.com/en/6.1/intro/tutorial01/",
+            "title": "Writing your first Django app, part 1 | Django documentation | Django",
+            "text_len": 1599,
+            "text_sha16": "3c66d08253898020"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r115",
+      "result": {
+        "task_id": "r115",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.python.org/downloads/",
+          "final_title": "Download Python | Python.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "www\\.python\\.org/downloads/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4797,
+          "final_page": {
+            "url": "https://www.python.org/downloads/",
+            "title": "Download Python | Python.org",
+            "text_len": 726,
+            "text_sha16": "c8268e77b3142d15"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r116",
+      "result": {
+        "task_id": "r116",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/stable/cargo/index.html",
+          "final_title": "Introduction - The Cargo Book",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/(?:stable/)?cargo/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 15997,
+          "final_page": {
+            "url": "https://doc.rust-lang.org/stable/cargo/index.html",
+            "title": "Introduction - The Cargo Book",
+            "text_len": 981,
+            "text_sha16": "c44dc8a743ba981c"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r117",
+      "result": {
+        "task_id": "r117",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://en.wikipedia.org/wiki/Photosynthesis",
+          "final_title": "Photosynthesis - Wikipedia",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "en\\.wikipedia\\.org/wiki/Photosynthesis(?![\\w(])"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 5709,
+          "final_page": {
+            "url": "https://en.wikipedia.org/wiki/Photosynthesis",
+            "title": "Photosynthesis - Wikipedia",
+            "text_len": 858,
+            "text_sha16": "3c2c7ebdb6846066"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r119",
+      "result": {
+        "task_id": "r119",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://huggingface.co/google-bert/bert-base-uncased",
+          "final_title": "google-bert/bert-base-uncased · Hugging Face",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "huggingface\\.co/google-bert/bert-base-uncased"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 7293,
+          "final_page": {
+            "url": "https://huggingface.co/google-bert/bert-base-uncased",
+            "title": "google-bert/bert-base-uncased · Hugging Face",
+            "text_len": 1374,
+            "text_sha16": "d87cbd8f52331611"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r120",
+      "result": {
+        "task_id": "r120",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://httpbin.org/post",
+          "final_title": "",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "httpbin\\.org/post"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "jev"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 3,
+          "model_calls": 4,
+          "api_calls": 0,
+          "elapsed_ms": 4357,
+          "final_page": {
+            "url": "https://httpbin.org/post",
+            "title": "",
+            "text_len": 1354,
+            "text_sha16": "72b6f03d1d7273e5"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r121",
+      "result": {
+        "task_id": "r121",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.selenium.dev/downloads/",
+          "final_title": "Downloads | Selenium",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "www\\.selenium\\.dev/downloads/"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5808,
+          "final_page": {
+            "url": "https://www.selenium.dev/downloads/",
+            "title": "Downloads | Selenium",
+            "text_len": 858,
+            "text_sha16": "d4568807462143ab"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r122",
+      "result": {
+        "task_id": "r122",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "agent",
+        "failure_mode": "decision",
+        "evidence": {
+          "final_url": "https://www.rfc-editor.org/",
+          "final_title": "RFC Editor",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "www\\.rfc-editor\\.org/rfc/rfc9110"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 4,
+          "model_calls": 5,
+          "api_calls": 0,
+          "elapsed_ms": 10573,
+          "final_page": {
+            "url": "https://www.rfc-editor.org/",
+            "title": "RFC Editor",
+            "text_len": 1268,
+            "text_sha16": "03097e2cc6ac81d4"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r123",
+      "result": {
+        "task_id": "r123",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://numpy.org/doc/stable/user/absolute_beginners.html",
+          "final_title": "NumPy: the absolute basics for beginners — NumPy v2.5 Manual",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "numpy\\.org/doc/stable/user/absolute_beginners\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4063,
+          "final_page": {
+            "url": "https://numpy.org/doc/stable/user/absolute_beginners.html",
+            "title": "NumPy: the absolute basics for beginners — NumPy v2.5 Manual",
+            "text_len": 1335,
+            "text_sha16": "fdedb69f930639c1"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r124",
+      "result": {
+        "task_id": "r124",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://numpy.org/doc/stable/reference/index.html",
+          "final_title": "NumPy reference — NumPy v2.5 Manual",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "numpy\\.org/doc/stable/reference/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3946,
+          "final_page": {
+            "url": "https://numpy.org/doc/stable/reference/index.html",
+            "title": "NumPy reference — NumPy v2.5 Manual",
+            "text_len": 965,
+            "text_sha16": "0bd58248051813e2"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r125",
+      "result": {
+        "task_id": "r125",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://numpy.org/doc/stable/building/index.html",
+          "final_title": "Building from source — NumPy v2.5 Manual",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "numpy\\.org/doc/stable/building/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3987,
+          "final_page": {
+            "url": "https://numpy.org/doc/stable/building/index.html",
+            "title": "Building from source — NumPy v2.5 Manual",
+            "text_len": 1494,
+            "text_sha16": "5093c8d255c622c0"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r126",
+      "result": {
+        "task_id": "r126",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/lang.html",
+          "final_title": "Query Language Understood by SQLite",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4729,
+          "final_page": {
+            "url": "https://www.sqlite.org/lang.html",
+            "title": "Query Language Understood by SQLite",
+            "text_len": 1342,
+            "text_sha16": "4c679e7564bb0a35"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r127",
+      "result": {
+        "task_id": "r127",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/lang_select.html",
+          "final_title": "SELECT",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/lang_select\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3272,
+          "final_page": {
+            "url": "https://www.sqlite.org/lang_select.html",
+            "title": "SELECT",
+            "text_len": 275,
+            "text_sha16": "8922fb129d05734c"
+          },
+          "egress_retry": {
+            "attempts": 2,
+            "first_err": "ERR_SSL_PROTOCOL_ERROR",
+            "recovered": true
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r128",
+      "result": {
+        "task_id": "r128",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://www.sqlite.org/faq.html",
+          "final_title": "SQLite Frequently Asked Questions",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/faq\\.html"
+              },
+              "ok": true,
+              "note": null
+            },
+            {
+              "clause": {
+                "type": "text_contains",
+                "value": "Frequently Asked"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2691,
+          "final_page": {
+            "url": "https://www.sqlite.org/faq.html",
+            "title": "SQLite Frequently Asked Questions",
+            "text_len": 2340,
+            "text_sha16": "dc74fda24291d266"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r129",
+      "result": {
+        "task_id": "r129",
+        "result": "FAIL",
+        "quadrant": "correct_abandon",
+        "failure_class": "system",
+        "failure_mode": "blocked_by_egress",
+        "evidence": {
+          "final_url": "chrome-error://chromewebdata/",
+          "final_title": "www.sqlite.org",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "sqlite\\.org/json1\\.html"
+              },
+              "ok": false,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3896,
+          "final_page": {
+            "url": "chrome-error://chromewebdata/",
+            "title": "www.sqlite.org",
+            "text_len": 83,
+            "text_sha16": "7806091bd2a55e2c",
+            "err": "ERR_SSL_PROTOCOL_ERROR"
+          },
+          "egress_retry": {
+            "attempts": 2,
+            "first_err": "ERR_SSL_PROTOCOL_ERROR",
+            "recovered": false
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r130",
+      "result": {
+        "task_id": "r130",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/cargo/reference/index.html",
+          "final_title": "Cargo Reference - The Cargo Book",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/cargo/reference/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2481,
+          "final_page": {
+            "url": "https://doc.rust-lang.org/cargo/reference/index.html",
+            "title": "Cargo Reference - The Cargo Book",
+            "text_len": 1047,
+            "text_sha16": "dde32bd90fbaf7d6"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r131",
+      "result": {
+        "task_id": "r131",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/cargo/getting-started/first-steps.html",
+          "final_title": "First Steps with Cargo - The Cargo Book",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/cargo/getting-started/first-steps\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3386,
+          "final_page": {
+            "url": "https://doc.rust-lang.org/cargo/getting-started/first-steps.html",
+            "title": "First Steps with Cargo - The Cargo Book",
+            "text_len": 1203,
+            "text_sha16": "a2dc7b2c7d00916d"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r132",
+      "result": {
+        "task_id": "r132",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://doc.rust-lang.org/cargo/guide/dependencies.html",
+          "final_title": "Dependencies - The Cargo Book",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "doc\\.rust-lang\\.org/cargo/guide/dependencies\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 2525,
+          "final_page": {
+            "url": "https://doc.rust-lang.org/cargo/guide/dependencies.html",
+            "title": "Dependencies - The Cargo Book",
+            "text_len": 1489,
+            "text_sha16": "815bea2e063375b9"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r133",
+      "result": {
+        "task_id": "r133",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/tutorial/index.html",
+          "final_title": "The Python Tutorial — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/tutorial/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3587,
+          "final_page": {
+            "url": "https://docs.python.org/3/tutorial/index.html",
+            "title": "The Python Tutorial — Python 3.15.0 documentation",
+            "text_len": 2020,
+            "text_sha16": "b0944b17bca948ef"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r134",
+      "result": {
+        "task_id": "r134",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/library/index.html",
+          "final_title": "The Python standard library — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/library/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3638,
+          "final_page": {
+            "url": "https://docs.python.org/3/library/index.html",
+            "title": "The Python standard library — Python 3.15.0 documentation",
+            "text_len": 2003,
+            "text_sha16": "f9bf04d94216941f"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r135",
+      "result": {
+        "task_id": "r135",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/installing/index.html",
+          "final_title": "Installing Python modules — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/installing/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3530,
+          "final_page": {
+            "url": "https://docs.python.org/3/installing/index.html",
+            "title": "Installing Python modules — Python 3.15.0 documentation",
+            "text_len": 2396,
+            "text_sha16": "f91dd76c94281339"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r136",
+      "result": {
+        "task_id": "r136",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/builtins/index.html",
+          "final_title": "Python built-ins reference — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/builtins/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 4292,
+          "final_page": {
+            "url": "https://docs.python.org/3/builtins/index.html",
+            "title": "Python built-ins reference — Python 3.15.0 documentation",
+            "text_len": 1402,
+            "text_sha16": "da31a387e062604a"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r137",
+      "result": {
+        "task_id": "r137",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/howto/index.html",
+          "final_title": "Python HOWTOs — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/howto/index\\.html"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 3505,
+          "final_page": {
+            "url": "https://docs.python.org/3/howto/index.html",
+            "title": "Python HOWTOs — Python 3.15.0 documentation",
+            "text_len": 1019,
+            "text_sha16": "fb24d3f46994d714"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r138",
+      "result": {
+        "task_id": "r138",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://docs.python.org/3/search.html?q=itertools",
+          "final_title": "Search — Python 3.15.0 documentation",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "docs\\.python\\.org/3/search\\.html\\?q=itertools"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 2,
+          "model_calls": 3,
+          "api_calls": 0,
+          "elapsed_ms": 4063,
+          "final_page": {
+            "url": "https://docs.python.org/3/search.html?q=itertools",
+            "title": "Search — Python 3.15.0 documentation",
+            "text_len": 654,
+            "text_sha16": "86ebb04af055832e"
+          }
+        }
+      }
+    },
+    {
+      "task_id": "r139",
+      "result": {
+        "task_id": "r139",
+        "result": "PASS",
+        "quadrant": "true_success",
+        "failure_class": null,
+        "failure_mode": null,
+        "evidence": {
+          "final_url": "https://the-internet.herokuapp.com/dropdown",
+          "final_title": "The Internet",
+          "assertion_trace": [
+            {
+              "clause": {
+                "type": "url_matches",
+                "pattern": "the-internet\\.herokuapp\\.com/dropdown$"
+              },
+              "ok": true,
+              "note": null
+            }
+          ]
+        },
+        "meta": {
+          "steps": 1,
+          "model_calls": 2,
+          "api_calls": 0,
+          "elapsed_ms": 5372,
+          "final_page": {
+            "url": "https://the-internet.herokuapp.com/dropdown",
+            "title": "The Internet",
+            "text_len": 43,
+            "text_sha16": "11ea1d8fd2e252ab"
+          }
+        }
+      }
+    }
+  ]
+}

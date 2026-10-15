@@ -7294,3 +7294,130 @@ n002 同一条，样本换成 `https://developer.mozilla.org`。⇒ 与 #16/#74 
 外加 `git diff --stat` 只该有 **+40 行 insertion**、`git diff | grep '^[+-]## '` 只该出现那一条新 heading。
 **规矩要改的是我自己的动作顺序**：文档结构类改动一律"从 HEAD 取基线 + 只插入 + 立刻用上面的三项计数核对"，
 不写"顺手规范化"的脚本 —— 那类脚本一次就能污染整份文件，而我今晚就是靠 git 基线才收回来的。
+
+## #89 起跑前登记：`r139` 复位后首观测连两次 StalePage —— 先分形状，再谈改码（10-14 深夜）
+
+**已知（每条指得上面的工件）**：连续两批同一行同一签名 ——
+`agent_init_failed_after_cdp_reset: StalePage: Document is navigating`，traceback 都停在
+`jev_ultrafast/agent.py:281`，且该行**没有 trace 目录**（= 判据根本没被跑过，与 #57 的措辞一致）。
+读码确认这不是"只试了一次"：`Agent.__init__` 已付 **2 次完整起点**（`for start in range(2)`，
+第二次 `Browser(url)` 会重走 navigate + readyState + settle），每次内部是 `_observe_start` 的
+**6 次退避、合计 6.0 s** ⇒ 能抛穿 `:281` 就是**两半都耗尽**。
+而 #57 当年用 `m2/probe_init_latency.py` 想复现这个窗口**没复现**（同族 8 页全好、最慢起点 3.05 s），
+所以"把 6 秒改大"从来没有读数依据 —— 今晚只是**多了一个同签名的第二次实例**，不是多了一个原因。
+
+**探针要分开的两种形状（修法不同，所以不许先看耗时）**：
+1. **复位后首观测读不通**：`readyState` 一直不 `complete`，或落在校级错误页（那是 #16/#85/#86 那一族的出口形状，
+   改的是"复位后允许再读一次 + 把 `ERR_*` 带进工件"，**不是**加宽 6 秒）；
+2. **读得通但每拍都被 `Document changed during evaluation` 打断**：页面异步抖动 ⇒ 加宽预算无效，
+   要改的是起点观测认"稳定一拍"。
+   抛出点行号就是这两种形状的分界：`browser.py:600` = "Document is navigating"、
+   `:228` = "Document changed during evaluation"、`:282` = "Page did not settle"。
+
+**形状**：零模型、复用产品自己的 `m1.run_tasks::_reset_cdp` 与 `Agent.__init__`（不另造导航语义）；
+两臂对照 —— 案主 `https://the-internet.herokuapp.com/`（`r139` 的起点域）与兄弟
+`https://docs.python.org/3/`（今晚批里 docs 族一条没掉过这签名）；每臂 6 次
+"完整复位 → 构造 Agent → 记 成功/失败、第几拍、每次 StalePage 的抛出点、墙钟"。
+
+**读法跑之前钉死**：
+- 案主 6 次 **≥3 次失败**且都落在同一抛出点 ⇒ 形状可复现，按 1/2 分支选修法，再走完整验证链；
+- 案主 **6 次全过** ⇒ 复现失败（这已是 #57 那次的重复，第二次）⇒ **不许当场加宽 6 秒**，
+  改记"零模型复现不了批内形状"，下一实验必须带**批上下文**（签名写着 `after_cdp_reset`，
+  那次复位是批里付的，不是探针这次）；
+- 兄弟臂若也失败 ⇒ 说明是"复位后首观测"的通用形状，账记到 #57 那一族，不是 the-internet 的属性。
+
+**只有决定改码才走验证链**：失败测试先行（改前必须红）→ 离线全套 → `r139` 单任务 →
+`scripts/smoke.ps1 -Live`（含 `x001/x002`，纪律③）→ 三轮冻结 19/19 → 一批 50 行（顺带是 L2 的第四个样本）。
+机器锚点实测：单轮冻结 5.8–6 分钟、50 行批 12.1 分钟、tier1 约 1 分钟、tier2 46 秒。
+
+## #89 第一步的读数：**零模型复现不了**（这是第二次了），而且现在知道为什么复现不了（10-14 深夜）
+
+`m2/probe_post_reset_first_observe.py`，两臂 ×6 次"完整复位 → 构造 `Agent`"，零模型：
+| 臂 | 结果 | 耗时 | 落地事实 |
+|---|---|---|---|
+| 案主 `the-internet.herokuapp.com`（`r139`）| **6/6 过**，抛出点 ∅ | 2,791 / 3,812 / 2,798 / 3,693 / 2,799 / 2,846 ms，**中位 2,822.5 ms** | `title='The Internet' text_len=417 actions=27` |
+| 兄弟 `docs.python.org/3/`（`r133`）| **6/6 过** | 2,993–3,996 ms，**中位 3,267 ms** | `title='3.15.0 Documentation' text_len=1605 actions=89` |
+
+**按跑之前钉死的读法执行**：案主 6 次全过 ⇒ **6.0 s 的边界一字不动**（两次实测中位都在 3 秒内，
+最坏 3.996 s，距边界还有 1.5 倍余量 —— 这正是 #57 当年"不许把 6 秒改大"的那条理由的第二次成立）。
+
+**但这次不是白跑：形状被探针的构造条件限定住了，这一点是可复现性的解释**。
+签名写的是 `after_cdp_reset`，探针复现的是"**全新浏览器 + 刚起的 daemon** 上的第一次 init"；
+而批里的顺序是（`logs/ci-1014-2225/batch.log` 逐字）：
+`[browser-lost] r139: Document is navigating -- reset owned CDP, retry once` ——
+也就是说**第一次 init 就死在一个已经背了 37 行会话的浏览器上**，复位后的第二次 init 又死一次。
+探针里没有"背了 37 行的浏览器"这个变量，所以它复现不了 —— **这不是"批里那次不存在"，两批的工件都在**
+（`ci-1014-2119-1014-214129.json` 与 `ci-1014-2225-1014-224810.json` 各一次 `r139`）。
+
+**下一个实验（登记，形状先说清）**：带批上下文的最小复现 ——
+取 `m2/tasks_real_50.jsonl` 的**前 39 行**（`r139` 是第 38 行，`[38/50]` 的出处就是批控制台），
+走真 runner `scripts/run_one.ps1 -TasksFile logs/prefix39.jsonl -Tag p39-<n>`，重复到出现第三次
+`agent_init_failed_after_cdp_reset` 或明确排除为止。这一步买的是**变量**：会话累积 / daemon 状态 /
+复位那次付的位置，三者里到底哪个是必要的。
+生成命令（输入是派生物，不入库，与 #85 那三条实验同处置）：
+`head -n 39 m2/tasks_real_50.jsonl > logs/prefix39.jsonl`。
+机器锚点：批前 39 行 ≈ 10 分钟（50 行整批实测 12.1 分钟）。
+
+## #6 的第一次真核证：逐文件出处**有数了**（10-15 11:0x，`m2/census_file_provenance.py`）
+
+**先纠正一个我自己写下的前提**：我之前说"这台机器上没有上游副本 ⇒ 现在无法逐字节对照"。
+错在半句——上游是**公开仓** `browser-use/jev-ultrafast`（`docs/12-upstream-license.md` 记着这条 URL，#77 就是从那取的 LICENSE），
+所以对照不需要本地副本：**git blob sha 两边同算法**，抓上游的树就能判"同不同"，不必下载内容。
+命令（经 :2080，与 #77 同一条路）写在工具 docstring 里，抓到的树记 `truncated=False`、
+**tree sha `1231850a0bf1a0c0341fe408ef1668dbbfdfac46`、blob 40 个**（10-15 11:0x 取的）。
+
+**结论（对 747 个跟踪文件全量数过，不只源码）**：
+| 类 | 数 | 是哪些 |
+|---|---|---|
+| **与上游今天逐字节相同** | **7** | `jev_ultrafast/__init__.py`、`demo.py`、`questions.py`、`static/app.js`、`static/fixture.html`、`static/index.html`、`static/style.css` |
+| 同路径、内容不同 | **9** | `.env.example`、`.gitignore`、`LICENSE`、`README.md`、`jev_ultrafast/agent.py`、`browser.py`、`model.py`、`snapshot.js`、`pyproject.toml` |
+| 我们独有（sha 不等于任何上游 blob） | **731** | 测试、探针、题集、runner、文档、报告全在这一族里 |
+
+**这一层能说到什么程度（边界写死）**：
+- 那 7 个文件是**上游的、我们一行没改**——这是硬事实（同 sha）。所以 #77 那句"发布要带上游告示"不是礼节问题，是**已成立的事实依赖**。
+- 那 9 个"同路径不同内容"**不能**读成"我们改过上游"：比的是上游**今天**的树，也可能是我们没动、上游后来动了。
+  分开这两种要上游历史（`/commits?path=`），这一步没做，就**不许**在账里写成"我们改了 9 个上游文件"。
+- 反过来说，`agent.py / browser.py / skills.py` 里我们自己的部分（E1/#57/#59/#60/#65/#84a/#85 那一路的形状）
+  与上游无关这一点，现在也有数了：**`skills.py`、`evaluator.py`、`logger.py`、`decider/*`、`step_budget.py`、
+  `decision_validator.py`、`runtime_guard.py`、`policy.py` 全都不在上游树里**（731 那一族）。
+
+**顺带查出来一件更要紧的**（`grep -c Copyright LICENSE` = 1，全文 21 行）：
+我们的 `LICENSE` 只有 `Copyright (c) 2026 chipchipss` 这一条告示，**没有**上游那条；
+上游原文目前只活在 `docs/12-upstream-license.md` 里。#77 当时明写"没动 `LICENSE` 本体"是把形状问题**挂起**了，
+现在 7 个逐字节相同的文件是实测数 ⇒ 这个挂起的决定不再是审美问题。
+**我没有动 `LICENSE`**：把上游告示并进 `LICENSE`、还是加一份 `NOTICE`、还是维持"归档文件跟着快照走"，
+是操作者的决定（三种都能做，成本都在分钟内），决定之前我不替它选。
+
+**工具**：`m2/census_file_provenance.py`（两层：历史形状 + blob 对照；邮箱/版权行**只报数量不印值**）。
+上游树的快照落在**不入库**的 `logs/upstream_tree.json`，重跑命令在 docstring 里；
+要变成可复核工件的话得把它入库或记下 sha——sha 已在本节记下（`1231850a…`）。
+
+## #89 第二步与结论：**不改 6 秒，改的是"死时无工件"这件事**（10-15 11:0x–11:3x）
+
+**带批上下文的两臂**（`logs/prefix38.jsonl` = `m2/tasks_real_50.jsonl` 的前 38 行；`r139` 仍是第 38 行、
+前面每一行都与出事故那两批同序同浏览器谱系）：
+| 臂 | 结果 | `r139` | 非 PASS 行 |
+|---|---|---|---|
+| `reports/p38a-1015-110035.json` | 30/38，`error=0`，`egress_retried=2 / recovered=0` | **PASS**（1 步、5,393 ms、终页 `.../dropdown`，`trace` 在 `logs/p38a-1015-110035/r139.jsonl`）| `r101` 墙 + `r102 r103 r104 r105 r122` decision + `r127` `r129` 双双 `blocked_by_egress` |
+| `reports/p38b-1015-111211.json` | 31/38，`error=0`，`egress_retried=2 / recovered=1` | **PASS** | `r101` 墙 + `r103 r104 r105 r122` decision + **`r102` = `blocked_by_upstream_shell`** + `r129` egress |
+
+**顺手拿到一笔别账的活体见证**：臂 B 的 `r102` 终页是 `title="" / text_len=14 / sha16=39ce4872…`，
+记成 `blocked_by_upstream_shell / system` —— 这是 **#84a 那档第一次在活的批里接住一行**
+（此前只有两半：历史 4 行同 sha 的复算，和"健康批命中 0 行"的反证）。#84a 从此不缺实盘。
+
+**把"为什么是这一行"换成率**（扫全部 296 份入库批报告、9,176 行次）：
+- `agent_init_failed*`（任何签名）= **35 行次 = 0.38%**，95% 区间 [0.3%, 0.5%]（Wilson）；
+- 其中 `StalePage` 在 init 抛穿 = **11 行次**，按行分：`r139` **7 次 / 出现于 42 批 = 16.7%** [8.3%, 30.6%]，
+  `r103` 2/60 = 3.3% [0.9%, 11.4%]，`r140` 与 `r141` 各 1/40 = 2.5%（这两次都在 10-10 同一批 = #57 的案发现场）；
+- `r139` 那 7 次的日期：10-10、10-12、10-13 ×2、10-14 ×3 ⇒ **不是今晚才出现的**，也不是"最近改坏了"。
+
+**判决口径（不夸大也不放松）**：`r139` 的点估计是次高行的 5 倍，但 **Wilson 区间重叠**（[8.3,30.6] vs [0.9,11.4]），
+今晚又补了 0/2 ⇒ **"这一行被偏爱"是未证的倾向**，样本还不够；而两臂与零模型臂都过，
+说明它**不**由"位置"或"起点页"单独决定。按跑之前钉的读法：**6.0 s 边界一字不动**（第三次成立）。
+
+**真正卡住调查的是缺件，不是缺假设**：这一行死的时候**什么都没留下** —— 没有 trace 目录，
+报告里只有一串 traceback 文本（`m1/run_tasks.py` 的异常分支写的 `{"task_id","result":"ERROR","error","traceback"}`），
+所以每次都只能事后猜"当时的浏览器/daemon 是什么状态"。⇒ **#89 的下一刀是仪表，不是修复**：
+init 抛穿那一刻，把一份**有界的浏览器/daemon 诊断**（`:9222` 归属、`/json` 目标数、`readyState` 读数）
+写进行里的 `error_detail`，与 #85 的 `err`、#67 的 step 字段同一族。它不需要故障重现就能被证伪，
+而下一次真死的时候它就是见证。

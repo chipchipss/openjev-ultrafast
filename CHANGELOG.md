@@ -6,6 +6,49 @@
 
 ---
 
+## [#89-measured-#6-provenance-verified] - 2026-10-15 上午（#89 量到底：不改 6 秒；#6 出实测：7 个文件是上游原文）
+
+### #89：`r139` 的 init 抛穿，三种复现全数试完
+
+| 臂 | 结果 |
+|---|---|
+| 零模型（`m2/probe_post_reset_first_observe.py`，复用产品的 `_reset_cdp` + `Agent.__init__`）| 案主 6/6 过（中位 **2,822 ms**）、兄弟 `docs.python.org` 6/6 过（中位 **3,267 ms**）|
+| 带批上下文 ×2（`m2/tasks_real_50.jsonl` 前 38 行，`r139` 仍是第 38 行）| **两臂 `r139` 都 PASS**、`error=0`（`reports/p38a-1015-110035.json` 30/38、`p38b-1015-111211.json` 31/38）|
+| 全仓历史（296 份批报告、9,176 行次）| `agent_init_failed*` = 35 行次 = **0.38%** [0.3%, 0.5%]；其中 `StalePage`@init 11 行次，`r139` 占 **7/42 = 16.7%** [8.3%, 30.6%]，次高 `r103` 2/60 = 3.3% [0.9%, 11.4%] |
+
+**结论两条**：① **6.0 s 的起点退避一字未动** —— 跑之前钉死"复现不了就不许加宽"，这是第三次成立（#57 那次也是）。
+② `r139` 的点估计是次高行的 5 倍，但 **Wilson 区间重叠**、今晚又补 0/2 ⇒ "这一行被偏爱"是**未证的倾向**。
+真正卡住调查的是**缺件**：这一行死时**什么都没留下**（无 trace 目录，报告行只有一串 traceback 文本）
+⇒ **#89 的下一刀是仪表不是修复**：init 抛穿那一刻把有界的浏览器/daemon 诊断写进行里 `error_detail`
+（与 #85 的 `err`、#67 的 step 字段同族），它不需要故障重现就能被证伪，下次真死时它就是见证。
+
+### 顺手拿到 #84a 的实盘见证
+
+臂 B 的 `r102` 终页 `title="" / text_len=14 / sha16=39ce4872…` 记成 `blocked_by_upstream_shell / system`
+—— 这是该档**第一次在活的批里接住一行**（此前只有历史 4 行同 sha 的复算 + "健康批命中 0 行"的反证）。
+
+### #6：逐文件出处从"没核证"变成有实测
+
+我先写下的前提"**没有上游副本 ⇒ 无法逐字节对照**"错了半句：上游是公开仓 `browser-use/jev-ultrafast`，
+抓它的 git 树就能拿 **blob sha** 与本仓 `git ls-files -s` 直接对，不必下载内容
+（tree sha `1231850a…`、40 blob、`truncated=False`）：
+
+- **7 个文件与上游今天逐字节相同**：`jev_ultrafast/__init__.py`、`demo.py`、`questions.py`、`static/` 那四件；
+- **9 个同路径不同内容**（含 `agent.py`、`browser.py`、`model.py`、`snapshot.js`、`LICENSE`、`README.md`…）；
+- **731 个我们独有** —— `skills.py`、`evaluator.py`、`logger.py`、`decider/*`、`step_budget.py`、`decision_validator.py` 全在这族。
+
+**仍不许升级的地方**：那 9 个"不同"里，我们改的与上游后来改的混在一起（比的是今天的树），分开要上游历史。
+但有一件已经被这 7 个数改变性质：`LICENSE` 全文只有 `Copyright (c) 2026 chipchipss` 一条告示
+（`grep -c Copyright LICENSE` = 1），上游原文目前只在 `docs/12-upstream-license.md` 里。
+**我没动 `LICENSE`**：并进 `LICENSE` / 加 `NOTICE` / 让归档文件随快照走，三种都能做、成本在分钟内，
+选择归操作者。工具 `m2/census_file_provenance.py`（两层；邮箱与版权行只报数量不印值）。
+
+跟踪文件 **751**（reports 465 / m2 111 / tests 40 / m4a 36 / `jev_ultrafast` 33 / scripts 30 / 根 17 / docs 9 / m1 8）；
+离线全套 **40 件 / 329 案**（本轮无产品码改动，`#88` 的那次实测仍有效）；产品码 `jev_ultrafast/*` 与 `m1/*` 零改动。
+
+---
+
+
 ## [freeze-round-missing-rows-is-blocked] - 2026-10-14 深夜（#88：冻结轮少行从此判 BLOCKED，不再是绿轮）
 
 ### 为什么这一刀值得存在

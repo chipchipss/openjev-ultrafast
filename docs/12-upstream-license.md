@@ -23,8 +23,25 @@ curl -x http://127.0.0.1:2080 -H "Accept: application/vnd.github.raw" \
 | `/repos` 元数据里的许可 | `{"key":"mit","spdx_id":"MIT","name":"MIT License"}` |
 
 两条独立来源对上（元数据 API 说 MIT，原文首行也是 `MIT License`），所以这份归档不是从网页抄的。
-**没有**核证的事：上游仓库与本仓的**逐文件对应关系**（哪些文件确实来自那次 fork）。仓内文档只说
-"基座 = fork"，没有留下 fork 的 commit；这条留给 #76/#77 之后补，不许在这里替它作证。
+
+**逐文件对应关系：2026-10-15 起有实测了**（`m2/census_file_provenance.py`；比的是上游今天的 git 树，
+tree sha `1231850a0bf1a0c0341fe408ef1668dbbfdfac46`、40 个 blob、`truncated=False`，与本仓
+`git ls-files -s` 的索引 blob sha 逐路径对，两边同一算法 ⇒ 不需要下载内容就能判同不同）：
+
+| 类 | 数 | 是哪批 |
+|---|---|---|
+| 与上游**逐字节相同** | **7** | `jev_ultrafast/__init__.py`、`demo.py`、`questions.py`、`static/app.js`、`static/fixture.html`、`static/index.html`、`static/style.css` |
+| 同路径、内容不同 | **9** | `.env.example`、`.gitignore`、`LICENSE`、`README.md`、`jev_ultrafast/agent.py`、`browser.py`、`model.py`、`snapshot.js`、`pyproject.toml` |
+| 我们独有（sha 不等于任何上游 blob） | **731**（跟踪文件共 747） | 测试、探针、题集、runner、文档、报告 |
+
+**这条实测把两件旧说法的性质改了**：
+1. 「发布要带上游告示」不再只是礼节问题——本仓里确有 7 个文件是上游原文、我们一行没改。
+   而 `LICENSE` 全文 21 行、只有 `Copyright (c) 2026 chipchipss` **一条**告示（`grep -c Copyright LICENSE` = 1），
+   上游原文目前只在本文档里。把告示并进 `LICENSE` / 加 `NOTICE` / 维持"归档文件随快照走"三种都能做，
+   **这个形状选择仍归操作者**（#77 当年挂起的那件事，现在有数垫着了）。
+2. **仍然没核证的**：那 9 个"同路径不同内容"里，哪些是**我们**改的、哪些是**上游后来**改的——
+   比的是上游今天的树，两种事实混在一起，分开要上游历史（`/commits?path=`）。
+   仓内文档也没留下 fork 的 commit。所以"基座 = fork"这句话依旧不许被上面这张表升级成结论。
 
 ## 上游 LICENSE 原文（逐字）
 
