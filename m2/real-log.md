@@ -7483,3 +7483,10 @@ init 抛穿那一刻，把一份**有界的浏览器/daemon 诊断**（`:9222` �
 **没有改写历史、没有 force** —— `2c3248b` 那条写错的标题就这样带着登记记录推出去了，
 这正是"共享历史不许重写"的代价，账要付得看得见。
 推后 `git ls-remote origin refs/heads/main` = `c6f6c4416cc2…` = 本次 HEAD，`git status -sb` 无 ahead。
+
+### push #6（10-15 深夜，操作者"顺手推一下"）
+
+`7f42163..f8bd1f2`（1 条：README 顶部的接手指针）**快进推送**；推前扫新增行：密钥形状 0、第三方邮箱形状 0，
+结构 PII 闸 5/5（README 本身是被扫对象）。推后 `git ls-remote origin refs/heads/main` = `f8bd1f2b1bab…` = 本次 HEAD。
+无改写历史、无 force。桌面那两份文档（交接 / 计划书）**在仓外**，不随快照分发 —— 这条边界已写进 README，
+对外发布时要按硬线重写口径。
