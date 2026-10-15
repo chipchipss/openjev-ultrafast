@@ -6,6 +6,25 @@
 
 ---
 
+## [first-green-ladder-on-the-new-build] - 2026-10-15 午（44/50、fp=0、error=0：新 build 首条绿阶梯，距 L2 一行）
+
+跑的是 `#88 冻结闸 + #89 仪表` 这版码（`reports/ci-1015-1133.json` = **`CI green`**，批报告
+`reports/ci-1015-1133-1015-115203.json`，墙钟 **9.7 分钟** / 预算 14）：
+smoke tier1 **41 件 / 334 案**、tier2 live 5/5（含 `x001/x002` ⇒ 纪律③覆盖到本次 `m1/run_tasks.py` 改动）、
+**冻结三轮全 19/19、fp=0** ⇒ #88 的新闸门在健康链路上**三次不误跳**；
+批 **44 pass / 6 fail / unknown=0 / error=0**、`egress_retried=2 / recovered=2`（sqlite 两行这次都被 #85 接住）、
+批内总步数 89；零云端守住（50 份 trace 的 91 个 step 事件 `text_helper` 全是 `null`）。
+
+没落的 6 行：`r101` = `blocked_by_bot_wall / system`（pypi 的墙）+ `r102 r103 r104 r105 r122` = `decision / agent`，
+**与 b24 达成 45/50 时的那五行一字不差**。`r139` 这次 PASS —— #89 的第三次"当场复现不了"，
+与新仪表并案：它有工件之前不许动预算。
+
+**判据不挪**：预登记写的是 `pass ≥ 45` 才把 L2 换绑到当前 build，这次 44 ⇒ **不换绑，凭证仍属 b24**。
+同时也不许说成"没进步"：当前 build 四个样本 `43 / 42 / 43 / 44`，
+链路正常的行都被重试接住了（这批 2/2 回收），缺口现在只剩**一道墙**。
+
+---
+
 ## [init-failure-gets-a-witness-and-upstream-notice-travels] - 2026-10-15 午（#89 的仪表落地 + 上游告示并进 `LICENSE`）
 
 ### #89：死的时候从此有东西可读
