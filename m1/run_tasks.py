@@ -116,6 +116,41 @@ def _reset_cdp() -> None:
 #: 见 `m2/real-log.md` 的 #34 分解）。49 个断点上"每次都问"最多付 49×2.9≈2.4 分钟，
 #: 而"每次都复位"要付 49×23.6≈19.3 分钟。
 
+def _init_failure_diagnostic(start_url: str, port: int | None = None) -> dict:
+    """#89：`Agent.__init__` 抛穿那一刻还能看见的事实，随那一行进报告。
+
+    为什么要有它：`r139` 一生死了七次（`m2/real-log.md` 的 #89 一节），每次留下的只有
+    `{task_id, result, error, traceback}` 四个键，连 trace 目录都没有（异常发生在 logger 写下
+    任何东西之前）——于是"当时 `:9222` 是谁在听、daemon 面前有几个目标"永远只能猜。
+    这是 #67/#85 那一族（仪器缺字段），不是新类目。
+
+    两条纪律：**永不抛**（一份记录不许改变这一行的结局，否则环境事故会被升级成 runner 事故）；
+    **只记形状与归属**（目标页留 host，正文/查询参数不进可分享工件——#79/#75 同一族）。
+    """
+    from jev_ultrafast.browser import (OWNED_PROFILE_MARKERS, _endpoint_port,  # noqa: WPS433
+                                       _listener_cmdline)
+    out: dict = {"start_url": start_url}
+    p = port if port is not None else _endpoint_port()
+    out["cdp_port"] = p
+    try:
+        cmd = _listener_cmdline(p) or ""
+        out["listener_present"] = bool(cmd)
+        out["listener_owned"] = any(m in cmd for m in OWNED_PROFILE_MARKERS)
+        out["listener_profile"] = next((m for m in OWNED_PROFILE_MARKERS if m in cmd), None)
+    except Exception as e:
+        out["listener_error"] = f"{type(e).__name__}: {e}"
+    try:
+        import urllib.request
+        from urllib.parse import urlparse
+        with urllib.request.urlopen(f"http://127.0.0.1:{p}/json", timeout=3) as resp:
+            targets = json.loads(resp.read().decode("utf-8", "replace"))
+        out["target_count"] = len(targets)
+        out["target_hosts"] = sorted({urlparse(str(t.get("url", ""))).netloc for t in targets})[:8]
+    except Exception as e:
+        out["targets_error"] = f"{type(e).__name__}: {e}"
+    return out
+
+
 def _cdp_healthy() -> bool:
     """问一句"这个自有浏览器还能干净地开一次会话并读到**归静**的文档吗"。
 
@@ -300,6 +335,8 @@ def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dic
                 "result": "ERROR",
                 "error": f"agent_init_failed: {type(e).__name__}: {e}",
                 "traceback": traceback.format_exc(),
+                # #89：死那一刻还能看见的浏览器/daemon 形状（永不抛，见函数文档）
+                "error_detail": _init_failure_diagnostic(start_url),
             }
         print(f"    [browser-lost] {task_id}: {str(e)[:90]} -- reset owned CDP, retry once")
         _reset_cdp()
@@ -313,6 +350,8 @@ def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dic
                 "result": "ERROR",
                 "error": f"agent_init_failed_after_cdp_reset: {type(e2).__name__}: {e2}",
                 "traceback": traceback.format_exc(),
+                # #89：两条出口都要有仪器——只补一条就是 #72 那个坑（一个概念两张表）
+                "error_detail": _init_failure_diagnostic(start_url),
             }
 
     try:

@@ -69,12 +69,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## 对本仓的约束与一件没做的事
+## 对本仓的约束，与两件已经做完的事（2026-10-15）
 
-- 本仓 `LICENSE`（© 2026 chipchipss，MIT）覆盖的是**我们自己写的那部分**；上面这份原文覆盖
-  Runtime 基座。发布（`sdist`/`wheel`/仓库快照）时两者都要在仓里带着走——这也是这份文件存在的理由：
-  原文进了版本库，就不再依赖任何人的记忆。
-- **没动 `LICENSE` 本体**：把上游告示并进 `LICENSE`、还是保留"我们的 LICENSE + 归档文件"这种形状，
-  是发布形态的选择，不是技术活，归操作者定（`pyproject.toml` 的 `license = "MIT"` 两种形状都成立）。
-- `pyproject.toml` 的 `license` 元数据若要对外声明"derived from"，需要的是同一份依据；那条与上面
-  "逐文件对应关系未核证"一起处理，别先写漂亮话。
+- 本仓 `LICENSE` 覆盖的是**我们自己写的那部分**（© 2026 chipchipss）；上面那份原文覆盖 Runtime 基座。
+- **上游告示现在就在 `LICENSE` 正文里**（2026-10-15，操作者授权我定形状）：`LICENSE` 52 行、
+  `grep -c "Copyright (c)"` = 2，尾块的 21 行与上面归档原文**逐字相同**（核对脚本比对过，
+  见 `m2/real-log.md` 的 #6 一节；新 sha1 `7b8c855ab9df109314c065e494ffbe936a335088`）。
+  为什么选"并进 `LICENSE`"而不是只留归档：MIT 的条件句写的是"shall be included in all copies
+  or substantial portions"，而 2026-10-15 的普查实测到 **7 个文件与上游逐字节相同**——
+  "substantial portion" 不再是猜测；`LICENSE` 是打包与快照都会自动带走的那个文件，归档文档不一定。
+- **逐文件对应关系从"没核证"变成"有实测"**（同一节里上面那张表）：7 同 / 9 同路径不同 / 731 独有。
+  仍然**不许**据此对外写"这些文件是我们改的"——比的是上游今天的树，两种事实混着，
+  分开要上游历史（`/commits?path=`），且仓里也没留下 fork 那次 commit。

@@ -6,6 +6,42 @@
 
 ---
 
+## [init-failure-gets-a-witness-and-upstream-notice-travels] - 2026-10-15 午（#89 的仪表落地 + 上游告示并进 `LICENSE`）
+
+### #89：死的时候从此有东西可读
+
+`r139` 一生死七次，每次报告行里只有 `{task_id, result, error, traceback}`，连 trace 目录都没有
+（异常发生在 logger 写下任何东西之前）—— 这是 #67/#85 那一族的"仪器缺字段"，不是新类目。
+`m1/run_tasks.py::_init_failure_diagnostic` 补的就是这一格：init 抛穿那一刻写下
+`cdp_port / listener_present / listener_owned / listener_profile / target_count / target_hosts`。
+三条硬线，每条一案（`tests/test_init_failure_diagnostic.py`，改前 **1/5** ⇒ 改后 **5/5**）：
+**永不抛**（一份记录不许改变那行的结局，否则环境事故会被升级成 runner 事故）；
+**两条 ERROR 出口都要有**（只接一条就是 #72 的"一个概念两张表"）；
+**只记形状**（目标页留 `netloc`，正文与查询参数不进可分享工件，#79/#75 同一族），
+外加一案钉"健康行的成功路径不许出现 `error_detail`"。
+
+**活体见证的形状是故意造出来的**（把 CDP 端口指到没人听的 `:9223`，走产品 `_run_one`）：
+`row keys = ['error','error_detail','result','task_id','traceback']`，
+`error_detail = {start_url…, cdp_port:9223, listener_present:false, listener_owned:false,
+listener_profile:null, targets_error:"URLError: …10061…"}`。
+**这条不是分数读数**，也不许被当成分数——它证明的是仪器在那条路径上真的会被填。
+离线全套 **41 件 / 334 案**全绿（#79 的 PII 闸 5/5 在新 LICENSE 之下重跑过）。
+
+6.0 s 的起点退避**一字未动**：零模型两臂各 6/6 过（中位 2,822 / 3,267 ms）、
+带批上下文两臂 `r139` 都 PASS（`p38a` 30/38、`p38b` 31/38）——"复现不了就不许加宽"这条，第三次成立。
+
+### 上游告示进了 `LICENSE` 正文
+
+`LICENSE` 现在 52 行、两条 `Copyright (c)`，尾块 21 行与 `docs/12-upstream-license.md` 的归档原文
+**逐字相同**（比对脚本核过；新 sha1 `7b8c855ab9df109314c065e494ffbe936a335088`）。
+选"并进 `LICENSE`"而不是只留归档文件的理由是一条实测：普查量到 **7 个文件与上游逐字节相同**，
+于是 MIT 那句"shall be included in all copies or substantial portions"里的"substantial portion"
+不再是猜测，而 `LICENSE` 是打包与快照必然带走的那个文件、归档文档不一定。
+**边界照旧写死**：那 9 个"同路径不同内容"里混着我们改的与上游后来改的，分开要上游历史；
+所以对外仍不许写"这些文件是我们改的"。
+
+---
+
 ## [#89-measured-#6-provenance-verified] - 2026-10-15 上午（#89 量到底：不改 6 秒；#6 出实测：7 个文件是上游原文）
 
 ### #89：`r139` 的 init 抛穿，三种复现全数试完
