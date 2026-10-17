@@ -250,6 +250,25 @@ def first_action_floor(page: dict, goal: str, history: list) -> dict | None:
     candidates = [(i, a) for i, a in candidates if a.get("id") not in tried]
     if not candidates:
         return None
+    # --- t15 起始页盲点击闸 ---
+    # 真实批里 floor 在 github.com 首页点了页脚邮箱披露钮（r105 goal 是 pytorch；
+    # t4 实测该页 DOM 0 个 pytorch 字样，page_changed=false → 模型 BLOCK，1 步收场），
+    # 在 rfc-editor.org 点了 'Subscribe to new RFCs'（n004 goal 是 RFC 9110）——
+    # 两发都是与 goal 零关联的营销/订阅控件。只在**真起始页**（带 start_url 且
+    # history 为空）且 goal 派生得出显著字面量（引号串 / org-repo 标识 / RFC 号，
+    # 全部来自 goal 字面，无新增词表）时，CLICK 候选必须含至少一个显著字面量，
+    # 否则跳过；全部 CLICK 被跳过且无可执行 fill → None（让位模型）。
+    # 词干重叠挡不住 rfc 那一发（'Subscribe to new RFCs' 与 goal 共享词干 'rfc'），
+    # 整串比对才挡得住（'rfc9110' 不是 'subscribetonewrfcs' 的子串）。
+    # 闸不启用面：无显著字面量的 goal（x001 形状）、无 start_url 的页
+    # （test_skills 全部合成页）、非起始拍（有 history）——改前行为逐字不动。
+    # fill/TYPE_TEXT 路径不动：文本必须从 goal 确定性派生（_goal_query），
+    # 天生 goal-relevant —— n004 的 'Find an RFC' 站内搜索路径（实测可行路线）照旧。
+    gate_click = False
+    gate_lits: list[str] = []
+    if not (history or []) and (page.get("start_url") or "").strip():
+        gate_lits = _floor_gate_literals(goal or "")
+        gate_click = bool(gate_lits)
     query = _goal_query(goal or "")
     # 只发**可执行**动作（real-1007 r102/r105 教训）：CLICK 永远可执行；
     # TYPE_TEXT 需 goal 能确定性派生文本；SELECT 需要值语义,floor 给不出 →
@@ -258,10 +277,43 @@ def first_action_floor(page: dict, goal: str, history: list) -> dict | None:
                                  key=lambda ia: _floor_score(ia[1]) + _goal_overlap(ia[1], goal_tokens)):
         kind = action["kind"]
         if kind == "click":
+            if gate_click and not _floor_gate_hit(action, gate_lits):
+                continue                     # 起始页盲点击：跳过，让位模型
             return _decision("CLICK", index, action, "first_action_floor")
         if kind == "fill" and query:
             return _decision("TYPE_TEXT", index, action, "first_action_floor", text=query)
     return None
+
+
+def _floor_gate_literals(goal: str) -> list[str]:
+    """goal 里的显著字面量（goal-literal，无词表）：引号串 / org-repo 标识 / RFC 号。
+
+    比对是 _flat 归一 + 去空格 containment，所以 'RFC 9110' → 'rfc9110'，
+    而 'Subscribe to new RFCs' → 'subscribetonewrfcs' 不含它（9110 钳在中间）——
+    恰好挡住 t15 的第二发病点。长度下限 5：太短的串到处都是，会把闸变死。
+    """
+    out: list[str] = []
+    for m in re.finditer(r"['\"]([^'\"]{2,60})['\"]", goal):
+        out.append(m.group(1))
+    out += _repo_ident_phrases(goal)
+    out += [m.group(0) for m in re.finditer(r"\bRFC[\s-]?\d{3,5}\b", goal, re.I)]
+    seen: set[str] = set()
+    uniq: list[str] = []
+    for p in out:
+        f = _flat(p).replace(" ", "")
+        if len(f) < 5 or f in seen:
+            continue
+        seen.add(f)
+        uniq.append(f)
+    return uniq
+
+
+def _floor_gate_hit(action: dict, lits: list[str]) -> bool:
+    """候选 label/href 是否含任一显著字面量（去空格 containment）。"""
+    hay = _flat((action.get("label") or "") + " " + (action.get("href") or "")).replace(" ", "")
+    if not hay:
+        return False
+    return any(lit in hay for lit in lits)
 
 
 _MAX_FLOOR_STEPS = int(os.environ.get("M18_FLOOR_MAX_STEPS", "3"))
