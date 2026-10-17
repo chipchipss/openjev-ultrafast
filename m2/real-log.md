@@ -7608,3 +7608,35 @@ init 抛穿那一刻，把一份**有界的浏览器/daemon 诊断**（`:9222` �
 
 **边界**：这一刀是**仪器**，不是分数口径；它不许被读成"这批 fp/error 变好了"，
 也不许把空汇总说成"没有静默降级"（空汇总只证明这条路径这次没触发 —— 判据已写进上一节第 5 条）。
+
+## 预登记批的读数：**42/50，CI red，r105 记"未兑现"**（2026-10-17 20:00–20:22，判据 17:3x 预登记不改）
+
+`ci_local.ps1 -Full -Tasks 50`（run3，顺序修复后）：`reports/ci-1017-2000.json` = **passed:false**，
+批报告 `reports/ci-1017-2000-1017-202202.json`。跑的是 t6+t9+t12 这版码。
+
+| 档 | 读数 |
+|---|---|
+| smoke tier1 / tier2 | 44 件套件全绿 / live **4/5**（`n004` FAIL=correct_abandon/decision；同码 4h 前刚 5/5，方差行） |
+| 冻结三轮 | **19/19、19/19、19/19**，fp 全 0（`m1-baseline-1017-2004/-2010/-2015.json`） |
+| 回归批 | **42 pass / 8 fail**、fp=0、error=0、墙钟 **8.5 min**；**判定 red：42 < 43** |
+| 零云端 | 50 份 trace 的 83 个 step 事件 `text_helper` 全 `null` |
+| swallow 通道 | 18 处埋点全程 **0 事件**（通道在真实批里安静 = 无静默降级发生；t13 已注入验证通道本身工作） |
+| `repo_scroll_target` | 全部 50 份 trace **0 次命中** |
+
+**8 行失败**：`r101` pypi 墙（system）+ `r103` 这次 bot 墙 + `r102/r104/r105/r122` decision +
+**新翻 2 行**：`r119`（HF，decision，SAME_BUILD_CHURN 家族——夜间档 5 行翻动之一）+ `r127`（sqlite，
+`blocked_by_egress`——#86 家族，这次 #85 重试没接住）。对 `ci-1015-1204`（44/50）：**GAIN=∅，LOST=r119,r127**。
+
+**判据(3) 兑现判读：`r105` 记"未兑现"**——trace 显示它死在第 1 步：`first_action_floor` 在主页点了
+页脚的 "Open Enter your email"（e13，t4 形状表 E 段记录过的 b16 死胡同），`page_changed=false`，
+模型 BLOCK。agent 从未到达 repo 页，**刀的几何条件（已在 repo 页 + 目标链接在折线下）从未成立**。
+判据(4) 守住：r122/r106 形状 0 开火。fp=0 硬线全程守住。
+
+**判读边界**：42 < 43 = red，**不因 r119/r127 是已知方差家族而改判**；43 的下限是 10-15 的观测值，
+一次 42 不构成改判据的理由。同一批里 tier2 的 `n004` 红（correct_abandon/decision）也照记：同码
+4 小时前 5/5，这是该行的文档化方差，不是回归。
+
+**下一刀的靶子（由批 trace 直接给出，不再猜）**：`r105` 与 `n004` 同族——`first_action_floor` 在
+**主页**盲点击不可达目标（github 页脚邮件匣 / rfc-editor 订阅链接），一步无效后模型 BLOCK。
+t5 普查早就把 first_action_floor 家族列在风险表；t4 形状表已给出去哪量。修复方向：goal-aware 约束
+（地板在起点页只许发与 goal 词面重叠的动作），**先量形状再动**。

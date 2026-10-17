@@ -14,12 +14,12 @@
 | 口径 | 读数 | artifact |
 |---|---|---|
 | **19 题基准(冻结三轮)** | **19 / 19 / 19**,`fp=0`,单轮 5–6 分钟 | `m1-baseline-1011-2251/2258/2304.json` |
-| **真实站 50 题(L2 判据 ≥45)** | **45/50**(`error/crash/unknown=0`、`fp=0`、零云端、与 b20 配对 `LOST=∅`)。**注**：这读数属于 b24 那版码；当前 build 五个读数 `43/42/43/44/44`，两条干净的（`error=0`）**都读 44 且失败集合逐行相同**——差的 1 行是 pypi 的 bot 墙(`system`)；能力侧 5 行与 b24 同组，批内 86 步也与 b24 同数 ⇒ **判据 ≥45 按预登记不放宽，L2 不重新换绑** | `real-1011-b24-ipc58-1011-015958.json`、`ci-1015-1133-1015-115203.json` |
+| **真实站 50 题(L2 判据 ≥45)** | **45/50**(`error/crash/unknown=0`、`fp=0`、零云端、与 b20 配对 `LOST=∅`)。**注**：这读数属于 b24 那版码；当前 build 五个读数 `43/42/43/44/44`，两条干净的（`error=0`）**都读 44 且失败集合逐行相同**——差的 1 行是 pypi 的 bot 墙(`system`)；能力侧 5 行与 b24 同组，批内 86 步也与 b24 同数 ⇒ **判据 ≥45 按预登记不放宽，L2 不重新换绑**（**勘误 2026-10-17 t7 审计**："与 b24 同数"这半句没有工件 —— b24 的报告 `reports/real-1011-b24-ipc58-1011-015958.json` 逐行 `meta.steps` 合计是 **131**，86 只属于 `reports/ci-1015-1204-1015-122424.json`；结论"能力侧同一组五行"由逐行 `failure_modes` 对照支撑，不受这半个数字影响） | `real-1011-b24-ipc58-1011-015958.json`、`ci-1015-1133-1015-115203.json` |
 | **真实站 100 题回归(L3 吞吐)** | 墙钟 **20.7 分钟**、1.96 拍每行、`error=0`、`fp=0`、零云端;分数 **59/100**(基线,低分已按归责拆成四堆) | `real-1011-b33-100-1011-231042.json` |
 | **50 题批的门控墙钟** | 27.8 → **8.2 / 8.7 / 9.5 分钟**(任务间复位改成"先问健康再付钱") | `real-1011-b27/b28/b29-gate*.json` |
 | **3×100 行夜间档(L3 第二档,第一次真跑)** | 三轮 **66 / 69 / 65**,三轮全 `fp=0`、`error=0`,总墙钟 **61.4 分钟**(预算 95);同 build 的行级抖动是 **100 行里只有 5 行反复翻,95 行三轮不动** | `ci-1012-1908.json` + 三份 `nightly-1012-1908-r*.json` |
 | **决策延迟** | 单决策中位 **0.64 s**(本机 2B GGUF,走产品原路) | `m2/probe_wire_parallel.py` 的并发 1 档 |
-| **离线测试** | **41 个套件 / 334 案全绿**（`scripts/smoke.ps1` tier1，2026-10-15 11:2x 实跑，逐件 `n/n passed` 相加；上一版是 22:2x 的 40 件 / 329 案，再往前 39 件 / 321 案、38 件 / 315 案。`reports/smoke-*.json` 只有 -Live 第二级才写，tier1 的证据就是那份逐件输出） | `tests/` |
+| **离线测试** | **43 个套件 / 356 案全绿**（`scripts/smoke.ps1` tier1，2026-10-17 17:5x 实跑，逐件 `n/n passed` 相加；两份留痕：t9 之后 **43 件 / 356 案** = `reports/t10-smoke-tier1.txt`（t10 复跑），t9 之前 **42 件 / 345 案** = `reports/t8-smoke-tier1.txt`（t8 复跑，2026-10-17）；再往前 10-15 11:2x 起 41 件 / 334 案，更早 40 件 / 329 案、39 件 / 321 案、38 件 / 315 案。**数的是入库套件**；本工作树里另有一份未入库的 `tests/test_swallow_followup.py`（t9 的后续刀，13/13），实跑会读到 44 件 / 369 案，它入库后本行与 `MANIFEST.md` 的表要一起改）。`reports/smoke-*.json` 只有 -Live 第二级才写，tier1 的证据就是那份逐件输出） | `tests/` |
 
 **并行不做,是被读数判死的**:并发 1→4 的吞吐 1.55 → 1.58 决策/秒(**加速比 1.02x**),`llama-server --parallel 4` 的槽位没变成吞吐,多开 worker 只会在 wire 前排队。所以 100 题 ≤30 分钟靠串行就已达成(实测 20.7 分钟)。
 
@@ -31,7 +31,7 @@
 
 ```powershell
 .\run_demo.ps1                       # Google Flights 端到端 12.4–14.0s(1007 四次实测,demo-flights-1007-16*.json)
-.\run_demo.ps1 -Task wikipedia       # 另一个 demo(2.1s)
+.\run_demo.ps1 -Task wikipedia       # 另一个 demo(1.35s,2026-10-04 `reports/demo-wikipedia-1004-2043.json`;2026-10-14 两次冷启实跑各 2.67s / 2.65s,记在 `m2/real-log.md` 的 10-14 两节——不是同一次运行,别混引)
 .\run_demo.ps1 -KeepOpen             # 跑完不关浏览器,自己看
 .\run_demo.ps1 -KeepService          # 跑完不关 llama-server + wire(下次省 ~30s 加载)
 ```
@@ -63,7 +63,7 @@ claude mcp add openjev -- python C:\Users\Administrator\openjev-ultrafast\mcp_se
 ### 跑基准与回归
 
 ```powershell
-.\scripts\smoke.ps1                  # 第一级闸门:41 个离线套件必须逐件 n/n 全绿(334 案 @10-15 11:2x)
+.\scripts\smoke.ps1                  # 第一级闸门:43 个离线套件必须逐件 n/n 全绿(356 案 @10-17 17:5x)
 .\scripts\smoke.ps1 -Live            # 第二级:5 题代表族(s005/n004/x001/x002/r142),判据读报告不读控制台
 .\scripts\ci_local.ps1 -Tasks 50                                    # 每改必跑档:smoke → 冻结三轮 → 回归批 → 阈值判定(默认是 50 行口径:MinPass 43 / 墙钟 14 分钟)
 .\scripts\ci_local.ps1 -Tasks 100 -MinPass 59 -MaxWallMinutes 30    # 同档跑 100 行:阈值自己给,且**跑之前先预登记**
@@ -149,7 +149,7 @@ openjev-ultrafast/
 │   │                         probe_*.py(零模型探针)、make_tasks_100.py(题集生成 + 唯一性断言)
 ├── mcp_server.py           # Claude Code / 任意 MCP 客户端入口
 ├── scripts/                # startlux_serve.ps1 / run_one.ps1 / run_task.py / smoke.ps1 / ci_local.ps1 / ci_freeze_gate.ps1 / chrome_guard.ps1
-├── tests/                  # 41 个离线套件(不需要浏览器或模型,334 案 @10-15 11:2x 全绿)
+├── tests/                  # 43 个离线套件(不需要浏览器或模型,356 案 @10-17 17:5x 全绿)
 ├── reports/                # 实测报告入库;逐任务运行产物目录不入库
 ├── docs/                   # 01-hard-rules.md(硬约束全文)、03-milestones.md、00-project-plan.md(L1–L6)
 ├── run_baseline_19.ps1     # 19 题冻结 runner(一任务一进程 + 逐域预检 + 收尾验证)
@@ -158,9 +158,9 @@ openjev-ultrafast/
 
 ## 历史读数与已关闭的线(保留证据,不作当前成绩)
 
-- **与上游 jev-ultrafast 正面对决**(2026-09-27,旧 decider-2B 底座,`reports/upstream-vs-ours.json`):任务级 wall time **3/4 更快、1/4 更慢**;本框架快在决策输入小(延迟 p50 830–1508ms vs 上游 427–7025ms)与死循环收口(n003 上游 60 步崩死 vs 本框架 3 步正确放弃)。诚实边界:n001 本框架多走一层所以更慢;f004 上游完整提交表单而本框架停在表单页。
-- **M1 四路对照**(2026-10-04):decider-2b 裸 13/17、+adapter_m4b 8/15(基线同批 12/15)、Laya 322M 6/18、agent-jev 0.6B 3/18 ⇒ **模型线关闭**;换底座(M8 起用 StartLux)不等于重开模型线。
-- **训练线关闭**:M4a 951 行 → 6/20、M4b 655 行 → 8/15,两次自训无增益。关闭时写下的方向性修正(确定性求解器 + 环境验证轨迹 + 任务族扩充)在生态项目 jeva 那里有完整实现,若重启先抄它。
+- **与上游 jev-ultrafast 正面对决**(2026-09-27,旧 decider-2B 底座,`reports/upstream-vs-ours.json`):任务级 wall time **3/4 更快、1/4 更慢**;本框架快在决策输入小(延迟 p50 **613–1508ms** vs 上游 427–7025ms;区间取自 `reports/upstream-vs-ours.json` 四条记录的 `decision_lat_p50` 逐值 1508/830/987/**613**,2026-10-17 t7 审计改正——原写 830–1508ms 漏了 f004 那条 613ms)与死循环收口(n003 上游 60 步崩死 vs 本框架 3 步正确放弃)。诚实边界:n001 本框架多走一层所以更慢;f004 上游完整提交表单而本框架停在表单页。
+- **M1 四路对照**(2026-10-04):decider-2b 裸 13/17、+adapter_m4b **8/18**(基线同批 15 任务里 12 PASS)、Laya 322M 6/18、agent-jev 0.6B 3/18 ⇒ **模型线关闭**;换底座(M8 起用 StartLux)不等于重开模型线。(**勘误 2026-10-17 t7 审计**:原写 "8/15" 是引用错工件——8 是通过数、15 是基线那批的任务数,被引的 `reports/m1-adapter_m4b-1004-1505.json` 逐字 `{total:18,pass:8,fail:7,error:3}`;错误留痕不静默改,结论不变。)
+- **训练线关闭**:M4a 951 行 → 6/20、M4b 655 行 → **8/18**(`reports/m1-adapter_m4b-1004-1505.json` 的 `summary.total=18`;原写 8/15 系引用错工件,勘误同上一行),两次自训无增益。关闭时写下的方向性修正(确定性求解器 + 环境验证轨迹 + 任务族扩充)在生态项目 jeva 那里有完整实现,若重启先抄它。
 - **M2 数据飞轮**:500 任务轮 309 true_success / 79 correct_abandon / 243 preference pair,验收通过;其唯一产出是训练数据,随训练线关闭而暂停。其中 8 条被旧评估器标为 false_positive 的记录属误标(发生在 DoneGuard 与象限修正之前),不构成硬线反证。
 - **云端口径更正(2026-10-08)**:10-08 Fix N 之前三个入口脚本把 Text Helper 指向云端 Groq,历史 baseline 里实测 56 次云端供值;Fix N 起 helper 默认本机 :8081,此后每轮 `text_helper` 只出现 `null`(技能供值)或本地模型名。基线实测里 helper 几乎不触发——大部分任务的填值由技能层从 goal 字面直接取。
 
@@ -186,9 +186,9 @@ openjev-ultrafast/
 
 ## 平替水平的证据口径(对外声明时请注意)
 
-本仓库的定位是 **jev-ultrafast 的开源平替**(全本地、模型无关、可观测)。这个定位**当前 build 还没有对照证据**:唯一一份正面对决 `reports/upstream-vs-ours.json` 的时间戳是 **2026-09-27**,跑在旧 decider-2B 底座、4 个任务上(结论:任务级 wall time 3/4 更快、1/4 更慢)。现役底座是 StartLux-Decision-2B,题集已扩到 100 行真实站 ⇒ **那份读数不能当作今天的平替水平证明**,引它时必须带上日期与底座差异。补齐这份对照**已经不做，而且不是"等凭据"**：本机没有任何可用的 `TYPESAFE_API_KEY`（`.env` 里那个键的值就是 `local` 占位，长度 5，18:1x 实测），2026-10-13 由用户裁定「#76我没有TYPESAFE_API_KEY，这个就不做了」⇒ #76 关闭为 **won't-do**，正面对照不会再跑。结论口径因此写死：**"近似前者水平"这句话永远不能对外声明**（不是"暂未证明"，是"这条测量路线已被取消"）；能对外写的只有两条：定位 = 全本地、模型无关、可观测的开源实现；免费 API 小模型这一半有读数（见下一段，`freecloud-*`，非零云端、单独隔离、不替 #76 作证）。登记在 `m2/real-log.md` 与 #76。
+本仓库的定位是 **jev-ultrafast 的开源平替**(全本地、模型无关、可观测)。这个定位**当前 build 还没有对照证据**:唯一一份正面对决 `reports/upstream-vs-ours.json` 的时间戳是 **2026-09-27**,跑在旧 decider-2B 底座、4 个任务上(结论:任务级 wall time 3/4 更快、1/4 更慢)。现役底座是 StartLux-Decision-2B,题集已扩到 100 行真实站 ⇒ **那份读数不能当作今天的平替水平证明**,引它时必须带上日期与底座差异。补齐这份对照**已经不做，而且不是"等凭据"**：本机没有任何可用的 `TYPESAFE_API_KEY`（**.env 里现在已无 `TYPESAFE_API_KEY` 这一行**，2026-10-17 t7 审计实测：`Select-String TYPESAFE .env` 命中 0；10-13 18:1x 当时的读数是"值长 5 的 `local` 占位"，那条记录留在 `m2/real-log.md`，#76 的 won't-do 结论不依赖这半个数字），2026-10-13 由用户裁定「#76我没有TYPESAFE_API_KEY，这个就不做了」⇒ #76 关闭为 **won't-do**，正面对照不会再跑。结论口径因此写死：**"近似前者水平"这句话永远不能对外声明**（不是"暂未证明"，是"这条测量路线已被取消"）；能对外写的只有两条：定位 = 全本地、模型无关、可观测的开源实现；免费 API 小模型这一半有读数（见下一段，`freecloud-*`，非零云端、单独隔离、不替 #76 作证）。登记在 `m2/real-log.md` 与 #76。
 
-**可插拔两层都是代码级的**(10-13 18:3x 逐条核注册表;我上一段把它写窄了,纠正在 `m2/real-log.md` 的 #80 那节):`jev_ultrafast/decider/provider.py` 注册的决策 provider 是 `{agentjev, laya, laya_decider, openai, typesafe}` —— 其中 **`DECIDER_MODE=openai` 就是 chat→decision 的适配器**(`decider/choose_2b.py`:`post_chat` + `response_format=json_object` + 解析后校验重试,base_url / model / api_key 全走环境变量),未知模式大声失败(实测 `ValueError: unknown provider: …` 并列出已注册的名字);Text Helper 层同理,`scripts/text_helper.ps1` 里 groq / deepseek 两个云端分支必须显式提名且各自打 `$Cloud` 标记。⇒ "换一个免费 API 小模型"是配置级改动,**不需要写代码;缺的是读数**:这条决策线此前只有 `choose_2b.py` 末尾那节 mock `post_chat` 的离线 smoke。**读数今晚拿到了**(18:39–19:0x,`m2/freecloud_report.py` 只读产物,`DECIDER_MODE=openai` 打 Groq 免费档跑同一把 19 行冻结集,Text Helper 一律留本地 —— 只让一个变量出本机):**20B=18/19、120B=17/19,`false_positive=0` 两臂都守住**,本地 2B 的锚是 19/19;决策延迟中位 0.64 s → **1.94 / 2.06 s**;7B 那条臂被免费档 **429 掐死**(90 次 429 重试、15 分钟只走完 3 行,没有 report ⇒ BLOCKED,不是读数)。**共同掉的那一行 l001 不是模型弱**:提示词(`prompts/next_action.txt:21`)无条件承诺 `SCROLL_DOWN/SCROLL_UP`,而校验器(`decider/choose_2b.py:217`)只认本页真存在的操作 —— 两臂因此被拒收 11 / 5 次。**#82 已修**（19:2x：静态 Rules 改为指向当页 Available operations；同一把题集同一底座重跑：那类拒收 **11 → 0**，l001 从 9 步降到 2 步，`pass` 仍是 18/19、`fp=0`，本地冻结照旧 19/19）⇒ 现在可以写的是"免费 20B = 18/19、120B = 17/19、`fp=0`"，剩下那一行差距是干净的能力读数（l001：长页上不选滚动控件就弃权），不再是接口污染。这三份 `freecloud-*` 报告不是零云端、不是 L4 冻结锚,也不替 #76 作证(口径写死在 `m2/real-log.md`)。唯一**没有**现成路的是付费上游 `typesafe` 那条:本机没有它的凭据,并且 2026-10-13 已按用户裁定关闭为 won't-do —— 这条对照不会再跑,所以本段所有免费档读数都**不**用来主张"平替水平"。
+**可插拔两层都是代码级的**(10-13 18:3x 逐条核注册表;我上一段把它写窄了,纠正在 `m2/real-log.md` 的 #80 那节):`jev_ultrafast/decider/provider.py` 注册的决策 provider 是 `{agentjev, laya, laya_decider, openai, typesafe}` —— 其中 **`DECIDER_MODE=openai` 就是 chat→decision 的适配器**(`decider/choose_2b.py`:`post_chat` + `response_format=json_object` + 解析后校验重试,base_url / model / api_key 全走环境变量),未知模式大声失败(实测 `ValueError: unknown provider: …` 并列出已注册的名字);Text Helper 层同理,`scripts/text_helper.ps1` 里 groq / deepseek 两个云端分支必须显式提名且各自打 `$Cloud` 标记。⇒ "换一个免费 API 小模型"是配置级改动,**不需要写代码;缺的是读数**:这条决策线此前只有 `choose_2b.py` 末尾那节 mock `post_chat` 的离线 smoke。**读数今晚拿到了**(18:39–19:0x,`m2/freecloud_report.py` 只读产物,`DECIDER_MODE=openai` 打 Groq 免费档跑同一把 19 行冻结集,Text Helper 一律留本地 —— 只让一个变量出本机):**20B=18/19、120B=17/19,`false_positive=0` 两臂都守住**,本地 2B 的锚是 19/19;决策延迟中位 0.64 s → **1.94 / 2.06 s**;7B 那条臂被免费档 **429 掐死**(90 次 429 重试、15 分钟只走完 3 行,没有 report ⇒ BLOCKED,不是读数)。**共同掉的那一行 l001 不是模型弱**:提示词(`jev_ultrafast/prompts/next_action.txt` 的 Rules 段,**改前**第 21 行无条件承诺 `SCROLL_DOWN/SCROLL_UP`)而校验器(`jev_ultrafast/decider/choose_2b.py` 的 `post_chat` 校验分支)只认本页真存在的操作 —— 两个行号都按符号引,因为 #82 之后两边行号都移过;按符号找:`next_action.txt` 的 "operation is one of the operations listed under 'Available operations'" 与 `choose_2b.py` 的 `unknown operation` 拒收分支 —— 两臂因此被拒收 11 / 5 次。**#82 已修**（19:2x：静态 Rules 改为指向当页 Available operations；同一把题集同一底座重跑：那类拒收 **11 → 0**，l001 从 9 步降到 2 步，`pass` 仍是 18/19、`fp=0`，本地冻结照旧 19/19）⇒ 现在可以写的是"免费 20B = 18/19、120B = 17/19、`fp=0`"，剩下那一行差距是干净的能力读数（l001：长页上不选滚动控件就弃权），不再是接口污染。这三份 `freecloud-*` 报告不是零云端、不是 L4 冻结锚,也不替 #76 作证(口径写死在 `m2/real-log.md`)。唯一**没有**现成路的是付费上游 `typesafe` 那条:本机没有它的凭据,并且 2026-10-13 已按用户裁定关闭为 won't-do —— 这条对照不会再跑,所以本段所有免费档读数都**不**用来主张"平替水平"。
 
 ## License
 

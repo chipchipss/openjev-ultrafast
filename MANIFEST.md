@@ -23,19 +23,21 @@ git ls-files | Measure-Object -Line                       # 跟踪文件总数
 git ls-files | ForEach-Object { ($_ -split '/')[0] } | Group-Object | Sort-Object Count -Descending
 ```
 
-**清点快照**（2026-10-14 傍晚第十六次，`git ls-files` 实测；第十三次那次编辑留下过**两张重复的表**，已真删成一张 —— 同一份清单抄两遍正是本仓文档最反对的形状）：跟踪文件 **716**（10-14 一天里 661 → 679 → 694 → 705 → 716）。
+**清点快照**（2026-10-17 第十八次，`git ls-files | Measure-Object -Line` 实测，`0f90df7` = 788；第十七次是 t7 审计在 `ba37d77` 上量到的 764 —— 那次之后落了 t4/t6/t9 的探针、两套测试与两份 smoke 工件，所以本行跟着命令走，不跟着记忆走）：跟踪文件 **788**（10-14 一天里 661 → 679 → 694 → 705 → 716；10-15 起 716 → 751 → 752 → 758 → 764 → 788）。
 
 | 顶层 | 跟踪文件 | 是什么 |
 |---|---|---|
-| `reports` | 477 | 实测报告，全部入库（逐任务的 step/decision jsonl 在 `logs/`，不入库，见 `.gitignore`） |
-| `m2` | 111 | 真实站题集与测量工具：`tasks_real_100.jsonl`、**`tasks_real_50.jsonl`（#75 那天从 `%TEMP%` 钉进仓：50 行档的闸门一直读一份从未入库的 temp 题集）**、`batch_audit.py`、`b40_audit.py`、`smoke_tasks.py`、`smoke_gate.py`、`make_release_snapshot.py`（#79 的无历史发布快照）、Tier 3 的三件对照工具（`probe_tier3_corpus.py` 采语料、`golden_tier3.py` 逐字节摘要、`replay_two_builds.py` 判「是我还是站点」）、`tier3_batch_audit.py`、**`arrival_digest_scan.py`（#84 的阈值来自这里：扫所有带 `final_page` 摘要的 `task_result`）**、**#85 的两件：`probe_sqlite_reachability.py`（目标页单飞双臂可达性）与 `probe_sqlite_batch_context.py`（复现批内顺序并抓出 `ERR_SSL_PROTOCOL_ERROR`）**、**#46 的两件：`probe_r113_scroll_ladder.py`（逐格往下滚、每格当场重放地板，量出近似行劫持发生在哪一页）与 `probe_near_miss_tier_attribution.py`（186 页 × 71 次非弃权命中的档位分布，词重叠档 0 次）**、探针（**探针一个不删**） |
+| `reports` | 480 | 实测报告，全部入库（逐任务的 step/decision jsonl 在 `logs/`，不入库，见 `.gitignore`） |
+| `m2` | 130 | 真实站题集与测量工具：`tasks_real_100.jsonl`、**`tasks_real_50.jsonl`（#75 那天从 `%TEMP%` 钉进仓：50 行档的闸门一直读一份从未入库的 temp 题集）**、`batch_audit.py`、`b40_audit.py`、`smoke_tasks.py`、`smoke_gate.py`、`make_release_snapshot.py`（#79 的无历史发布快照）、Tier 3 的三件对照工具（`probe_tier3_corpus.py` 采语料、`golden_tier3.py` 逐字节摘要、`replay_two_builds.py` 判「是我还是站点」）、`tier3_batch_audit.py`、**`arrival_digest_scan.py`（#84 的阈值来自这里：扫所有带 `final_page` 摘要的 `task_result`）**、**#85 的两件：`probe_sqlite_reachability.py`（目标页单飞双臂可达性）与 `probe_sqlite_batch_context.py`（复现批内顺序并抓出 `ERR_SSL_PROTOCOL_ERROR`）**、**#46 的两件：`probe_r113_scroll_ladder.py`（逐格往下滚、每格当场重放地板，量出近似行劫持发生在哪一页）与 `probe_near_miss_tier_attribution.py`（186 页 × 71 次非弃权命中的档位分布，词重叠档 0 次）**、探针（**探针一个不删**） |
 | `m4a` | 36 | M4a/M4b 本地训练线，**已关闭**（两次自训无增益） |
 | `jev_ultrafast` | 33 | 主包：`agent.py` / `browser.py` / `snapshot.js` / `skills.py` / `evaluator.py` / `decider/`（含 `choose_2b.py` 这条 chat→decision 线） |
 | `scripts` | 30 | `startlux_serve.ps1`、`run_one.ps1`（零云端单题/批）、`run_freecloud_19.ps1`（#80 的云端决策实验）、`smoke.ps1`、`ci_local.ps1`、`chrome_guard.ps1`、`ci_local.ps1` 的冻结档判据 `ci_freeze_gate.ps1`（#88：行数不足 ⇒ BLOCKED，纯函数所以能拿已入库的报告直接喂）、`text_helper.ps1`（**云端 URL 只在这一个文件里拼写**） |
-| `tests` | 41 | 离线套件 **41 件 / 334 案全绿**（`scripts/smoke.ps1` tier1 逐件 `n/n passed` 相加，2026-10-15 11:2x 实跑；上一版是 22:2x 的 40 件 / 329 案）；含 `test_init_failure_diagnostic.py`（#89 的仪表：永不抛、两条 ERROR 出口都要有、目标页只留 host、健康行不许被污染，改前 1/5 ⇒ 改后 5/5）、含 `test_ci_freeze_gate.py`（#88：冻结档少行必须 BLOCKED，五案钉形状 + 一案当反向守卫（不许顺手改阈值）+ 两份已入库报告作见证，改前 3/8 ⇒ 改后 8/8）、含 `test_egress_retry.py`（#85 第二刀的四条硬线：无码不重跑、只一次、PASS 永不碰、痕迹穿白名单）；含 `test_explicit_target_near_miss.py`（#46：两页真实快照的形状，改前 3/5 ⇒ 改后 5/5）；含 `test_evaluator_arrival_shell.py`（#84a 的新档，正样本是 1066 行摘要里那 4 行同 sha 的 arXiv 空壳）、 `test_stuck_counters.py`（#83 的仪表，两条案专测「跨题按住」）、 `test_no_third_party_pii.py`（#79 的结构闸）、`test_task_id_uniqueness.py`（#81）、`test_prompt_operation_vocabulary.py`（#82）、`test_evaluator_app_error.py`（#78） |
+| `tests` | 43 | 离线套件 **43 件 / 356 案全绿**（`scripts/smoke.ps1` tier1 逐件 `n/n passed` 相加，2026-10-17 17:5x 实跑；两份留痕：t9 之后 **43 件 / 356 案** = `reports/t10-smoke-tier1.txt`、t9 之前 **42 件 / 345 案** = `reports/t8-smoke-tier1.txt`；再往前 10-15 11:2x 起 41 件 / 334 案。数的是**入库**套件；工作树里未入库的 `tests/test_swallow_followup.py`（13/13）会让实读变 44/369，入库后本表同步）；含 `test_init_failure_diagnostic.py`（#89 的仪表：永不抛、两条 ERROR 出口都要有、目标页只留 host、健康行不许被污染，改前 1/5 ⇒ 改后 5/5）、含 `test_ci_freeze_gate.py`（#88：冻结档少行必须 BLOCKED，五案钉形状 + 一案当反向守卫（不许顺手改阈值）+ 两份已入库报告作见证，改前 3/8 ⇒ 改后 8/8）、含 `test_egress_retry.py`（#85 第二刀的四条硬线：无码不重跑、只一次、PASS 永不碰、痕迹穿白名单）；含 `test_explicit_target_near_miss.py`（#46：两页真实快照的形状，改前 3/5 ⇒ 改后 5/5）；含 `test_evaluator_arrival_shell.py`（#84a 的新档，正样本是 1066 行摘要里那 4 行同 sha 的 arXiv 空壳）、 `test_stuck_counters.py`（#83 的仪表，两条案专测「跨题按住」）、 `test_no_third_party_pii.py`（#79 的结构闸）、`test_task_id_uniqueness.py`（#81）、`test_prompt_operation_vocabulary.py`（#82）、`test_evaluator_app_error.py`（#78） |
 | `m1` | 8 | 19 题基准 runner 与题集（`tasks-laya-19.jsonl`）+ 100 行题集生成器 |
 | `docs` | 9 | `00-project-plan.md`（L1–L6 权威）、`01-hard-rules.md`、`03-milestones.md`、`09/10/11`、`12-upstream-license.md`（上游 MIT 原文归档） |
 | `根目录` | 17 | `README.md`、`CHANGELOG.md`、`LICENSE`、本文件、`pyproject.toml`、若干 `run_*.ps1`（多数是已关闭训练线的入口） |
+| `specs` | 1 | `task.schema.json`（任务题面的 schema；t7 审计发现它在表外，2026-10-17 补行） |
+| `config` | 1 | `no_benchmark_domains.txt`（基准排除域名单；t7 审计发现它在表外，2026-10-17 补行） |
 
 ## `reports/` 的命名规则（数字必须能这样对回去）
 

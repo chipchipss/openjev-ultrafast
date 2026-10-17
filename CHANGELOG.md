@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 > 本文件记录项目的**阶段级**与**约束级**变更。
 > 单文件代码变更由 git log 记录。
@@ -43,6 +43,22 @@
 3. 浏览器归属：连接侧与 kill 侧都只许动 `chrome-cdp-test` / `chrome-jev-profile` 两个自有画像，fail closed 不许 fallback。
 4. 不许提交带凭据的文件；第三方 PII 只记形状/数量/来源，绝不记值。
 5. git 历史里仍有第三方上传标识 ⇒ 对外发布只能走无历史快照，且发布说明必须写"git clone 的读者会看到旧标识"，不许写成"仓库已干净"。
+
+---
+
+## [goal-aware-floor-instrument-and-first-red-reading] - 2026-10-17 深夜（t12+ CI 顺序修复 + 首条 42/50 red 读数）
+
+### t12：6 处静默降级埋点 + runner 接线（t13 评审 PASS）
+
+`skills.py:2336` `skill_raised:<skill>`（**#59 误归因通道**——技能抛错不再被读成"模型决策"）、`agent.py:210` `done_guard_rule6_failed`（安全相邻）、`explicit_target_*_host_failed` ×2、`form_submit_query_failed`、`decision_validator_crashed` —— 全走 t9 的 `record_swallow()` 通道。runner 接线：`m1/run_tasks.py` 抽出 `_task_meta()`，`meta['swallow']=swallow_summary()` 经 `evaluator._meta` 进入 `reports/*.json`（稀疏）。验证：RED 2/13 → 13/13；smoke 44 套件；`_task_meta` 与改前内联逻辑**逐字节等价**（t13 用 `git show HEAD:` 重实现比对）。
+
+### CI 顺序修复（仪器，不改判据）
+
+`ci_local.ps1` 的 tier 2 原先排在第一轮栈启动之前——冷栈必死（`wire :8090 is not listening`），10-15 两条绿阶梯全靠当时有驻留栈。修正：先起栈再 tier 2。只动顺序，阈值/判据/门槛零变更。
+
+### 首条 red 读数：**42/50**（预登记 43，r105 记"未兑现"）
+
+`reports/ci-1017-2000.json` passed:false。冻结 19/19×3、fp=0、error=0、墙钟 8.5 min、零云端、swallow 通道 0 事件。GAIN=∅ LOST=r119,r127（均为已记录方差家族）。**`repo_scroll_target` 全批 0 次开火**：r105 死在主页地板盲点击（e13 页脚邮件匣，b16 死胡同），几何条件未成立 ⇒ 按预登记判据(3) 记"未兑现"。判据不挪；下一刀的靶子由 trace 直接给出：`first_action_floor` 主页盲点击族。
 
 ---
 

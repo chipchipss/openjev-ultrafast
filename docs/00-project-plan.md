@@ -27,7 +27,7 @@
 | Decision | TypeSafe 云 API | **自托管开源模型**（decider-2b，Apache-2.0） | ✅ 完成 |
 | 协议 | TypeSafe wire | 我们自己实现服务端 + 修了一个上游 bug | ✅ 完成 |
 | 文本 helper | 小 LLM | **本地 llama-server :8081**（StartLux GGUF，wire 后面那个已驻留的同一个模型）。10-08 Fix N 之前默认是 Groq 免费档 / DeepSeek 网关——**那确实是云端调用**，见下 | ✅ 完成 |
-| 技能层 | 无 | 确定性技能短路（1416 行） | ✅ 完成（我们的原创） |
+| 技能层 | 无 | 确定性技能短路（1416 行 → **2338 行 @0f90df7**；2026-10-17 t7 审计：原数与任何一次提交对不上，量法与出处见 §1.5 的注） | ✅ 完成（我们的原创） |
 | 云依赖 | 付费 API | **零付费调用**（`api_calls=0`）；helper 也已在 10-08 Fix N 落回本地。注意 `api_calls` **只统计 teacher 升级路径**，helper 不在计数器里 —— 10-08 之前"api_calls=0 ⇒ 零云端"是错的（实测 `reports/baseline-*/` 的 step 事件：56 次 `text_helper="openai/gpt-oss-120b"`，分布在 43 个基线目录） | ✅ 完成 |
 
 **上游的 7.1s 航班演示从未在本机复现过** —— 我们没有 TypeSafe API key，从未调用过。上游官方数字来自其 README 自述。
@@ -72,14 +72,24 @@
 ### 1.5 代码规模
 
 ```
-jev_ultrafast/          8467 行   主包（agent / skills / browser / 治理 / decider）
-  skills.py             1416 行   确定性技能层（我们的核心原创）
-  agent.py               735 行   主循环 + 预算 + 循环检测
+jev_ultrafast/        11943 行   主包（agent / skills / browser / 治理 / decider）
+  skills.py             2338 行   确定性技能层（我们的核心原创）
+  agent.py               954 行   主循环 + 预算 + 循环检测
   decider/                      决策层（provider 插件化，4 个后端已接入）
-tests/                          回归测试（41 项）
+tests/                          回归测试（43 项 / 356 案）
 docs/                           硬约束 / 里程碑 / 专项设计
 m1/ m2/ m4a/                    基准、数据飞轮、LoRA 实验
 ```
+
+> **代码规模怎么量（2026-10-17 t7 审计后改正）**：上表三处行数是 2026-10-04 写下的，
+> 已与任何一次提交对不上（`git show 45bd53d:jev_ultrafast/skills.py` = 1371 行、`agent.py` = 550 行、包内合计 8485 行）。
+> 现值为下条命令逐文件求和（**物理行，含空行**；工作树直接用，历史 commit 把 `git ls-files` 换成
+> `git ls-tree -r --name-only <rev> -- jev_ultrafast` 再逐文件 `git cat-file blob <rev>:<path>`）=
+> `git ls-files jev_ultrafast | ForEach-Object { ([System.IO.File]::ReadAllText($_)).Split("`n").Count } | Measure-Object -Sum`
+> = 包 **11943 行 / 33 文件**、`skills.py` **2338**、`agent.py` **954**（commit `0f90df7`，2026-10-17 实测）；
+> （注意：`Get-Content | Measure-Object -Line` 只数**非空行**（skills.py = 1589），两个口径不许混用）；
+> `tests/` **43 件 / 356 案**来自 `scripts/smoke.ps1` tier1 逐件 `n/n passed` 相加（2026-10-17 17:5x，**入库**套件；工作树里未入库的 `tests/test_swallow_followup.py` 13/13 未计入，它入库后本数字与 `MANIFEST.md`、`README.md` 三处一起改）。
+> **口径钉死为"物理行"**，以后改这个数必须连命令与 commit 一起改。这三个数**随每次提交移动**（并发的未提交改动会把它们再推高）——引用时先报 commit，再报数，别报"当前"。
 
 ### 1.6 硬件约束（决定一切取舍）
 
@@ -130,10 +140,19 @@ m1/ m2/ m4a/                    基准、数据飞轮、LoRA 实验
 ### 2.4 明确不做的事
 
 - **不做模型训练**（**2026-10-04 已判决关闭**，理由见下）：M4a 951 行→6/20、M4b
-  655 行 adapter→8/15（基线同批 12/15，0 胜 4 负），加上 cklxx 独立测得
+  655 行 adapter→**8/18**（基线同批 15 任务里 12 PASS，0 胜 4 负），加上 cklxx 独立测得
   confidence 闸门升级反而 58%→42%。**四次对照均无增益**，且 19 任务集存在框架
   天花板（DeepSeek Flash 12/20、glm-5.3-flash 12/20，两个前沿 API 都打不过
   本地 2B 的 13–15）—— 换模型的边际收益已被证伪。
+  - **勘误（2026-10-17 t7 审计，原数不改写、错误留痕）**：原文写的是 ">8/15"，那是**引用错了工件**——
+    ">8/15" 里的 8 是通过数、15 是**基线那批**的任务数，两者不属于同一份报告。被引的 
+    `reports/m1-adapter_m4b-1004-1505.json` 的 `summary` 逐字是
+    `{total: 18, pass: 8, fail: 7, error: 3}`（另一份 `m1-adapter_m4b-1004-1246.json` 是 3/17，
+    不是本格说的那一批）；`m1/m1-log.md` 自己那一节也写的是 "8 PASS / 7 FAIL / 3 ERROR（18 任务）"。
+    所以分母按工件改成 18，**通过数 8 不变**；结论（无增益、模型线关闭）不受影响。
+  - **无工件提示（2026-10-17 t7 审计）**："58%→42%" 这两个数在 `reports/*.json` 里**找不到对应工件**，
+    它来自 cklxx 的独立测量（仓外）。保留原数，但引用它时必须说明**它不是本仓读数**；
+    ">四次对照均无增益" 的另外三次（Laya 6/18、agent-jev 3/18、adapter 8/18）都有本仓工件。
   **M2 数据飞轮与 `api_teacher.py` 随之暂停**：它们的唯一产出是训练数据。
   若日后重启，先改采集管线（DONE 样本必须用执行动作后的真实落地页，
   模板化合成 DONE 会教坏终止判断），而不是改模型。
@@ -156,7 +175,7 @@ m1/ m2/ m4a/                    基准、数据飞轮、LoRA 实验
 | **decider-2b（裸）** | **13/17** | 0 | — |
 | Laya v17s (322M) | 6/18 | 0 | 反复输出终止操作，`model_calls ≫ steps` |
 | agent-jev 0.6B | 3/18 | 0 | 12/18 是 system crash，`model_calls=0` |
-| decider-2b + adapter_m4b | 8/15（基线同批 12/15，0 胜 4 负） | 0 | 无增益 |
+| decider-2b + adapter_m4b | 8/18（基线同批 15 任务里 12 PASS，0 胜 4 负；原写 8/15 系引用错工件，2026-10-17 勘误，分母按 `reports/m1-adapter_m4b-1004-1505.json` 的 `summary.total=18` 改，通过数 8 不变） | 0 | 无增益 |
 
 **为什么不再测 decider-4b**：19 任务集存在**框架天花板**——
 DeepSeek Flash（商业前沿）12/20、glm-5.3-flash（商业前沿）12/20，
@@ -231,11 +250,11 @@ DeepSeek Flash（商业前沿）12/20、glm-5.3-flash（商业前沿）12/20，
 |---|---|---|
 | 泛化任务通过率 | **90/90** | 保持 100% |
 | **M1 基准（19 任务集，预检通过）** | **19/19 × 3 轮全满分**，fp=0（冻结码 `m1-baseline-1007-1552/1557/1601`；此前 10-07 上午 19+19+18=56/57） | ✅ 已达成 |
-| 决策模型对照（同一 19 任务集） | decider-2b **18/19** 胜出；adapter_m4b 8/15、Laya 6/18、agent-jev 3/18 | 维持 decider-2b |
+| 决策模型对照（同一 19 任务集） | decider-2b **18/19** 胜出；adapter_m4b 8/18（原写 8/15 系引用错工件，勘误见 §2.4）、Laya 6/18、agent-jev 3/18 | 维持 decider-2b |
 | Flights 端到端 | **12.4–14.0s / 7 项独立校验全过**（2026-10-07 一条命令四次实测 `demo-flights-1007-1617/1620/1622/1623`；10-04 旧 decider 底座曾 10.4s） | < 5s |
 | 假阳性 / 崩溃 | **0 / 0**（四轮对照，含 6/18、3/18 弱模型均为 0） | 恒为 0（硬线，永不妥协） |
-| **云端调用** | **0**（18 任务 `api_calls = 0`，103 次本地模型调用）—— 口径更正 10-08：`api_calls` 只数 teacher 升级路径。逐 artifact 审计 step 事件的 `text_helper` 字段后确认：这批 19 任务基线里有 **56 次**填充值出自云端 Groq（`openai/gpt-oss-120b`）。自 Fix N 起入口默认把 helper 指向本地 llama-server，10-08 三轮冻结该计数为 **0** | 恒为 0；复核口径 = `grep -r '"text_helper"' reports/baseline-*/` 只允许 `null` / `startlux-decision-2b` |
-| 真实站点任务（50 行） | **判据已于 2026-10-11 达成：45/50**（b24，`reports/real-1011-b24-ipc58-1011-015958.json`；失败 5 行 = r102/r103/r105/r122 `decision` + r104 `blocked_by_bot_wall`）。**当前 build 的五个读数：43/50（`error=0`）、42/50（`error=1`）、43/50（`error=1`）、44/50、44/50（后两条 `error=0` 且失败 6 行完全相同，`ci-1015-1133` / `ci-1015-1204` —— 44 是稳定读数不是抖动）** ⇒ 按预登记的 `≥45` 这条**没有换绑，L2 凭证仍属 b24**；但缺口只剩一行且那一行是 `system`（`r101` 的 pypi 墙，两条绿阶梯里它都在挡），能力侧那 5 行（`r102 r103 r104 r105 r122`）与 b24 是同一组、批内 86 步也与 b24 同数——多出的两行都是 `system`：r101 被 pypi 的 bot 墙挡在门外、r129 是 `ERR_SSL_PROTOCOL_ERROR` 的出口抖动，不是新增的决策缺口；b24 之后落地的 #84a/#46/#85 三刀没有一行翻红可以记在它们头上（配对表在 `m2/real-log.md`）。**这一格 10-14 才补，此前写"未开始"是旧表残留**：同一文件第四节 L2 行早已记了 ✅，两处口径打架 | ≥ 45/50 |
+| **云端调用** | **0**（18 任务 `api_calls = 0`，103 次本地模型调用 —— **这两个数无工件**：被引的 `reports/m1-final3.json` 逐字是 `{total: 20, pass: 15, ...}`、逐任务 `meta.model_calls` 合计 **124**，所以"18 任务 / 103 次"是早期某一代的读数，2026-10-17 t7 审计标注，原数保留不重写）—— 口径更正 10-08：`api_calls` 只数 teacher 升级路径。逐 artifact 审计 step 事件的 `text_helper` 字段后确认：这批 19 任务基线里有 **56 次**填充值出自云端 Groq（`openai/gpt-oss-120b`）。自 Fix N 起入口默认把 helper 指向本地 llama-server，10-08 三轮冻结该计数为 **0** | 恒为 0；复核口径 = `grep -r '"text_helper"' reports/baseline-*/` 只允许 `null` / `startlux-decision-2b` |
+| 真实站点任务（50 行） | **判据已于 2026-10-11 达成：45/50**（b24，`reports/real-1011-b24-ipc58-1011-015958.json`；失败 5 行 = r102/r103/r105/r122 `decision` + r104 `blocked_by_bot_wall`）。**当前 build 的五个读数：43/50（`error=0`）、42/50（`error=1`）、43/50（`error=1`）、44/50、44/50（后两条 `error=0` 且失败 6 行完全相同，`ci-1015-1133` / `ci-1015-1204` —— 44 是稳定读数不是抖动）** ⇒ 按预登记的 `≥45` 这条**没有换绑，L2 凭证仍属 b24**；但缺口只剩一行且那一行是 `system`（`r101` 的 pypi 墙，两条绿阶梯里它都在挡），能力侧那 5 行（`r102 r103 r104 r105 r122`）与 b24 是同一组、批内 86 步也与 b24 同数（**勘误 2026-10-17**：b24 那份 `reports/real-1011-b24-ipc58-1011-015958.json` 逐行 `meta.steps` 合计 **131**，86 只属于 `reports/ci-1015-1204-1015-122424.json`；"同一组五行"由逐行 `failure_modes` 对照支撑）——多出的两行都是 `system`：r101 被 pypi 的 bot 墙挡在门外、r129 是 `ERR_SSL_PROTOCOL_ERROR` 的出口抖动，不是新增的决策缺口；b24 之后落地的 #84a/#46/#85 三刀没有一行翻红可以记在它们头上（配对表在 `m2/real-log.md`）。**这一格 10-14 才补，此前写"未开始"是旧表残留**：同一文件第四节 L2 行早已记了 ✅，两处口径打架 | ≥ 45/50 |
 | 基准运行耗时 | **3.9–4.1 分钟 / 19 任务**（settle detection 后；此前无 settle 为 3.3–3.6 分钟） | ≤ 30 分钟 |
 | 基准可信性 | 预检 9/9 域通过后才允许开跑；已测得 **±1** 抖动，单次读数不作数 | 硬性前置条件 |
 
