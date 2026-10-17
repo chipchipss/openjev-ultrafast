@@ -7656,3 +7656,32 @@ t5 普查早就把 first_action_floor 家族列在风险表；t4 形状表已给
 - `t15`（进行中）：`first_action_floor` 主页盲点击族——42/50 批的 trace 直接给出的靶子（r105 
   死于页脚邮件匣、n004 死于订阅链接，都是一步无效 + 模型 BLOCK；刀 0 开火）。
 - `n004` 方差红（tier2 4/5）与 `r119/r127` 翻红（批内 LOST 2 行）：照记录，不重跑凑绿。
+## push #8（2026-10-18 00:1x，操作者全权授权延续）
+
+`5136d9b..6644d5c`（1 条：`6644d5c` t15 goal-aware 地板闸 + 42/50 red 批工件）**快进推送**。
+推前扫新增行：密钥形状 0。t16 评审 PASS（谓词全用既有机制、双形状弃权证明、惰性边界逐字等价）。
+同批注记：`ci-1017-2000` 批跑在 t9+t12 后、t15 前——43 行携带 `meta.swallow`（action_settle_eval_failed
+x43，过渡期文档化形态），t12 的 runner 接线在真实批里首次工作。
+
+**最终阶梯已起跑**（`ci-t6t9t15-1018-run.log`）：判据照旧 ≥43 / 14 min / fp=0；这一刀的靶是让
+r105/n004 族不再死于主页盲点击。读数出来后按预登记格式入账。
+## t15 回滚（2026-10-18 00:4x）：goal-aware 地板闸在 s005 上翻了 legit 中间跳
+
+**读数**：tier2 live 4/5——`n004` 转 PASS（3 步，走保留的搜索路线；**闸门的测量目标兑现**），
+但 **`s005` 翻 FAIL**（steps=0，模型 BLOCK@0.66，终页即起点域）。trace 对比给出了根因：
+改前 s005 是两跳——`first_action_floor` 点 "Web APIs"（e5，导航类目，label/href 不含 'fetch'）
+→ 落 /docs/Web/API → `explicit_target` 点 "Fetch API" → PASS。闸门把第一跳的合法中间导航
+当成无关点击拦掉了 ⇒ **LOST=s005，立刻回滚**（操作者常设规则：任何 LOST 立即回滚）。
+
+**回滚方式**：`git checkout 5136d9b -- jev_ultrafast/skills.py`（闸门 0 命中验证）；
+`test_floor_goal_gate.py` 保留为 **RED 见证**：①②⑥ 三案（需要闸门本体的弃权案）以
+**SKIP+点名 t17** 入账，套件报 6/6——闸门回归时这三案必须转绿，是修复轮的验收之一。
+smoke tier1 恢复 45 套件全绿。
+
+**t17 的形状（由这轮 trace 直接给出，不许猜）**：闸门不能一刀切拦所有无字面点击——它必须
+区分「测量过的死端」（github 页脚邮件匣、rfc 订阅链接：点了 page_changed=false）与「goal-adjacent
+中间跳」（Web APIs → Fetch API：两跳到达）。可行方向：先放行有 effect 的点击、只拦**实测无效**的
+候选（effect 由 page_changed 事后可证），或引入「中间跳许诺」（label 与 goal 的类目词族重叠）——
+**先量再选，不许先写词表**。
+
+**账**：t15 的测量投入没有白费——RED 见证与两个实测死端形状都在测试文件里，t17 直接站在它上面。
