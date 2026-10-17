@@ -146,6 +146,13 @@ if (-not $TasksFile) {
 if (-not (Test-Path $TasksFile)) { Die "task file missing: $TasksFile" }
 
 # ---------- tier 2 + freeze x3 + regression batch ----------
+# (2026-10-17 instrumentation fix, same day as the t11 pre-registration): tier 2 ran BEFORE
+# the first stack startup -- on a cold stack it always FAILed ('wire :8090 is not
+# listening'); the two green ladders of 10-15 only worked because the operator had a
+# resident stack up. Fix: start owned chrome + serve FIRST, then tier 2, then freeze x3 +
+# the regression batch. Order only -- no threshold, criterion or gate was touched.
+& "$Repo\scripts\start_owned_chrome.ps1" | Out-Null
+& "$Repo\scripts\startlux_serve.ps1" -SkipEnsure > "$LogDir\stack-r0.log" 2>&1
 Log "smoke tier 2 (live 5-task gate)"
 & "$Repo\scripts\smoke.ps1" -Live -SvcPort $SvcPort
 if ($LASTEXITCODE -ne 0) { Die "smoke tier 2 not green" $LASTEXITCODE }

@@ -278,6 +278,47 @@ def _run_one_with_egress_retry(spec: dict, log_dir, start_url: str, screenshots:
     return r2
 
 
+def _task_meta(state: dict, stuck_before: dict, base: dict) -> dict:
+    r"""把一行的仪器读数组装成 `meta`（**可离线单测的那一条**）。
+
+    为什么单开一个函数：t9 把 `evaluator._meta` 的白名单那一半做好了，但 runner 从来没往
+    `meta["swallow"]` 里写过东西 ⇒ 汇总仍然到不了 `reports/*.json`（"白名单放行了，没人写"）。
+    抽成函数之后，"runner 真的把汇总接进了报告"可以由**离线测试**证明，而不是只能读代码——
+    这正是 t12 验收里写明不许只用读代码代替的那一条。
+
+    口径与既有的 `arrival_relook_ms` / `stuck` / `err` 完全一致：**只有真发生了才写这个键**，
+    没发生的行不塞空结构，否则一批里每一行都带着一个空数组，数不出真实发生面。
+    """
+    from jev_ultrafast.logger import swallow_summary      # noqa: WPS433
+
+    meta = dict(base)
+    _paid = state.get("arrival_relook_ms")
+    if _paid:
+        meta["arrival_relook_ms"] = int(_paid)
+    _stuck_after = _skills_stuck()
+    _stuck_cross = _stuck_after["cross_task"] - stuck_before.get("cross_task", 0)
+    if (stuck_before.get("entries") or _stuck_after["notes"] != stuck_before.get("notes")
+            or _stuck_after["suppressed"] != stuck_before.get("suppressed") or _stuck_cross):
+        meta["stuck"] = {
+            "entries_at_start": stuck_before.get("entries", 0),
+            "notes": _stuck_after["notes"] - stuck_before.get("notes", 0),
+            "suppressed": _stuck_after["suppressed"] - stuck_before.get("suppressed", 0),
+            "cross_task": _stuck_cross,
+        }
+    # t9/t12：静默降级的汇总。#59/#68 那一族"技能抛了异常却读成模型能力问题"的账，
+    # 只有这一格能在 reports/*.json 里数到（jsonl 在 logs/，不入库）。
+    _sw = swallow_summary()
+    if _sw:
+        meta["swallow"] = _sw
+    return meta
+
+
+def _skills_stuck() -> dict:
+    """`skills.stuck_counters()` 的薄封装（import 延后，与 _run_one 同一理由）。"""
+    from jev_ultrafast import skills as _skills            # noqa: WPS433
+    return _skills.stuck_counters()
+
+
 def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dict:
     """运行单个 task。返回 {task_id, result, error?}。
 
@@ -374,31 +415,15 @@ def _run_one(spec: dict, log_dir: Path, start_url: str, screenshot: bool) -> dic
         pass
 
     status = agent.state.get("status", "error")
-    meta = {
+    # 仪器读数组装（#65 的付费毫秒 / #83 的跨题抑制 / #75 的正文摘要 / t9-t12 的降级汇总）
+    # 全在 `_task_meta` 里，**可离线单测**——"runner 把汇总接进了报告"因此有测试证明，
+    # 不只靠读这一段代码。
+    meta = _task_meta(agent.state, _stuck_before, {
         "steps":       len(agent.state.get("history", [])),
         "model_calls": len(agent.state.get("decisions", [])),
         "api_calls":   0,  # M1 fixed_high 恒 0
         "elapsed_ms":  round((time.perf_counter() - started) * 1000),
-    }
-    # #65 的代价要能对到 reports/*.json（仓库里的权威工件；logs/ 故意不入库）。
-    # 没付就不写这个键，与 logger 的 task_result 事件同一口径。
-    _paid = agent.state.get("arrival_relook_ms")
-    if _paid:
-        meta["arrival_relook_ms"] = int(_paid)
-    # #83 前置仪器的读数：这一题**进场时**带着几条上一题的抑制笔记、这一题里又写了几条、
-    # 被按住几次。只写非零，避免每行都塞空结构（与 arrival_relook_ms 同一口径）。
-    # 上一批把两件事混成一个数了（进场 61/100 行，真正被按住只有 1 行，而那 1 次是本题自己写的笔记），
-    # 所以 `cross_task` 才是 #83 的决策量：笔记**不是本题写的**抑制发生了几次。
-    _stuck_after = _skills.stuck_counters()
-    _stuck_cross = _stuck_after["cross_task"] - _stuck_before["cross_task"]
-    if (_stuck_before["entries"] or _stuck_after["notes"] != _stuck_before["notes"]
-            or _stuck_after["suppressed"] != _stuck_before["suppressed"] or _stuck_cross):
-        meta["stuck"] = {
-            "entries_at_start": _stuck_before["entries"],
-            "notes": _stuck_after["notes"] - _stuck_before["notes"],
-            "suppressed": _stuck_after["suppressed"] - _stuck_before["suppressed"],
-            "cross_task": _stuck_cross,
-        }
+    })
 
     # #75 的后半：断言吃的那份正文的摘要要跟着进 **reports/*.json**（`logs/` 不入库）。
     # 一份算法：`logger.page_digest`，与 task_result 事件里那个字段同源，不另抄。

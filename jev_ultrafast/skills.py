@@ -15,7 +15,7 @@
 env：M16_SKILLS=0 全关；M16_SKILL_<NAME>=0 单关（NAME 大写）。
 """
 from __future__ import annotations
-from jev_ultrafast.logger import dbg
+from jev_ultrafast.logger import dbg, exc_diag, record_swallow
 import os
 import re
 from urllib.parse import parse_qsl, unquote, urlparse as _urlparse
@@ -764,7 +764,11 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
 
     try:
         _page_host = _urlparse(page.get("url") or "").netloc.lower()
-    except Exception:
+    except Exception as e:
+        # 页面 URL 解析失败 ⇒ _page_host 变空串 ⇒ 下面那把"标识档只认站内候选"的
+        # 越域守卫**被静默关掉**（t5 普查标 med）。守卫照旧降级（不能因为读不出 host
+        # 就让地板弃权），但这次降级必须在批里数得到。
+        record_swallow("explicit_target_page_host_failed", exc_diag(e))
         _page_host = ""
     scored = []
     for index, a in indexed_actions(page.get("actions") or []):
@@ -803,7 +807,10 @@ def explicit_target(page: dict, goal: str, history: list) -> dict | None:
                     from urllib.parse import unquote as _unq
                     _href = _unq(_hm.group(1))
                 host = _urlparse(_href).netloc.lower()
-        except Exception:
+        except Exception as e:
+            # 候选的 host 读不出来 ⇒ 这一档退化成"只认 label"（t5 普查标 med）。
+            # 与上一条同一形状：照旧降级，但要留下"哪个候选、抛了什么"。
+            record_swallow("explicit_target_host_failed", exc_diag(e))
             host = ""
         host_flat = host.replace("-", "").replace(".", "").removeprefix("www")
         # 越域守卫（探针 E 段）：`org/repo` 标识指的是**某个站点里面的位置**，不是站外的
@@ -1371,7 +1378,10 @@ def search_submit(page: dict, goal: str, history: list) -> dict | None:
         try:
             for _, _v in parse_qsl(_urlparse(page.get("url") or "").query):
                 in_url |= set(_tokens(_norm_label(unquote(_v))))
-        except Exception:
+        except Exception as e:
+            # 查询串读不出来 ⇒ in_url 恒为空 ⇒ "同一句 query 已经提交过"这条守卫**失效**，
+            # n004 时代那个"URL 被打回 /search/、结果页被毁掉"的形状会静默复发（t5 标 med）。
+            record_swallow("form_submit_query_failed", exc_diag(e))
             in_url = set()
         if typed_toks <= in_url:
             return None
@@ -2323,15 +2333,26 @@ def route(page: dict, goal: str, history: list) -> dict | None:
         try:
             d = fn(page, goal, history or [])
         except Exception as e:             # noqa: BLE001
-            # 行为一字不改（仍然回落模型），但留下"哪个技能、抛了什么"这一行（#68）。
-            dbg("skill_raised", f"{fn.__name__}: {type(e).__name__}: {str(e)[:120]}")
+            # 行为一字不改（仍然回落模型），但留下"哪个技能、抛了什么"。
+            # #59 那一整轮误诊（把"技能已经能判达"读成"模型能力问题"）就是这个形状，
+            # 所以这条留痕必须**进工件**：dbg 那一行只在 JEV_DEBUG 后面，批里看不到。
+            _s = exc_diag(e)
+            dbg("skill_raised", f"{fn.__name__}: {_s}")
+            # 站点名带上技能名（批次里要能数出"是哪个技能在抛"），detail 只放异常类型
+            # 与摘要 —— 这样按站点聚合时 `kinds` 那一格仍然是**异常类型**的直方图，
+            # 而不是技能名。技能名进站点名、异常类型进 kinds，两件事各有各的格子。
+            record_swallow(f"skill_raised:{fn.__name__}", _s)
             d = None                       # 技能内部异常绝不影响主流程
         if not d:
             continue
         try:
             if not _validate(d, page).valid:
                 continue                   # 结构非法 → 交给下一个技能/模型
-        except Exception:
+        except Exception as e:
+            # 校验器**崩了**与"校验器说非法"今天都走同一个 continue（t5 普查标 med）：
+            # 前者是我们的 bug，后者是模型的坏决策。不分类的话 validator 一旦抛异常，
+            # 表面上只会看到"技能永远不命中、全部回落模型"，而原因查不到。
+            record_swallow("decision_validator_crashed", exc_diag(e))
             continue
         return d
     return None

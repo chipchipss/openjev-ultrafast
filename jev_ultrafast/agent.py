@@ -10,7 +10,7 @@ from pathlib import Path
 from .browser import Browser, StalePage
 from .model import action_space, choose, field_context, field_text
 from .questions import MAX_STEPS
-from jev_ultrafast.logger import dbg
+from jev_ultrafast.logger import dbg, exc_diag, record_swallow
 
 # --- M1: pre_execute 链 ---
 from . import decision_validator
@@ -208,7 +208,12 @@ def _done_guard(decision: dict, state: dict) -> str | None:
             if not arrived:
                 return "nav goal target not reached (goal_reached says no)"
     except Exception as e:                                      # noqa: BLE001
-        dbg("done_guard_rule6_failed", f"{type(e).__name__}: {str(e)[:120]}")
+        # rule-6 守卫**崩了**与"干净放行"今天读起来一模一样（都 return None）——
+        # 崩 = 这道 DONE 闸门形同虚设，而它守着"导航目标真的到达了才许收口"，安全相邻。
+        # 控制流不动（仍然放行），但这一次必须在批里数得到。
+        _s = exc_diag(e)
+        dbg("done_guard_rule6_failed", _s)
+        record_swallow("done_guard_rule6_failed", _s)
     return None
 
 class Agent:
