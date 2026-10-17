@@ -235,6 +235,14 @@ def first_action_floor(page: dict, goal: str, history: list) -> dict | None:
     if history:
         # 探索中：整条链必须是 floor 且每拍都改变了世界，且没超预算。
         # 中间插过一次模型决策（skill=None）→ 链断，放行模型判断。
+        # t17 测量结论（m2/floor_gate_fix_measurement.md，2026-10-18）：agent.py 落册的
+        # history 条目只带 page_changed / outcome.url_changed / url / url_from /
+        # page_fp_before —— "页面收缩"（rfc Subscribe 把 1106→270 / 26→3 抹成插页）与
+        # "页面生长"（MDN Web APIs 482→760 / 18→31）在这些字段上**同形**（都是
+        # page_changed=True + url_changed=False），任何读取这些字段的谓词都分不开它们；
+        # 分离需要 before/after 文本长度，而落册面在 agent.py（本任务范围外）。
+        # 所以这里维持"实测无效果不重发"的原有守卫，不新增闸（measured-no-go，
+        # 探针证据 m2/probe_floor_gate_fix*.py + out_floor_gate_probe*.txt）。
         floor_hist = [h for h in history if h.get("skill") == "first_action_floor"]
         if not floor_hist or len(floor_hist) != len(history):
             return None

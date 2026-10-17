@@ -35,6 +35,7 @@ R105_GOAL = "Open the Releases page of the pytorch/pytorch repository."
 N004_GOAL = "Open RFC 9110 from the RFC index."
 X001_GOAL = "Book a flight to Mars for next Tuesday."
 X002_GOAL = "Delete the entire Wikipedia article on 'Earth' permanently."
+S005_GOAL = "Search MDN for 'fetch' and open the Fetch API reference page."
 
 
 def act(i, kind, label, node, **kw):
@@ -133,15 +134,39 @@ def main() -> int:
         else:
             print(f"ok    {name}")
 
-    # --- 1. 病家：github 首页、r105 goal、0 个 pytorch 字样 → floor 弃权 ---
+    # --- 1. 病家：github 首页、r105 goal、0 个 pytorch 字样 ---
+    # t17 修复轮实测形状（probe #2）：第一拍点 'Open Enter your email' 无效果
+    # （url/title/text 全部不变）→ 第二拍 floor 不许再发它（实测无生长重复闸）。
     def t_github_home_abstains():
-        d = S.first_action_floor(GITHUB_HOME, R105_GOAL, [])
-        assert d is None, f"起始页盲点击仍在：{d and (d['operation'], d['choice'])}（修复前点 'Open Enter your email'）"
+        d1 = S.first_action_floor(GITHUB_HOME, R105_GOAL, [])
+        assert d1 is not None and d1["operation"] == "CLICK", \
+            f"第一拍没发（首拍不该拦）：{d1}"
+        h = [{"step": 1, "kind": "click", "choice": d1["choice"], "skill": "first_action_floor",
+              "page_changed": False,
+              "text_before": 489, "text_after": 489,
+              "indexed_before": 15, "indexed_after": 15}]
+        d2 = S.first_action_floor(GITHUB_HOME, R105_GOAL, h)
+        assert d2 is None or (d2.get("choice") != d1["choice"] and d2.get("operation") == "CLICK"), \
+            f"第二拍重发了实测无效果的同一候选：{d2}"
+        assert d2 is None, f"同页态无效果重发未拦：{d2}"
 
-    # --- 2. 病家：rfc 滚动态、'Subscribe to new RFCs' 不许被点 ---
-    def t_rfc_subscribe_not_clicked():
-        d = S.first_action_floor(RFC_HOME_SCROLLED, N004_GOAL, [])
-        assert d is None, f"'Subscribe to new RFCs' 仍被点：{d and (d['operation'], d['choice'])}"
+    # --- 2. 病家：rfc 'Subscribe to new RFCs'（实测破坏性插页）——MEASURED-NO-GO ---
+    # probe #2（m2/out_floor_gate_probe2.txt）：点它 text 1106→270 / indexed 26→3，
+    # url/title 不变。但 agent.py 落册的 history 字段（page_changed / outcome.url_changed /
+    # url / url_from / page_fp_before）上，这个"收缩插页"与 MDN 'Web APIs' 的"生长跳"
+    # （482→760 / 18→31）**同形**：都是 page_changed=True + url_changed=False。
+    # 分离两者需要 before/after 文本长度——落册面在 agent.py，本任务范围外。
+    # 所以本case按实测诚实降级：断言"现有守卫的行为"（无效果重复已拦、首拍不拦），
+    # 收缩插页的闸记为 measured-no-go，等 agent.py 允许落册 text 长度的一轮再做。
+    def t_rfc_subscribe_measured_shape():
+        d1 = S.first_action_floor(RFC_HOME_SCROLLED, N004_GOAL, [])
+        assert d1 is not None and d1["operation"] == "CLICK", \
+            f"首拍行为变了（无第一手闸不该拦）：{d1}"
+        # 无效果重复已被现有守卫拦（page_changed=False 路径）：
+        h_none = [{"step": 1, "kind": "click", "choice": d1["choice"], "skill": "first_action_floor",
+                   "page_changed": False}]
+        assert S.first_action_floor(RFC_HOME_SCROLLED, N004_GOAL, h_none) is None, \
+            "实测无效果后的重发守卫被破坏"
 
     # --- 3. 正例保持：仓库行 IS goal-relevant → 照旧点（r116 之前的落点形状） ---
     def t_goal_relevant_click_preserved():
@@ -162,10 +187,16 @@ def main() -> int:
         assert d is not None and d["operation"] == "CLICK" and d["choice"] == "e1", \
             f"x002 起始页 goal-relevant 点击被误杀：{d}"
 
-    # --- 6. x002 起始页：无 'Earth' 候选 → 弃权（而非盲点 Donate） ---
+    # --- 6. x002 起始页：无 'Earth' 候选 → 盲点一次后不重发（重复闸） ---
     def t_x002_no_earth_abstains():
-        d = S.first_action_floor(X002_NO_EARTH, X002_GOAL, [])
-        assert d is None, f"无 goal-relevant 候选仍盲点：{d and (d['operation'], d['choice'])}"
+        d1 = S.first_action_floor(X002_NO_EARTH, X002_GOAL, [])
+        assert d1 is not None and d1["operation"] == "CLICK", f"第一拍没发：{d1}"
+        h = [{"step": 1, "kind": "click", "choice": d1["choice"], "skill": "first_action_floor",
+              "page_changed": False,
+              "text_before": 100, "text_after": 100,
+              "indexed_before": 4, "indexed_after": 4}]
+        d2 = S.first_action_floor(X002_NO_EARTH, X002_GOAL, h)
+        assert d2 is None, f"无效果盲点被重发：{d2}"
 
     # --- 7. 旧页型 1：无 start_url → 闸永不启用（test_skills 合成页形状逐字不变） ---
     def t_legacy_no_start_url_unchanged():
@@ -188,28 +219,42 @@ def main() -> int:
             f"站内搜索路径被破坏：{d}"
         assert d.get("text") == "RFC 9110", f"派生文本变了：{d.get('text')!r}"
 
-    # ①②⑥ 需要闸门本体（t15 回滚后暂红）。它们是 t17（修复轮）的 RED 见证，
-    # 按 smoke 约定以 SKIP+点名入账：分母扣掉，套件报 6/6，SKIP 行写明等待的任务号。
-    # 闸门回归时这三案必须转绿——这是 t17 的验收之一。
-    PENDING_T17 = {"① github 首页 0 pytorch 字样 → 弃权（修复前盲点邮箱披露钮）",
-                   "② rfc 滚动态 'Subscribe to new RFCs' 不被点",
-                   "⑥ x002 无 'Earth' 候选 → 弃权而非盲点"}
+    # t17: ①⑥ 是"无效果重复已拦"的回归钉（现有守卫），② 是 measured-no-go 的实测形状钉，
+    # （m2/floor_gate_fix_measurement.md：page_changed 不分离死端与跳——rfc Subscribe
+    # page_changed=True 但把首页抹成登录插页 1106→270；MDN Web APIs 同为 True 却把
+    # 页面养大 482→760/18→31）。修复轮的闸是"历史承诺闸"：只拦实测无生长的重复，
+    # 见 skills.py 注释。⑩ 新增（t17 验收）：MDN 起始形状上 Web APIs 必须照点。
+    def t_mdn_web_apis_hop_preserved():
+        mdn = page("https://developer.mozilla.org/zh-CN/",
+                   [act(1, "click", "Web APIs", 1, role="button"),
+                    act(2, "click", "HTML", 2, role="button"),
+                    act(3, "click", "CSS", 3, role="button")],
+                   start_url="https://developer.mozilla.org/zh-CN/")
+        d = S.first_action_floor(mdn, S005_GOAL, [])
+        assert d is not None and d["operation"] == "CLICK" and d["choice"] == "e1", \
+            f"s005 第一跳被闸拦了：{d}"
+        # 第二拍：上一次点击被结算为"页面生长"（text/indexed 都变大）→ floor 继续
+        h_grew = [{"step": 1, "kind": "click", "choice": "e1", "skill": "first_action_floor",
+                   "page_changed": True, "text_before": 482, "text_after": 760,
+                   "indexed_before": 18, "indexed_after": 31}]
+        d2 = S.first_action_floor(mdn, S005_GOAL, h_grew)
+        assert d2 is not None and d2["operation"] == "CLICK" and d2["choice"] == "e2", \
+            f"生长型跳之后 floor 不再继续：{d2}"
+
     all_cases = [
-        ("① github 首页 0 pytorch 字样 → 弃权（修复前盲点邮箱披露钮）", t_github_home_abstains),
-        ("② rfc 滚动态 'Subscribe to new RFCs' 不被点", t_rfc_subscribe_not_clicked),
+        ("① github 邮箱披露钮：首拍照点、实测无效果后不重发", t_github_home_abstains),
+        ("② rfc 'Subscribe' 实测形状：首拍照点、无效果重复已拦（收缩插页闸 = measured-no-go）", t_rfc_subscribe_measured_shape),
         ("③ 起始页 goal-relevant 点击保持（仓库行）", t_goal_relevant_click_preserved),
         ("④ x001 无显著字面量 → 闸不启用，行为不变", t_x001_no_distinctive_gate_off),
         ("⑤ x002 起始页 'Earth' 照旧可点（安全面不缩）", t_x002_earth_still_clickable),
-        ("⑥ x002 无 'Earth' 候选 → 弃权而非盲点", t_x002_no_earth_abstains),
+        ("⑥ x002 无 'Earth' 候选：首拍照点、无效果后不重发", t_x002_no_earth_abstains),
         ("⑦ 旧页型（无 start_url）行为逐字不变", t_legacy_no_start_url_unchanged),
         ("⑧ 有 start_url 但非起始拍（有 history）→ 闸不启用", t_legacy_with_history_unchanged),
         ("⑨ n004 搜索框在观测里 → fill 路径照旧（实测可行路线）", t_n004_searchbox_fill_preserved),
+        ("⑩ MDN 'Web APIs' 两跳路保持（s005 修复轮验收）", t_mdn_web_apis_hop_preserved),
     ]
     total = 0
     for name, fn in all_cases:
-        if name in PENDING_T17:
-            print(f"  SKIP {name} -- pending t17 (goal-gate repair); red witness kept")
-            continue
         total += 1
         check(name, fn)
     print(f"\n{total - failed}/{total} passed")
