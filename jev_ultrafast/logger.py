@@ -10,7 +10,8 @@
 设计要点：
   - 只读 agent.state / agent.step_budget，绝不修改
   - 游标式：每次 observe() 只输出新增事件
-  - 5 类事件：step / decision / text_call / budget_transition / task_result
+  - 事件类型：step / decision / text_call / budget_transition / task_result /
+    teacher_shadow / **swallow**（静默降级，见 record_swallow）
   - 一个 task 一个 JSONL
   - 不 import agent，用鸭子类型
 
@@ -38,6 +39,11 @@ EVENT_TEXT_CALL         = "text_call"
 EVENT_BUDGET_TRANSITION = "budget_transition"
 EVENT_TASK_RESULT       = "task_result"
 EVENT_TEACHER_SHADOW    = "teacher_shadow"
+#: 静默降级事件。它必须**独立于 step 事件**：宽 except 的那些点（装防御、settle 判据、
+#: 归属探针）发生在"拍与拍之间"，没有对应的 history 条目可挂；硬塞进 step 白名单就得
+#: 给 history 造一条假条目——那是把仪器塞进数据结构的老坑。
+#: 落 `logs/<tag>/<id>.jsonl`，与其余事件同一份文件 ⇒ 批里 grep "swallow" 数得到。
+EVENT_SWALLOW           = "swallow"
 
 
 # ---------------------------------------------------------------------------
@@ -55,6 +61,95 @@ def dbg(site: str, detail: str = "") -> None:
     if not (os.environ.get("JEV_DEBUG") or "").strip():
         return
     sys.stderr.write(f"[dbg] {site}: {detail}" + chr(10))
+
+
+# ---------------------------------------------------------------------------
+# 静默降级留痕（#68 的第二半）
+# ---------------------------------------------------------------------------
+
+#: 单一收口。所有"宽 except 之后必须留痕"的点都调它，好处是**每一处只有一条通道**：
+#: 将来要换缓冲区、要加上限、要把摘要写进报告，只改这里一处，不用动任何一个调用点。
+#: 模块级而不是 Logger 实例上：logger 是 runner 建的，而 swallow 发生在 Browser/Agent
+#: 生命周期的任何时刻（很多早于第一次 observe）——把计数器挂在实例上等于把前几步的
+#: 降级丢在磁盘外（#67 那一族的老形状）。
+#:
+#: 两份状态，两种用途，缺一不可：
+#:   _SWALLOWED       待搬进 jsonl 的队列，被 Logger._drain_swallows() 抽干；
+#:   _SWALLOW_TOTALS  进程级累计，永不被抽干。汇总要的是"这一进程里发生过什么"，
+#:                    而队列在第一次 observe 后就空了（降级常发生在 logger 存在之前）。
+#:                    只写队列的那一版会让 summary 恒为 []，而它是 reports/*.json 的唯一来源。
+_SWALLOWED: list[dict] = []
+_SWALLOW_TOTALS: dict[str, dict] = {}
+
+
+def exc_diag(e: BaseException) -> str:
+    """异常的**有界**诊断串：类型名 + str 截断。
+
+    两件事是刻意的：
+
+    1. **不吞类型名**。#59 的形状是"不知道哪个技能抛了什么"，所以 `ValueError` 这三个字
+       本身就是要留下的第一信息；
+    2. **截断而不是全文**。异常串里可能带第三方页面内容（URL、查询串）——#79 的纪律是
+       第三方内容不进可分享工件，超长 traceback 还会把一行 jsonl 撑爆。
+    """
+    try:
+        return f"{type(e).__name__}: {str(e)[:120]}"
+    except Exception:                                     # noqa: BLE001
+        # 只可能是 str(e) 自己炸的怪对象。摘要已经退到类型名（信息只剩这一件），
+        # 再往下追一层就是"诊断器自己的异常没人管"——那比它要报的事故更糟。
+        return type(e).__name__
+
+
+def record_swallow(site: str, detail: str = "") -> None:
+    r"""静默降级的**工件级**留痕（t9：把 #68 的 dbg 从"看不见"变成"数得到"）。
+
+    病灶不是没有痕迹，是痕迹长在**一个批里从来不开的开关后面**：`dbg()` 只在
+    `JEV_DEBUG` 设置时写 stderr，而仓库里没有任何 runner 设它（ci_local.ps1 / run_one.ps1 /
+    m1/run_tasks.py / scripts/smoke.ps1 全数过）。于是 11 处 `dbg` 站点在每一批的每一个
+    工件里都是零输出——包括 `browser.py` 那 11 处宽 except：**browser.py 至今一条 print
+    诊断都没有**。
+
+    这个函数同时满足三条纪律：
+
+    1. **不走开关**。默认就记账，`JEV_DEBUG` 只决定**是否**额外往 stderr 喊一嗓子；
+    2. **不改控制流**。它只读异常、写自己的缓冲区，调用点的 return/raise/降级一字不动；
+    3. **有界**。异常类型 + 120 字符摘要，第三方正文不带进去（#79/#75 同族）。
+
+    产物怎么到复核者手上：`Logger.observe()` 每次把缓冲区抽干，写成
+    `"event": "swallow"` 的 JSONL 行——`logs/` 是批里就地可查的权威工件；
+    `swallow_summary()` 的站点汇总由 `evaluator._meta` 白名单带进 `reports/*.json`。
+"""
+    site = str(site)
+    detail = str(detail)[:120]
+    _SWALLOWED.append({"site": site, "detail": detail})
+    total = _SWALLOW_TOTALS.setdefault(site, {"site": site, "count": 0, "kinds": {}})
+    total["count"] += 1
+    kind = (detail or "").split(":", 1)[0] or "unknown"
+    total["kinds"][kind] = total["kinds"].get(kind, 0) + 1
+    if (os.environ.get("JEV_DEBUG") or "").strip():
+        dbg(site, detail)
+
+
+def swallow_summary() -> list[dict]:
+    """本进程至今的降级汇总（按站点 → 次数 + 本类异常的 repr）。
+
+    runner 把它写进 `meta.swallow`、由 `evaluator._meta` 带进 `reports/*.json`：
+    报告是可分享的权威工件，只看报告的复核者不必去 grep jsonl。
+    **没发生过的降级一个键都不写**（与 `arrival_relook_ms` / `err` 同一口径），
+    否则每一行的 meta 都塞满空结构。
+    """
+    return sorted((dict(v, kinds=dict(v["kinds"])) for v in _SWALLOW_TOTALS.values()),
+                  key=lambda x: x["site"])
+
+
+def reset_swallows() -> None:
+    r"""清空降级记账（测试与 m4a 那种"一个进程拼多个模块"的装载器用）。
+
+    只清状态不动通道：`record_swallow` 本身必须幂等可重入，测试才能反复灌同一条。
+    生产路径不调它——一个批一个进程，累计值就是这一批的读数。
+    """
+    _SWALLOWED.clear()
+    _SWALLOW_TOTALS.clear()
 
 
 def _to_jsonable(obj: Any) -> Any:
@@ -203,10 +298,45 @@ class Logger:
                 })
             self._transitions_cursor = len(transitions)
 
+        # 5. swallow（t9）。**抽干**进程级缓冲区：发生在"拍与拍之间"的宽 except 没有
+        # state 可读，只能靠这里把记账搬进 jsonl。放在 self._history_cursor 等游标之后、
+        # 返回之前：一次 observe 若既来了 history 又来了降级，两者的先后关系仍然按发生序。
+        new_events.extend(self._drain_swallows(now))
+
         self._buffer.extend(new_events)
         if len(self._buffer) >= self.flush_every:
             self.flush()
         return new_events
+
+    def _drain_swallows(self, now: float) -> list[dict]:
+        """把进程级 swallow 缓冲区搬成事件（t9）。抽空，同一条只落盘一次。
+
+        两个刻意的选择：
+
+        - **缓冲进程级、游标实例级**：buffer 属于本 Logger，清空等于认领。多个 task 共用
+          一个进程时不会把上一题的降级搬进下一题的 jsonl（游标式的同一纪律）。
+        - **`site` 不折叠**：每一条降级都是一次事实，批里要能数到"这一题发生了几次"。
+          汇总按站点折叠是 `swallow_summary()` 的事，不进日志。
+        """
+        emitted: list[dict] = []
+        while _SWALLOWED:
+            item = _SWALLOWED.pop(0)
+            emitted.append(self._swallow_event(item, now))
+        return emitted
+
+    def _swallow_event(self, item: dict, now: float) -> dict:
+        """一条降级的落盘形状。键名与其余事件一致：event / task_id / timestamp 三件套。
+
+        `site` / `detail` 直接来自 `record_swallow`；`detail` 在记录时就截过 120 字符，
+        这里不再加工——**摘要算法只有一处**（与 `page_digest` 同一条纪律）。
+        """
+        return {
+            "event":     EVENT_SWALLOW,
+            "task_id":   self.task_id,
+            "site":      item.get("site"),
+            "detail":    item.get("detail"),
+            "timestamp": now,
+        }
 
     def finalize(
         self,
@@ -350,5 +480,8 @@ class Logger:
     def _budget_snapshot(step_budget) -> dict:
         try:
             return _to_jsonable(step_budget.log_entry())
-        except Exception:
+        except Exception as e:
+            # t5 普查标 med：预算快照**静默**变成 {}，而它是"这一题烧了多少预算"的
+            # 唯一证据来源 —— 丢掉之后 step_budget 的任何回归都读不出来。
+            record_swallow("budget_snapshot_failed", exc_diag(e))
             return {}

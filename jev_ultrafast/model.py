@@ -11,6 +11,7 @@ import httpx
 
 from .questions import NEXT_ACTION, TARGET, TEXT_VALUE
 from .decider.provider import register_provider, decide, list_providers
+from .logger import exc_diag, record_swallow
 
 # --- M1: Decision 层替换为 decider ---
 from .decider.choose_2b import choose as _choose_2b
@@ -414,13 +415,20 @@ def _laya_then_decider(state, goal, history):
     d = None
     try:
         d = _laya_provider(state, goal, history)
-    except Exception:
+    except Exception as e:
+        # 前置抛错 ⇒ 回退 decider（行为不变）。t5 普查记的是 **n**：这条降级路
+        # 与"laya 弃权"在产物里长得一模一样，于是一台前置整晚没起来也看不出来。
+        record_swallow("laya_provider_failed", exc_diag(e))
         d = None
     if isinstance(d, dict):
         try:
             from .decision_validator import validate as _validate
             ok = _validate(d, state).valid
-        except Exception:
+        except Exception as e:
+            # 校验器**崩了**与校验器**说非法**今天不可分辨，两条都导向同一个回退；
+            # 前者是我们的 bug，后者是模型的坏决策。不分类的话 validator 一旦崩掉，
+            # 表面上只会看到"前置永远不命中，全部回退 decider"（t5 普查标 n）。
+            record_swallow("decision_validator_crashed", exc_diag(e))
             ok = False
         conf = d.get("confidence")
         # DONE/BLOCKED 决定整轮结束，不吃前置：交 decider 复核。

@@ -6,6 +6,46 @@
 
 ---
 
+## [r105-minimum-capability-knife-and-silent-degradation-instrument] - 2026-10-17（t6 + t9：两刀落地，t11 台账登记）
+
+本轮两刀，都由**先测量**开头（t4 零模型形状探针 → t5 静态普查），review 各过一轮（t8 / t10 均 PASS）。
+台账明细（判据、工件、边界）写在 `m2/real-log.md` 的 `t6 登记` / `t9 登记` 两节；下一批 50 行的判据已**起跑前**预登记在同文件。
+
+### t6：`repo_scroll_target` —— r105 的最小能力刀
+
+病家有工件：`m2/shape_5rows_2026-10-17.md` E 段（repo 页 3 条 releases 链在 +894..984px，780px 视口折叠线下方，
+快照只索引视口内动作 ⇒ `explicit_target` 结构性够不到）。刀 = goal 明写 repository 且当前就在该仓库页、
+目标链全在折叠线下、y ≤ 334（一步 560px 后可见的实测几何）→ 一发 SCROLL_DOWN，随后交给 `explicit_target` 或模型。
+
+- `jev_ultrafast/skills.py`：一个新技能 + SKILLS 元组一个槽位（+80/-1，排在 `explicit_target` 之后 = 它开火就让位）。
+- `tests/test_r105_scroll_target.py`：11 案，全离线零模型；**失败测试先行 0/8 → 11/11**。
+- 断言与到达判据一字未动（`url_matches github.com/pytorch/pytorch/releases`）；目的地词取自 goal 自己的字面词，**没添词表**。
+- 活体安全复测（纪律③）：`smoke.ps1 -Live` 5/5 PASS、fp=0（`reports/smoke-1017-152820-1017-152917.json`）。
+- 离线全套 41 件 / 334 案全绿（`reports/t8-smoke-tier1.txt`、`reports/t10-smoke-tier1.txt` 两处独立逐件 n/n）。
+
+### t9：静默降级留痕（`swallow` 事件）—— #68 的第二半
+
+`dbg()` 只在 `JEV_DEBUG` 设置时写 stderr，而仓库里没有任何 runner 设它 ⇒ 11 处站点在每批每个工件里零输出
+（普查：`m2/census_silent_swallow_2026-10-17.md`）。新事件类型 `swallow` 落 `logs/<tag>/<id>.jsonl`，
+汇总经 `evaluator._meta` 白名单进 `reports/*.json`；**只有真发生过降级的题才写 `meta.swallow`**。
+
+- `jev_ultrafast/logger.py`：`EVENT_SWALLOW` / `record_swallow`（单一收口，不走开关）/ `exc_diag`（类型名 + 120 字符，第三方正文截断在工件外）/
+  `swallow_summary`（进程级累计，永不被抽干）/ `Logger.observe` 抽干。
+- `jev_ultrafast/browser.py`：11 处宽 except 调 `record_swallow`；`evaluator.py`：`_meta` 白名单 + `assertion_crashed` 多带 `error_type`；
+  `model.py`：provider / validator 两处降级留痕。**留痕不改控制流**（11 案里专钉"块体不许出现 raise"与"不许退化成裸 except/pass"）。
+- `tests/test_swallow_artifact.py`：11 案；t10 复核时对 18 个站点逐路注入，12 个站点控制流返回值与改前逐字相同。
+- 这是**仪器**，不是分数口径：空汇总 ≠ "没有静默降级"（只证明这条路径这次没触发）。
+
+### 五条硬线（两刀都逐字对过，破任何一条 = 读数作废）
+
+1. `false_positive = 0` —— 恒为 0，任何改动都不许把它换成分数。
+2. 零云端只由 step 事件证：`text_helper ⊆ {null, startlux-decision-2b}`；`api_calls=0` 不是证据。
+3. 浏览器归属：连接侧与 kill 侧都只许动 `chrome-cdp-test` / `chrome-jev-profile` 两个自有画像，fail closed 不许 fallback。
+4. 不许提交带凭据的文件；第三方 PII 只记形状/数量/来源，绝不记值。
+5. git 历史里仍有第三方上传标识 ⇒ 对外发布只能走无历史快照，且发布说明必须写"git clone 的读者会看到旧标识"，不许写成"仓库已干净"。
+
+---
+
 ## [first-green-ladder-on-the-new-build] - 2026-10-15 午（44/50、fp=0、error=0：新 build 首条绿阶梯，距 L2 一行）
 
 跑的是 `#88 冻结闸 + #89 仪表` 这版码（`reports/ci-1015-1133.json` = **`CI green`**，批报告

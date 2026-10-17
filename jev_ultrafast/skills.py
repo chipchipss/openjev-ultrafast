@@ -2005,9 +2005,85 @@ def scroll_to_named_target(page: dict, goal: str, history: list) -> dict | None:
     return _decision(ctl["id"].upper(), None, ctl, "scroll_to_named_target")
 
 
+
+# ---------------------------------------------------------------------------
+# 2c. 标识 goal、无候选、页面下方还有内容 → 一次 SCROLL_BOTTOM（t6 / r105）
+# ---------------------------------------------------------------------------
+
+
+
+# ---------------------------------------------------------------------------
+# 2c. 标识 goal 在仓库页上、目标链接在折叠线下 → 一次 SCROLL_DOWN（t6 / r105）
+# ---------------------------------------------------------------------------
+
+def repo_scroll_target(page: dict, goal: str, history: list) -> dict | None:
+    """goal 明写 repository 且**当前就在该仓库页**、目标链接全在折叠线下 → 滚一步。
+
+    病家（t4 实测，m2/shape_5rows_2026-10-17.md E 段）：r105 的 repo 页
+    /pytorch/pytorch 上有 3 条 /pytorch/pytorch/releases 链，全在 +894..984px ——
+    780px 视口折叠线下，快照只索引视口内动作（snapshot.js:124），explicit_target
+    结构性够不到；而 goal 的短语集只有标识 pytorch/pytorch（tests/test_phrases_ident.py
+    ① 钉死），没有任何档位能替它把页面滚过去。一步 SCROLL_DOWN（560px）之后链接落进
+    视口（334..424px），模型与 explicit_target 都重新拿得到它。
+
+    为什么是 SCROLL_DOWN 一步而不是 scroll_bottom：GitHub repo 页文档很高，
+    滚到底会把 +894..984px 的链接甩到视口**上方**去；实测几何只支持一步 560px。
+    发火窗口也由该几何给出：滚一步后可见 ⇔ y+560 ≤ 894 ⇔ y ≤ 334。
+
+    安全性（每条都有反面形状）：
+      - 只认 _REPO_CTX_RE + 标识出现在**当前 URL 路径**里：接管面收在"已到仓库页"
+        这一个实测状态上，首页照旧走原路径（不新增回归面）；
+      - URL 路径已含目标段（到达页）→ 弃权，goal_reached 的收口面不抢；
+      - 目标链接已在索引集（href/label 命中标识 + goal 目的地词）→ 弃权，
+        explicit_target 的拍不抢（r116 交接形状）；
+      - explicit_target 自己开火 → 弃权；
+      - 有界：历史里有本技能 → 永不再发（一发即收，无效果由 _STUCK 退避兜底）；
+      - goal 目的地词取自 **goal 自己的字面词**（Releases），不是站点词表
+        （handover §7：不添词表）。
+    """
+    idents = _repo_ident_phrases(goal or "")
+    if not idents:
+        return None
+    try:
+        path = (_urlparse(page.get("url") or "").path or "").lower()
+    except Exception:
+        return None
+    # 只在"当前就在 goal 点名的那个仓库页"上接管（t4 E 段的实测状态）
+    if not any(p.lower() in path for p in idents):
+        return None
+    # 已经在目标子页上（URL 已含 goal 的目的地词）→ 到达页不动
+    hist = history or []
+    dest_toks = [t for t in _content(goal or "")
+                 if t not in {x for p in idents for x in _tokens(p)}]
+    if any(t in path for t in dest_toks):
+        return None
+    # 有界：滚过一次就永不再发
+    if any(h.get("skill") == "repo_scroll_target" for h in hist):
+        return None
+    idx = indexed_actions(page.get("actions") or [])
+    # 目标链接已进索引集 → explicit_target 的活，弃权
+    for _i, a in idx:
+        if a.get("kind") != "click":
+            continue
+        hay = ((a.get("href") or "") + " " + (a.get("label") or "")).lower()
+        if any(p.lower() in hay for p in idents) and any(t in hay for t in dest_toks):
+            return None
+    # explicit_target 自己开火 → 它的拍，弃权
+    if explicit_target(page, goal or "", hist) is not None:
+        return None
+    # 实测发火窗口：一步 560px 后链接可见 ⇔ y ≤ 334（链接在 +894..984、视口 780）
+    if ((page.get("scroll") or {}).get("y") or 0) > 334:
+        return None
+    down = _scroll_ctl(page, "down")
+    if down is None:
+        return None
+    return _decision("SCROLL_DOWN", None, down, "repo_scroll_target")
+
+
 #: 提交成功的可见确认字样（与 DoneGuard 规则 3 同表）。
 _CONFIRM_WORDS = ("thank", "success", "confirm", "received", "submitted", "saved",
                   "已提交", "谢谢", "完成", "已保存")
+
 
 
 def confirm_then_done(page: dict, goal: str, history: list) -> dict | None:
@@ -2118,10 +2194,12 @@ def first_result(page: dict, goal: str, history: list) -> dict | None:
 # 顺序即优先级。search_submit 放最后：机票页要先填完 from/to/日期/票种再提交。
 # scroll_to_named_target 紧跟 explicit_target：目标在首屏就点它，不在首屏就先让页面动，
 # 再往下才轮到 fill/search 族（r116 第一次单任务实测：晚一步就被站内搜索框拐走）。
+# repo_scroll_target 紧随其后：goal 明写 repository 且已在仓库页、目标链接全在折叠线下
+# 时滚一步（t6/r105 实测几何）；排在 explicit_target 之后 = 它开火就让位。
 SKILLS = (blocked_dead_page, page_not_ready, goal_reached, link_followed_arrival,
           stop_when_visible,
           confirm_then_done, scroll_to_target, first_result,
-          goto_path, explicit_target, scroll_to_named_target,
+          goto_path, explicit_target, scroll_to_named_target, repo_scroll_target,
           select_option,
           form_fill, form_submit, entity_fill, entity_confirm,
           trip_type, search_type, select_first, date_pick, search_submit)

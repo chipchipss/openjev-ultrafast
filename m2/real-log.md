@@ -7490,3 +7490,121 @@ init 抛穿那一刻，把一份**有界的浏览器/daemon 诊断**（`:9222` �
 结构 PII 闸 5/5（README 本身是被扫对象）。推后 `git ls-remote origin refs/heads/main` = `f8bd1f2b1bab…` = 本次 HEAD。
 无改写历史、无 force。桌面那两份文档（交接 / 计划书）**在仓外**，不随快照分发 —— 这条边界已写进 README，
 对外发布时要按硬线重写口径。
+
+
+---
+
+## 预登记 · 下一批真实站 50 行的判据（2026-10-17 17:3x，**起跑前**写死；跑完不许改）
+
+**为什么要跑这一批**：b24（10-11）之后落了三组能改批读数的改动 —— #84a（`blocked_by_upstream_shell` 归因档）、
+#46（删 `explicit_target` 词重叠档）、#85（带码 egress 行重跑一次）之后，又落了本轮两刀：
+**t6 的 `repo_scroll_target` 地板**（`jev_ultrafast/skills.py` + `tests/test_r105_scroll_target.py`，11/11）
+与 **t9 的静默降级留痕**（`logger.record_swallow` / `swallow_summary` / `evaluator._meta` 白名单 + `tests/test_swallow_artifact.py`，11/11）。
+当前 build 的最新 50 行读数是 10-15 12:04 的 `reports/ci-1015-1204-1015-122424.json`（**44/50、fp=0、error=0**），
+而那之后产品码又动了（t6/t9 两刀）⇒ **必须给这两刀各拿一个配对样本**，不是"重跑一次旧读数"。
+
+**跑法（与 10-14/10-15 四条阶梯同一条链，判决器未动）**：
+`scripts/ci_local.ps1 -Full -Tasks 50`（MinPass=43 / 墙钟 14 分钟，阈值一字不动）；
+开跑前重置 serve 栈、以 `:8090/health` 判活；跑批期间不许编辑 `jev_ultrafast/*`（纪律⑥）。
+
+**判据（跑之前钉死，跑完不许改）**：
+1. `pass ≥ 45` ⇒ L2 的凭证换绑到当前 build；`43–44` ⇒ 计划书那一行维持"判据由 b24 持有，当前 build 读数 <n>/50"，
+   **不许把环境行说成达成**，也**不许**把 44 说成"没进步"（链路正常的行被 #85 接住是工程账，要照实记）。
+2. 硬线一条不让（下方"五条硬线"逐字重抄，本批逐条对）：
+   `false_positive = 0`；零云端只由 step 事件 `text_helper ⊆ {null, startlux-decision-2b}` 证（**不看 `api_calls`**）；
+   浏览器只许连/杀 `chrome-cdp-test` / `chrome-jev-profile` 两个自有画像（起跑前与收尾后各打一次归属计数）。
+3. **t6 的靶心判据（可证伪的那条）**：`r105` 必须从 FAIL 翻 PASS，且翻的方式是
+   `history` 里出现 `repo_scroll_target` 的 SCROLL_DOWN 一拍、随后由 `explicit_target`（或模型）点到
+   `github.com/pytorch/pytorch/releases`；终页断言条款一字不动。若 r105 仍 FAIL，或翻的方式不是这条路径
+   （例如模型自己多滚了一拍）⇒ **这一刀记"未兑现"，不许记成能力收益**。
+4. **t6 的反面判据**：`r122`（非 repository goal）与 `r106`（引号 id 档）的形状不许被新地板碰
+   —— 它们在 tier1 的 ⑨⑩ 两案里离线钉死，批里再看一次活体：这两行的 `history` 不得出现 `repo_scroll_target`。
+   另：非环境翻动必须 ⊆ 同 build 抖动集合 `{r129, r157, r158, r161, r178, r187}`（`m2/tier3_batch_audit.py` 的 `SAME_BUILD_CHURN`）。
+5. **t9 的判据（读数，不是分数）**：批报告 `summary` 与逐行 `meta` 里 `swallow` 键只在该进程真的发生过降级时出现；
+   **未发生 = 不写这个键**（离线第 7 案钉的就是这个）。若本批 50 行 `swallow` 汇总为空 ⇒ 如实写"本轮 0 次静默降级"，
+   **不许**把空汇总说成"没有静默降级"（那是两回事：它只证明这条路径这次没触发）。
+6. 没写报告就是 **BLOCKED**（exit 3），既不算过也不算失败，按 #74/#85/#88 的先例记录原因（RAM 闸、出口预检、浏览器归属）；
+   **少行 = BLOCKED ≠ 少分 = 分数红，两者永不并档**（#88 的 `Get-FreezeRowGap` 自己守）。
+7. 回滚规则：破任何一条硬线，或判据 3/4 出现"翻的方式不对"，按纪律回滚该刀（只回滚那一刀，不连带另一刀），
+   并在本文件记回滚原因与回滚前的读数。
+
+**预期（先写下，可证伪）**：44–46 之间。r105 翻 PASS 是这一批的靶心（t4 实测几何支持，t6 的 11 案离线支持），
+但它**只是把当前 build 的能力缺口从 6 行减到 5 行**，L2 的换绑线仍是 45；r101（pypi 墙）与重试无关
+（`blocked_by_bot_wall` 没有 `ERR_*` 码 ⇒ 按 #85 判据 1"没有错误码就不许重跑"）。r127/r129 约一半概率被重试救回。
+
+**五条硬线（本节逐字重抄，破任何一条 = 这批读数作废，不是扣分）**：
+1. **`false_positive = 0`** —— 恒为 0，任何改动都不许把它换成分数。
+2. **零云端只由 step 事件证**：`text_helper ⊆ {null, startlux-decision-2b}`。**`api_calls=0` 不是证据**
+   （它只数 teacher 升级路径；历史上正是它藏住了 56 次云端调用）。
+3. **浏览器归属**：连接侧与 kill 侧都只许动 `chrome-cdp-test` / `chrome-jev-profile` 两个自有画像。
+   每个入口都设 `BU_CDP_URL=http://127.0.0.1:9222`，`jev_ultrafast/browser.py::_assert_owned_browser()` 先验归属再碰浏览器，
+   **fail closed 不许 fallback**。读数若在"连到操作者浏览器"的状态下产生 ⇒ **作废重跑，不解释**。
+4. **不许提交带凭据的文件**；**第三方 PII 只记形状/数量/来源，绝不记值**（`tests/test_no_third_party_pii.py` 是结构闸，
+   它自己的示例串也算被扫对象）。
+5. **git 历史里仍有第三方上传标识**（#79 结案：不改写共享历史）。因此**对外发布只能走无历史快照**
+   `python m2/make_release_snapshot.py`（`history_included: false`），而且发布说明里必须写
+   "git clone 的读者会看到旧标识"—— **不许写成"仓库已干净"**。
+
+> 另两条同源但不属本批判据、同样有约束力：**"近似上游水平"永远不许对外声明**（#76 由操作者取消，不是"暂未证明"）；
+> **推送要逐批口头授权**，改写历史 / force-push 未授权。
+
+**本节之后若要写读数，必须是另一节**（"读数"标题，带工件链接）；本节一个字节都不改 —— 这就是"预登记在前"的判据本身。
+
+
+---
+
+## t6 登记：`repo_scroll_target` —— r105 的最小能力刀（2026-10-17，measured 先行，review 已过）
+
+**证据链（零模型 → 离线 → 活体安全复测 → review）**：
+- **病家来自测量，不是猜**：t4 的 `m2/shape_5rows_2026-10-17.md` E 段（零模型、自有 headless Chrome）——
+  repo 页 `/pytorch/pytorch` 有 3 条 `/pytorch/pytorch/releases` 链在 **+894..984px**，780px 视口折叠线下方；
+  `snapshot.js` 只索引视口内动作 ⇒ `explicit_target` 结构性够不到；goal 短语集只有标识 `pytorch/pytorch`
+  （`tests/test_phrases_ident.py` ① 钉死）；而 `goal_reached` 在 releases 页本身照常 DONE（同文件 T 段）。
+- **改动的形状**（`git diff --cached --stat` = 2 文件 +275/-1）：
+  `jev_ultrafast/skills.py` +80/-1（一个新技能 + SKILLS 元组一个槽位，插在 `explicit_target` / `scroll_to_named_target` 之后）、
+  `tests/test_r105_scroll_target.py` 新增 196 行（11 案，全离线、零模型、零浏览器）。
+- **失败测试先行**：改前 **0/8**（当时只有 8 案）记在案上；改后 **11/11**（后补 ⑨⑩⑪ 三案钉 0-fp 与全链穿透）。
+- **活体安全复测**（纪律③：动共享码要跑 x001/x002）：`scripts/smoke.ps1 -Live` 5 任务
+  **5/5 PASS、fp=0**，工件 `reports/smoke-1017-152820-1017-152917.json`（s005/n004/x001/x002/r142）。
+- **离线全套（两处独立跑，均逐件 n/n）**：t8 复跑 `reports/t8-smoke-tier1.txt`、t10 复跑 `reports/t10-smoke-tier1.txt`，
+  41 件 / 334 案全绿（本登记前我又跑一次：41 件 / 334 案，含新套件 11/11）。
+- **review**：t8 第一轮 **PASS**（最小改动 / 硬线未松 / 靶心可证伪三条全过，含 `SCROLL_DOWN`+`target=None`
+  过 validator 的 D8 一致性）。
+
+**边界（写死，防读者读宽）**：
+- 这一刀**不买分数判据**：`url_matches github.com/pytorch/pytorch/releases` 一字未动；
+  它买的是"地板不再结构性够不到折叠线下的目标"。
+- **不发词的**：目的地词取自 goal 自己的字面词（Releases），没添任何站点词表（README 规则 6 / 交接 §7）。
+- **只在一处接管**：`_REPO_CTX_RE` + 标识出现在当前 URL 路径 ⇒ 全场 101 题只有 r105 一个 witness；
+  到达页、目标已入索引集、`explicit_target` 自己开火、无 scroll 控件、窗口外（y>334）全部弃权；一发即收。
+- **回滚面**：只回滚这一个技能 + 一个元组槽位，不影响 t9 任何文件。
+
+---
+
+## t9 登记：静默降级留痕（`swallow` 事件）—— #68 的第二半（2026-10-17，review 已过）
+
+**病灶是有测量的**：`m2/census_silent_swallow_2026-10-17.md`（静态扫 `jev_ultrafast/*.py` 17 文件 8,179 行）
+—— `dbg()` 只在 `JEV_DEBUG` 设置时写 stderr，而**仓库里没有任何 runner 设它**（ci_local / run_one / m1/run_tasks / smoke 全数过）
+⇒ 11 处 `dbg` 站点在每一批的每一个工件里都是零输出，`browser.py` 至今一条 print 诊断都没有。
+普查本身不动一行码（"没做仪器"比"做了仪器没人看"更难发现，这一刀只补"看得到"）。
+
+**改动的形状**（`git diff --stat` = 4 源文件 +210/-24，`git diff --cached` 另含新测试）：
+`jev_ultrafast/logger.py`（`EVENT_SWALLOW` / `record_swallow` / `exc_diag` / `swallow_summary` / `Logger.observe` 抽干）、
+`browser.py`（11 处宽 except 里调 `record_swallow`）、`evaluator.py`（`_meta` 白名单放 `swallow`；`assertion_crashed` 多带 `error_type`）、
+`model.py`（provider/validator 两处降级留痕）；新测试 `tests/test_swallow_artifact.py` 376 行 / **11 案**。
+
+**为什么走 jsonl + `_meta` 白名单，而不是 stderr 或 step 事件**：
+宽 except 的点（装防御、settle 判据、归属探针）发生在"拍与拍之间"，没有对应的 history 条目可挂 ——
+塞进 step 白名单就得给 history 造一条假条目（把仪器塞进数据结构的老坑）。所以它是**独立事件类型**，
+落 `logs/<tag>/<id>.jsonl`（批里 `grep swallow` 数得到），汇总由 `evaluator._meta` 带进 `reports/*.json`。
+**只有真的发生过降级的题才写 `meta.swallow`**（与 `arrival_relook_ms` / `stuck` / `err` 同口径）—— 没发生的题不写这个键。
+
+**验证链**：
+- 离线全套：t10 复跑 `reports/t10-smoke-tier1.txt` 41 件 / 334 案绿；本登记前又跑一次 41 件 / 334 案（含新套件 11/11）。
+- **留痕不改控制流**：11 案里专钉两案 —— 宽 except 块体里不许出现 `raise`（#68 的边界）、
+  不许退化成裸 `except` / 裸 `pass`；t10 复核时对 18 个站点逐路注入过一遍，12 个站点的控制流返回值与改前逐字相同。
+- **有界**：异常类型名 + 120 字符摘要，URL 与查询串不进可分享工件（#79/#75 同族）。
+- **review**：t10 第一轮 **PASS**（带一条非阻塞注记）。
+
+**边界**：这一刀是**仪器**，不是分数口径；它不许被读成"这批 fp/error 变好了"，
+也不许把空汇总说成"没有静默降级"（空汇总只证明这条路径这次没触发 —— 判据已写进上一节第 5 条）。

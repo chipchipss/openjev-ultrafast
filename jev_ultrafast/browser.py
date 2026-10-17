@@ -8,7 +8,7 @@ import sys
 import time
 from pathlib import Path
 
-from jev_ultrafast.logger import dbg
+from jev_ultrafast.logger import dbg, exc_diag, record_swallow
 from browser_harness.admin import ensure_daemon, restart_daemon
 from browser_harness.helpers import cdp
 
@@ -55,7 +55,10 @@ def _listener_cmdline(port: int):
     """命令行里带 --user-data-dir 的那个进程；查不到返回 None（fail closed 由调用方决定）。"""
     try:
         out = _run_text(["netstat", "-ano", "-p", "TCP"], 5)
-    except Exception:
+    except Exception as e:                              # noqa: BLE001
+        # 归属探针瞎了不等于没人监听：照旧 fail closed（返回 None），但**原因**必须留 ——
+        # 否则一次 netstat 抽风读起来与"我们没起浏览器"逐字相同（t5 普查：n 处观测为零）。
+        record_swallow("listener_probe_failed", exc_diag(e))
         return None
     pids = {l.split()[-1] for l in out.splitlines()
             if f":{port}" in l and "LISTENING" in l and l.split()[-1].isdigit()}
@@ -65,7 +68,9 @@ def _listener_cmdline(port: int):
         f"(Get-CimInstance Win32_Process -Filter 'ProcessId={p}').CommandLine" for p in pids)
     try:
         out = _run_text(["powershell", "-NoProfile", "-Command", probes], 10)
-    except Exception:
+    except Exception as e:                          # noqa: BLE001
+        # 同上：探针失败与"端口上不是我们的 Chrome"必须能在产物里分开。
+        record_swallow("listener_cmdline_failed", exc_diag(e))
         return None
     lines = [x for x in out.splitlines() if x.strip() and "Get-CimInstance" not in x]
     return "\n".join(lines) or None
@@ -95,11 +100,15 @@ def _ensure_daemon() -> None:
         ensure_daemon(wait=DAEMON_WAIT)
         return
     except Exception as e:                              # noqa: BLE001
-        dbg("daemon_ensure_failed", f"{type(e).__name__}: {str(e)[:120]}")
+        # dbg 是 #68 的老通道（JEV_DEBUG 才有输出），t9 补上工件级的那一半：
+        # 没有 runner 设 JEV_DEBUG，所以只写 dbg 等于在每一批里都是零输出。
+        dbg("daemon_ensure_failed", exc_diag(e))
+        record_swallow("daemon_ensure_failed", exc_diag(e))
     try:
         restart_daemon()          # 清掉楔死的 daemon（含其 Chrome）
     except Exception as e:                              # noqa: BLE001
-        dbg("daemon_restart_failed", f"{type(e).__name__}: {str(e)[:120]}")
+        dbg("daemon_restart_failed", exc_diag(e))
+        record_swallow("daemon_restart_failed", exc_diag(e))
     ensure_daemon(wait=DAEMON_WAIT)
 
 
@@ -178,7 +187,10 @@ class Browser:
                       _response_timeout=5)
         except Exception as e:                          # noqa: BLE001
             # 装不上就照旧跑（等价于改前行为），但 #60 那类楔死会静默回来 ⇒ 必须留一行。
-            dbg("modal_guard_not_installed", f"{type(e).__name__}: {str(e)[:120]}")
+            # #60 那 +4.4s 的模态楔死会**静默**回来：装不上=等价改前行为，
+            # 可"这一题的 124.5s 是谁付的"必须在批里数得到，不只在一行 stderr 里。
+            dbg("modal_guard_not_installed", exc_diag(e))
+            record_swallow("modal_guard_not_installed", exc_diag(e))
         self.call("Page.navigate", url=url)
         deadline = time.monotonic() + 15
         while time.monotonic() < deadline:
@@ -218,8 +230,10 @@ class Browser:
                     # daemon 可能已掉，重新 ensure
                     try:
                         _ensure_daemon()
-                    except Exception:
-                        pass
+                    except Exception as e:                  # noqa: BLE001
+                        # 末次异常仍会由循环外的 `raise last` 抛出（fail loud 不变）；
+                        # 但中间几次"为什么还要重试"今天一点痕迹都没有（t5 普查标 n）。
+                        record_swallow("cdp_daemon_retry_failed", exc_diag(e))
         raise last
 
     def evaluate(self, expression):
@@ -259,8 +273,10 @@ class Browser:
                     awaitPromise=True,
                     returnByValue=True,
                 )
-            except RuntimeError:
-                pass
+            except RuntimeError as e:
+                # 读取态的兜底查询被导航打断（documented transitional）。控制流不动，
+                # 但"读没读到"今天在批里分不出来（t5 普查标 n）——补一条有界诊断。
+                record_swallow("after_input_read_failed", exc_diag(e))
             # Fix O（n004 三轮冻结 + 单任务复跑）：act() 之后那次 settle 会在**整页导航**时
             # 撞上"执行上下文被销毁"，而那条路是 `except Exception: pass`（注释写明交给
             # observe 的 StalePage 重试）。可 StalePage 只会重试"读"，不会等"渲染" ——
@@ -337,7 +353,10 @@ class Browser:
                 awaitPromise=True,
                 returnByValue=True,
             )
-        except Exception:
+        except Exception as e:
+            # 判据取不到 DOM（导航中/缓存被清）⇒ 退化回盲等。**等多久是白付的**，
+            # 这个降级必须数得到，否则墙钟回归只能靠猜（t5 普查标 n）。
+            record_swallow("dom_settle_eval_failed", exc_diag(e))
             time.sleep(cap_s)
 
     # 动作后 settle detection（n004 靶子）：SPA 的结果在动作后数秒才渲染，复观察太早
@@ -363,7 +382,8 @@ class Browser:
         try:
             self.call("Runtime.evaluate", expression=SETTLE_INIT_JS, returnByValue=True)
         except Exception as e:                          # noqa: BLE001
-            dbg("settle_init_eval_failed", f"{type(e).__name__}: {str(e)[:120]}")
+            dbg("settle_init_eval_failed", exc_diag(e))
+            record_swallow("settle_init_eval_failed", exc_diag(e))
         if not getattr(self, "_settle_registered", False):
             try:
                 self.call("Page.enable")
@@ -371,7 +391,8 @@ class Browser:
                 self._settle_registered = True
             except Exception as e:                      # noqa: BLE001
                 # 不支持就该照旧工作：少一份跨导航计数器，等价于改前行为，不能让动作失败。
-                dbg("settle_init_not_registered", f"{type(e).__name__}: {str(e)[:120]}")
+                dbg("settle_init_not_registered", exc_diag(e))
+                record_swallow("settle_init_not_registered", exc_diag(e))
 
     def await_action_settle(self, kind: str) -> None:
         cap_ms = self.SETTLE_CAPS_MS.get(kind)
@@ -423,7 +444,8 @@ class Browser:
             )
         except Exception as e:                          # noqa: BLE001
             # 导航会销毁执行上下文 —— 后续 observe 的 StalePage 重试负责接住过渡态。
-            dbg("scroll_settle_failed", f"{type(e).__name__}: {str(e)[:120]}")
+            dbg("scroll_settle_failed", exc_diag(e))
+            record_swallow("scroll_settle_failed", exc_diag(e))
 
     def _await_settle(self, cap_ms: int, floor_ms: int = 0, quiet_ms: int | None = None) -> None:
         quiet = self.SETTLE_QUIET_MS if quiet_ms is None else quiet_ms
@@ -462,9 +484,10 @@ class Browser:
                 awaitPromise=True,
                 returnByValue=True,
             )
-        except Exception:
+        except Exception as e:                          # noqa: BLE001
             # 导航会销毁执行上下文 —— 后续 observe 的 StalePage 重试负责接住过渡态。
-            pass
+            # 控制流一字不动，只是这次降级要在批里数得到。
+            record_swallow("action_settle_eval_failed", exc_diag(e))
 
     def reload(self):
         """整页重载并等 readyState 落地。
@@ -479,8 +502,10 @@ class Browser:
             try:
                 if self.evaluate("document.readyState") == "complete":
                     break
-            except StalePage:
-                pass
+            except StalePage as e:
+                # readyState 读取被导航打断，等下一拍（这是设计内的收口路径）。
+                # 留痕只是因为 reload 兜底"等满了 15 秒还没落地"这一形状今天读不出因。
+                record_swallow("reload_ready_read_failed", exc_diag(e))
             time.sleep(0.05)
         return {"status": "reloaded", "ok": True}
 

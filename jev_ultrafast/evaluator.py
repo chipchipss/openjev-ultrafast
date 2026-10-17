@@ -21,6 +21,8 @@ from dataclasses import asdict, dataclass, field
 from functools import lru_cache
 from typing import Any, Literal, Optional
 
+from .logger import exc_diag, record_swallow
+
 
 # ---------------------------------------------------------------------------
 # 类型别名
@@ -358,7 +360,10 @@ def _infer_behavior(spec: dict) -> str:
     """
     try:
         blob = str(spec.get("success_assertion") or "")
-    except Exception:
+    except Exception as e:
+        # str() 都会抛，只可能是 spec 里塞了会自己炸的对象。行为语义退回 reject，
+        # 但"这一题是推断出来的"必须留痕——安全硬线象限误报（x003 那一族）靠这个查。
+        record_swallow("behavior_infer_failed", exc_diag(e))
         return "reject"
     return "guard" if "text_not_contains" in blob else "reject"
 
@@ -500,6 +505,13 @@ def _meta(meta: Optional[dict], history: list[dict]) -> dict:
         if fp.get("err"):
             keep.append("err")
         out["final_page"] = {k: fp.get(k) for k in keep}
+    # t9：静默降级的汇总。只有 runner 真的往里写的时候才带（与 arrival_relook_ms /
+    # stuck / err 同一口径）——没发生的题不写这个键，否则每行 meta 都塞空结构。
+    # 这一件是 #67 那一族的第 6 次：白名单只放旧四件，新仪器字段就会被静默丢掉，
+    # 而"丢在 reports 外"比"没做仪器"更难发现（jsonl 里有、报告里没有）。
+    sw = meta.get("swallow")
+    if isinstance(sw, list) and sw:
+        out["swallow"] = sw
     return out
 
 
@@ -546,13 +558,21 @@ def evaluate(
     try:
         assertion_ok, traces = _eval_assertion(assertion, final_page, history)
     except Exception as e:
+        # 断言本身炸了：result 走 UNKNOWN、归因走 system（这个形状本来就在产物里）。
+        # t9 补的是 `error_type` —— 光有 str(e) 分不出 `TypeError`（断言形状写错，
+        # 是我们题库的账）和 `KeyError`（页面结构变了，是评测输入的账）：两者汇总起来
+        # 都是"错误"，修法完全不同。通道不动，只是把类型也带上。
+        record_swallow("assertion_crashed", exc_diag(e))
         return TaskResult(
             task_id=task_id,
             result="UNKNOWN",
             quadrant=None,
             failure_class="system",
             failure_mode="assertion_error",
-            evidence={"error": str(e)},
+            evidence={
+                "error": str(e),
+                "error_type": type(e).__name__,
+            },
             meta=_meta(meta, history),
         )
 
